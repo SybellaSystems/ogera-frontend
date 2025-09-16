@@ -1,16 +1,37 @@
 import { useFormik } from "formik";
 import ResetPasswordTemplate from "../components/ResetPassword";
 import { resetPasswordValidation } from "../validation/Index";
+import { useResetPasswordMutation } from "../features/api/authApi";
+import { useEffect } from "react";
+import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 const ResetPassword = () => {
+  const navigate = useNavigate();
+  const [resetPassword, { data, isSuccess, isError, error, isLoading }] =
+    useResetPasswordMutation();
+
   const formik = useFormik({
     initialValues: {
       newPassword: "",
       confirmPassword: "",
     },
     validationSchema: resetPasswordValidation,
-    onSubmit: (values) => {
-      console.log("Reset Password values:", values);
+    onSubmit: async (values) => {
+      const resetToken = localStorage.getItem("resetToken");
+      if (!resetToken) {
+        toast.error("Reset token not found. Please try again.");
+        return;
+      }
+
+      try {
+        await resetPassword({
+          newPassword: values.newPassword,
+          resetToken,
+        }).unwrap();
+      } catch (err) {
+        console.error("Reset Password error:", err);
+      }
     },
   });
 
@@ -37,6 +58,18 @@ const ResetPassword = () => {
     },
   ];
 
+  useEffect(() => {
+    if (isError && error) {
+      toast.error("Failed to reset password");
+    }
+
+    if (data && isSuccess) {
+      toast.success(data?.message || "Password reset successful");
+      localStorage.removeItem("resetToken");
+      navigate("/auth/login");
+    }
+  }, [data, isSuccess, isError, error, navigate]);
+
   return (
     <form onSubmit={formik.handleSubmit}>
       <ResetPasswordTemplate
@@ -44,7 +77,7 @@ const ResetPassword = () => {
         subHeading="Set the new password for your account so you can login and access all features."
         fields={fields}
         showResend={false}
-        buttonText="Reset Password"
+        buttonText={isLoading ? "Resetting..." : "Reset Password"}
       />
     </form>
   );

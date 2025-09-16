@@ -1,9 +1,17 @@
 import { useFormik } from "formik";
 import RestPasswordTemplate from "../components/ResetPassword";
 import { otpValidation } from "../validation/Index";
-import type { VerifyOtpFormValues } from "../type/index";
+import type { VerifyOtpFormValues } from "../type/Index";
+import { useVerifyOtpMutation } from "../features/api/authApi";
+import { useEffect } from "react";
+import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 const VerifyOtp = () => {
+  const navigate = useNavigate();
+  const [verifyOtp, { data, isSuccess, isError, error, isLoading }] =
+    useVerifyOtpMutation();
+
   const formik = useFormik<VerifyOtpFormValues>({
     initialValues: {
       otp1: "",
@@ -12,12 +20,22 @@ const VerifyOtp = () => {
       otp4: "",
     },
     validationSchema: otpValidation,
-    onSubmit: (values) => {
-      console.log("OTP values:", values);
+    onSubmit: async (values) => {
+      const resetToken = localStorage.getItem("resetToken");
+      if (!resetToken) {
+        toast.error("Reset token not found. Please try again.");
+        return;
+      }
+
+      const otp = `${values.otp1}${values.otp2}${values.otp3}${values.otp4}`;
+      try {
+        await verifyOtp({ otp, resetToken }).unwrap();
+      } catch (err) {
+        console.error("Verify OTP error:", err);
+      }
     },
   });
 
-  // Combine all OTP errors into one string
   const otpError =
     formik.touched.otp1 && formik.errors.otp1
       ? formik.errors.otp1
@@ -45,6 +63,17 @@ const VerifyOtp = () => {
     },
   ];
 
+  useEffect(() => {
+    if (isError && error) {
+      toast.error("Invalid OTP");
+    }
+
+    if (data && isSuccess) {
+      toast.success(data?.message || "OTP Verified Successfully");
+      navigate("/auth/reset-password");
+    }
+  }, [data, isSuccess, isError, error, navigate]);
+
   return (
     <form onSubmit={formik.handleSubmit}>
       <RestPasswordTemplate
@@ -52,7 +81,7 @@ const VerifyOtp = () => {
         subHeading="Enter the 4-digit code you received on your email."
         fields={fields}
         showResend={true}
-        buttonText="Verify OTP"
+        buttonText={isLoading ? "Verifying..." : "Verify OTP"}
       />
     </form>
   );

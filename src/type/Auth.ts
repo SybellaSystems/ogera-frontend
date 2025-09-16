@@ -32,6 +32,7 @@ export interface VerifyOtpFormValues {
   otp2: string;
   otp3: string;
   otp4: string;
+  
 }
 
 export interface ChangePasswordFormValues {

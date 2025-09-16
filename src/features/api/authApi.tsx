@@ -1,6 +1,6 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
-const AUTH_API = "http://localhost:5001/api/auth";
+const AUTH_API = "http://localhost:5000/api/auth";
 
 export const authApi = createApi({
   reducerPath: "authApi",
@@ -28,9 +28,29 @@ export const authApi = createApi({
         url: "/forgot-password",
         method: "POST",
         body: values,
-      })
-    })
+      }),
+    }),
+    verifyOtp: builder.mutation({
+      query: (values) => ({
+        url: "/verify-otp",
+        method: "POST",
+        body: values, 
+      }),
+    }),
+    resetPassword: builder.mutation({
+      query: (values) => ({
+        url: "/reset-password",
+        method: "POST",
+        body: values,
+      }),
+    }),
   }),
 });
 
-export const {useRegisterUserMutation,useLoginUserMutation, useForgotPasswordMutation} = authApi;
+export const {
+  useRegisterUserMutation,
+  useLoginUserMutation,
+  useForgotPasswordMutation,
+  useVerifyOtpMutation,
+  useResetPasswordMutation,
+} = authApi;

@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { styled } from "@mui/material/styles";
 import logo from "../assets/logoWhite.png";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import IconButton from "@mui/material/IconButton";
@@ -63,106 +62,139 @@ const Register = () => {
   }, [isError, error, data, isSuccess, resetForm, navigate]);
 
   return (
-    <RegisterMainContainer>
+    <div className="w-screen min-h-screen flex flex-col md:flex-row bg-gray-50">
       {/* Left Section */}
-      <RegisterLeftContainer>
-        <Logo />
-        <LeftTextContainer>
-          <TextContainer>
-            <Heading>Your Success Story Starts Here</Heading>
-            <SubHeading>
-              Connect with trusted employers, earn money instantly via mobile
-              payments, and maintain your academic excellence – all in one
-              platform designed for African students.
-            </SubHeading>
-          </TextContainer>
-          <TestimonialCard>
-            <p>
-              I earned $500 last month while maintaining my 3.8 GPA! Ogera's
-              academic tracking kept me focused.
-            </p>
-            <UserInfo>
-              <img
-                src="https://randomuser.me/api/portraits/women/44.jpg"
-                alt="User testimonial"
-              />
-              <div>
-                <span>Daphne Park</span>
-                <span>Computer Science Student</span>
-              </div>
-            </UserInfo>
-          </TestimonialCard>
-        </LeftTextContainer>
-      </RegisterLeftContainer>
+      <div className="hidden md:flex flex-col justify-between bg-[#7f56d9] rounded-2xl m-1 w-2/5 p-6 text-white">
+        {/* Logo */}
+        <div
+          className="h-10 w-24 bg-contain bg-no-repeat"
+          style={{ backgroundImage: `url(${logo})` }}
+        />
+
+        {/* Hero Text */}
+        <div className="flex flex-col items-center text-center mt-20 gap-4">
+          <h1 className="text-4xl font-bold w-3/4">
+            Your Success Story Starts Here
+          </h1>
+          <p className="text-gray-200 w-4/5 text-base">
+            Connect with trusted employers, earn money instantly via mobile
+            payments, and maintain your academic excellence – all in one
+            platform designed for African students.
+          </p>
+        </div>
+
+        {/* Testimonial Card */}
+        <div className="bg-[rgba(32,15,163,0.5)] rounded-xl p-4 mt-20 shadow-lg max-w-md mx-auto">
+          <p className="text-white mb-3 text-sm">
+            I earned $500 last month while maintaining my 3.8 GPA! Ogera's
+            academic tracking kept me focused.
+          </p>
+          <div className="flex items-center gap-3">
+            <img
+              src="https://randomuser.me/api/portraits/women/44.jpg"
+              alt="User testimonial"
+              className="w-10 h-10 rounded-full"
+            />
+            <div className="flex flex-col">
+              <span className="font-semibold text-sm">Daphne Park</span>
+              <span className="text-xs text-gray-300">
+                Computer Science Student
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Right Section */}
-      <RegisterRightContainer>
-        <RegisterFormContainer onSubmit={formik.handleSubmit}>
-          <Head>Create your account with us below</Head>
-          <SmallText>
-            Already have an account? <a href="/auth/login">Sign In</a>
-          </SmallText>
+      <div className="flex justify-center items-start w-full md:w-3/5 p-6 md:p-12 overflow-y-auto">
+        <form
+          onSubmit={formik.handleSubmit}
+          className="w-full max-w-lg flex flex-col"
+        >
+          <p className="text-2xl font-semibold mb-2">
+            Create your account with us below
+          </p>
+          <p className="text-sm text-gray-600 mb-5">
+            Already have an account?{" "}
+            <a href="/auth/login" className="text-[#7f56d9] hover:underline">
+              Sign In
+            </a>
+          </p>
 
           {/* Account Type Toggle */}
-          <ToggleGroup>
+          <div className="flex gap-3 mb-5">
             {(["student", "employer"] as const).map((type) => (
-              <ToggleOption key={type}>
+              <label
+                key={type}
+                className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-lg border cursor-pointer transition
+                  ${
+                    formik.values.accountType === type
+                      ? "bg-purple-50 border-[#7f56d9] font-semibold text-[#7f56d9]"
+                      : "bg-white border-gray-300 text-gray-600"
+                  }`}
+              >
                 <input
                   type="radio"
                   name="accountType"
                   value={type}
                   checked={formik.values.accountType === type}
                   onChange={formik.handleChange}
+                  className="hidden"
                 />
-                <span>
-                  {type === "student" ? "As a Student" : "As an Employer"}
-                </span>
-              </ToggleOption>
+                {type === "student" ? "As a Student" : "As an Employer"}
+              </label>
             ))}
-          </ToggleGroup>
+          </div>
 
           {/* Full Name */}
-          <FormGroup>
-            <Label htmlFor="full_name">Full Name</Label>
-            <Input
+          <div className="mb-4">
+            <label className="block mb-1 text-sm font-medium">Full Name</label>
+            <input
               id="full_name"
               name="full_name"
               placeholder="Enter your full name"
+              className="w-full p-3 border rounded-lg text-sm"
               value={formik.values.full_name}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
             />
             {formik.touched.full_name && formik.errors.full_name && (
-              <ErrorText>{formik.errors.full_name}</ErrorText>
+              <p className="text-xs text-red-500 mt-1">
+                {formik.errors.full_name}
+              </p>
             )}
-          </FormGroup>
+          </div>
 
           {/* Email */}
-          <FormGroup>
-            <Label htmlFor="email">Email Address</Label>
-            <Input
+          <div className="mb-4">
+            <label className="block mb-1 text-sm font-medium">
+              Email Address
+            </label>
+            <input
               id="email"
               name="email"
               type="email"
               placeholder="Enter your email"
+              className="w-full p-3 border rounded-lg text-sm"
               value={formik.values.email}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
             />
             {formik.touched.email && formik.errors.email && (
-              <ErrorText>{formik.errors.email}</ErrorText>
+              <p className="text-xs text-red-500 mt-1">
+                {formik.errors.email}
+              </p>
             )}
-          </FormGroup>
+          </div>
 
           {/* Password */}
-          <FormGroup>
-            <Label htmlFor="password">Password</Label>
+          <div className="mb-4">
+            <label className="block mb-1 text-sm font-medium">Password</label>
             <TextField
               id="password"
               name="password"
               type={showPassword ? "text" : "password"}
               placeholder="Create your password"
-              variant="outlined"
               fullWidth
               size="small"
               value={formik.values.password}
@@ -175,7 +207,7 @@ const Register = () => {
                     <IconButton
                       onClick={handleClickShowPassword}
                       edge="end"
-                      type="button" // prevent form submit
+                      type="button"
                     >
                       {showPassword ? <VisibilityOff /> : <Visibility />}
                     </IconButton>
@@ -184,323 +216,133 @@ const Register = () => {
               }}
             />
             {formik.touched.password && formik.errors.password && (
-              <ErrorText>{formik.errors.password}</ErrorText>
+              <p className="text-xs text-red-500 mt-1">
+                {formik.errors.password}
+              </p>
             )}
-          </FormGroup>
+          </div>
 
           {/* Conditional Fields */}
           {formik.values.accountType === "student" ? (
-            <FormGroup>
-              <Label htmlFor="national_id_number">National ID Number</Label>
-              <Input
+            <div className="mb-4">
+              <label className="block mb-1 text-sm font-medium">
+                National ID Number
+              </label>
+              <input
                 id="national_id_number"
                 name="national_id_number"
                 placeholder="Enter your national ID number"
+                className="w-full p-3 border rounded-lg text-sm"
                 value={formik.values.national_id_number}
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
               />
               {formik.touched.national_id_number &&
                 formik.errors.national_id_number && (
-                  <ErrorText>{formik.errors.national_id_number}</ErrorText>
+                  <p className="text-xs text-red-500 mt-1">
+                    {formik.errors.national_id_number}
+                  </p>
                 )}
-            </FormGroup>
+            </div>
           ) : (
-            <FormGroup>
-              <Label htmlFor="businessId">Business Registration ID</Label>
-              <Input
+            <div className="mb-4">
+              <label className="block mb-1 text-sm font-medium">
+                Business Registration ID
+              </label>
+              <input
                 id="businessId"
                 name="businessId"
                 placeholder="Enter your business registration ID"
+                className="w-full p-3 border rounded-lg text-sm"
                 value={formik.values.businessId}
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
               />
               {formik.touched.businessId && formik.errors.businessId && (
-                <ErrorText>{formik.errors.businessId}</ErrorText>
+                <p className="text-xs text-red-500 mt-1">
+                  {formik.errors.businessId}
+                </p>
               )}
-            </FormGroup>
+            </div>
           )}
 
           {/* Mobile Number */}
-          <FormGroup>
-            <Label htmlFor="mobile_number">Mobile Number</Label>
-            <Input
+          <div className="mb-4">
+            <label className="block mb-1 text-sm font-medium">
+              Mobile Number
+            </label>
+            <input
               id="mobile_number"
               name="mobile_number"
               placeholder="Enter your mobile number"
+              className="w-full p-3 border rounded-lg text-sm"
               value={formik.values.mobile_number}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
             />
             {formik.touched.mobile_number && formik.errors.mobile_number && (
-              <ErrorText>{formik.errors.mobile_number}</ErrorText>
+              <p className="text-xs text-red-500 mt-1">
+                {formik.errors.mobile_number}
+              </p>
             )}
-          </FormGroup>
+          </div>
 
           {/* Terms & Privacy */}
-          <TermsContainer>
-            <TermsItem>
+          <div className="flex flex-col gap-3 mb-4">
+            <label className="flex items-start gap-2 text-sm">
               <input
                 type="checkbox"
                 id="terms"
                 name="terms"
                 checked={formik.values.terms}
                 onChange={formik.handleChange}
+                className="mt-1"
               />
-              <label htmlFor="terms">
-                I agree to the <a href="#">Terms of Service</a>
-              </label>
-              {formik.touched.terms && formik.errors.terms && (
-                <ErrorText>{formik.errors.terms}</ErrorText>
-              )}
-            </TermsItem>
+              I agree to the{" "}
+              <a
+                href="#"
+                className="text-[#7f56d9] font-medium hover:underline"
+              >
+                Terms of Service
+              </a>
+            </label>
+            {formik.touched.terms && formik.errors.terms && (
+              <p className="text-xs text-red-500">{formik.errors.terms}</p>
+            )}
 
-            <TermsItem>
+            <label className="flex items-start gap-2 text-sm">
               <input
                 type="checkbox"
                 id="privacy"
                 name="privacy"
                 checked={formik.values.privacy}
                 onChange={formik.handleChange}
+                className="mt-1"
               />
-              <label htmlFor="privacy">
-                I agree to the <a href="#">Privacy Policy</a>
-              </label>
-              {formik.touched.privacy && formik.errors.privacy && (
-                <ErrorText>{formik.errors.privacy}</ErrorText>
-              )}
-            </TermsItem>
-          </TermsContainer>
+              I agree to the{" "}
+              <a
+                href="#"
+                className="text-[#7f56d9] font-medium hover:underline"
+              >
+                Privacy Policy
+              </a>
+            </label>
+            {formik.touched.privacy && formik.errors.privacy && (
+              <p className="text-xs text-red-500">{formik.errors.privacy}</p>
+            )}
+          </div>
 
+          {/* Submit Button */}
           <Button
             backgroundcolor="#7f56d9"
             type="submit"
-            text={isLoading ? "Submitting..." : "Submit"}
+            text={isLoading ? "Submitting..." : "Create Account"}
             disabled={isLoading}
           />
-        </RegisterFormContainer>
-      </RegisterRightContainer>
-    </RegisterMainContainer>
+        </form>
+      </div>
+    </div>
   );
 };
 
 export default Register;
-
-/* ----------------- Styled Components ----------------- */
-
-const RegisterMainContainer = styled("div")`
-  width: 100vw;
-  height: 100vh;
-  display: flex;
-  @media (max-width: 768px) {
-    flex-direction: column;
-    height: 100vh;
-  }
-`;
-
-const RegisterLeftContainer = styled("div")`
-  background-color: #7f56d9;
-  width: 40%;
-  height: 98%;
-  margin: 5px;
-  border-radius: 20px;
-  @media (max-width: 768px) {
-    display: none;
-  }
-`;
-
-const Logo = styled("div")`
-  background: url(${logo}) no-repeat center center;
-  background-size: contain;
-  height: 40px;
-  width: 100px;
-  margin: 20px;
-`;
-
-const TextContainer = styled("div")`
-  margin-top: 8rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  text-align: center;
-`;
-
-const Heading = styled("h1")`
-  font-size: 40px;
-  font-weight: 700;
-  width: 70%;
-`;
-
-const SubHeading = styled("p")`
-  font-size: 16px;
-  color: #ddd;
-  width: 75%;
-`;
-
-const TestimonialCard = styled("div")`
-  background: rgba(32, 15, 163, 0.5);
-  margin: 8rem auto 0 auto;
-  border-radius: 12px;
-  padding: 0.8rem;
-  text-align: left;
-  max-width: 450px;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
-  p {
-    font-size: 0.95rem;
-    margin-bottom: 1rem;
-    color: #fff;
-  }
-`;
-
-const UserInfo = styled("div")`
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  img {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-  }
-  div {
-    display: flex;
-    flex-direction: column;
-    span:first-of-type {
-      font-weight: bold;
-      font-size: 0.9rem;
-    }
-    span:last-of-type {
-      font-size: 0.8rem;
-      color: #ddd;
-    }
-  }
-`;
-
-const LeftTextContainer = styled("div")`
-  color: #ffffff;
-`;
-
-const RegisterRightContainer = styled("div")`
-  width: 60%;
-  padding: 40px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  @media (max-width: 768px) {
-    width: 100%;
-    height: 100%;
-    padding: 20px;
-  }
-`;
-
-const Head = styled("p")`
-  font-size: 26px;
-  font-weight: 600;
-`;
-
-const RegisterFormContainer = styled("form")`
-  max-width: 550px;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  @media (max-width: 768px) {
-    max-width: 100%;
-  }
-`;
-
-const SmallText = styled("p")`
-  font-size: 14px;
-  margin-bottom: 20px;
-  a {
-    color: #7f56d9;
-    text-decoration: none;
-  }
-`;
-
-const ToggleGroup = styled("div")`
-  display: flex;
-  margin-bottom: 20px;
-  gap: 10px;
-`;
-
-const ToggleOption = styled("label")`
-  flex: 1;
-  padding: 15px;
-  border-radius: 10px;
-  border: 1px solid #ccc;
-  background: #fff;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: all 0.3s ease;
-  input:checked + span {
-    color: #7f56d9;
-    font-weight: 600;
-  }
-  &:has(input:checked) {
-    background: #f3ebff;
-    border-color: #7f56d9;
-  }
-`;
-
-const FormGroup = styled("div")`
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 15px;
-`;
-
-const Label = styled("label")`
-  margin-bottom: 6px;
-  font-size: 14px;
-  font-weight: 500;
-  color: #333;
-`;
-
-const Input = styled("input")`
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-  font-size: 14px;
-`;
-
-const ErrorText = styled("div")`
-  font-size: 12px;
-  color: red;
-  margin-top: 4px;
-`;
-
-const TermsContainer = styled("div")`
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin: 15px 0;
-`;
-
-const TermsItem = styled("div")`
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  font-size: 14px;
-  & input {
-    width: 18px;
-    height: 18px;
-    cursor: pointer;
-  }
-  & label {
-    line-height: 1.4;
-  }
-  & a {
-    color: #7f56d9;
-    text-decoration: none;
-    font-weight: 500;
-    &:hover {
-      text-decoration: underline;
-      color: #6e47c4;
-    }
-  }
-`;

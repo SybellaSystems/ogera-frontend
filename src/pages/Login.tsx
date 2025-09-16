@@ -1,4 +1,3 @@
-import { styled } from "@mui/material/styles";
 import loginImage from "../assets/login.png";
 import logo from "../assets/Logo.png";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
@@ -24,6 +23,7 @@ const Login = () => {
   const navigate = useNavigate();
 
   const handleClickShowPassword = () => setShowPassword((prev) => !prev);
+
   const formik = useFormik<LoginFormValues>({
     initialValues: {
       email: "",
@@ -42,9 +42,10 @@ const Login = () => {
   });
 
   useEffect(() => {
-
     if (isError && error) {
-      const err = error as FetchBaseQueryError & { data?: { message?: string } };
+      const err = error as FetchBaseQueryError & {
+        data?: { message?: string };
+      };
       toast.error(err?.data?.message || "Something went wrong");
     }
 
@@ -54,41 +55,68 @@ const Login = () => {
       navigate("/auth/register");
     }
   }, [isError, error, data, isSuccess]);
+
   return (
-    <LoginMainContainer>
+    <div className="w-screen h-screen flex flex-col sm:flex-row font-inter">
       {/* Left Section */}
-      <LoginLeftContainer>
-        <LeftContent>
-          <Logo />
-          <WelcomeTextContainer>
-            <Heading>Welcome to Ogera 👋</Heading>
-            <SubHeading>
+      <div className="w-full sm:w-1/2 h-screen bg-white flex items-center justify-center p-5">
+        <div className="w-3/4 flex flex-col items-start gap-8 sm:w-3/4 sm:gap-6">
+          {/* Logo */}
+          <img
+            src={logo}
+            alt="Ogera Logo"
+            className="h-10 mb-5 object-contain"
+          />
+
+          {/* Welcome Text */}
+          <div className="flex flex-col gap-2">
+            <p className="text-2xl font-semibold text-gray-900 sm:text-lg">
+              Welcome to Ogera 👋
+            </p>
+            <p className="text-sm text-gray-600 sm:text-xs">
               Sign in to access your Ogera account and continue earning while
               you learn.
-            </SubHeading>
-          </WelcomeTextContainer>
+            </p>
+          </div>
 
-          <LoginFormContainer as="form" onSubmit={formik.handleSubmit}>
+          {/* Form */}
+          <form
+            className="flex flex-col gap-5 w-full"
+            onSubmit={formik.handleSubmit}
+          >
             {/* Email */}
-            <FormGroup>
-              <Label htmlFor="email">Email Address</Label>
-              <Input
+            <div className="flex flex-col gap-1 w-full">
+              <label
+                htmlFor="email"
+                className="text-sm font-medium text-gray-900"
+              >
+                Email Address
+              </label>
+              <input
                 id="email"
                 name="email"
                 type="email"
                 placeholder="Enter your email address"
+                className="px-4 py-3 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 value={formik.values.email}
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
               />
               {formik.touched.email && formik.errors.email && (
-                <ErrorText>{formik.errors.email}</ErrorText>
+                <div className="text-xs text-red-500 mt-1">
+                  {formik.errors.email}
+                </div>
               )}
-            </FormGroup>
+            </div>
 
             {/* Password */}
-            <FormGroup>
-              <Label htmlFor="password">Password</Label>
+            <div className="flex flex-col gap-1 w-full">
+              <label
+                htmlFor="password"
+                className="text-sm font-medium text-gray-900"
+              >
+                Password
+              </label>
               <TextField
                 id="password"
                 name="password"
@@ -112,340 +140,123 @@ const Login = () => {
                 }}
               />
               {formik.touched.password && formik.errors.password && (
-                <ErrorText>{formik.errors.password}</ErrorText>
+                <div className="text-xs text-red-500 mt-1">
+                  {formik.errors.password}
+                </div>
               )}
-            </FormGroup>
+            </div>
 
-            <ForgotPassword href="/auth/forgot-password">Forgot Password?</ForgotPassword>
+            {/* Forgot Password */}
+            <a
+              href="/auth/forgot-password"
+              className="text-xs text-indigo-600 hover:underline self-end"
+            >
+              Forgot Password?
+            </a>
 
             {/* Terms & Privacy */}
-            <TermsContainer>
-              <TermsItem>
+            <div className="flex flex-col gap-3 my-4">
+              <div className="flex items-start gap-2 text-sm text-gray-800">
                 <input
                   type="checkbox"
                   id="terms"
                   name="terms"
                   checked={formik.values.terms}
                   onChange={formik.handleChange}
+                  className="w-4 h-4 cursor-pointer"
                 />
-                <label htmlFor="terms">
-                  I agree to the <a href="#">Terms of Service</a>
+                <label htmlFor="terms" className="leading-5">
+                  I agree to the{" "}
+                  <a
+                    href="#"
+                    className="text-indigo-600 font-medium hover:underline"
+                  >
+                    Terms of Service
+                  </a>
                 </label>
-                {formik.touched.terms && formik.errors.terms && (
-                  <ErrorText>{formik.errors.terms}</ErrorText>
-                )}
-              </TermsItem>
+              </div>
+              {formik.touched.terms && formik.errors.terms && (
+                <div className="text-xs text-red-500 mt-1">
+                  {formik.errors.terms}
+                </div>
+              )}
 
-              <TermsItem>
+              <div className="flex items-start gap-2 text-sm text-gray-800">
                 <input
                   type="checkbox"
                   id="privacy"
                   name="privacy"
                   checked={formik.values.privacy}
                   onChange={formik.handleChange}
+                  className="w-4 h-4 cursor-pointer"
                 />
-                <label htmlFor="privacy">
-                  I agree to the <a href="#">Privacy Policy</a>
+                <label htmlFor="privacy" className="leading-5">
+                  I agree to the{" "}
+                  <a
+                    href="#"
+                    className="text-indigo-600 font-medium hover:underline"
+                  >
+                    Privacy Policy
+                  </a>
                 </label>
-                {formik.touched.privacy && formik.errors.privacy && (
-                  <ErrorText>{formik.errors.privacy}</ErrorText>
-                )}
-              </TermsItem>
-            </TermsContainer>
+              </div>
+              {formik.touched.privacy && formik.errors.privacy && (
+                <div className="text-xs text-red-500 mt-1">
+                  {formik.errors.privacy}
+                </div>
+              )}
+            </div>
 
+            {/* Submit */}
             <ReuseButton
-              backgroundcolor=" #7f56d9"
+              backgroundcolor="#7f56d9"
               type="submit"
               text={isLoading ? "Please Wait ..." : "Sign In"}
               disabled={isLoading}
             />
 
-            <SignUpText>
-              Don’t have an account? <a href="/auth/register">Sign Up</a>
-            </SignUpText>
-          </LoginFormContainer>
-        </LeftContent>
-      </LoginLeftContainer>
+            {/* Sign up */}
+            <p className="text-sm text-gray-600 text-center mt-3">
+              Don’t have an account?{" "}
+              <a
+                href="/auth/register"
+                className="text-indigo-600 font-medium hover:underline"
+              >
+                Sign Up
+              </a>
+            </p>
+          </form>
+        </div>
+      </div>
 
-      {/* Right Section (hidden on mobile) */}
-      <LoginRightContainer>
-        <Overlay />
-        <RightContent>
-          <RightCard>
-            <h2>Empowering Africa's Students</h2>
-            <p>
+      {/* Right Section */}
+      <div
+        className="hidden sm:block w-1/2 h-screen relative rounded-tl-3xl rounded-bl-3xl overflow-hidden bg-cover bg-center"
+        style={{ backgroundImage: `url(${loginImage})` }}
+      >
+        <div className="absolute inset-0 bg-indigo-600 opacity-50" />
+        <div className="relative text-white p-16 flex flex-col justify-center items-center h-full">
+          <div className="bg-black/30 p-5 rounded-lg max-w-md text-left">
+            <h2 className="text-3xl font-extrabold mb-3">
+              Empowering <br />
+              Africa&apos;s Students
+            </h2>
+            <p className="text-sm leading-relaxed">
               Ogera is Africa’s premier student job platform that connects
               ambitious students with flexible, trusted part-time opportunities
               while ensuring academic excellence through performance tracking
               and instant mobile money payments.
             </p>
-          </RightCard>
+          </div>
 
-          <BottomText>
+          <p className="mt-12 text-m opacity-70 max-w-md text-left">
             Ogera is dedicated to solving the critical challenge facing African
             students
-          </BottomText>
-        </RightContent>
-      </LoginRightContainer>
-    </LoginMainContainer>
+          </p>
+        </div>
+      </div>
+    </div>
   );
 };
 
 export default Login;
-
-/* ================== Styled Components ================== */
-
-const LoginMainContainer = styled("div")(({ theme }) => ({
-  width: "100vw",
-  height: "100vh",
-  display: "flex",
-  flexDirection: "row",
-  fontFamily: "Inter, sans-serif",
-
-  [theme.breakpoints.down("sm")]: {
-    flexDirection: "column", // stack on small devices
-  },
-}));
-
-const LoginLeftContainer = styled("div")(({ theme }) => ({
-  width: "50vw",
-  height: "100vh",
-  backgroundColor: theme.palette.background.paper,
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-
-  [theme.breakpoints.down("sm")]: {
-    width: "100%",
-    height: "100%",
-    padding: "20px",
-  },
-}));
-
-const LeftContent = styled("div")(({ theme }) => ({
-  width: "70%",
-  display: "flex",
-  flexDirection: "column",
-  gap: "30px",
-
-  [theme.breakpoints.down("sm")]: {
-    width: "100%",
-    gap: "20px",
-  },
-}));
-
-const Logo = styled("div")`
-  background: url(${logo}) no-repeat center center;
-  background-size: contain;
-  height: 40px;
-  width: 120px;
-  margin-bottom: 20px;
-`;
-
-const WelcomeTextContainer = styled("div")`
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-`;
-
-const Heading = styled("p")(({ theme }) => ({
-  fontSize: "26px",
-  fontWeight: 600,
-  color: theme.palette.text.primary,
-
-  [theme.breakpoints.down("sm")]: {
-    fontSize: "20px",
-    textAlign: "center",
-  },
-}));
-
-const SubHeading = styled("p")(({ theme }) => ({
-  fontSize: "15px",
-  color: theme.palette.text.secondary,
-
-  [theme.breakpoints.down("sm")]: {
-    fontSize: "13px",
-    textAlign: "center",
-  },
-}));
-
-const LoginFormContainer = styled("form")`
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-`;
-
-const FormGroup = styled("div")`
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-`;
-
-const Label = styled("label")(({ theme }) => ({
-  fontSize: "13px",
-  fontWeight: 500,
-  color: theme.palette.text.primary,
-}));
-
-const Input = styled("input")(({ theme }) => ({
-  padding: "12px 15px",
-  borderRadius: "8px",
-  border: `1px solid ${theme.palette.divider}`,
-  fontSize: "14px",
-  outline: "none",
-  transition: "border-color 0.2s ease",
-  "&:focus": {
-    borderColor: theme.palette.primary.main,
-  },
-}));
-
-const ForgotPassword = styled("a")(({ theme }) => ({
-  fontSize: "12px",
-  color: theme.palette.primary.main,
-  cursor: "pointer",
-  alignSelf: "flex-end",
-  textDecoration: "none",
-  "&:hover": {
-    textDecoration: "underline",
-  },
-}));
-
-const SignInButton = styled("button")(({ theme }) => ({
-  backgroundColor: theme.palette.primary.main,
-  color: theme.palette.primary.contrastText,
-  padding: "12px",
-  border: "none",
-  borderRadius: "8px",
-  fontSize: "14px",
-  cursor: "pointer",
-  marginTop: "10px",
-  fontWeight: 500,
-  "&:hover": {
-    backgroundColor: theme.palette.primary.dark,
-  },
-}));
-
-const SignUpText = styled("p")(({ theme }) => ({
-  fontSize: "13px",
-  margin: "0 auto",
-  marginTop: "10px",
-  color: theme.palette.text.secondary,
-  "& a": {
-    color: theme.palette.primary.main,
-    textDecoration: "none",
-    fontWeight: 500,
-    "&:hover": {
-      textDecoration: "underline",
-    },
-  },
-}));
-
-/* ================== Right Section ================== */
-
-const LoginRightContainer = styled("div")(({ theme }) => ({
-  width: "50vw",
-  height: "100vh",
-  position: "relative",
-  borderTopLeftRadius: "30px",
-  borderBottomLeftRadius: "30px",
-  overflow: "hidden",
-  background: `url(${loginImage}) no-repeat center center`,
-  backgroundSize: "cover",
-
-  [theme.breakpoints.down("sm")]: {
-    display: "none", // ✅ Hide on mobile
-  },
-}));
-
-const Overlay = styled("div")(({ theme }) => ({
-  position: "absolute",
-  top: 0,
-  left: 0,
-  right: 0,
-  bottom: 0,
-  background: theme.palette.primary.main,
-  opacity: 0.5,
-}));
-
-const RightContent = styled("div")`
-  position: relative;
-  color: white;
-  padding: 60px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
-`;
-
-const RightCard = styled("div")`
-  background: rgba(0, 0, 0, 0.3);
-  padding: 20px;
-  border-radius: 10px;
-  max-width: 450px;
-  margin: 0 auto;
-  h2 {
-    font-size: 30px;
-    font-weight: 900;
-    margin-bottom: 10px;
-  }
-  p {
-    font-size: 14px;
-    line-height: 1.5;
-  }
-`;
-
-const BottomText = styled("p")`
-  margin: 0 auto;
-  margin-top: 50px;
-  padding-top: 10px;
-  font-size: 14px;
-  opacity: 0.7;
-`;
-
-const ErrorText = styled("div")(({ theme }) => ({
-  fontSize: "12px",
-  color: theme.palette.error.main,
-  marginTop: "4px",
-}));
-
-const TermsContainer = styled("div")(({ theme }) => ({
-  display: "flex",
-  flexDirection: "column",
-  gap: "12px",
-  margin: "15px 0",
-}));
-
-const TermsItem = styled("div")(({ theme }) => ({
-  display: "flex",
-  alignItems: "flex-start",
-  gap: "8px",
-  fontSize: "14px",
-  color: theme.palette.text.primary, 
-
-  "& input": {
-    width: "18px",
-    height: "18px",
-    cursor: "pointer",
-  },
-
-  "& label": {
-    lineHeight: 1.4,
-  },
-
-  "& a": {
-    color: theme.palette.primary.main, // ✅ link uses primary color
-    textDecoration: "none",
-    fontWeight: 500,
-
-    "&:hover": {
-      textDecoration: "underline",
-      color: theme.palette.primary.dark, // ✅ hover from palette
-    },
-  },
-
-  "& .required": {
-    color: theme.palette.error.main, // ✅ required * in error color
-    marginLeft: "4px",
-  },
-}));
