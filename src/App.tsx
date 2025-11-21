@@ -6,6 +6,7 @@ import StudentLayout from "./layouts/StudentLayout";
 import EmployerLayout from "./layouts/EmployerLayout";
 
 import Login from "./pages/Login";
+import Home from "./pages/Home";
 import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
@@ -33,6 +34,7 @@ function App() {
 
   const router = createBrowserRouter([
     /** ---------------- PUBLIC ROUTES ---------------- **/
+    { path: "/", Component: Home },
     { path: "/auth/login", Component: Login },
     { path: "/auth/register", Component: Register },
     { path: "/auth/forgot-password", Component: ForgotPassword },
