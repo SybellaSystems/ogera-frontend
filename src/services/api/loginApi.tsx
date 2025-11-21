@@ -9,5 +9,5 @@ export interface LoginApiResponse {
 
 export const loginApi = (values: any) => async () => {
   const res = await api.post<LoginApiResponse>("/auth/login", values);
-  return res.data; // now strongly typed
+  return res.data; 
 };

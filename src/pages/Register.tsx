@@ -142,6 +142,7 @@ const Register = () => {
             <Input
               id="full_name"
               name="full_name"
+              maxLength={20}
               placeholder="Enter your full name"
               value={formik.values.full_name}
               onChange={formik.handleChange}
@@ -210,6 +211,7 @@ const Register = () => {
               <Input
                 id="national_id_number"
                 name="national_id_number"
+                maxLength={15}
                 placeholder="Enter your national ID number"
                 value={formik.values.national_id_number}
                 onChange={formik.handleChange}
@@ -226,6 +228,7 @@ const Register = () => {
               <Input
                 id="businessId"
                 name="businessId"
+                maxLength={15}
                 placeholder="Enter your business registration ID"
                 value={formik.values.businessId}
                 onChange={formik.handleChange}
@@ -243,6 +246,7 @@ const Register = () => {
             <Input
               id="mobile_number"
               name="mobile_number"
+              maxLength={10}
               placeholder="Enter your mobile number"
               value={formik.values.mobile_number}
               onChange={formik.handleChange}

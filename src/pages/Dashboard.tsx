@@ -7,7 +7,6 @@ import {
 } from "@heroicons/react/24/outline";
 
 const Dashboard: React.FC = () => {
-  // ----- Static Analytics Data -----
   const stats = [
     {
       title: "Total Users",

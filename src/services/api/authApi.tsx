@@ -3,7 +3,6 @@ import { apiSlice } from "./apiSlice";
 export const authApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
 
-    // register (kept if needed)
     registerUser: builder.mutation({
       query: (values) => ({
         url: "/auth/register",
@@ -12,7 +11,6 @@ export const authApi = apiSlice.injectEndpoints({
       }),
     }),
 
-    // 1) send forgot password -> returns resetToken in response.data.resetToken
     forgotPassword: builder.mutation({
       query: (values) => ({
         url: "/auth/forgot-password",
@@ -21,7 +19,6 @@ export const authApi = apiSlice.injectEndpoints({
       }),
     }),
 
-    // 2) verify OTP -> body: { otp, resetToken }
     verifyOtp: builder.mutation({
       query: (values) => ({
         url: "/auth/verify-otp",
@@ -30,7 +27,6 @@ export const authApi = apiSlice.injectEndpoints({
       }),
     }),
 
-    // 3) reset password -> body: { newPassword, resetToken }
     resetPassword: builder.mutation({
       query: (values) => ({
         url: "/auth/reset-password",
