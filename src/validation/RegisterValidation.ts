@@ -21,8 +21,8 @@ export const registerValidationSchema = Yup.object({
     then: (schema) => schema.required("Business ID is required"),
   }),
   mobile_number: Yup.string()
-    .matches(/^[0-9]{10}$/, "Mobile number must be exactly 10 digits")
-    .required("Phone number is required"),
+  .matches(/^\d{10}$/, "Mobile number must be exactly 10 digits and contain only numbers")
+  .required("Phone number is required"),
   terms: Yup.bool().oneOf([true], "You must accept the terms"),
   privacy: Yup.bool().oneOf([true], "You must accept the privacy policy"),
 });

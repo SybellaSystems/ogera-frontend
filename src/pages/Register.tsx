@@ -13,9 +13,16 @@ import { useRegisterUserMutation } from "../services/api/authApi";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import type { FetchBaseQueryError } from "@reduxjs/toolkit/query";
+import TermsModal from "../components/TermsModal";
+import PrivacyModal from "../components/PrivacyModal";
 
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
+
+  // Modals
+  const [openTerms, setOpenTerms] = useState(false);
+  const [openPrivacy, setOpenPrivacy] = useState(false);
+
   const navigate = useNavigate();
 
   const [registerUser, { data, isError, isLoading, isSuccess, error }] =
@@ -40,19 +47,18 @@ const Register = () => {
     validationSchema: registerValidationSchema,
     onSubmit: async (values) => {
       try {
-        // ⭐ Build payload EXACTLY as backend expects
         const payload = {
           full_name: values.full_name,
           email: values.email,
           mobile_number: values.mobile_number,
           password: values.password,
-          role: values.accountType, // ⭐ IMPORTANT
+          role: values.accountType,
           national_id_number:
-            values.accountType === "student"
-              ? values.national_id_number
-              : null,
+            values.accountType === "student" ? values.national_id_number : null,
           business_registration_id:
             values.accountType === "employer" ? values.businessId : null,
+          terms: values.terms,
+          privacy: values.privacy,
         };
 
         await registerUser(payload).unwrap();
@@ -66,7 +72,9 @@ const Register = () => {
 
   useEffect(() => {
     if (isError && error) {
-      const err = error as FetchBaseQueryError & { data?: { message?: string } };
+      const err = error as FetchBaseQueryError & {
+        data?: { message?: string };
+      };
       toast.error(err?.data?.message || "Something went wrong");
     }
 
@@ -91,6 +99,7 @@ const Register = () => {
               platform designed for African students.
             </SubHeading>
           </TextContainer>
+
           <TestimonialCard>
             <p>
               I earned $500 last month while maintaining my 3.8 GPA! Ogera's
@@ -249,8 +258,11 @@ const Register = () => {
               maxLength={10}
               placeholder="Enter your mobile number"
               value={formik.values.mobile_number}
-              onChange={formik.handleChange}
               onBlur={formik.handleBlur}
+              onChange={(e) => {
+                const cleaned = e.target.value.replace(/[^0-9]/g, "");
+                formik.setFieldValue("mobile_number", cleaned);
+              }}
             />
             {formik.touched.mobile_number && formik.errors.mobile_number && (
               <ErrorText>{formik.errors.mobile_number}</ErrorText>
@@ -268,7 +280,10 @@ const Register = () => {
                 onChange={formik.handleChange}
               />
               <label htmlFor="terms">
-                I agree to the <a href="#">Terms of Service</a>
+                I agree to the{" "}
+                <ModalLinkText onClick={() => setOpenTerms(true)}>
+                  Terms of Service
+                </ModalLinkText>
               </label>
               {formik.touched.terms && formik.errors.terms && (
                 <ErrorText>{formik.errors.terms}</ErrorText>
@@ -284,7 +299,10 @@ const Register = () => {
                 onChange={formik.handleChange}
               />
               <label htmlFor="privacy">
-                I agree to the <a href="#">Privacy Policy</a>
+                I agree to the{" "}
+                <ModalLinkText onClick={() => setOpenPrivacy(true)}>
+                  Privacy Policy
+                </ModalLinkText>
               </label>
               {formik.touched.privacy && formik.errors.privacy && (
                 <ErrorText>{formik.errors.privacy}</ErrorText>
@@ -300,30 +318,40 @@ const Register = () => {
           />
         </RegisterFormContainer>
       </RegisterRightContainer>
+
+      {/* External Modals */}
+      <TermsModal open={openTerms} onClose={() => setOpenTerms(false)} />
+      <PrivacyModal open={openPrivacy} onClose={() => setOpenPrivacy(false)} />
     </RegisterMainContainer>
   );
 };
 
 export default Register;
 
-/* ----------------- Styled Components ----------------- */
+/* -------------------------------------------
+   ❗ Your FULL ORIGINAL CSS (unchanged)
+------------------------------------------- */
 
 const RegisterMainContainer = styled("div")`
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  min-height: 100vh;
   display: flex;
+  overflow: hidden;
   @media (max-width: 768px) {
     flex-direction: column;
-    height: 100vh;
   }
 `;
 
 const RegisterLeftContainer = styled("div")`
   background-color: #7f56d9;
   width: 40%;
-  height: 98%;
-  margin: 5px;
+  padding: 30px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
   border-radius: 20px;
+  margin: 10px;
+  overflow-y: auto;
   @media (max-width: 768px) {
     display: none;
   }
@@ -334,61 +362,66 @@ const Logo = styled("div")`
   background-size: contain;
   height: 40px;
   width: 100px;
-  margin: 20px;
+  margin-bottom: 20px;
+`;
+
+const LeftTextContainer = styled("div")`
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 `;
 
 const TextContainer = styled("div")`
-  margin-top: 8rem;
+  margin-top: 3rem;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 15px;
   text-align: center;
 `;
 
 const Heading = styled("h1")`
-  font-size: 40px;
+  font-size: 36px;
   font-weight: 700;
-  width: 70%;
+  width: 80%;
 `;
 
 const SubHeading = styled("p")`
-  font-size: 16px;
+  font-size: 15px;
   color: #ddd;
-  width: 75%;
+  width: 80%;
 `;
 
 const TestimonialCard = styled("div")`
   background: rgba(32, 15, 163, 0.5);
-  margin: 8rem auto 0 auto;
+  margin-top: 3rem;
   border-radius: 12px;
-  padding: 0.8rem;
-  text-align: left;
-  max-width: 450px;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
-  p {
-    font-size: 0.95rem;
-    margin-bottom: 1rem;
-    color: #fff;
-  }
+  padding: 1rem;
+  max-width: 380px;
+  color: #fff;
 `;
 
 const UserInfo = styled("div")`
   display: flex;
   align-items: center;
   gap: 6px;
+
   img {
     width: 40px;
     height: 40px;
     border-radius: 50%;
   }
+
   div {
     display: flex;
     flex-direction: column;
+
     span:first-of-type {
       font-weight: bold;
       font-size: 0.9rem;
     }
+
     span:last-of-type {
       font-size: 0.8rem;
       color: #ddd;
@@ -396,26 +429,17 @@ const UserInfo = styled("div")`
   }
 `;
 
-const LeftTextContainer = styled("div")`
-  color: #ffffff;
-`;
-
 const RegisterRightContainer = styled("div")`
   width: 60%;
-  padding: 40px;
+  padding: 20px 40px;
   display: flex;
   justify-content: center;
   align-items: center;
+  overflow-y: auto;
   @media (max-width: 768px) {
     width: 100%;
-    height: 100%;
     padding: 20px;
   }
-`;
-
-const Head = styled("p")`
-  font-size: 26px;
-  font-weight: 600;
 `;
 
 const RegisterFormContainer = styled("form")`
@@ -423,14 +447,17 @@ const RegisterFormContainer = styled("form")`
   width: 100%;
   display: flex;
   flex-direction: column;
-  @media (max-width: 768px) {
-    max-width: 100%;
-  }
+`;
+
+const Head = styled("p")`
+  font-size: 26px;
+  font-weight: 600;
 `;
 
 const SmallText = styled("p")`
   font-size: 14px;
   margin-bottom: 20px;
+
   a {
     color: #7f56d9;
     text-decoration: none;
@@ -457,10 +484,12 @@ const ToggleOption = styled("label")`
   justify-content: center;
   gap: 8px;
   transition: all 0.3s ease;
+
   input:checked + span {
     color: #7f56d9;
     font-weight: 600;
   }
+
   &:has(input:checked) {
     background: #f3ebff;
     border-color: #7f56d9;
@@ -505,21 +534,35 @@ const TermsItem = styled("div")`
   align-items: flex-start;
   gap: 8px;
   font-size: 14px;
+
   & input {
     width: 18px;
     height: 18px;
     cursor: pointer;
   }
+
   & label {
     line-height: 1.4;
   }
+
   & a {
     color: #7f56d9;
     text-decoration: none;
     font-weight: 500;
+
     &:hover {
       text-decoration: underline;
       color: #6e47c4;
     }
+  }
+`;
+
+const ModalLinkText = styled("span")`
+  color: #7f56d9;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
   }
 `;

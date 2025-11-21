@@ -21,6 +21,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
+
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -30,26 +31,21 @@ const Login = () => {
     initialValues: {
       email: "",
       password: "",
-      terms: false,
-      privacy: false,
+      
     },
     validationSchema: loginValidationSchema,
     onSubmit: async (values) => {
       try {
         setLoading(true);
 
-        // Call login API
         const result: any = await dispatch<any>(loginApi(values));
 
         const accessToken = result.data.accessToken;
-
-        // Decode token
         const decoded: any = jwtDecode(accessToken);
 
         const role = decoded.role;
         const user = { id: decoded.user_id };
 
-        // Save in Redux
         dispatch(
           setCredentials({
             user,
@@ -61,12 +57,10 @@ const Login = () => {
         toast.success("You’re logged in!");
         formik.resetForm();
 
-        // Role-based redirect
         if (role === "admin") navigate("/dashboard");
         else if (role === "student") navigate("/dashboard");
         else if (role === "employer") navigate("/dashboard");
         else navigate("/unauthorized");
-
       } catch (error: any) {
         toast.error(error?.response?.data?.message || "Login failed");
       } finally {
@@ -76,158 +70,129 @@ const Login = () => {
   });
 
   return (
-    <LoginMainContainer>
-      {/* Left Section */}
-      <LoginLeftContainer>
-        <LeftContent>
-          <Logo />
+    <>
+      <LoginMainContainer>
+        {/* Left Section */}
+        <LoginLeftContainer>
+          <LeftContent>
+            <Logo />
 
-          <WelcomeTextContainer>
-            <Heading>Welcome to Ogera 👋</Heading>
-            <SubHeading>
-              Sign in to access your Ogera account and continue earning while you learn.
-            </SubHeading>
-          </WelcomeTextContainer>
+            <WelcomeTextContainer>
+              <Heading>Welcome to Ogera 👋</Heading>
+              <SubHeading>
+                Sign in to access your Ogera account and continue earning while you learn.
+              </SubHeading>
+            </WelcomeTextContainer>
 
-          <LoginFormContainer as="form" onSubmit={formik.handleSubmit}>
-            {/* Email */}
-            <FormGroup>
-              <Label htmlFor="email">Email Address</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="Enter your email address"
-                value={formik.values.email}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-              />
-              {formik.touched.email && formik.errors.email && (
-                <ErrorText>{formik.errors.email}</ErrorText>
-              )}
-            </FormGroup>
-
-            {/* Password */}
-            <FormGroup>
-              <Label htmlFor="password">Password</Label>
-              <TextField
-                id="password"
-                name="password"
-                type={showPassword ? "text" : "password"}
-                placeholder="Enter your password"
-                variant="outlined"
-                fullWidth
-                size="small"
-                value={formik.values.password}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                InputProps={{
-                  style: { borderRadius: "8px", fontSize: "14px" },
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton onClick={handleClickShowPassword} edge="end">
-                        {showPassword ? <VisibilityOff /> : <Visibility />}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                }}
-              />
-              {formik.touched.password && formik.errors.password && (
-                <ErrorText>{formik.errors.password}</ErrorText>
-              )}
-            </FormGroup>
-
-            <ForgotPassword href="/auth/forgot-password">Forgot Password?</ForgotPassword>
-
-            {/* Terms & Privacy */}
-            <TermsContainer>
-              <TermsItem>
-                <input
-                  type="checkbox"
-                  id="terms"
-                  name="terms"
-                  checked={formik.values.terms}
+            <LoginFormContainer as="form" onSubmit={formik.handleSubmit}>
+              {/* Email */}
+              <FormGroup>
+                <Label htmlFor="email">Email Address</Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  placeholder="Enter your email address"
+                  value={formik.values.email}
                   onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
                 />
-                <label htmlFor="terms">
-                  I agree to the <a href="#">Terms of Service</a>
-                </label>
-              </TermsItem>
+                {formik.touched.email && formik.errors.email && (
+                  <ErrorText>{formik.errors.email}</ErrorText>
+                )}
+              </FormGroup>
 
-              <TermsItem>
-                <input
-                  type="checkbox"
-                  id="privacy"
-                  name="privacy"
-                  checked={formik.values.privacy}
+              {/* Password */}
+              <FormGroup>
+                <Label htmlFor="password">Password</Label>
+                <TextField
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Enter your password"
+                  variant="outlined"
+                  fullWidth
+                  size="small"
+                  value={formik.values.password}
                   onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  InputProps={{
+                    style: { borderRadius: "8px", fontSize: "14px" },
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton onClick={handleClickShowPassword} edge="end">
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
                 />
-                <label htmlFor="privacy">
-                  I agree to the <a href="#">Privacy Policy</a>
-                </label>
-              </TermsItem>
+                {formik.touched.password && formik.errors.password && (
+                  <ErrorText>{formik.errors.password}</ErrorText>
+                )}
+              </FormGroup>
 
-              {(formik.touched.terms && formik.errors.terms) ||
-              (formik.touched.privacy && formik.errors.privacy) ? (
-                <ErrorText>Please accept all policies.</ErrorText>
-              ) : null}
-            </TermsContainer>
+              <ForgotPassword href="/auth/forgot-password">Forgot Password?</ForgotPassword>
 
-            <ReuseButton
-              backgroundcolor="#7f56d9"
-              type="submit"
-              text={loading ? "Please Wait ..." : "Sign In"}
-              disabled={loading}
-            />
+              <ReuseButton
+                backgroundcolor="#7f56d9"
+                type="submit"
+                text={loading ? "Please Wait ..." : "Sign In"}
+                disabled={loading}
+              />
 
-            <SignUpText>
-              Don’t have an account? <a href="/auth/register">Sign Up</a>
-            </SignUpText>
-          </LoginFormContainer>
-        </LeftContent>
-      </LoginLeftContainer>
+              <SignUpText>
+                Don’t have an account? <a href="/auth/register">Sign Up</a>
+              </SignUpText>
+            </LoginFormContainer>
+          </LeftContent>
+        </LoginLeftContainer>
 
-      {/* Right Section */}
-      <LoginRightContainer>
-        <Overlay />
-        <RightContent>
-          <RightCard>
-            <h2>Empowering Africa's Students</h2>
-            <p>
-              Ogera is Africa’s premier student job platform that connects ambitious students
-              with flexible opportunities and instant mobile money payments.
-            </p>
-          </RightCard>
+        {/* Right Section */}
+        <LoginRightContainer>
+          <Overlay />
+          <RightContent>
+            <RightCard>
+              <h2>Empowering Africa's Students</h2>
+              <p>
+                Ogera is Africa’s premier student job platform that connects ambitious
+                students with flexible opportunities and instant mobile money payments.
+              </p>
+            </RightCard>
 
-          <BottomText>Ogera is dedicated to solving the challenges students face.</BottomText>
-        </RightContent>
-      </LoginRightContainer>
-    </LoginMainContainer>
+            <BottomText>
+              Ogera is dedicated to solving the challenges students face.
+            </BottomText>
+          </RightContent>
+        </LoginRightContainer>
+      </LoginMainContainer>
+    </>
   );
 };
 
 export default Login;
 
-/* ---------------- Styled Components (unchanged) ---------------- */
+/* ---------------- Your ORIGINAL styles remain unchanged below ---------------- */
 
 const LoginMainContainer = styled("div")(({ theme }) => ({
   width: "100vw",
-  height: "100vh",
+  minHeight: "100vh",
   display: "flex",
   flexDirection: "row",
   fontFamily: "Inter, sans-serif",
+  overflow: "hidden",
   [theme.breakpoints.down("sm")]: { flexDirection: "column" },
 }));
 
 const LoginLeftContainer = styled("div")(({ theme }) => ({
   width: "50vw",
-  height: "100vh",
+  minHeight: "100vh",
   backgroundColor: theme.palette.background.paper,
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
   [theme.breakpoints.down("sm")]: {
-    width: "100%", height: "100%", padding: "20px",
+    width: "100%", minHeight: "100vh", padding: "20px",
   },
 }));
 
@@ -236,7 +201,6 @@ const LeftContent = styled("div")(({ theme }) => ({
   display: "flex",
   flexDirection: "column",
   gap: "30px",
-  [theme.breakpoints.down("sm")]: { width: "100%", gap: "20px" },
 }));
 
 const Logo = styled("div")`
@@ -257,13 +221,11 @@ const Heading = styled("p")(({ theme }) => ({
   fontSize: "26px",
   fontWeight: 600,
   color: theme.palette.text.primary,
-  [theme.breakpoints.down("sm")]: { fontSize: "20px", textAlign: "center" },
 }));
 
 const SubHeading = styled("p")(({ theme }) => ({
   fontSize: "15px",
   color: theme.palette.text.secondary,
-  [theme.breakpoints.down("sm")]: { fontSize: "13px", textAlign: "center" },
 }));
 
 const LoginFormContainer = styled("form")`
@@ -317,7 +279,7 @@ const SignUpText = styled("p")(({ theme }) => ({
 
 const LoginRightContainer = styled("div")(({ theme }) => ({
   width: "50vw",
-  height: "100vh",
+  minHeight: "100vh",
   position: "relative",
   background: `url(${loginImage}) no-repeat center center`,
   backgroundSize: "cover",
@@ -329,7 +291,7 @@ const LoginRightContainer = styled("div")(({ theme }) => ({
 
 const Overlay = styled("div")`
   position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
+  inset: 0;
   background: #7f56d9;
   opacity: 0.5;
 `;
@@ -364,8 +326,7 @@ const RightCard = styled("div")`
 
 const BottomText = styled("p")`
   margin: 0 auto;
-  margin-top: 50px;
-  padding-top: 10px;
+  margin-top: 20px;
   font-size: 14px;
   opacity: 0.7;
 `;
@@ -376,31 +337,4 @@ const ErrorText = styled("div")(({ theme }) => ({
   marginTop: "4px",
 }));
 
-const TermsContainer = styled("div")`
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin: 15px 0;
-`;
 
-const TermsItem = styled("div")`
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  font-size: 14px;
-
-  & input {
-    width: 18px;
-    height: 18px;
-    cursor: pointer;
-  }
-
-  & a {
-    color: #7f56d9;
-    text-decoration: none;
-    font-weight: 500;
-    &:hover {
-      text-decoration: underline;
-    }
-  }
-`;

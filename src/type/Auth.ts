@@ -14,8 +14,6 @@ export interface RegisterFormValues {
 export interface LoginFormValues {
   email: string;
   password: string;
-  terms: boolean;
-  privacy: boolean;
 }
 
 export interface ResetPasswordFormValues {
