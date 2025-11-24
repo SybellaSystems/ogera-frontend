@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { styled } from "@mui/material/styles";
 import logo from "../assets/logoWhite.png";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
@@ -6,38 +6,23 @@ import IconButton from "@mui/material/IconButton";
 import InputAdornment from "@mui/material/InputAdornment";
 import TextField from "@mui/material/TextField";
 import { registerValidationSchema } from "../validation/Index";
-import type { RegisterFormValues } from "../type/Index";
+import type { RegisterFormValues } from "../type/index";
 import { useFormik } from "formik";
-import Button from "../components/button";
-import { useRegisterUserMutation } from "../services/api/authApi";
-import toast from "react-hot-toast";
-import { useNavigate } from "react-router-dom";
-import type { FetchBaseQueryError } from "@reduxjs/toolkit/query";
-import TermsModal from "../components/TermsModal";
-import PrivacyModal from "../components/PrivacyModal";
+import Button from "../components/Button";
 
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
-
-  // Modals
-  const [openTerms, setOpenTerms] = useState(false);
-  const [openPrivacy, setOpenPrivacy] = useState(false);
-
-  const navigate = useNavigate();
-
-  const [registerUser, { data, isError, isLoading, isSuccess, error }] =
-    useRegisterUserMutation();
 
   const handleClickShowPassword = () => setShowPassword((prev) => !prev);
 
   const initialValues: RegisterFormValues = {
     accountType: "student",
-    full_name: "",
+    fullName: "",
     email: "",
     password: "",
-    national_id_number: "",
+    nationalId: "",
     businessId: "",
-    mobile_number: "",
+    phone: "",
     terms: false,
     privacy: false,
   };
@@ -47,84 +32,28 @@ const Register = () => {
     validationSchema: registerValidationSchema,
     onSubmit: async (values) => {
       try {
-        const payload = {
-          full_name: values.full_name,
-          email: values.email,
-          mobile_number: values.mobile_number,
-          password: values.password,
-          role: values.accountType,
-          national_id_number:
-            values.accountType === "student" ? values.national_id_number : null,
-          business_registration_id:
-            values.accountType === "employer" ? values.businessId : null,
-          terms: values.terms,
-          privacy: values.privacy,
-        };
-
-        await registerUser(payload).unwrap();
-      } catch (err) {
-        console.error("Registration error:", err);
+        if (values.accountType === "student") {
+          console.log("Student registered:");
+        } else {
+          console.log("Employer registered:");
+        }
+        alert("Registration successful!");
+      } catch (error) {
+        console.error("Registration error:", error);
       }
     },
   });
 
-  const { resetForm } = formik;
-
-  useEffect(() => {
-    if (isError && error) {
-      const err = error as FetchBaseQueryError & {
-        data?: { message?: string };
-      };
-      toast.error(err?.data?.message || "Something went wrong");
-    }
-
-    if (data && isSuccess) {
-      toast.success(data?.message || "You're Registered Successfully!");
-      resetForm();
-      navigate("/auth/login");
-    }
-  }, [isError, error, data, isSuccess, resetForm, navigate]);
 
   return (
     <RegisterMainContainer>
       {/* Left Section */}
-      <RegisterLeftContainer>
-        <Logo />
-        <LeftTextContainer>
-          <TextContainer>
-            <Heading>Your Success Story Starts Here</Heading>
-            <SubHeading>
-              Connect with trusted employers, earn money instantly via mobile
-              payments, and maintain your academic excellence – all in one
-              platform designed for African students.
-            </SubHeading>
-          </TextContainer>
-
-          <TestimonialCard>
-            <p>
-              I earned $500 last month while maintaining my 3.8 GPA! Ogera's
-              academic tracking kept me focused.
-            </p>
-            <UserInfo>
-              <img
-                src="https://randomuser.me/api/portraits/women/44.jpg"
-                alt="User testimonial"
-              />
-              <div>
-                <span>Daphne Park</span>
-                <span>Computer Science Student</span>
-              </div>
-            </UserInfo>
-          </TestimonialCard>
-        </LeftTextContainer>
-      </RegisterLeftContainer>
-
-      {/* Right Section */}
+      <RegisterLeftContainer> <Logo /> <LeftTextContainer> <TextContainer> <Heading>Your Success Story Starts Here</Heading> <SubHeading> Connect with trusted employers, earn money instantly via mobile payments, and maintain your academic excellence – all in one platform designed for African students. </SubHeading> </TextContainer> <TestimonialCard> <p> I earned $500 last month while maintaining my 3.8 GPA! Ogera's academic tracking kept me focused. </p> <UserInfo> <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="User testimonial" /> <div> <span>Daphne Park</span> <span>Computer Science Student</span> </div> </UserInfo> </TestimonialCard> </LeftTextContainer> </RegisterLeftContainer>
       <RegisterRightContainer>
-        <RegisterFormContainer onSubmit={formik.handleSubmit}>
+        <RegisterFormContainer as="form" onSubmit={formik.handleSubmit}>
           <Head>Create your account with us below</Head>
           <SmallText>
-            Already have an account? <a href="/auth/login">Sign In</a>
+            Already have an account? <a href="#">Sign In</a>
           </SmallText>
 
           {/* Account Type Toggle */}
@@ -138,27 +67,24 @@ const Register = () => {
                   checked={formik.values.accountType === type}
                   onChange={formik.handleChange}
                 />
-                <span>
-                  {type === "student" ? "As a Student" : "As an Employer"}
-                </span>
+                <span>{type === "student" ? "As a Student" : "As an Employer"}</span>
               </ToggleOption>
             ))}
           </ToggleGroup>
 
           {/* Full Name */}
           <FormGroup>
-            <Label htmlFor="full_name">Full Name</Label>
+            <Label htmlFor="fullName">Full Name</Label>
             <Input
-              id="full_name"
-              name="full_name"
-              maxLength={20}
+              id="fullName"
+              name="fullName"
               placeholder="Enter your full name"
-              value={formik.values.full_name}
+              value={formik.values.fullName}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
             />
-            {formik.touched.full_name && formik.errors.full_name && (
-              <ErrorText>{formik.errors.full_name}</ErrorText>
+            {formik.touched.fullName && formik.errors.fullName && (
+              <ErrorText>{formik.errors.fullName}</ErrorText>
             )}
           </FormGroup>
 
@@ -197,11 +123,7 @@ const Register = () => {
                 style: { borderRadius: "8px", fontSize: "14px" },
                 endAdornment: (
                   <InputAdornment position="end">
-                    <IconButton
-                      onClick={handleClickShowPassword}
-                      edge="end"
-                      type="button"
-                    >
+                    <IconButton onClick={handleClickShowPassword} edge="end">
                       {showPassword ? <VisibilityOff /> : <Visibility />}
                     </IconButton>
                   </InputAdornment>
@@ -216,20 +138,18 @@ const Register = () => {
           {/* Conditional Fields */}
           {formik.values.accountType === "student" ? (
             <FormGroup>
-              <Label htmlFor="national_id_number">National ID Number</Label>
+              <Label htmlFor="nationalId">National ID Number</Label>
               <Input
-                id="national_id_number"
-                name="national_id_number"
-                maxLength={15}
+                id="nationalId"
+                name="nationalId"
                 placeholder="Enter your national ID number"
-                value={formik.values.national_id_number}
+                value={formik.values.nationalId}
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
               />
-              {formik.touched.national_id_number &&
-                formik.errors.national_id_number && (
-                  <ErrorText>{formik.errors.national_id_number}</ErrorText>
-                )}
+              {formik.touched.nationalId && formik.errors.nationalId && (
+                <ErrorText>{formik.errors.nationalId}</ErrorText>
+              )}
             </FormGroup>
           ) : (
             <FormGroup>
@@ -237,7 +157,6 @@ const Register = () => {
               <Input
                 id="businessId"
                 name="businessId"
-                maxLength={15}
                 placeholder="Enter your business registration ID"
                 value={formik.values.businessId}
                 onChange={formik.handleChange}
@@ -249,23 +168,19 @@ const Register = () => {
             </FormGroup>
           )}
 
-          {/* Mobile Number */}
+          {/* Phone */}
           <FormGroup>
-            <Label htmlFor="mobile_number">Mobile Number</Label>
+            <Label htmlFor="phone">Phone Number</Label>
             <Input
-              id="mobile_number"
-              name="mobile_number"
-              maxLength={10}
-              placeholder="Enter your mobile number"
-              value={formik.values.mobile_number}
+              id="phone"
+              name="phone"
+              placeholder="Enter your phone number"
+              value={formik.values.phone}
+              onChange={formik.handleChange}
               onBlur={formik.handleBlur}
-              onChange={(e) => {
-                const cleaned = e.target.value.replace(/[^0-9]/g, "");
-                formik.setFieldValue("mobile_number", cleaned);
-              }}
             />
-            {formik.touched.mobile_number && formik.errors.mobile_number && (
-              <ErrorText>{formik.errors.mobile_number}</ErrorText>
+            {formik.touched.phone && formik.errors.phone && (
+              <ErrorText>{formik.errors.phone}</ErrorText>
             )}
           </FormGroup>
 
@@ -280,14 +195,9 @@ const Register = () => {
                 onChange={formik.handleChange}
               />
               <label htmlFor="terms">
-                I agree to the{" "}
-                <ModalLinkText onClick={() => setOpenTerms(true)}>
-                  Terms of Service
-                </ModalLinkText>
+                I agree to the <a href="#">Terms of Service</a>
               </label>
-              {formik.touched.terms && formik.errors.terms && (
-                <ErrorText>{formik.errors.terms}</ErrorText>
-              )}
+              {formik.touched.terms && formik.errors.terms && <ErrorText>{formik.errors.terms}</ErrorText>}
             </TermsItem>
 
             <TermsItem>
@@ -299,61 +209,42 @@ const Register = () => {
                 onChange={formik.handleChange}
               />
               <label htmlFor="privacy">
-                I agree to the{" "}
-                <ModalLinkText onClick={() => setOpenPrivacy(true)}>
-                  Privacy Policy
-                </ModalLinkText>
+                I agree to the <a href="#">Privacy Policy</a>
               </label>
-              {formik.touched.privacy && formik.errors.privacy && (
-                <ErrorText>{formik.errors.privacy}</ErrorText>
-              )}
+              {formik.touched.privacy && formik.errors.privacy && <ErrorText>{formik.errors.privacy}</ErrorText>}
             </TermsItem>
           </TermsContainer>
 
-          <Button
-            backgroundcolor="#7f56d9"
-            type="submit"
-            text={isLoading ? "Submitting..." : "Submit"}
-            disabled={isLoading}
-          />
+          <Button backgroundcolor=" #7f56d9" type="submit" text=" Sign In" disabled={formik.isSubmitting} />
+
         </RegisterFormContainer>
       </RegisterRightContainer>
-
-      {/* External Modals */}
-      <TermsModal open={openTerms} onClose={() => setOpenTerms(false)} />
-      <PrivacyModal open={openPrivacy} onClose={() => setOpenPrivacy(false)} />
     </RegisterMainContainer>
   );
 };
 
 export default Register;
 
-/* -------------------------------------------
-   ❗ Your FULL ORIGINAL CSS (unchanged)
-------------------------------------------- */
+/* ----------------- Styled Components ----------------- */
 
 const RegisterMainContainer = styled("div")`
-  width: 100%;
-  min-height: 100vh;
+  width: 100vw;
+  height: 100vh;
   display: flex;
-  overflow: hidden;
   @media (max-width: 768px) {
-    flex-direction: column;
+    flex-direction: column; /* stack on mobile */
+    height: 100vh; /* still full height */
   }
 `;
 
 const RegisterLeftContainer = styled("div")`
   background-color: #7f56d9;
   width: 40%;
-  padding: 30px 20px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+  height: 98%;
+  margin: 5px;
   border-radius: 20px;
-  margin: 10px;
-  overflow-y: auto;
   @media (max-width: 768px) {
-    display: none;
+    display: none; /* 👈 hide on mobile */
   }
 `;
 
@@ -362,44 +253,43 @@ const Logo = styled("div")`
   background-size: contain;
   height: 40px;
   width: 100px;
-  margin-bottom: 20px;
-`;
-
-const LeftTextContainer = styled("div")`
-  color: #ffffff;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+  margin: 20px;
 `;
 
 const TextContainer = styled("div")`
-  margin-top: 3rem;
+  margin-top: 8rem;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 15px;
+  gap: 10px;
   text-align: center;
 `;
 
 const Heading = styled("h1")`
-  font-size: 36px;
+  font-size: 40px;
   font-weight: 700;
-  width: 80%;
+  width: 70%;
 `;
 
 const SubHeading = styled("p")`
-  font-size: 15px;
+  font-size: 16px;
   color: #ddd;
-  width: 80%;
+  width: 75%;
 `;
 
 const TestimonialCard = styled("div")`
   background: rgba(32, 15, 163, 0.5);
-  margin-top: 3rem;
+  margin: 8rem auto 0 auto;
   border-radius: 12px;
-  padding: 1rem;
-  max-width: 380px;
-  color: #fff;
+  padding: 0.8rem;
+  text-align: left;
+  max-width: 450px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+  p {
+    font-size: 0.95rem;
+    margin-bottom: 1rem;
+    color: #fff;
+  }
 `;
 
 const UserInfo = styled("div")`
@@ -429,24 +319,22 @@ const UserInfo = styled("div")`
   }
 `;
 
+const LeftTextContainer = styled("div")`
+  color: #ffffff;
+`;
+
 const RegisterRightContainer = styled("div")`
   width: 60%;
-  padding: 20px 40px;
+  padding: 40px;
   display: flex;
   justify-content: center;
   align-items: center;
-  overflow-y: auto;
   @media (max-width: 768px) {
-    width: 100%;
+    flex: unset;
+    width: 100%;   /* full width on mobile */
+    height: 100%;  /* full height on mobile */
     padding: 20px;
   }
-`;
-
-const RegisterFormContainer = styled("form")`
-  max-width: 550px;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
 `;
 
 const Head = styled("p")`
@@ -454,10 +342,19 @@ const Head = styled("p")`
   font-weight: 600;
 `;
 
+const RegisterFormContainer = styled("form")`
+  max-width: 550px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  @media (max-width: 768px) {
+    max-width: 100%;
+  }
+`;
+
 const SmallText = styled("p")`
   font-size: 14px;
   margin-bottom: 20px;
-
   a {
     color: #7f56d9;
     text-decoration: none;
@@ -484,15 +381,37 @@ const ToggleOption = styled("label")`
   justify-content: center;
   gap: 8px;
   transition: all 0.3s ease;
-
   input:checked + span {
     color: #7f56d9;
     font-weight: 600;
   }
-
   &:has(input:checked) {
     background: #f3ebff;
     border-color: #7f56d9;
+  }
+`;
+
+const RadioInput = styled("input")`
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #7f56d9;
+  border-radius: 50%;
+  position: relative;
+  cursor: pointer;
+  &:checked {
+    background-color: #ffffffff;
+    border-color: #7f56d9;
+  }
+  &:checked::after {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 8px;
+    height: 8px;
+    background: #fff;
+    border-radius: 50%;
   }
 `;
 
@@ -516,53 +435,61 @@ const Input = styled("input")`
   font-size: 14px;
 `;
 
+const SignInButton = styled("button")`
+  padding: 12px;
+  border-radius: 8px;
+  border: none;
+  background: #7f56d9;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background 0.3s ease;
+
+  &:hover {
+    background: #6e47c4;
+  }
+`;
+
 const ErrorText = styled("div")`
   font-size: 12px;
   color: red;
   margin-top: 4px;
 `;
 
-const TermsContainer = styled("div")`
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin: 15px 0;
-`;
+const TermsContainer = styled("div")(({ theme }) => ({
+  display: "flex",
+  flexDirection: "column",
+  gap: "12px",
+  margin: "15px 0",
+}));
 
-const TermsItem = styled("div")`
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  font-size: 14px;
-
-  & input {
-    width: 18px;
-    height: 18px;
-    cursor: pointer;
-  }
-
-  & label {
-    line-height: 1.4;
-  }
-
-  & a {
-    color: #7f56d9;
-    text-decoration: none;
-    font-weight: 500;
-
-    &:hover {
-      text-decoration: underline;
-      color: #6e47c4;
-    }
-  }
-`;
-
-const ModalLinkText = styled("span")`
-  color: #7f56d9;
-  font-weight: 600;
-  cursor: pointer;
-
-  &:hover {
-    text-decoration: underline;
-  }
-`;
+const TermsItem = styled("div")(({ theme }) => ({
+  display: "flex",
+  alignItems: "flex-start",
+  gap: "8px",
+  fontSize: "14px",
+  color: theme.palette.text.primary,   // ✅ from palette
+  "& input": {
+    width: "18px",
+    height: "18px",
+    cursor: "pointer",
+  },
+  "& label": {
+    lineHeight: 1.4,
+  },
+  "& a": {
+    color: theme.palette.primary.main, 
+    textDecoration: "none",
+    fontWeight: 500,
+    "&:hover": {
+      textDecoration: "underline",
+      color: theme.palette.primary.dark, 
+    },
+  },
+  "& .required": {
+    color: theme.palette.error.main,    
+    marginLeft: "4px",
+  },
+}));

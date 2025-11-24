@@ -1,11 +1,11 @@
 export interface RegisterFormValues {
   accountType: "student" | "employer";
-  full_name: string;
+  fullName: string;
   email: string;
   password: string;
-  national_id_number: string;
+  nationalId: string;
   businessId: string;
-  mobile_number: string;
+  phone: string;
   terms: boolean;
   privacy: boolean;
 }
@@ -14,6 +14,8 @@ export interface RegisterFormValues {
 export interface LoginFormValues {
   email: string;
   password: string;
+  terms: boolean;
+  privacy: boolean;
 }
 
 export interface ResetPasswordFormValues {
