@@ -1,17 +1,15 @@
+import React from "react";
 import { useFormik } from "formik";
 import RestPasswordTemplate from "../components/ResetPassword";
 import { changePasswordValidation } from "../validation/Index";
-import type { ChangePasswordFormValues } from "../type/index";
 
-const ChangePassword = () => {
-  const formik = useFormik<ChangePasswordFormValues>({
-    initialValues: {
-      newPassword: "",
-      confirmPassword: "",
-    },
+const ChangePassword: React.FC = () => {
+  const formik = useFormik({
+    initialValues: { newPassword: "", confirmPassword: "" },
     validationSchema: changePasswordValidation,
     onSubmit: (values) => {
       console.log("Change Password values:", values);
+      // integrate change password API if you have one
     },
   });
 

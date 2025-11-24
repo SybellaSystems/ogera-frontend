@@ -7,7 +7,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   type?: "button" | "submit" | "reset";
 }
 
-const Button = ({ text, backgroundcolor, type = "button", ...rest }: ButtonProps) => {
+const Button: React.FC<ButtonProps> = ({ text, backgroundcolor, type = "button", ...rest }) => {
   return (
     <CTAButton type={type} backgroundcolor={backgroundcolor} {...rest}>
       {text}
@@ -25,11 +25,13 @@ const CTAButton = styled("button")<{ backgroundcolor?: string }>`
   border-radius: 25px;
   font-size: 14px;
   cursor: pointer;
-  font-weight: 00;
+
   &:hover:enabled {
     background-color: #6e48c7;
   }
+
   &:disabled {
     background-color: #ccc;
     cursor: not-allowed;
-  }`;
+  }
+`;
