@@ -79,9 +79,17 @@ const Register = () => {
     }
 
     if (data && isSuccess) {
-      toast.success(data?.message || "You're Registered Successfully!");
+      toast.success(
+        "Registration successful! Please check your email to verify your account.",
+        { duration: 5000 }
+      );
       resetForm();
-      navigate("/auth/login");
+      // Show verification message and navigate after a delay
+      setTimeout(() => {
+        navigate("/auth/login", {
+          state: { showVerificationMessage: true, email: formik.values.email },
+        });
+      }, 2000);
     }
   }, [isError, error, data, isSuccess, resetForm, navigate]);
 

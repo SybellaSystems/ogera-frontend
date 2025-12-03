@@ -34,6 +34,37 @@ export const authApi = apiSlice.injectEndpoints({
         body: values,
       }),
     }),
+
+    getUserProfile: builder.query({
+      query: () => ({
+        url: "/auth/profile",
+        method: "GET",
+      }),
+      providesTags: ["User"],
+    }),
+
+    verifyEmail: builder.mutation({
+      query: (token) => ({
+        url: `/auth/verify-email?token=${token}`,
+        method: "GET",
+      }),
+    }),
+
+    resendVerificationEmail: builder.mutation({
+      query: (email) => ({
+        url: "/auth/resend-verification-email",
+        method: "POST",
+        body: { email },
+      }),
+    }),
+
+    logout: builder.mutation({
+      query: () => ({
+        url: "/auth/logout",
+        method: "POST",
+      }),
+      invalidatesTags: ["User"],
+    }),
   }),
 });
 
@@ -42,4 +73,8 @@ export const {
   useForgotPasswordMutation,
   useVerifyOtpMutation,
   useResetPasswordMutation,
+  useGetUserProfileQuery,
+  useVerifyEmailMutation,
+  useResendVerificationEmailMutation,
+  useLogoutMutation,
 } = authApi;

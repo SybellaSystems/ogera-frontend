@@ -1,18 +1,21 @@
+import { useState } from "react";
 import Sidebar from "../components/Sidebar/sidebar";
 import Header from "../components/Header/header";
 import { Outlet } from "react-router-dom";
 
 const EmployerLayout = () => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      <Sidebar />
+    <div className="flex min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 overflow-hidden">
+      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
-      <div className="flex-1 ml-64">
+      <div className="flex-1 w-full lg:ml-64 transition-all duration-300 overflow-x-hidden">
         {/* Header */}
-        <Header />
+        <Header onMenuClick={() => setIsSidebarOpen(true)} />
 
-        <div className="p-6">
-          <h1 className="text-2xl font-semibold mb-4">Employer Panel</h1>
+        {/* Page Content */}
+        <div className="p-4 md:p-6 lg:p-8 max-w-full overflow-x-hidden">
           <Outlet />
         </div>
       </div>

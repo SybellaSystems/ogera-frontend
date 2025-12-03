@@ -175,7 +175,8 @@ export default Login;
 /* ---------------- Your ORIGINAL styles remain unchanged below ---------------- */
 
 const LoginMainContainer = styled("div")(({ theme }) => ({
-  width: "100vw",
+  width: "100%",
+  maxWidth: "100vw",
   minHeight: "100vh",
   display: "flex",
   flexDirection: "row",

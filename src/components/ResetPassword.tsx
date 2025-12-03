@@ -98,22 +98,33 @@ export default RestPasswordTemplate;
 
 /* styles */
 const PassMainContainer = styled("div")(({ theme }) => ({
-  width: "100vw",
+  width: "100%",
+  maxWidth: "100vw",
+  minHeight: "100vh",
   height: "100vh",
   display: "flex",
   justifyContent: "center",
   alignItems: "center",
   background: `linear-gradient(to right, ${theme.palette.primary.main}, ${theme.palette.secondary.main}, ${theme.palette.info.main})`,
+  overflow: "hidden",
+  padding: "20px",
+  boxSizing: "border-box",
 }));
 
 const BoxContainer = styled("div")(({ theme }) => ({
-  width: "35%",
+  width: "100%",
+  maxWidth: "450px",
   backgroundColor: theme.palette.background.paper,
   borderRadius: "20px",
   display: "flex",
   flexDirection: "column",
   padding: "20px",
   gap: "15px",
+  boxSizing: "border-box",
+  [theme.breakpoints.down("sm")]: {
+    width: "100%",
+    maxWidth: "100%",
+  },
 }));
 
 const Logo = styled("div")`

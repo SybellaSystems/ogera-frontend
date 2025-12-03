@@ -4,13 +4,13 @@ import type { PayloadAction } from "@reduxjs/toolkit";
 interface AuthState {
   user: any | null;
   accessToken: string | null;
-  role: string | null;   
+  role: string | null;
 }
 
 const initialState: AuthState = {
   user: null,
   accessToken: null,
-  role: null,           
+  role: null,
 };
 
 const authSlice = createSlice({
@@ -22,12 +22,12 @@ const authSlice = createSlice({
       action: PayloadAction<{
         user: any;
         accessToken: string;
-        role: string;          
+        role: string;
       }>
     ) => {
       state.user = action.payload.user;
       state.accessToken = action.payload.accessToken;
-      state.role = action.payload.role;   
+      state.role = action.payload.role;
     },
 
     setAccessToken: (state, action: PayloadAction<string>) => {
@@ -35,13 +35,15 @@ const authSlice = createSlice({
     },
 
     setRole: (state, action: PayloadAction<string>) => {
-      state.role = action.payload;     
+      state.role = action.payload;
     },
 
     logout: (state) => {
       state.user = null;
       state.accessToken = null;
-      state.role = null;             
+      state.role = null;
+      // Clear localStorage on logout
+      localStorage.removeItem("authState");
     },
   },
 });
