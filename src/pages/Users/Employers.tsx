@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { BriefcaseIcon } from "@heroicons/react/24/outline";
 import CustomTable, {
   type Column,
@@ -6,8 +6,11 @@ import CustomTable, {
 } from "../../components/Table/CustomTable";
 import { Chip, Avatar, Box, Typography } from "@mui/material";
 import { Visibility as ViewIcon, Edit as EditIcon } from "@mui/icons-material";
+import { useGetAllEmployersQuery } from "../../services/api/usersApi";
+import type { UserProfile } from "../../services/api/profileApi";
 
 interface Employer {
+  index: number;
   id: number;
   name: string;
   contact: string;
@@ -17,42 +20,42 @@ interface Employer {
 }
 
 const Employers: React.FC = () => {
-  const employers: Employer[] = [
-    {
-      id: 1,
-      name: "Google Inc",
-      contact: "hr@google.com",
-      jobsPosted: 45,
-      activeJobs: 12,
-      verified: true,
-    },
-    {
-      id: 2,
-      name: "Microsoft Corp",
-      contact: "careers@microsoft.com",
-      jobsPosted: 38,
-      activeJobs: 9,
-      verified: true,
-    },
-    {
-      id: 3,
-      name: "Amazon",
-      contact: "jobs@amazon.com",
-      jobsPosted: 52,
-      activeJobs: 15,
-      verified: true,
-    },
-    {
-      id: 4,
-      name: "Tesla Inc",
-      contact: "hr@tesla.com",
-      jobsPosted: 28,
-      activeJobs: 8,
-      verified: false,
-    },
-  ];
+  const [page, setPage] = useState(0);
+  const [limit, setLimit] = useState(10);
+
+  const { data, isLoading, isError } = useGetAllEmployersQuery({
+    page: page + 1,
+    limit,
+  });
+
+  const mapEmployer = (user: UserProfile, index: number): Employer => ({
+    index: page * limit + index + 1,
+    id: Number(user.user_id),
+    name: user.full_name,
+    contact: user.email,
+    jobsPosted: 0,
+    activeJobs: 0,
+    verified: true,
+  });
+
+  const employers: Employer[] = (data?.data || []).map((user, index) =>
+    mapEmployer(user, index)
+  );
+  const totalCount = data?.pagination?.total || employers.length;
 
   const columns: Column<Employer>[] = [
+    {
+      id: "index",
+      label: "#",
+      minWidth: 60,
+      align: "center",
+      sortable: false,
+      format: (value) => (
+        <Typography sx={{ fontWeight: 500, color: "#6b7280" }}>
+          {value}
+        </Typography>
+      ),
+    },
     {
       id: "name",
       label: "Company",
@@ -182,7 +185,9 @@ const Employers: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 shadow-md border border-green-200">
           <p className="text-sm text-green-700 font-medium">Total Employers</p>
-          <p className="text-3xl font-bold text-green-900 mt-2">1,245</p>
+          <p className="text-3xl font-bold text-green-900 mt-2">
+            {isLoading ? "…" : totalCount}
+          </p>
         </div>
         <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 shadow-md border border-blue-200">
           <p className="text-sm text-blue-700 font-medium">
@@ -203,10 +208,24 @@ const Employers: React.FC = () => {
         columns={columns}
         data={employers}
         actions={actions}
+        loading={isLoading}
+        emptyMessage={
+          isError
+            ? "Failed to load employers. Please try again."
+            : "No employers found"
+        }
         searchable={true}
         searchPlaceholder="Search employers..."
-        rowsPerPageOptions={[5, 10, 25]}
-        defaultRowsPerPage={10}
+        rowsPerPageOptions={[5, 10, 25, 50]}
+        defaultRowsPerPage={limit}
+        serverSidePagination={true}
+        totalCount={totalCount}
+        page={page}
+        onPageChange={(newPage) => setPage(newPage)}
+        onRowsPerPageChange={(newLimit) => {
+          setLimit(newLimit);
+          setPage(0);
+        }}
       />
     </div>
   );

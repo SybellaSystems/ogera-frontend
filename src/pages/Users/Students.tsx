@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { AcademicCapIcon } from "@heroicons/react/24/outline";
 import CustomTable, {
   type Column,
@@ -6,8 +6,11 @@ import CustomTable, {
 } from "../../components/Table/CustomTable";
 import { Chip, Avatar, Box, Typography } from "@mui/material";
 import { Visibility as ViewIcon, Edit as EditIcon } from "@mui/icons-material";
+import { useGetAllStudentsQuery } from "../../services/api/usersApi";
+import type { UserProfile } from "../../services/api/profileApi";
 
 interface Student {
+  index: number;
   id: number;
   name: string;
   email: string;
@@ -18,46 +21,44 @@ interface Student {
 }
 
 const Students: React.FC = () => {
-  const students: Student[] = [
-    {
-      id: 1,
-      name: "John Doe",
-      email: "john@example.com",
-      university: "MIT",
-      gpa: "3.8",
-      status: "Active",
-      verified: true,
-    },
-    {
-      id: 2,
-      name: "Mike Johnson",
-      email: "mike@example.com",
-      university: "Stanford",
-      gpa: "3.9",
-      status: "Active",
-      verified: true,
-    },
-    {
-      id: 3,
-      name: "Emily Davis",
-      email: "emily@example.com",
-      university: "Harvard",
-      gpa: "3.7",
-      status: "Pending",
-      verified: false,
-    },
-    {
-      id: 4,
-      name: "Chris Wilson",
-      email: "chris@example.com",
-      university: "Yale",
-      gpa: "3.6",
-      status: "Active",
-      verified: true,
-    },
-  ];
+  const [page, setPage] = useState(0);
+  const [limit, setLimit] = useState(10);
+
+  const { data, isLoading, isError } = useGetAllStudentsQuery({
+    page: page + 1,
+    limit,
+  });
+
+  // Map API user profile to Student row
+  const mapStudent = (user: UserProfile, index: number): Student => ({
+    index: page * limit + index + 1,
+    id: Number(user.user_id),
+    name: user.full_name,
+    email: user.email,
+    university: "-", // adjust when backend adds field
+    gpa: "-",
+    status: "Active",
+    verified: true,
+  });
+
+  const students: Student[] = (data?.data || []).map((user, index) =>
+    mapStudent(user, index)
+  );
+  const totalCount = data?.pagination?.total || students.length;
 
   const columns: Column<Student>[] = [
+    {
+      id: "index",
+      label: "#",
+      minWidth: 60,
+      align: "center",
+      sortable: false,
+      format: (value) => (
+        <Typography sx={{ fontWeight: 500, color: "#6b7280" }}>
+          {value}
+        </Typography>
+      ),
+    },
     {
       id: "name",
       label: "Student",
@@ -189,7 +190,9 @@ const Students: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 shadow-md border border-blue-200">
           <p className="text-sm text-blue-700 font-medium">Total Students</p>
-          <p className="text-3xl font-bold text-blue-900 mt-2">8,120</p>
+          <p className="text-3xl font-bold text-blue-900 mt-2">
+            {isLoading ? "…" : totalCount}
+          </p>
         </div>
         <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 shadow-md border border-green-200">
           <p className="text-sm text-green-700 font-medium">
@@ -210,10 +213,24 @@ const Students: React.FC = () => {
         columns={columns}
         data={students}
         actions={actions}
+        loading={isLoading}
+        emptyMessage={
+          isError
+            ? "Failed to load students. Please try again."
+            : "No students found"
+        }
         searchable={true}
         searchPlaceholder="Search students..."
-        rowsPerPageOptions={[5, 10, 25]}
-        defaultRowsPerPage={10}
+        rowsPerPageOptions={[5, 10, 25, 50]}
+        defaultRowsPerPage={limit}
+        serverSidePagination={true}
+        totalCount={totalCount}
+        page={page}
+        onPageChange={(newPage) => setPage(newPage)}
+        onRowsPerPageChange={(newLimit) => {
+          setLimit(newLimit);
+          setPage(0);
+        }}
       />
     </div>
   );

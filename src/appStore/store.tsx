@@ -1,5 +1,6 @@
 import { configureStore } from "@reduxjs/toolkit";
-import authReducer from "../features/auth/authSlice";
+import rootReducer from "./rootReducer";
+import { apiSlice } from "../services/api/apiSlice";
 
 // Load state from localStorage (WITHOUT access token for security)
 const loadState = () => {
@@ -40,9 +41,9 @@ const saveState = (state: any) => {
 };
 
 const store = configureStore({
-  reducer: {
-    auth: authReducer,
-  },
+  reducer: rootReducer,
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware().concat(apiSlice.middleware),
   preloadedState: loadState(), // Load persisted state on app start
 });
 
@@ -50,5 +51,8 @@ const store = configureStore({
 store.subscribe(() => {
   saveState(store.getState());
 });
+
+export type RootState = ReturnType<typeof store.getState>;
+export type AppDispatch = typeof store.dispatch;
 
 export default store;

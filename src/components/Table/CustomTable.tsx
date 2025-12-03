@@ -58,6 +58,12 @@ export interface CustomTableProps<T> {
   getRowId?: (row: T, index: number) => string | number;
   dense?: boolean;
   hover?: boolean;
+  // Server-side pagination props
+  serverSidePagination?: boolean;
+  totalCount?: number;
+  page?: number;
+  onPageChange?: (page: number) => void;
+  onRowsPerPageChange?: (rowsPerPage: number) => void;
 }
 
 function CustomTable<T extends Record<string, any>>({
@@ -78,9 +84,21 @@ function CustomTable<T extends Record<string, any>>({
   getRowId = (row, index) => row.id || index,
   dense = false,
   hover = true,
+  serverSidePagination = false,
+  totalCount,
+  page: externalPage,
+  onPageChange: externalOnPageChange,
+  onRowsPerPageChange: externalOnRowsPerPageChange,
 }: CustomTableProps<T>) {
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(defaultRowsPerPage);
+  const [internalPage, setInternalPage] = useState(0);
+  const [internalRowsPerPage, setInternalRowsPerPage] =
+    useState(defaultRowsPerPage);
+
+  // Use external pagination if server-side, otherwise use internal
+  const page = serverSidePagination ? externalPage ?? 0 : internalPage;
+  const rowsPerPage = serverSidePagination
+    ? defaultRowsPerPage
+    : internalRowsPerPage;
   const [orderBy, setOrderBy] = useState<keyof T | string | null>(null);
   const [order, setOrder] = useState<"asc" | "desc">("asc");
   const [searchQuery, setSearchQuery] = useState("");
@@ -130,25 +148,39 @@ function CustomTable<T extends Record<string, any>>({
     });
   }, [filteredData, orderBy, order]);
 
-  // Paginate data
+  // Paginate data (only for client-side pagination)
   const paginatedData = useMemo(() => {
+    if (serverSidePagination) {
+      // For server-side, use data as-is (already paginated by server)
+      return sortedData;
+    }
+    // For client-side, paginate locally
     return sortedData.slice(
       page * rowsPerPage,
       page * rowsPerPage + rowsPerPage
     );
-  }, [sortedData, page, rowsPerPage]);
+  }, [sortedData, page, rowsPerPage, serverSidePagination]);
 
   // Handle page change
   const handleChangePage = (_event: unknown, newPage: number) => {
-    setPage(newPage);
+    if (serverSidePagination && externalOnPageChange) {
+      externalOnPageChange(newPage);
+    } else {
+      setInternalPage(newPage);
+    }
   };
 
   // Handle rows per page change
   const handleChangeRowsPerPage = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
+    const newRowsPerPage = parseInt(event.target.value, 10);
+    if (serverSidePagination && externalOnRowsPerPageChange) {
+      externalOnRowsPerPageChange(newRowsPerPage);
+    } else {
+      setInternalRowsPerPage(newRowsPerPage);
+      setInternalPage(0);
+    }
   };
 
   // Handle select all
@@ -468,7 +500,7 @@ function CustomTable<T extends Record<string, any>>({
       <TablePagination
         rowsPerPageOptions={rowsPerPageOptions}
         component="div"
-        count={sortedData.length}
+        count={serverSidePagination ? totalCount ?? 0 : sortedData.length}
         rowsPerPage={rowsPerPage}
         page={page}
         onPageChange={handleChangePage}

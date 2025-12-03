@@ -15,6 +15,7 @@ import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import VerifyOtp from "./pages/VerifyOtp";
+import VerifyEmail from "./pages/VerifyEmail";
 import ChangePassword from "./pages/ChangePassword";
 import TestRefresh from "./pages/TestRefresh";
 import Dashboard from "./pages/Dashboard";
@@ -51,6 +52,10 @@ import ResolvedDisputes from "./pages/Disputes/Resolved";
 // Other Pages
 import Analytics from "./pages/Analytics";
 import Transactions from "./pages/Transactions";
+
+// Admin Pages
+import CreateAdmin from "./pages/Admin/CreateAdmin";
+import ViewAdmins from "./pages/Admin/ViewAdmins";
 
 import useRefreshOnLoad from "./hooks/useRefreshOnLoad";
 
@@ -103,6 +108,7 @@ function App() {
     { path: "/auth/forgot-password", Component: ForgotPassword },
     { path: "/auth/reset-password", Component: ResetPassword },
     { path: "/auth/verify-otp", Component: VerifyOtp },
+    { path: "/auth/verify-email", Component: VerifyEmail },
     { path: "/auth/change-password", Component: ChangePassword },
     { path: "/auth/me", Component: TestRefresh },
 
@@ -153,6 +159,21 @@ function App() {
                 {
                   path: "suspended",
                   Component: SuspendedUsers,
+                },
+              ],
+            },
+            // Admin Routes (SuperAdmin Only)
+            {
+              path: "admin",
+              element: <ProtectedRoute allowedRoles={["superadmin"]} />,
+              children: [
+                {
+                  path: "create",
+                  Component: CreateAdmin,
+                },
+                {
+                  path: "view",
+                  Component: ViewAdmins,
                 },
               ],
             },

@@ -30,3 +30,17 @@ export const getUserProfile = async (): Promise<ProfileApiResponse> => {
   return res.data;
 };
 
+export interface UpdateProfileData {
+  full_name?: string;
+  email?: string;
+  mobile_number?: string;
+  national_id_number?: string;
+  business_registration_id?: string;
+}
+
+export const updateUserProfile = async (
+  data: UpdateProfileData
+): Promise<ProfileApiResponse> => {
+  const res = await api.put<ProfileApiResponse>("/auth/profile", data);
+  return res.data;
+};

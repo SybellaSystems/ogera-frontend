@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { getUserProfile } from "../services/api/profileApi";
 import type { UserProfile } from "../services/api/profileApi";
+import ChangePasswordModal from "../components/ChangePasswordModal";
+import EditProfileModal from "../components/EditProfileModal";
 
 const Profile: React.FC = () => {
   // Get user data from Redux store (fallback)
@@ -12,27 +14,35 @@ const Profile: React.FC = () => {
   const [profileData, setProfileData] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] =
+    useState(false);
+  const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
 
   // Fetch user profile from API
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        setLoading(true);
-        const response = await getUserProfile();
-        setProfileData(response.data);
-        setError(null);
-      } catch (err: any) {
-        console.error("Error fetching profile:", err);
-        setError(err?.response?.data?.message || "Failed to load profile");
-        // Fallback to Redux data if API fails
-        setProfileData(null);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchProfile = async () => {
+    try {
+      setLoading(true);
+      const response = await getUserProfile();
+      setProfileData(response.data);
+      setError(null);
+    } catch (err: any) {
+      console.error("Error fetching profile:", err);
+      setError(err?.response?.data?.message || "Failed to load profile");
+      // Fallback to Redux data if API fails
+      setProfileData(null);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchProfile();
   }, []);
+
+  // Handle profile update success
+  const handleProfileUpdateSuccess = () => {
+    fetchProfile(); // Refresh profile data
+  };
 
   // Use API data if available, otherwise fallback to Redux data
   const userData = profileData || user;
@@ -216,10 +226,16 @@ const Profile: React.FC = () => {
 
           {/* Action Buttons */}
           <div className="mt-8 flex gap-4">
-            <button className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2.5 rounded-lg font-semibold transition shadow-md hover:shadow-lg">
+            <button
+              onClick={() => setIsEditProfileModalOpen(true)}
+              className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2.5 rounded-lg font-semibold transition shadow-md hover:shadow-lg"
+            >
               Edit Profile
             </button>
-            <button className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-2.5 rounded-lg font-semibold transition">
+            <button
+              onClick={() => setIsChangePasswordModalOpen(true)}
+              className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-2.5 rounded-lg font-semibold transition"
+            >
               Change Password
             </button>
           </div>
@@ -261,6 +277,22 @@ const Profile: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Change Password Modal */}
+      <ChangePasswordModal
+        isOpen={isChangePasswordModalOpen}
+        onClose={() => setIsChangePasswordModalOpen(false)}
+        userEmail={displayData.email}
+      />
+
+      {/* Edit Profile Modal */}
+      <EditProfileModal
+        isOpen={isEditProfileModalOpen}
+        onClose={() => setIsEditProfileModalOpen(false)}
+        profileData={profileData}
+        onUpdateSuccess={handleProfileUpdateSuccess}
+        userRole={userRole || ""}
+      />
     </div>
   );
 };

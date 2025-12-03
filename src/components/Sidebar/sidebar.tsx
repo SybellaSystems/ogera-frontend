@@ -23,6 +23,9 @@ import {
   FireIcon,
   ArrowPathIcon,
   CheckBadgeIcon,
+  ShieldCheckIcon,
+  PlusIcon,
+  EyeIcon,
 } from "@heroicons/react/24/outline";
 
 interface SidebarProps {
@@ -155,6 +158,45 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                   >
                     <NoSymbolIcon className="h-4 w-4 text-gray-500 group-hover/item:text-purple-400 transition-colors" />
                     <span className="text-gray-400 group-hover/item:text-white transition-colors">Suspended</span>
+                  </li>
+                </ul>
+              )}
+            </div>
+          )}
+
+          {/* Admin - Only SuperAdmin */}
+          {role === "superadmin" && (
+            <div>
+              <div
+                className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-gradient-to-r hover:from-purple-600/20 hover:to-indigo-600/20 cursor-pointer transition-all duration-200 group border border-transparent hover:border-purple-500/30"
+                onClick={() => toggleMenu("admin")}
+              >
+                <div className="flex items-center gap-3">
+                  <ShieldCheckIcon className="h-5 w-5 text-purple-400 group-hover:text-purple-300 transition-colors" />
+                  <span className="font-medium group-hover:text-white transition-colors">Admin</span>
+                </div>
+                <ChevronDownIcon
+                  className={`h-4 w-4 transition-transform duration-200 text-gray-400 group-hover:text-white ${
+                    openMenu === "admin" ? "rotate-180 text-purple-400" : ""
+                  }`}
+                />
+              </div>
+
+              {openMenu === "admin" && (
+                <ul className="pl-11 space-y-1 text-sm mt-2 animate-fadeIn">
+                  <li
+                    className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-slate-700/50 transition-all duration-200 group/item"
+                    onClick={() => handleNavigation("/dashboard/admin/create")}
+                  >
+                    <PlusIcon className="h-4 w-4 text-gray-500 group-hover/item:text-purple-400 transition-colors" />
+                    <span className="text-gray-400 group-hover/item:text-white transition-colors">Create</span>
+                  </li>
+                  <li
+                    className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-slate-700/50 transition-all duration-200 group/item"
+                    onClick={() => handleNavigation("/dashboard/admin/view")}
+                  >
+                    <EyeIcon className="h-4 w-4 text-gray-500 group-hover/item:text-purple-400 transition-colors" />
+                    <span className="text-gray-400 group-hover/item:text-white transition-colors">View</span>
                   </li>
                 </ul>
               )}

@@ -43,6 +43,21 @@ export const authApi = apiSlice.injectEndpoints({
       providesTags: ["User"],
     }),
 
+    verifyEmail: builder.mutation({
+      query: (token) => ({
+        url: `/auth/verify-email?token=${token}`,
+        method: "GET",
+      }),
+    }),
+
+    resendVerificationEmail: builder.mutation({
+      query: (email) => ({
+        url: "/auth/resend-verification-email",
+        method: "POST",
+        body: { email },
+      }),
+    }),
+
     logout: builder.mutation({
       query: () => ({
         url: "/auth/logout",
@@ -59,5 +74,7 @@ export const {
   useVerifyOtpMutation,
   useResetPasswordMutation,
   useGetUserProfileQuery,
+  useVerifyEmailMutation,
+  useResendVerificationEmailMutation,
   useLogoutMutation,
 } = authApi;
