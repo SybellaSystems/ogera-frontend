@@ -354,9 +354,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             </div>
           )}
 
-          {/* Academic Verification - Student, Employer, Admin (not verifyDocAdmin, already shown above) */}
+          {/* Academic Verification - Student, Admin (not verifyDocAdmin, already shown above, not employer) */}
           {(role === "student" ||
-            role === "employer" ||
             role === "admin" ||
             role === "superadmin") && (
             <div>
@@ -465,6 +464,28 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
                 {openMenu === "jobs" && (
                   <ul className="pl-11 space-y-1 text-sm mt-2 animate-fadeIn">
+                    {(role === "employer" || role === "superadmin") && (
+                      <>
+                        <li
+                          className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-slate-700/50 transition-all duration-200 group/item"
+                          onClick={() => handleNavigation("/dashboard/jobs/create")}
+                        >
+                          <PlusIcon className="h-4 w-4 text-gray-500 group-hover/item:text-purple-400 transition-colors" />
+                          <span className="text-gray-400 group-hover/item:text-white transition-colors">
+                            Create Job
+                          </span>
+                        </li>
+                        <li
+                          className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-slate-700/50 transition-all duration-200 group/item"
+                          onClick={() => handleNavigation("/dashboard/jobs/applications")}
+                        >
+                          <BriefcaseIcon className="h-4 w-4 text-gray-500 group-hover/item:text-purple-400 transition-colors" />
+                          <span className="text-gray-400 group-hover/item:text-white transition-colors">
+                            Applications
+                          </span>
+                        </li>
+                      </>
+                    )}
                     <li
                       className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-slate-700/50 transition-all duration-200 group/item"
                       onClick={() => handleNavigation("/dashboard/jobs/all")}
@@ -494,36 +515,41 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         Completed
                       </span>
                     </li>
-                    <li
-                      className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-slate-700/50 transition-all duration-200 group/item"
-                      onClick={() =>
-                        handleNavigation("/dashboard/jobs/pending")
-                      }
-                    >
-                      <ClockIcon className="h-4 w-4 text-gray-500 group-hover/item:text-purple-400 transition-colors" />
-                      <span className="text-gray-400 group-hover/item:text-white transition-colors">
-                        Pending Approval
-                      </span>
-                    </li>
-                    <li
-                      className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-slate-700/50 transition-all duration-200 group/item"
-                      onClick={() =>
-                        handleNavigation("/dashboard/jobs/categories")
-                      }
-                    >
-                      <BriefcaseIcon className="h-4 w-4 text-gray-500 group-hover/item:text-purple-400 transition-colors" />
-                      <span className="text-gray-400 group-hover/item:text-white transition-colors">
-                        Job Categories
-                      </span>
-                    </li>
+                    {(role === "admin" || role === "superadmin") && (
+                      <li
+                        className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-slate-700/50 transition-all duration-200 group/item"
+                        onClick={() =>
+                          handleNavigation("/dashboard/jobs/pending")
+                        }
+                      >
+                        <ClockIcon className="h-4 w-4 text-gray-500 group-hover/item:text-purple-400 transition-colors" />
+                        <span className="text-gray-400 group-hover/item:text-white transition-colors">
+                          Pending Approval
+                        </span>
+                      </li>
+                    )}
+                    {(role === "admin" || role === "superadmin") && (
+                      <li
+                        className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-slate-700/50 transition-all duration-200 group/item"
+                        onClick={() =>
+                          handleNavigation("/dashboard/jobs/categories")
+                        }
+                      >
+                        <BriefcaseIcon className="h-4 w-4 text-gray-500 group-hover/item:text-purple-400 transition-colors" />
+                        <span className="text-gray-400 group-hover/item:text-white transition-colors">
+                          Job Categories
+                        </span>
+                      </li>
+                    )}
                   </ul>
                 )}
               </div>
             )}
 
-          {/* Disputes - Student, Admin (not verifyDocAdmin) */}
+          {/* Disputes - Student, Admin (not verifyDocAdmin, not employer) */}
           {(role === "student" || role === "admin" || role === "superadmin") &&
-            role !== "verifyDocAdmin" && (
+            role !== "verifyDocAdmin" &&
+            role !== "employer" && (
               <div>
                 <div
                   className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-gradient-to-r hover:from-purple-600/20 hover:to-indigo-600/20 cursor-pointer transition-all duration-200 group border border-transparent hover:border-purple-500/30"

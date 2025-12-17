@@ -56,6 +56,9 @@ const Profile: React.FC = () => {
     phoneNumber: userData?.mobile_number || "N/A",
     nationalId: userData?.national_id_number || "N/A",
     businessId: userData?.business_registration_id || "N/A",
+    resumeUrl: userData?.resume_url || null,
+    coverLetter: userData?.cover_letter || null,
+    preferredLocation: userData?.preferred_location || null,
     memberSince: userData?.created_at
       ? new Date(userData.created_at).toLocaleDateString("en-US", {
           year: "numeric",
@@ -222,6 +225,18 @@ const Profile: React.FC = () => {
                 </p>
               </div>
             )}
+
+            {/* Preferred Location (if student) */}
+            {userRole === "student" && displayData.preferredLocation && (
+              <div>
+                <label className="text-sm font-medium text-purple-600 mb-1 block">
+                  Preferred Location
+                </label>
+                <p className="text-gray-900 font-semibold text-lg">
+                  {displayData.preferredLocation}
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Action Buttons */}
@@ -241,6 +256,65 @@ const Profile: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Student-Specific Section */}
+      {userRole === "student" && (
+        <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            Professional Information
+          </h2>
+
+          {/* Resume */}
+          <div className="mb-6">
+            <label className="text-sm font-medium text-purple-600 mb-2 block">
+              Resume
+            </label>
+            {displayData.resumeUrl ? (
+              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                <svg
+                  className="h-8 w-8 text-purple-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
+                </svg>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-900">
+                    Resume uploaded
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    Your resume is ready to use for job applications
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <p className="text-gray-500 text-sm">
+                No resume uploaded. Click "Edit Profile" to upload one.
+              </p>
+            )}
+          </div>
+
+          {/* Cover Letter */}
+          {displayData.coverLetter && (
+            <div className="mb-6">
+              <label className="text-sm font-medium text-purple-600 mb-2 block">
+                Default Cover Letter
+              </label>
+              <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <p className="text-gray-700 text-sm whitespace-pre-wrap">
+                  {displayData.coverLetter}
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Additional Info Section (Optional) */}
       <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">

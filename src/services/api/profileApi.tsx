@@ -7,6 +7,9 @@ export interface UserProfile {
   full_name: string;
   national_id_number?: string;
   business_registration_id?: string;
+  resume_url?: string;
+  cover_letter?: string;
+  preferred_location?: string;
   two_fa_enabled: boolean;
   terms_accepted: boolean;
   privacy_accepted: boolean;
@@ -37,6 +40,9 @@ export interface UpdateProfileData {
   mobile_number?: string;
   national_id_number?: string;
   business_registration_id?: string;
+  resume_url?: string;
+  cover_letter?: string;
+  preferred_location?: string;
 }
 
 export const updateUserProfile = async (
