@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { BellIcon, Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
+import { BellIcon, Bars3Icon } from "@heroicons/react/24/outline";
 import { logoutApi } from "../../services/api/logoutApi";
 import {
   useGetUnreadNotificationCountQuery,
@@ -81,23 +81,28 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
         refetchUnreadCount();
       } catch (error) {
         console.error("Failed to mark notification as read:", error);
+        // Optionally show user-friendly error message
       }
     }
 
     // Navigate based on notification type
-    if (notification.related_id) {
-      if (notification.type === "job_application" && (role === "employer" || role === "superadmin")) {
-        // Employer clicks job application notification -> go to job applications page
-        if (notification.application?.job?.job_id) {
-          navigate(`/dashboard/jobs/${notification.application.job.job_id}/applications`);
-        } else {
-          navigate("/dashboard/jobs/applications");
+    try {
+      if (notification.related_id) {
+        if (notification.type === "job_application" && (role === "employer" || role === "superadmin")) {
+          // Employer clicks job application notification -> go to job applications page
+          if (notification.application?.job?.job_id) {
+            navigate(`/dashboard/jobs/${notification.application.job.job_id}/applications`);
+          } else {
+            navigate("/dashboard/jobs/applications");
+          }
+        } else if (notification.type === "application_status" && role === "student") {
+          // Student clicks application status notification -> go to their applications page
+          navigate("/dashboard/jobs/my-applications");
         }
-      } else if (notification.type === "application_status" && role === "student") {
-        // Student clicks application status notification -> go to their applications page
-        navigate("/dashboard/jobs/my-applications");
+        setIsNotificationDropdownOpen(false);
       }
-      setIsNotificationDropdownOpen(false);
+    } catch (error) {
+      console.error("Navigation error:", error);
     }
   };
 
@@ -112,14 +117,25 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   };
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+    try {
+      const date = new Date(dateString);
+      const now = new Date();
+      
+      // Validate date
+      if (isNaN(date.getTime())) {
+        return "Invalid date";
+      }
+      
+      const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
-    if (diffInSeconds < 60) return "Just now";
-    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
-    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
-    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+      if (diffInSeconds < 60) return "Just now";
+      if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+      if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+      return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return "Recently";
+    }
   };
 
   // Handle logout
@@ -148,6 +164,8 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
       <button
         onClick={onMenuClick}
         className="lg:hidden text-gray-700 hover:text-gray-900 transition-colors p-2 rounded-lg hover:bg-gray-100"
+        aria-label="Toggle menu"
+        type="button"
       >
         <Bars3Icon className="h-6 w-6" />
       </button>
@@ -160,17 +178,19 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
         {/* Notification icon with dropdown */}
         {(role === "employer" || role === "superadmin" || role === "student") && (
           <div className="relative" ref={notificationDropdownRef}>
-            <div
+            <button
               onClick={() => setIsNotificationDropdownOpen(!isNotificationDropdownOpen)}
               className="relative cursor-pointer p-2 rounded-lg hover:bg-gray-100 transition-colors group"
+              aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ""}`}
+              type="button"
             >
               <BellIcon className="h-6 w-6 text-gray-600 group-hover:text-purple-600 transition-colors" />
               {unreadCount > 0 && (
-                <span className="absolute top-0 right-0 bg-gradient-to-r from-red-500 to-red-600 text-white text-xs font-semibold rounded-full h-5 w-5 flex items-center justify-center shadow-lg">
+                <span className="absolute top-0 right-0 bg-gradient-to-r from-red-500 to-red-600 text-white text-xs font-semibold rounded-full h-5 w-5 flex items-center justify-center shadow-lg" aria-label={`${unreadCount} unread notifications`}>
                   {unreadCount > 9 ? "9+" : unreadCount}
                 </span>
               )}
-            </div>
+            </button>
 
             {/* Notification Dropdown */}
             {isNotificationDropdownOpen && (
@@ -261,16 +281,18 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
 
         {/* Avatar with dropdown */}
         <div className="relative" ref={dropdownRef}>
-          <div
+          <button
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className="h-10 w-10 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center cursor-pointer border-2 border-white shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200 ring-2 ring-purple-200"
+            className="h-10 w-10 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center cursor-pointer border-2 border-white shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200 ring-2 ring-purple-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+            aria-label="User menu"
+            type="button"
           >
             <img
               src="https://i.pravatar.cc/100?img=3"
-              alt="User"
+              alt="User avatar"
               className="h-full w-full rounded-full object-cover"
             />
-          </div>
+          </button>
 
           {/* Dropdown menu */}
           {isDropdownOpen && (
