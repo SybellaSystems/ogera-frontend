@@ -42,6 +42,10 @@ import ActiveJobs from "./pages/Jobs/ActiveJobs";
 import CompletedJobs from "./pages/Jobs/Completed";
 import PendingApprovalJobs from "./pages/Jobs/PendingApproval";
 import JobCategories from "./pages/Jobs/JobCategories";
+import CreateJob from "./pages/Jobs/CreateJob";
+import JobApplications from "./pages/Jobs/JobApplications";
+import ViewJobApplications from "./pages/Jobs/ViewJobApplications";
+import JobDetails from "./pages/Jobs/JobDetails";
 
 // Dispute Pages
 import Disputes from "./pages/Disputes";
@@ -217,7 +221,17 @@ function App() {
               path: "academic/locks",
               Component: AccountLocks,
             },
-            // Jobs Routes
+            // Jobs Routes - Order matters: specific routes first, then dynamic routes
+            {
+              path: "jobs/create",
+              element: <ProtectedRoute allowedRoles={["employer", "superadmin"]} />,
+              children: [
+                {
+                  index: true,
+                  Component: CreateJob,
+                },
+              ],
+            },
             {
               path: "jobs/all",
               Component: AllJobs,
@@ -237,6 +251,40 @@ function App() {
             {
               path: "jobs/categories",
               Component: JobCategories,
+            },
+            {
+              path: "jobs/applications",
+              element: <ProtectedRoute allowedRoles={["employer", "superadmin"]} />,
+              children: [
+                {
+                  index: true,
+                  Component: JobApplications,
+                },
+              ],
+            },
+            {
+              path: "jobs/:id/edit",
+              element: <ProtectedRoute allowedRoles={["employer", "superadmin"]} />,
+              children: [
+                {
+                  index: true,
+                  Component: CreateJob,
+                },
+              ],
+            },
+            {
+              path: "jobs/:id/applications",
+              element: <ProtectedRoute allowedRoles={["employer", "superadmin"]} />,
+              children: [
+                {
+                  index: true,
+                  Component: ViewJobApplications,
+                },
+              ],
+            },
+            {
+              path: "jobs/:id",
+              Component: JobDetails,
             },
             // Dispute Routes
             {

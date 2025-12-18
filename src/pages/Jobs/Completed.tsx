@@ -1,12 +1,31 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { CheckCircleIcon } from "@heroicons/react/24/outline";
+import { useGetCompletedJobsQuery } from "../../services/api/jobsApi";
+import Loader from "../../components/Loader";
+import { formatRelativeTime } from "../../utils/timeUtils";
 
 const Completed: React.FC = () => {
-  const completedJobs = [
-    { id: 1, title: "Junior Developer", company: "Apple", hiredStudent: "John Doe", completedDate: "2024-02-28", rating: 4.8 },
-    { id: 2, title: "Intern - Marketing", company: "Amazon", hiredStudent: "Sarah Smith", completedDate: "2024-02-25", rating: 4.9 },
-    { id: 3, title: "Data Entry Clerk", company: "IBM", hiredStudent: "Mike Johnson", completedDate: "2024-02-20", rating: 4.5 },
-  ];
+  const navigate = useNavigate();
+  const { data, isLoading, error } = useGetCompletedJobsQuery();
+
+  const completedJobs = data?.data || [];
+
+  if (isLoading) {
+    return <Loader />;
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6 animate-fadeIn">
+        <div className="bg-red-50 border border-red-200 rounded-xl p-6">
+          <p className="text-red-800 font-medium">
+            Failed to load completed jobs. Please try again later.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 animate-fadeIn">
@@ -19,49 +38,63 @@ const Completed: React.FC = () => {
       </div>
 
       <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg">
-        <p className="text-blue-800 font-medium">✓ {completedJobs.length} jobs completed this month</p>
+        <p className="text-blue-800 font-medium">✓ {completedJobs.length} jobs completed</p>
       </div>
 
-      <div className="bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-gray-50 border-b">
-            <tr>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Job Title</th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Company</th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Hired Student</th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Completed Date</th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Rating</th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {completedJobs.map((job) => (
-              <tr key={job.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 font-medium text-gray-900">{job.title}</td>
-                <td className="px-6 py-4 text-gray-600">{job.company}</td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-2">
-                    <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-semibold text-sm">
-                      {job.hiredStudent.charAt(0)}
-                    </div>
-                    <span className="font-medium text-gray-900">{job.hiredStudent}</span>
-                  </div>
-                </td>
-                <td className="px-6 py-4 text-gray-600">{job.completedDate}</td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-1">
-                    <span className="text-yellow-500 text-lg">★</span>
-                    <span className="font-semibold text-gray-900">{job.rating}</span>
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <button className="text-blue-600 hover:text-blue-800 font-medium text-sm">View Report</button>
-                </td>
+      {completedJobs.length === 0 ? (
+        <div className="bg-white rounded-xl p-12 shadow-md border border-gray-100 text-center">
+          <CheckCircleIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">
+            No completed jobs
+          </h3>
+          <p className="text-gray-600">
+            There are no completed job postings at the moment.
+          </p>
+        </div>
+      ) : (
+        <div className="bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b">
+              <tr>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Job Title</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Employer</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Location</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Budget</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Applicants</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Completed Date</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {completedJobs.map((job: any) => {
+                const employerName = job.employer?.full_name || "Unknown Employer";
+                const completedDate = job.updated_at || job.created_at;
+
+                return (
+                  <tr key={job.job_id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 font-medium text-gray-900">{job.job_title}</td>
+                    <td className="px-6 py-4 text-gray-600">{employerName}</td>
+                    <td className="px-6 py-4 text-gray-600">{job.location}</td>
+                    <td className="px-6 py-4 text-gray-600">${job.budget?.toLocaleString() || "N/A"}</td>
+                    <td className="px-6 py-4 text-gray-600">{job.applications || 0}</td>
+                    <td className="px-6 py-4 text-gray-600">
+                      {completedDate ? formatRelativeTime(completedDate) : "N/A"}
+                    </td>
+                    <td className="px-6 py-4">
+                      <button
+                        onClick={() => navigate(`/dashboard/jobs/${job.job_id}`)}
+                        className="text-blue-600 hover:text-blue-800 font-medium text-sm"
+                      >
+                        View Details
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 };
