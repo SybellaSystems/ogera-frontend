@@ -15,6 +15,7 @@ import { useNavigate } from "react-router-dom";
 import type { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import TermsModal from "../components/TermsModal";
 import PrivacyModal from "../components/PrivacyModal";
+import CountryCodeSelector from "../components/CountryCodeSelector";
 
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -29,6 +30,8 @@ const Register = () => {
     useRegisterUserMutation();
 
   const handleClickShowPassword = () => setShowPassword((prev) => !prev);
+
+  const [countryCode, setCountryCode] = useState("+1"); // Default to US/Canada
 
   const initialValues: RegisterFormValues = {
     accountType: "student",
@@ -47,10 +50,13 @@ const Register = () => {
     validationSchema: registerValidationSchema,
     onSubmit: async (values) => {
       try {
+        // Combine country code with phone number
+        const fullPhoneNumber = `${countryCode}${values.mobile_number}`;
+        
         const payload = {
           full_name: values.full_name,
           email: values.email,
-          mobile_number: values.mobile_number,
+          mobile_number: fullPhoneNumber,
           password: values.password,
           role: values.accountType,
           national_id_number:
@@ -260,18 +266,24 @@ const Register = () => {
           {/* Mobile Number */}
           <FormGroup>
             <Label htmlFor="mobile_number">Mobile Number</Label>
-            <Input
-              id="mobile_number"
-              name="mobile_number"
-              maxLength={10}
-              placeholder="Enter your mobile number"
-              value={formik.values.mobile_number}
-              onBlur={formik.handleBlur}
-              onChange={(e) => {
-                const cleaned = e.target.value.replace(/[^0-9]/g, "");
-                formik.setFieldValue("mobile_number", cleaned);
-              }}
-            />
+            <PhoneInputContainer>
+              <CountryCodeSelector
+                value={countryCode}
+                onChange={setCountryCode}
+              />
+              <PhoneInput
+                id="mobile_number"
+                name="mobile_number"
+                type="tel"
+                placeholder="Enter your mobile number"
+                value={formik.values.mobile_number}
+                onBlur={formik.handleBlur}
+                onChange={(e) => {
+                  const cleaned = e.target.value.replace(/[^0-9]/g, "");
+                  formik.setFieldValue("mobile_number", cleaned);
+                }}
+              />
+            </PhoneInputContainer>
             {formik.touched.mobile_number && formik.errors.mobile_number && (
               <ErrorText>{formik.errors.mobile_number}</ErrorText>
             )}
@@ -522,6 +534,26 @@ const Input = styled("input")`
   border-radius: 8px;
   border: 1px solid #ddd;
   font-size: 14px;
+`;
+
+const PhoneInputContainer = styled("div")`
+  display: flex;
+  align-items: stretch;
+`;
+
+const PhoneInput = styled("input")`
+  flex: 1;
+  padding: 12px;
+  border-radius: 0 8px 8px 0;
+  border: 1px solid #ddd;
+  border-left: none;
+  font-size: 14px;
+  
+  &:focus {
+    outline: none;
+    border-color: #7f56d9;
+    border-left: 1px solid #7f56d9;
+  }
 `;
 
 const ErrorText = styled("div")`

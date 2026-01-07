@@ -1,6 +1,7 @@
 import { configureStore } from "@reduxjs/toolkit";
 import rootReducer from "./rootReducer";
 import { apiSlice } from "../services/api/apiSlice";
+import { extendedProfileApi } from "../services/api/extendedProfileApi";
 
 // Load state from localStorage (WITHOUT access token for security)
 const loadState = () => {
@@ -43,7 +44,9 @@ const saveState = (state: any) => {
 const store = configureStore({
   reducer: rootReducer,
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(apiSlice.middleware),
+    getDefaultMiddleware()
+      .concat(apiSlice.middleware)
+      .concat(extendedProfileApi.middleware),
   preloadedState: loadState(), // Load persisted state on app start
 });
 

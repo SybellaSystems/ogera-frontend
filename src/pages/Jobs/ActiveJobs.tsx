@@ -12,6 +12,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { BookmarkIcon as BookmarkSolidIcon } from "@heroicons/react/24/solid";
 import { useGetActiveJobsQuery } from "../../services/api/jobsApi";
+import { useGetStudentApplicationsQuery } from "../../services/api/jobApplicationApi";
 import ApplyJobModal from "../../components/ApplyJobModal";
 import Loader from "../../components/Loader";
 import { formatRelativeTime } from "../../utils/timeUtils";
@@ -20,11 +21,19 @@ const ActiveJobs: React.FC = () => {
   const navigate = useNavigate();
   const role = useSelector((state: any) => state.auth.role);
   const { data, isLoading, error } = useGetActiveJobsQuery();
+  const { data: studentApplications, refetch: refetchApplications } = useGetStudentApplicationsQuery(undefined, {
+    skip: role !== "student",
+  });
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLocation, setSelectedLocation] = useState("");
   const [selectedJob, setSelectedJob] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [savedJobs, setSavedJobs] = useState<Set<string>>(new Set());
+  
+  // Create a Set of job IDs the student has applied to
+  const appliedJobIds = new Set(
+    (studentApplications?.data || []).map((app: any) => app.job_id)
+  );
 
   const activeJobs = data?.data || [];
 
@@ -60,6 +69,10 @@ const ActiveJobs: React.FC = () => {
   const handleModalClose = () => {
     setIsModalOpen(false);
     setSelectedJob(null);
+    // Refetch student applications to update applied status
+    if (role === "student") {
+      refetchApplications();
+    }
   };
 
   const toggleSaveJob = (jobId: string) => {
@@ -259,10 +272,15 @@ const ActiveJobs: React.FC = () => {
                   <div className="flex-shrink-0 flex flex-col gap-2 ml-4">
                     {role === "student" ? (
                       <button
-                        onClick={() => handleApply(job)}
-                        className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition shadow-sm whitespace-nowrap min-w-[120px]"
+                        onClick={() => !appliedJobIds.has(job.job_id) && handleApply(job)}
+                        disabled={appliedJobIds.has(job.job_id)}
+                        className={`px-6 py-2.5 rounded-lg font-semibold transition shadow-sm whitespace-nowrap min-w-[120px] ${
+                          appliedJobIds.has(job.job_id)
+                            ? "bg-gray-400 text-white cursor-not-allowed"
+                            : "bg-blue-600 hover:bg-blue-700 text-white"
+                        }`}
                       >
-                        Apply Now
+                        {appliedJobIds.has(job.job_id) ? "Applied" : "Apply Now"}
                       </button>
                     ) : (
                       <>

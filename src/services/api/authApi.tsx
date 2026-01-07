@@ -58,6 +58,22 @@ export const authApi = apiSlice.injectEndpoints({
       }),
     }),
 
+    sendPhoneVerificationOTP: builder.mutation<any, void>({
+      query: () => ({
+        url: "/auth/send-phone-verification-otp",
+        method: "POST",
+      }),
+    }),
+
+    verifyPhone: builder.mutation({
+      query: (otp) => ({
+        url: "/auth/verify-phone",
+        method: "POST",
+        body: { otp },
+      }),
+      invalidatesTags: ["User", "TrustScore"],
+    }),
+
     logout: builder.mutation({
       query: () => ({
         url: "/auth/logout",
@@ -76,5 +92,7 @@ export const {
   useGetUserProfileQuery,
   useVerifyEmailMutation,
   useResendVerificationEmailMutation,
+  useSendPhoneVerificationOTPMutation,
+  useVerifyPhoneMutation,
   useLogoutMutation,
 } = authApi;

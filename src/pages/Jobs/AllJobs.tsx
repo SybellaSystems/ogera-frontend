@@ -12,6 +12,7 @@ import {
 import { BookmarkIcon as BookmarkSolidIcon } from "@heroicons/react/24/solid";
 import { useGetAllJobsQuery, useToggleJobStatusMutation } from "../../services/api/jobsApi";
 import { useGetUserProfileQuery } from "../../services/api/authApi";
+import { useGetStudentApplicationsQuery } from "../../services/api/jobApplicationApi";
 import ApplyJobModal from "../../components/ApplyJobModal";
 import Loader from "../../components/Loader";
 import { formatRelativeTime } from "../../utils/timeUtils";
@@ -21,6 +22,9 @@ const AllJobs: React.FC = () => {
   const role = useSelector((state: any) => state.auth.role);
   const { data, isLoading, error, refetch } = useGetAllJobsQuery();
   const { data: profileData } = useGetUserProfileQuery();
+  const { data: studentApplications, refetch: refetchApplications } = useGetStudentApplicationsQuery(undefined, {
+    skip: role !== "student",
+  });
   const [selectedJob, setSelectedJob] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [toggleStatus, { isLoading: isToggling }] = useToggleJobStatusMutation();
@@ -28,6 +32,11 @@ const AllJobs: React.FC = () => {
   const [selectedLocation, setSelectedLocation] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
   const [savedJobs, setSavedJobs] = useState<Set<string>>(new Set());
+  
+  // Create a Set of job IDs the student has applied to
+  const appliedJobIds = new Set(
+    (studentApplications?.data || []).map((app: any) => app.job_id)
+  );
 
   const jobs = data?.data || [];
   const currentUserId = profileData?.data?.user_id;
@@ -88,6 +97,10 @@ const AllJobs: React.FC = () => {
     setIsModalOpen(false);
     setSelectedJob(null);
     refetch();
+    // Refetch student applications to update applied status
+    if (role === "student") {
+      refetchApplications();
+    }
   };
 
 
@@ -352,10 +365,15 @@ const AllJobs: React.FC = () => {
                   <div className="flex flex-col sm:flex-row md:flex-col gap-2 md:ml-4 md:flex-shrink-0">
                     {role === "student" ? (
                       <button
-                        onClick={() => handleApply(job)}
-                        className="px-4 md:px-6 py-2 md:py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition shadow-sm whitespace-nowrap text-sm md:text-base flex-1 sm:flex-none"
+                        onClick={() => !appliedJobIds.has(job.job_id) && handleApply(job)}
+                        disabled={appliedJobIds.has(job.job_id)}
+                        className={`px-4 md:px-6 py-2 md:py-2.5 rounded-lg font-semibold transition shadow-sm whitespace-nowrap text-sm md:text-base flex-1 sm:flex-none ${
+                          appliedJobIds.has(job.job_id)
+                            ? "bg-gray-400 text-white cursor-not-allowed"
+                            : "bg-blue-600 hover:bg-blue-700 text-white"
+                        }`}
                       >
-                        Apply Now
+                        {appliedJobIds.has(job.job_id) ? "Applied" : "Apply Now"}
                       </button>
                     ) : (
                       <>
