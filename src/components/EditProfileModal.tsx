@@ -318,6 +318,11 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                   {formik.errors.mobile_number}
                 </p>
               )}
+              {formik.values.mobile_number !== profileData?.mobile_number && (
+                <p className="mt-1 text-xs text-amber-600">
+                  ⚠️ Changing your phone number will require verification
+                </p>
+              )}
             </div>
 
             {/* Email (Editable) */}

@@ -41,6 +41,7 @@ Built with modern web technologies including React 19, TypeScript, and Tailwind 
 ## ✨ Key Features
 
 ### 🔐 **Authentication & Authorization**
+
 - Secure login and registration system
 - JWT-based authentication with automatic token refresh
 - Password reset and OTP verification
@@ -48,6 +49,7 @@ Built with modern web technologies including React 19, TypeScript, and Tailwind 
 - Protected routes with middleware
 
 ### 👥 **User Management**
+
 - Multi-role support (Admin, Employer, Student)
 - User approval workflow
 - Account suspension management
@@ -55,6 +57,7 @@ Built with modern web technologies including React 19, TypeScript, and Tailwind 
 - Real-time user status tracking
 
 ### 💼 **Job Management**
+
 - Job posting and approval system
 - Active/completed job tracking
 - Job categories management
@@ -62,6 +65,7 @@ Built with modern web technologies including React 19, TypeScript, and Tailwind 
 - Job status monitoring
 
 ### 🎓 **Academic Verification**
+
 - Document verification system
 - Approval/rejection workflow
 - Performance tracking
@@ -69,18 +73,21 @@ Built with modern web technologies including React 19, TypeScript, and Tailwind 
 - Review history
 
 ### ⚖️ **Dispute Resolution**
+
 - Open dispute tracking
 - In-progress dispute management
 - Resolved dispute history
 - Dispute escalation system
 
 ### 📊 **Analytics & Reporting**
+
 - Platform analytics dashboard
 - Transaction history
 - User activity metrics
 - Performance insights
 
 ### 💳 **Transaction Management**
+
 - Payment tracking
 - Transaction history
 - Financial reporting
@@ -91,35 +98,43 @@ Built with modern web technologies including React 19, TypeScript, and Tailwind 
 ## 🛠️ Tech Stack
 
 ### **Core**
+
 - **[React 19](https://reactjs.org/)** - UI library with latest features
 - **[TypeScript](https://www.typescriptlang.org/)** - Type-safe JavaScript
 - **[Vite](https://vitejs.dev/)** - Next-generation frontend tooling
 
 ### **State Management**
+
 - **[Redux Toolkit](https://redux-toolkit.js.org/)** - State management
 - **[RTK Query](https://redux-toolkit.js.org/rtk-query/overview)** - Data fetching and caching
 
 ### **Routing**
+
 - **[React Router v7](https://reactrouter.com/)** - Client-side routing
 
 ### **Styling**
+
 - **[Tailwind CSS v4](https://tailwindcss.com/)** - Utility-first CSS framework
 - **[Material-UI (MUI)](https://mui.com/)** - React component library
 - **[Emotion](https://emotion.sh/)** - CSS-in-JS library
 - **[Framer Motion](https://www.framer.com/motion/)** - Animation library
 
 ### **Form Handling**
+
 - **[Formik](https://formik.org/)** - Form management
 - **[Yup](https://github.com/jquense/yup)** - Schema validation
 
 ### **API Communication**
+
 - **[Axios](https://axios-http.com/)** - HTTP client with interceptors
 
 ### **UI Components**
+
 - **[Heroicons](https://heroicons.com/)** - Icon library
 - **[React Hot Toast](https://react-hot-toast.com/)** - Toast notifications
 
 ### **Utilities**
+
 - **[jwt-decode](https://github.com/auth0/jwt-decode)** - JWT token decoding
 
 ---
@@ -157,7 +172,8 @@ npm install
 Create a `.env` file in the root directory:
 
 ```bash
-cp .env.example .env
+# Create .env file manually or copy from example if available
+touch .env
 ```
 
 Then configure your environment variables (see [Environment Variables](#-environment-variables))
@@ -178,7 +194,7 @@ Create a `.env` file in the root directory with the following variables:
 
 ```env
 # API Configuration
-VITE_API_URL=http://localhost:3000/api
+VITE_API_URL=http://localhost:5000/api
 
 # Optional: Other configuration variables
 # VITE_APP_NAME=Ogera
@@ -187,9 +203,9 @@ VITE_API_URL=http://localhost:3000/api
 
 ### Variable Descriptions:
 
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `VITE_API_URL` | Backend API base URL | ✅ Yes |
+| Variable       | Description          | Required |
+| -------------- | -------------------- | -------- |
+| `VITE_API_URL` | Backend API base URL | ✅ Yes   |
 
 > **Note:** All Vite environment variables must be prefixed with `VITE_` to be exposed to the client.
 
@@ -262,12 +278,12 @@ ogera-frontend/
 
 ## 📜 Available Scripts
 
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start development server with hot reload |
-| `npm run build` | Build for production (TypeScript + Vite) |
-| `npm run preview` | Preview production build locally |
-| `npm run lint` | Run ESLint to check code quality |
+| Command           | Description                              |
+| ----------------- | ---------------------------------------- |
+| `npm run dev`     | Start development server with hot reload |
+| `npm run build`   | Build for production (TypeScript + Vite) |
+| `npm run preview` | Preview production build locally         |
+| `npm run lint`    | Run ESLint to check code quality         |
 
 ### Development Workflow:
 
@@ -292,6 +308,7 @@ npm run preview
 The application supports three distinct user roles, each with specific permissions:
 
 ### 1. **Admin / SuperAdmin** 🔑
+
 - Full system access
 - User management (approve, suspend, view all users)
 - Academic verification management
@@ -301,6 +318,7 @@ The application supports three distinct user roles, each with specific permissio
 - Platform configuration
 
 ### 2. **Employer** 💼
+
 - Post job opportunities
 - Manage job listings
 - View student profiles
@@ -309,6 +327,7 @@ The application supports three distinct user roles, each with specific permissio
 - View analytics for own listings
 
 ### 3. **Student** 🎓
+
 - Complete profile with academic information
 - Browse and apply for jobs
 - Submit documents for verification
@@ -322,62 +341,62 @@ The application supports three distinct user roles, each with specific permissio
 
 ### 🔐 **Authentication Module**
 
-| Feature | Route | Description |
-|---------|-------|-------------|
-| Login | `/auth/login` | User authentication |
-| Register | `/auth/register` | New user registration |
-| Forgot Password | `/auth/forgot-password` | Password recovery |
-| Reset Password | `/auth/reset-password` | Set new password |
-| Verify OTP | `/auth/verify-otp` | OTP verification |
-| Change Password | `/auth/change-password` | Update password |
+| Feature         | Route                   | Description           |
+| --------------- | ----------------------- | --------------------- |
+| Login           | `/auth/login`           | User authentication   |
+| Register        | `/auth/register`        | New user registration |
+| Forgot Password | `/auth/forgot-password` | Password recovery     |
+| Reset Password  | `/auth/reset-password`  | Set new password      |
+| Verify OTP      | `/auth/verify-otp`      | OTP verification      |
+| Change Password | `/auth/change-password` | Update password       |
 
 ### 👥 **User Management Module** (Admin Only)
 
-| Feature | Route | Access |
-|---------|-------|--------|
-| All Users | `/dashboard/users/all` | Admin, SuperAdmin |
-| Students | `/dashboard/users/students` | Admin, SuperAdmin |
-| Employers | `/dashboard/users/employers` | Admin, SuperAdmin |
-| Pending Approval | `/dashboard/users/pending` | Admin, SuperAdmin |
-| Suspended Users | `/dashboard/users/suspended` | Admin, SuperAdmin |
+| Feature          | Route                        | Access            |
+| ---------------- | ---------------------------- | ----------------- |
+| All Users        | `/dashboard/users/all`       | Admin, SuperAdmin |
+| Students         | `/dashboard/users/students`  | Admin, SuperAdmin |
+| Employers        | `/dashboard/users/employers` | Admin, SuperAdmin |
+| Pending Approval | `/dashboard/users/pending`   | Admin, SuperAdmin |
+| Suspended Users  | `/dashboard/users/suspended` | Admin, SuperAdmin |
 
 ### 🎓 **Academic Verification Module**
 
-| Feature | Route | Description |
-|---------|-------|-------------|
-| Pending Reviews | `/dashboard/academic/pending` | Documents awaiting review |
-| Approved | `/dashboard/academic/approved` | Verified documents |
-| Rejected | `/dashboard/academic/rejected` | Rejected documents |
+| Feature           | Route                             | Description                   |
+| ----------------- | --------------------------------- | ----------------------------- |
+| Pending Reviews   | `/dashboard/academic/pending`     | Documents awaiting review     |
+| Approved          | `/dashboard/academic/approved`    | Verified documents            |
+| Rejected          | `/dashboard/academic/rejected`    | Rejected documents            |
 | Performance Track | `/dashboard/academic/performance` | Academic performance tracking |
-| Account Locks | `/dashboard/academic/locks` | Locked accounts management |
+| Account Locks     | `/dashboard/academic/locks`       | Locked accounts management    |
 
 ### 💼 **Jobs Module**
 
-| Feature | Route | Description |
-|---------|-------|-------------|
-| All Jobs | `/dashboard/jobs/all` | Complete job listings |
-| Active Jobs | `/dashboard/jobs/active` | Currently active jobs |
-| Completed Jobs | `/dashboard/jobs/completed` | Finished jobs |
-| Pending Approval | `/dashboard/jobs/pending` | Jobs awaiting approval |
-| Job Categories | `/dashboard/jobs/categories` | Job category management |
+| Feature          | Route                        | Description             |
+| ---------------- | ---------------------------- | ----------------------- |
+| All Jobs         | `/dashboard/jobs/all`        | Complete job listings   |
+| Active Jobs      | `/dashboard/jobs/active`     | Currently active jobs   |
+| Completed Jobs   | `/dashboard/jobs/completed`  | Finished jobs           |
+| Pending Approval | `/dashboard/jobs/pending`    | Jobs awaiting approval  |
+| Job Categories   | `/dashboard/jobs/categories` | Job category management |
 
 ### ⚖️ **Disputes Module**
 
-| Feature | Route | Description |
-|---------|-------|-------------|
-| All Disputes | `/dashboard/disputes` | Dispute overview |
-| Open Disputes | `/dashboard/disputes/open` | Unresolved disputes |
-| In Progress | `/dashboard/disputes/in-progress` | Active dispute resolution |
-| Resolved | `/dashboard/disputes/resolved` | Closed disputes |
+| Feature       | Route                             | Description               |
+| ------------- | --------------------------------- | ------------------------- |
+| All Disputes  | `/dashboard/disputes`             | Dispute overview          |
+| Open Disputes | `/dashboard/disputes/open`        | Unresolved disputes       |
+| In Progress   | `/dashboard/disputes/in-progress` | Active dispute resolution |
+| Resolved      | `/dashboard/disputes/resolved`    | Closed disputes           |
 
 ### 📊 **Other Modules**
 
-| Feature | Route | Description |
-|---------|-------|-------------|
-| Dashboard | `/dashboard` | Main dashboard (role-specific) |
-| Profile | `/dashboard/profile` | User profile management |
-| Analytics | `/dashboard/analytics` | Platform analytics |
-| Transactions | `/dashboard/transactions` | Transaction history |
+| Feature      | Route                     | Description                    |
+| ------------ | ------------------------- | ------------------------------ |
+| Dashboard    | `/dashboard`              | Main dashboard (role-specific) |
+| Profile      | `/dashboard/profile`      | User profile management        |
+| Analytics    | `/dashboard/analytics`    | Platform analytics             |
+| Transactions | `/dashboard/transactions` | Transaction history            |
 
 ---
 
@@ -397,10 +416,12 @@ The application uses a sophisticated JWT authentication system with automatic to
 ```
 
 ### Token Storage
+
 - **Access Token**: Stored in Redux state (in-memory)
 - **Refresh Token**: Stored as HTTP-only cookie (backend)
 
 ### Protected Routes
+
 Routes are protected using the `ProtectedRoute` component:
 
 ```typescript
@@ -413,23 +434,27 @@ Routes are protected using the `ProtectedRoute` component:
 ## 🏗️ Architecture Highlights
 
 ### State Management
+
 - **Redux Toolkit** for global state
 - **RTK Query** for API caching and data fetching
 - Automatic request deduplication
 - Optimistic updates for better UX
 
 ### Form Handling
+
 - **Formik** for form state management
 - **Yup** schemas for validation
 - Reusable validation schemas in `/src/validation`
 
 ### API Layer
+
 - Centralized Axios instance with interceptors
 - Automatic token refresh on 401
 - Request/response transformation
 - Error handling middleware
 
 ### Type Safety
+
 - Full TypeScript coverage
 - Type definitions in `/src/type`
 - IntelliSense support throughout
@@ -441,37 +466,44 @@ Routes are protected using the `ProtectedRoute` component:
 We welcome contributions! Please follow these guidelines:
 
 ### 1. Fork the Repository
+
 ```bash
 git clone <your-fork-url>
 cd ogera-frontend
 ```
 
 ### 2. Create a Feature Branch
+
 ```bash
 git checkout -b feature/your-feature-name
 ```
 
 ### 3. Make Your Changes
+
 - Follow the existing code style
 - Add TypeScript types for new code
 - Update documentation as needed
 
 ### 4. Run Linting
+
 ```bash
 npm run lint
 ```
 
 ### 5. Commit Your Changes
+
 ```bash
 git commit -m "feat: add your feature description"
 ```
 
 ### 6. Push and Create PR
+
 ```bash
 git push origin feature/your-feature-name
 ```
 
 ### Commit Message Convention
+
 We follow [Conventional Commits](https://www.conventionalcommits.org/):
 
 - `feat:` - New feature
@@ -489,6 +521,7 @@ We follow [Conventional Commits](https://www.conventionalcommits.org/):
 ### Common Issues
 
 **1. Port Already in Use**
+
 ```bash
 # Kill the process using the port
 npx kill-port 5173
@@ -497,6 +530,7 @@ npm run dev -- --port 3000
 ```
 
 **2. Module Not Found Errors**
+
 ```bash
 # Clear node_modules and reinstall
 rm -rf node_modules package-lock.json
@@ -504,12 +538,14 @@ npm install
 ```
 
 **3. TypeScript Errors**
+
 ```bash
 # Restart TypeScript server in VSCode
 # Cmd/Ctrl + Shift + P → "TypeScript: Restart TS Server"
 ```
 
 **4. CORS Issues**
+
 - Ensure `VITE_API_URL` is correctly set in `.env`
 - Check backend CORS configuration
 - Verify `withCredentials: true` in Axios config

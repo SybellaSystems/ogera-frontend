@@ -46,6 +46,11 @@ import CreateJob from "./pages/Jobs/CreateJob";
 import JobApplications from "./pages/Jobs/JobApplications";
 import ViewJobApplications from "./pages/Jobs/ViewJobApplications";
 import JobDetails from "./pages/Jobs/JobDetails";
+import MyApplications from "./pages/Jobs/MyApplications";
+import StudentAcceptedApplications from "./pages/Jobs/StudentAcceptedApplications";
+import StudentRejectedApplications from "./pages/Jobs/StudentRejectedApplications";
+import EmployerAcceptedApplications from "./pages/Jobs/EmployerAcceptedApplications";
+import EmployerRejectedApplications from "./pages/Jobs/EmployerRejectedApplications";
 
 // Dispute Pages
 import Disputes from "./pages/Disputes";
@@ -259,6 +264,32 @@ function App() {
                 {
                   index: true,
                   Component: JobApplications,
+                },
+                {
+                  path: "accepted",
+                  Component: EmployerAcceptedApplications,
+                },
+                {
+                  path: "rejected",
+                  Component: EmployerRejectedApplications,
+                },
+              ],
+            },
+            {
+              path: "jobs/my-applications",
+              element: <ProtectedRoute allowedRoles={["student"]} />,
+              children: [
+                {
+                  index: true,
+                  Component: MyApplications,
+                },
+                {
+                  path: "accepted",
+                  Component: StudentAcceptedApplications,
+                },
+                {
+                  path: "rejected",
+                  Component: StudentRejectedApplications,
                 },
               ],
             },

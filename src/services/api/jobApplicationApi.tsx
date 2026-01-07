@@ -75,7 +75,11 @@ export const jobApplicationApi = apiSlice.injectEndpoints({
         method: "POST",
         body: data,
       }),
-      invalidatesTags: ["Job"],
+      invalidatesTags: (result, error, { job_id }) => [
+        { type: "Job", id: job_id },
+        "Job",
+        "JobApplication",
+      ],
     }),
 
     // Get all applications for a specific job (employer/superadmin only)
@@ -105,7 +109,7 @@ export const jobApplicationApi = apiSlice.injectEndpoints({
         url: "/student/applications",
         method: "GET",
       }),
-      providesTags: ["Job"],
+      providesTags: ["Job", "JobApplication"],
     }),
 
     // Get application by ID
@@ -119,6 +123,21 @@ export const jobApplicationApi = apiSlice.injectEndpoints({
       }),
       providesTags: (result, error, application_id) => [
         { type: "Job", id: application_id },
+      ],
+    }),
+
+    // Check if student has applied to a job
+    checkStudentApplication: builder.query<
+      { success: boolean; data: { hasApplied: boolean; application?: JobApplication } },
+      string
+    >({
+      query: (job_id) => ({
+        url: `/jobs/${job_id}/check-application`,
+        method: "GET",
+      }),
+      providesTags: (result, error, job_id) => [
+        { type: "Job", id: job_id },
+        "Job",
       ],
     }),
 
@@ -144,6 +163,7 @@ export const {
   useGetStudentApplicationsQuery,
   useGetApplicationByIdQuery,
   useUpdateApplicationStatusMutation,
+  useCheckStudentApplicationQuery,
 } = jobApplicationApi;
 
 

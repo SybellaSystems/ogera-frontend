@@ -13,6 +13,7 @@ import {
 import { BookmarkIcon as BookmarkSolidIcon } from "@heroicons/react/24/solid";
 import { useGetJobByIdQuery } from "../../services/api/jobsApi";
 import { useGetUserProfileQuery } from "../../services/api/authApi";
+import { useCheckStudentApplicationQuery } from "../../services/api/jobApplicationApi";
 import ApplyJobModal from "../../components/ApplyJobModal";
 import Loader from "../../components/Loader";
 import { formatRelativeTime } from "../../utils/timeUtils";
@@ -24,8 +25,13 @@ const JobDetails: React.FC = () => {
   const role = useSelector((state: any) => state.auth.role);
   const { data, isLoading, error } = useGetJobByIdQuery(id || "");
   const { data: profileData } = useGetUserProfileQuery();
+  const { data: applicationCheck, refetch: refetchApplicationCheck } = useCheckStudentApplicationQuery(id || "", {
+    skip: !id || role !== "student",
+  });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [savedJobs, setSavedJobs] = useState<Set<string>>(new Set());
+  
+  const hasApplied = applicationCheck?.data?.hasApplied || false;
 
   const job = data?.data;
   const currentUserId = profileData?.data?.user_id;
@@ -144,9 +150,10 @@ const JobDetails: React.FC = () => {
         </div>
         {role === "student" && (
           <Button
-            backgroundcolor="#7f56d9"
-            text="Apply Now"
-            onClick={() => setIsModalOpen(true)}
+            backgroundcolor={hasApplied ? "#6b7280" : "#7f56d9"}
+            text={hasApplied ? "Applied" : "Apply Now"}
+            onClick={() => !hasApplied && setIsModalOpen(true)}
+            disabled={hasApplied}
           />
         )}
         {(role === "employer" || role === "superadmin") && (
@@ -308,7 +315,8 @@ const JobDetails: React.FC = () => {
           onClose={() => setIsModalOpen(false)}
           onSuccess={() => {
             setIsModalOpen(false);
-            navigate("/dashboard/jobs/all");
+            // Refetch application status
+            refetchApplicationCheck();
           }}
         />
       )}
@@ -317,4 +325,6 @@ const JobDetails: React.FC = () => {
 };
 
 export default JobDetails;
+
+
 

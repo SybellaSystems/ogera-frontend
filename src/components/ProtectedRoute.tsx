@@ -14,6 +14,12 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles }) => {
     return <Navigate to="/auth/login" replace />;
   }
 
+  // ⭐ Superadmin has access to all routes - bypass role checks
+  const isSuperadmin = role?.toLowerCase() === 'superadmin';
+  if (isSuperadmin) {
+    return <Outlet />;
+  }
+
   // If specific roles are required, check if user has access
   if (allowedRoles && !allowedRoles.includes(role)) {
     return (
