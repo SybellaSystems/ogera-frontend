@@ -19,6 +19,10 @@ export interface UsersListResponse {
   data: UserProfile[];
   message: string;
   pagination?: PaginationMeta;
+  counts?: {
+    students: number;
+    employers: number;
+  };
 }
 
 export const usersApi = apiSlice.injectEndpoints({
@@ -70,6 +74,18 @@ export const usersApi = apiSlice.injectEndpoints({
       },
       providesTags: ["User"],
     }),
+
+    // Delete user (admin/superadmin only)
+    deleteUser: builder.mutation<
+      { success: boolean; status: number; message: string },
+      string
+    >({
+      query: (id) => ({
+        url: `/auth/users/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["User"],
+    }),
   }),
 });
 
@@ -77,4 +93,5 @@ export const {
   useGetAllUsersQuery,
   useGetAllStudentsQuery,
   useGetAllEmployersQuery,
+  useDeleteUserMutation,
 } = usersApi;

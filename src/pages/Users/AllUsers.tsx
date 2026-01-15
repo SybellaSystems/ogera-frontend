@@ -1,21 +1,33 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { UsersIcon } from "@heroicons/react/24/outline";
 import CustomTable, {
   type Column,
   type TableAction,
 } from "../../components/Table/CustomTable";
-import { Chip, Avatar, Box, Typography } from "@mui/material";
+import { 
+  Chip, 
+  Avatar, 
+  Box, 
+  Typography,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  CircularProgress,
+} from "@mui/material";
 import {
   Visibility as ViewIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
 } from "@mui/icons-material";
-import { useGetAllUsersQuery, useGetAllStudentsQuery, useGetAllEmployersQuery } from "../../services/api/usersApi";
+import { useGetAllUsersQuery, useDeleteUserMutation } from "../../services/api/usersApi";
 import type { UserProfile } from "../../services/api/profileApi";
 
 interface User {
   index: number;
   id: number;
+  userId: string; // Store the actual user_id (UUID) for API calls
   name: string;
   email: string;
   role: "Student" | "Employer";
@@ -26,8 +38,15 @@ interface User {
 const AllUsers: React.FC = () => {
   const [page, setPage] = useState(0);
   const [limit, setLimit] = useState(10);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
+  const [countdown, setCountdown] = useState(3);
+  const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  
+  const [deleteUser] = useDeleteUserMutation();
 
   // Use getAllUsers API with server-side pagination - this endpoint uses roleType from roles table
+  // Now includes counts for students and employers in a single API call
   const { 
     data: usersData, 
     isLoading, 
@@ -35,21 +54,6 @@ const AllUsers: React.FC = () => {
   } = useGetAllUsersQuery({
     page: page + 1, // Backend uses 1-based pagination
     limit: limit,
-  });
-
-  // Fetch counts for stats (students and employers separately for accurate counts)
-  const { 
-    data: studentsData
-  } = useGetAllStudentsQuery({
-    page: 1,
-    limit: 1, // Just to get the total count
-  });
-
-  const { 
-    data: employersData
-  } = useGetAllEmployersQuery({
-    page: 1,
-    limit: 1, // Just to get the total count
   });
 
   const allUsers: UserProfile[] = usersData?.data || [];
@@ -61,6 +65,7 @@ const AllUsers: React.FC = () => {
     return {
       index: startIndex + index + 1,
       id: Number(user.user_id),
+      userId: user.user_id, // Store the UUID string for API calls
       name: user.full_name,
       email: user.email,
       role:
@@ -84,10 +89,74 @@ const AllUsers: React.FC = () => {
     mapUser(user, index)
   );
   
-  // Calculate counts from pagination metadata
+  // Calculate counts from pagination metadata and counts from API
   const totalCount = usersData?.pagination?.total || 0;
-  const studentCount = studentsData?.pagination?.total || 0;
-  const employerCount = employersData?.pagination?.total || 0;
+  const studentCount = usersData?.counts?.students || 0;
+  const employerCount = usersData?.counts?.employers || 0;
+
+  const handleCloseDeleteDialog = useCallback(() => {
+    setDeleteDialogOpen(false);
+    setUserToDelete(null);
+    setCountdown(3);
+    if (countdownIntervalRef.current) {
+      clearInterval(countdownIntervalRef.current);
+      countdownIntervalRef.current = null;
+    }
+  }, []);
+
+  const handleConfirmDelete = useCallback(async () => {
+    if (userToDelete) {
+      try {
+        await deleteUser(userToDelete.userId).unwrap();
+        // The mutation will automatically invalidate the cache and refetch the data
+      } catch (error) {
+        console.error("Failed to delete user:", error);
+        // You can add a toast notification here if needed
+      }
+    }
+    handleCloseDeleteDialog();
+  }, [userToDelete, deleteUser, handleCloseDeleteDialog]);
+
+  const handleDeleteClick = (row: User) => {
+    setUserToDelete(row);
+    setDeleteDialogOpen(true);
+    setCountdown(3);
+  };
+
+  // Handle delete dialog countdown
+  useEffect(() => {
+    if (!deleteDialogOpen) {
+      return;
+    }
+
+    // Reset countdown when dialog opens
+    setCountdown(3);
+
+    // Start countdown interval
+    countdownIntervalRef.current = setInterval(() => {
+      setCountdown((prev) => {
+        const newCount = prev - 1;
+        if (newCount <= 0) {
+          // Auto-delete when countdown reaches 0
+          if (countdownIntervalRef.current) {
+            clearInterval(countdownIntervalRef.current);
+            countdownIntervalRef.current = null;
+          }
+          handleConfirmDelete();
+          return 0;
+        }
+        return newCount;
+      });
+    }, 1000);
+
+    // Cleanup on unmount or when dialog closes
+    return () => {
+      if (countdownIntervalRef.current) {
+        clearInterval(countdownIntervalRef.current);
+        countdownIntervalRef.current = null;
+      }
+    };
+  }, [deleteDialogOpen, handleConfirmDelete]);
 
   const columns: Column<User>[] = [
     {
@@ -200,9 +269,7 @@ const AllUsers: React.FC = () => {
       label: "Delete",
       icon: <DeleteIcon fontSize="small" />,
       onClick: (row) => {
-        if (window.confirm(`Are you sure you want to delete ${row.name}?`)) {
-          console.log("Delete user:", row);
-        }
+        handleDeleteClick(row);
       },
       color: "error",
     },
@@ -267,7 +334,11 @@ const AllUsers: React.FC = () => {
         actions={actions}
         loading={isLoading}
         emptyMessage={
-          isError ? "Failed to load users. Please try again." : "No users found"
+          isError
+            ? "Failed to load users. Please try again."
+            : totalCount === 0
+            ? "No users present"
+            : "No users found"
         }
         selectable={true}
         searchable={true}
@@ -283,6 +354,60 @@ const AllUsers: React.FC = () => {
           setPage(0);
         }}
       />
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={handleCloseDeleteDialog}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <DeleteIcon color="error" />
+          <Typography variant="h6" component="span">
+            Delete User
+          </Typography>
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body1" sx={{ mb: 2 }}>
+            Are you sure you want to delete <strong>{userToDelete?.name}</strong>?
+          </Typography>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 2,
+              mt: 2,
+              p: 2,
+              bgcolor: "#fee2e2",
+              borderRadius: 2,
+            }}
+          >
+            <CircularProgress size={24} thickness={4} />
+            <Typography variant="body2" color="error" fontWeight={600}>
+              Auto-deleting in {countdown} second{countdown !== 1 ? "s" : ""}...
+            </Typography>
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button
+            onClick={handleCloseDeleteDialog}
+            variant="outlined"
+            color="inherit"
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleConfirmDelete}
+            variant="contained"
+            color="error"
+            startIcon={<DeleteIcon />}
+          >
+            Confirm Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };

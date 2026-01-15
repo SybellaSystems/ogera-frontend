@@ -212,6 +212,8 @@ const Employers: React.FC = () => {
         emptyMessage={
           isError
             ? "Failed to load employers. Please try again."
+            : totalCount === 0
+            ? "No employers present"
             : "No employers found"
         }
         searchable={true}

@@ -217,6 +217,8 @@ const Students: React.FC = () => {
         emptyMessage={
           isError
             ? "Failed to load students. Please try again."
+            : totalCount === 0
+            ? "No students present"
             : "No students found"
         }
         searchable={true}
