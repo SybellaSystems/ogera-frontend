@@ -2,12 +2,13 @@ import type { RoutePermission } from "../features/auth/authSlice";
 
 /**
  * Map permission routes to actual app routes
- * Permission routes in DB: "/academic-verifications", "/jobs"
- * Actual app routes: "/dashboard/academic/...", "/dashboard/jobs/..."
+ * Permission routes in DB: "/academic-verifications", "/jobs", "/users"
+ * Actual app routes: "/dashboard/academic/...", "/dashboard/jobs/...", "/dashboard/users/..."
  */
 const routeMapping: Record<string, string[]> = {
   "/academic-verifications": ["/dashboard/academic"],
   "/jobs": ["/dashboard/jobs"],
+  "/users": ["/dashboard/users"],
 };
 
 /**

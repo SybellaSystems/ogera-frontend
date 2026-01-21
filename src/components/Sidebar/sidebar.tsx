@@ -42,30 +42,48 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const role = useSelector((state: any) => state.auth.role);
   const permissions = useSelector((state: any) => state.auth.permissions);
 
+  // Check if this is a built-in admin role (superadmin or exact "admin" roleName) that bypasses permissions
+  // Note: Custom admin roles like "admin1", "admin2" etc. are NOT built-in admins and must check permissions
+  const isBuiltInAdmin = role === "superadmin" || role === "admin";
+  
+  // Check if this is a custom admin role (has roleType "admin" but roleName is not exactly "admin")
+  // For custom admin roles, we only check permissions, not role-based checks
+  const isCustomAdmin = !isBuiltInAdmin && permissions && Array.isArray(permissions) && permissions.length > 0;
+
   // Filter menu items based on user permissions
   const visibleMenuItems = useMemo(() => {
-    if (!permissions || !Array.isArray(permissions)) {
-      return [];
-    }
-
-    // For superadmin/admin/subadmin, show all menu items (they bypass permissions)
-    if (role === "superadmin" || role === "admin" || role === "subadmin") {
+    // For superadmin or exact "admin" roleName, show all menu items (they bypass permissions)
+    // Custom admin roles (like "admin1", "admin2") must check permissions
+    if (isBuiltInAdmin) {
       return SIDEBAR_MENU_CONFIG;
     }
 
-    // For other roles, filter based on permissions
+    // For custom admin roles and other roles, only show items they have permissions for
+    // If permissions are null or empty, show nothing (only Dashboard will be visible)
+    if (!permissions || !Array.isArray(permissions) || permissions.length === 0) {
+      return [];
+    }
+
+    // Filter based on permissions
     return SIDEBAR_MENU_CONFIG.filter((config) => {
       return hasAnyPermission(permissions, config.permissionRoute);
     });
-  }, [permissions, role]);
+  }, [permissions, isBuiltInAdmin]);
 
   // Log permissions on component mount/update
   React.useEffect(() => {
     console.log('🔍 [SIDEBAR] Sidebar rendered with:');
     console.log('  - Role:', role);
+    console.log('  - Is built-in admin:', isBuiltInAdmin);
+    console.log('  - Is custom admin:', isCustomAdmin);
     console.log('  - Permissions:', permissions);
+    console.log('  - Permissions type:', typeof permissions);
+    console.log('  - Permissions is array:', Array.isArray(permissions));
     console.log('  - Visible menu items:', visibleMenuItems.length);
-  }, [role, permissions, visibleMenuItems]);
+    if (permissions && Array.isArray(permissions)) {
+      console.log('  - Permission routes:', permissions.map(p => p.route));
+    }
+  }, [role, permissions, visibleMenuItems, isBuiltInAdmin, isCustomAdmin]);
 
   const toggleMenu = (menu: string) => {
     setOpenMenu(openMenu === menu ? null : menu);
@@ -215,7 +233,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           )}
 
           {/* User - Admin/SuperAdmin with permission check */}
-          {(role === "superadmin" || hasPermission("/users")) && (
+          {(isBuiltInAdmin || hasAnyPermission(permissions, "/users")) && (
             <div>
               <div
                 className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-gradient-to-r hover:from-purple-600/20 hover:to-indigo-600/20 cursor-pointer transition-all duration-200 group border border-transparent hover:border-purple-500/30"
@@ -429,13 +447,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
           {/* Academic Verification - Student, Admin, or users with permission (not verifyDocAdmin, already shown above, not employer) */}
           {(() => {
-            const roleCheck = role === "student" || role === "admin" || role === "superadmin";
+            const roleCheck = role === "student" || isBuiltInAdmin;
             const permissionCheck = hasAnyPermission(permissions, "/academic-verifications");
             const shouldShow = (roleCheck || permissionCheck) && role !== "verifyDocAdmin" && role !== "employer";
             
             console.log('🔍 [SIDEBAR] Academic Verification check:');
             console.log('  - Role:', role);
-            console.log('  - Role check (student/admin/superadmin):', roleCheck);
+            console.log('  - Is built-in admin:', isBuiltInAdmin);
+            console.log('  - Role check (student/built-in-admin):', roleCheck);
             console.log('  - Permission check result:', permissionCheck);
             console.log('  - Should show:', shouldShow);
             
@@ -523,13 +542,16 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
           {/* Jobs - Student, Employer, Admin, or users with permission (not verifyDocAdmin) */}
           {(() => {
-            const roleCheck = role === "student" || role === "employer" || role === "admin" || role === "superadmin";
+            // For built-in admin roles, show Jobs. For custom admin roles, only check permissions.
+            const roleCheck = role === "student" || role === "employer" || isBuiltInAdmin;
             const permissionCheck = hasAnyPermission(permissions, "/jobs");
             const shouldShow = (roleCheck || permissionCheck) && role !== "verifyDocAdmin";
             
             console.log('🔍 [SIDEBAR] Jobs check:');
             console.log('  - Role:', role);
-            console.log('  - Role check (student/employer/admin/superadmin):', roleCheck);
+            console.log('  - Is built-in admin:', isBuiltInAdmin);
+            console.log('  - Is custom admin:', isCustomAdmin);
+            console.log('  - Role check (student/employer/built-in-admin):', roleCheck);
             console.log('  - Permission check result:', permissionCheck);
             console.log('  - Should show:', shouldShow);
             
@@ -655,7 +677,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         Completed
                       </span>
                     </li>
-                    {(role === "admin" || role === "superadmin") && (
+                    {isBuiltInAdmin && (
                       <li
                         className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-slate-700/50 transition-all duration-200 group/item"
                         onClick={() =>
@@ -668,7 +690,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         </span>
                       </li>
                     )}
-                    {(role === "admin" || role === "superadmin") && (
+                    {isBuiltInAdmin && (
                       <li
                         className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-slate-700/50 transition-all duration-200 group/item"
                         onClick={() =>
@@ -687,10 +709,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             )}
 
           {/* Disputes - Student, Admin (not verifyDocAdmin, not employer) */}
-          {((role === "student" || role === "admin" || role === "superadmin") &&
+          {((role === "student" || isBuiltInAdmin) &&
             role !== "verifyDocAdmin" &&
             role !== "employer" &&
-            (role === "superadmin" || role === "admin" || hasPermission("/disputes"))) && (
+            (isBuiltInAdmin || hasAnyPermission(permissions, "/disputes"))) && (
               <div>
                 <div
                   className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-gradient-to-r hover:from-purple-600/20 hover:to-indigo-600/20 cursor-pointer transition-all duration-200 group border border-transparent hover:border-purple-500/30"
@@ -753,7 +775,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
           {/* Analytics - All roles with permission check (not verifyDocAdmin) */}
           {role !== "verifyDocAdmin" &&
-            (role === "superadmin" || hasPermission("/analytics")) && (
+            (isBuiltInAdmin || hasAnyPermission(permissions, "/analytics")) && (
               <div
                 className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gradient-to-r hover:from-purple-600/20 hover:to-indigo-600/20 cursor-pointer transition-all duration-200 group border border-transparent hover:border-purple-500/30"
                 onClick={() => handleNavigation("/dashboard/analytics")}
@@ -767,7 +789,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
           {/* Transaction - All roles with permission check (not verifyDocAdmin) */}
           {role !== "verifyDocAdmin" &&
-            (role === "superadmin" || hasPermission("/transactions")) && (
+            (isBuiltInAdmin || hasAnyPermission(permissions, "/transactions")) && (
               <div
                 className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gradient-to-r hover:from-purple-600/20 hover:to-indigo-600/20 cursor-pointer transition-all duration-200 group border border-transparent hover:border-purple-500/30"
                 onClick={() => handleNavigation("/dashboard/transactions")}
@@ -785,18 +807,28 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             .filter((menuConfig) => {
               // Skip items that are already shown in hardcoded sections above to avoid duplicates
               
+              // These menu items are hardcoded above, so exclude them from dynamic rendering
+              const hardcodedMenuKeys = [
+                "jobs",           // Hardcoded Jobs menu
+                "academic",       // Hardcoded Academic Verification menu
+                "disputes",       // Hardcoded Disputes menu
+                "analytics",      // Hardcoded Analytics menu
+                "transactions",   // Hardcoded Transaction menu
+              ];
+              
               // Role menu is hardcoded for superadmin
               if (role === "superadmin" && menuConfig.menuKey === "role") {
                 return false;
               }
               
-              // Academic is hardcoded for verifyDocAdmin
-              if (role === "verifyDocAdmin" && menuConfig.menuKey === "academic") {
+              // Exclude all hardcoded menu items to prevent duplicates
+              if (hardcodedMenuKeys.includes(menuConfig.menuKey)) {
                 return false;
               }
               
               // Show all other permission-based menu items
               // For custom roles with JSON permissions, these items will be displayed here
+              // (e.g., job-applications, notifications, etc.)
               return true;
             })
             .map((menuConfig) => {

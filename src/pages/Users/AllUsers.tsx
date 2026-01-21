@@ -39,7 +39,7 @@ interface User {
   userId: string; // Store the actual user_id (UUID) for API calls
   name: string;
   email: string;
-  role: "Student" | "Employer";
+  role: "Student" | "Employer" | "Admin";
   status: "Active" | "Pending" | "Suspended";
   joinDate: string;
 }
@@ -102,21 +102,30 @@ const AllUsers: React.FC = () => {
   const allUsers: UserProfile[] = usersData?.data || [];
 
   const mapUser = (user: UserProfile, index: number): User => {
-    // Use roleType from the role object (now available from the API)
-    const roleType = user.role?.roleType?.toLowerCase() || user.role?.roleName?.toLowerCase() || "";
+    // Use roleType / roleName from the role object (now available from the API)
+    const rawRoleType = user.role?.roleType || user.role?.roleName || "";
+    const roleType = rawRoleType.toLowerCase();
     const startIndex = page * limit;
+
+    let uiRole: User["role"];
+    if (roleType === "student") {
+      uiRole = "Student";
+    } else if (roleType === "employer") {
+      uiRole = "Employer";
+    } else {
+      // Any admin-type role (admin / superAdmin / custom admin names) will
+      // be normalised to "Admin" for display. These should generally be
+      // managed from the Admin section, not this Users list.
+      uiRole = "Admin";
+    }
+
     return {
       index: startIndex + index + 1,
       id: Number(user.user_id),
       userId: user.user_id, // Store the UUID string for API calls
       name: user.full_name,
       email: user.email,
-      role:
-        roleType === "student"
-          ? "Student"
-          : roleType === "employer"
-          ? "Employer"
-          : "Student",
+      role: uiRole,
       status: "Active",
       joinDate: user.created_at
         ? new Date(user.created_at).toLocaleDateString("en-US", {

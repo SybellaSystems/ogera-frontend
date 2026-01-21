@@ -16,6 +16,7 @@ import { useDispatch } from "react-redux";
 import { loginApi } from "../services/api/loginApi";
 import { jwtDecode } from "jwt-decode";
 import { setCredentials } from "../features/auth/authSlice";
+import axios from "axios";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -46,21 +47,46 @@ const Login = () => {
         const role = decoded.role;
         const user = { id: decoded.user_id };
 
-        dispatch(
-          setCredentials({
-            user,
-            accessToken,
-            role,
-          })
-        );
+        // Fetch user data including permissions immediately after login
+        const BASE_URL = import.meta.env.VITE_API_URL;
+        try {
+          const userRes = await axios.get(`${BASE_URL}/auth/me`, {
+            headers: { Authorization: `Bearer ${accessToken}` },
+            withCredentials: true,
+          });
 
-        toast.success("You’re logged in!");
+          const userData = userRes.data.user;
+          console.log('🔍 [LOGIN] User data fetched:', {
+            role: userData.role,
+            permissions: userData.permissions,
+          });
+
+          // Update Redux with complete user data including permissions
+          dispatch(
+            setCredentials({
+              user: userData,
+              accessToken,
+              role: userData.role,
+              permissions: userData.permissions || null,
+            })
+          );
+        } catch (error: any) {
+          console.error('⚠️ [LOGIN] Failed to fetch user data, using basic info:', error);
+          // Fallback: store basic info without permissions (will be fetched on page load)
+          dispatch(
+            setCredentials({
+              user,
+              accessToken,
+              role,
+            })
+          );
+        }
+
+        toast.success("You're logged in!");
         formik.resetForm();
 
-        if (role === "admin") navigate("/dashboard");
-        else if (role === "student") navigate("/dashboard");
-        else if (role === "employer") navigate("/dashboard");
-        else navigate("/unauthorized");
+        // Allow navigation for all roles (including custom admin roles)
+        navigate("/dashboard");
       } catch (error: any) {
         toast.error(error?.response?.data?.message || "Login failed");
       } finally {

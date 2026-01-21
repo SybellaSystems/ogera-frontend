@@ -1,16 +1,33 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { UserGroupIcon } from "@heroicons/react/24/outline";
 import CustomTable, {
   type Column,
   type TableAction,
 } from "../../components/Table/CustomTable";
-import { Chip, Avatar, Box, Typography } from "@mui/material";
+import {
+  Chip,
+  Avatar,
+  Box,
+  Typography,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  TextField,
+} from "@mui/material";
 import {
   Visibility as ViewIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
+  Close as CloseIcon,
 } from "@mui/icons-material";
-import { useGetAllAdminsQuery, useDeleteAdminMutation } from "../../services/api/adminApi";
+import {
+  useGetAllAdminsQuery,
+  useDeleteAdminMutation,
+  useGetAdminByIdQuery,
+  useUpdateAdminMutation,
+} from "../../services/api/adminApi";
 import type { AdminProfile } from "../../services/api/adminApi";
 import toast from "react-hot-toast";
 
@@ -35,6 +52,36 @@ const ViewAdmins: React.FC = () => {
   });
 
   const [deleteAdmin, { isLoading: isDeleting }] = useDeleteAdminMutation();
+  const [updateAdmin, { isLoading: isUpdating }] = useUpdateAdminMutation();
+
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [selectedAdmin, setSelectedAdmin] = useState<Admin | null>(null);
+  const [editForm, setEditForm] = useState<{
+    full_name?: string;
+    email?: string;
+    mobile_number?: string;
+  }>({});
+
+  const selectedAdminId = selectedAdmin?.id || "";
+
+  const {
+    data: adminDetails,
+    isLoading: isLoadingAdminDetails,
+    refetch: refetchAdminDetails,
+  } = useGetAdminByIdQuery(selectedAdminId, {
+    skip: !selectedAdminId || (!viewDialogOpen && !editDialogOpen),
+  });
+
+  useEffect(() => {
+    if (adminDetails?.data && editDialogOpen) {
+      setEditForm({
+        full_name: adminDetails.data.full_name,
+        email: adminDetails.data.email,
+        mobile_number: adminDetails.data.mobile_number,
+      });
+    }
+  }, [adminDetails, editDialogOpen]);
 
   const handleDelete = async (id: string, name: string) => {
     if (
@@ -51,6 +98,43 @@ const ViewAdmins: React.FC = () => {
           error?.data?.message || "Failed to delete admin. Please try again."
         );
       }
+    }
+  };
+
+  const handleView = (row: Admin) => {
+    setSelectedAdmin(row);
+    setViewDialogOpen(true);
+    refetchAdminDetails();
+  };
+
+  const handleEdit = (row: Admin) => {
+    setSelectedAdmin(row);
+    setEditDialogOpen(true);
+    refetchAdminDetails();
+  };
+
+  const handleCloseViewDialog = () => {
+    setViewDialogOpen(false);
+    setSelectedAdmin(null);
+  };
+
+  const handleCloseEditDialog = () => {
+    setEditDialogOpen(false);
+    setSelectedAdmin(null);
+    setEditForm({});
+  };
+
+  const handleSaveEdit = async () => {
+    if (!selectedAdmin) return;
+    try {
+      await updateAdmin({ id: selectedAdmin.id, data: editForm }).unwrap();
+      toast.success("Admin updated successfully");
+      handleCloseEditDialog();
+      refetch();
+    } catch (error: any) {
+      toast.error(
+        error?.data?.message || "Failed to update admin. Please try again."
+      );
     }
   };
 
@@ -169,9 +253,7 @@ const ViewAdmins: React.FC = () => {
       label: "View",
       icon: <ViewIcon fontSize="small" />,
       onClick: (row) => {
-        // Navigate to detail page or show modal
-        console.log("View admin:", row);
-        toast("View functionality coming soon");
+        handleView(row);
       },
       color: "primary",
     },
@@ -179,9 +261,7 @@ const ViewAdmins: React.FC = () => {
       label: "Edit",
       icon: <EditIcon fontSize="small" />,
       onClick: (row) => {
-        // Navigate to edit page or show modal
-        console.log("Edit admin:", row);
-        toast("Edit functionality coming soon");
+        handleEdit(row);
       },
       color: "primary",
     },
@@ -253,6 +333,158 @@ const ViewAdmins: React.FC = () => {
           setPage(0);
         }}
       />
+
+      {/* View Admin Dialog */}
+      <Dialog
+        open={viewDialogOpen}
+        onClose={handleCloseViewDialog}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <Typography variant="h6" component="div">
+            Admin Details
+          </Typography>
+          <Button onClick={handleCloseViewDialog} color="inherit">
+            <CloseIcon fontSize="small" />
+          </Button>
+        </DialogTitle>
+        <DialogContent dividers>
+          {isLoadingAdminDetails || !adminDetails?.data ? (
+            <Typography>Loading...</Typography>
+          ) : (
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                <Avatar
+                  sx={{
+                    bgcolor: "#9333ea",
+                    width: 48,
+                    height: 48,
+                    fontSize: "1.25rem",
+                    fontWeight: 600,
+                  }}
+                >
+                  {adminDetails.data.full_name?.charAt(0) || "A"}
+                </Avatar>
+                <Box>
+                  <Typography variant="subtitle1" fontWeight={600}>
+                    {adminDetails.data.full_name}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {adminDetails.data.role?.roleName || "Admin"}
+                  </Typography>
+                </Box>
+              </Box>
+              <Box>
+                <Typography variant="caption" color="text.secondary">
+                  Email
+                </Typography>
+                <Typography variant="body2">
+                  {adminDetails.data.email}
+                </Typography>
+              </Box>
+              <Box>
+                <Typography variant="caption" color="text.secondary">
+                  Mobile
+                </Typography>
+                <Typography variant="body2">
+                  {adminDetails.data.mobile_number || "-"}
+                </Typography>
+              </Box>
+              <Box>
+                <Typography variant="caption" color="text.secondary">
+                  Created At
+                </Typography>
+                <Typography variant="body2">
+                  {adminDetails.data.created_at
+                    ? new Date(adminDetails.data.created_at).toLocaleString()
+                    : "-"}
+                </Typography>
+              </Box>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseViewDialog} color="primary">
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Edit Admin Dialog */}
+      <Dialog
+        open={editDialogOpen}
+        onClose={handleCloseEditDialog}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <Typography variant="h6" component="div">
+            Edit Admin
+          </Typography>
+          <Button onClick={handleCloseEditDialog} color="inherit">
+            <CloseIcon fontSize="small" />
+          </Button>
+        </DialogTitle>
+        <DialogContent dividers>
+          {isLoadingAdminDetails || !adminDetails?.data ? (
+            <Typography>Loading...</Typography>
+          ) : (
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
+              <TextField
+                label="Full Name"
+                value={editForm.full_name ?? ""}
+                onChange={(e) =>
+                  setEditForm((prev) => ({
+                    ...prev,
+                    full_name: e.target.value,
+                  }))
+                }
+                fullWidth
+                size="small"
+              />
+              <TextField
+                label="Email"
+                type="email"
+                value={editForm.email ?? ""}
+                onChange={(e) =>
+                  setEditForm((prev) => ({
+                    ...prev,
+                    email: e.target.value,
+                  }))
+                }
+                fullWidth
+                size="small"
+              />
+              <TextField
+                label="Mobile Number"
+                value={editForm.mobile_number ?? ""}
+                onChange={(e) =>
+                  setEditForm((prev) => ({
+                    ...prev,
+                    mobile_number: e.target.value,
+                  }))
+                }
+                fullWidth
+                size="small"
+              />
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseEditDialog} color="inherit">
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSaveEdit}
+            color="primary"
+            variant="contained"
+            disabled={isUpdating || isLoadingAdminDetails}
+          >
+            {isUpdating ? "Saving..." : "Save Changes"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };
