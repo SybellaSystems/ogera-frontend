@@ -70,6 +70,10 @@ import ViewAdmins from "./pages/Admin/ViewAdmins";
 import CreateRole from "./pages/Role/CreateRole";
 import ViewRoles from "./pages/Role/ViewRoles";
 
+// Permission Pages
+import CreatePermission from "./pages/Permission/CreatePermission";
+import ViewPermissions from "./pages/Permission/ViewPermissions";
+
 import useRefreshOnLoad from "./hooks/useRefreshOnLoad";
 
 function App() {
@@ -142,12 +146,10 @@ function App() {
               path: "profile",
               Component: Profile,
             },
-            // User Routes (Admin/SuperAdmin Only)
+            // User Routes (Permission-based access)
             {
               path: "users",
-              element: (
-                <ProtectedRoute allowedRoles={["admin", "superadmin"]} />
-              ),
+              element: <ProtectedRoute />,
               children: [
                 {
                   path: "all",
@@ -202,6 +204,21 @@ function App() {
                 {
                   path: "view",
                   Component: ViewRoles,
+                },
+              ],
+            },
+            // Permission Routes (SuperAdmin Only)
+            {
+              path: "permission",
+              element: <ProtectedRoute allowedRoles={["superadmin"]} />,
+              children: [
+                {
+                  path: "create",
+                  Component: CreatePermission,
+                },
+                {
+                  path: "view",
+                  Component: ViewPermissions,
                 },
               ],
             },

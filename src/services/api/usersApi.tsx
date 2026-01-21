@@ -43,7 +43,7 @@ export const usersApi = apiSlice.injectEndpoints({
           queryParams.type = type;
         }
         return {
-          url: "/auth/get-user",
+          url: "/users",
           method: "GET",
           params: queryParams,
         };

@@ -214,8 +214,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             </div>
           )}
 
-          {/* User - Only Admin/SuperAdmin (not verifyDocAdmin) */}
-          {(role === "admin" || role === "superadmin") && (
+          {/* User - Admin/SuperAdmin with permission check */}
+          {(role === "superadmin" || hasPermission("/users")) && (
             <div>
               <div
                 className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-gradient-to-r hover:from-purple-600/20 hover:to-indigo-600/20 cursor-pointer transition-all duration-200 group border border-transparent hover:border-purple-500/30"
@@ -326,6 +326,51 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                   <li
                     className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-slate-700/50 transition-all duration-200 group/item"
                     onClick={() => handleNavigation("/dashboard/admin/view")}
+                  >
+                    <EyeIcon className="h-4 w-4 text-gray-500 group-hover/item:text-purple-400 transition-colors" />
+                    <span className="text-gray-400 group-hover/item:text-white transition-colors">
+                      View
+                    </span>
+                  </li>
+                </ul>
+              )}
+            </div>
+          )}
+
+          {/* Permission - Only SuperAdmin */}
+          {role === "superadmin" && (
+            <div>
+              <div
+                className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-gradient-to-r hover:from-purple-600/20 hover:to-indigo-600/20 cursor-pointer transition-all duration-200 group border border-transparent hover:border-purple-500/30"
+                onClick={() => toggleMenu("permission")}
+              >
+                <div className="flex items-center gap-3">
+                  <ShieldCheckIcon className="h-5 w-5 text-purple-400 group-hover:text-purple-300 transition-colors" />
+                  <span className="font-medium group-hover:text-white transition-colors">
+                    Permission
+                  </span>
+                </div>
+                <ChevronDownIcon
+                  className={`h-4 w-4 transition-transform duration-200 text-gray-400 group-hover:text-white ${
+                    openMenu === "permission" ? "rotate-180 text-purple-400" : ""
+                  }`}
+                />
+              </div>
+
+              {openMenu === "permission" && (
+                <ul className="pl-11 space-y-1 text-sm mt-2 animate-fadeIn">
+                  <li
+                    className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-slate-700/50 transition-all duration-200 group/item"
+                    onClick={() => handleNavigation("/dashboard/permission/create")}
+                  >
+                    <PlusIcon className="h-4 w-4 text-gray-500 group-hover/item:text-purple-400 transition-colors" />
+                    <span className="text-gray-400 group-hover/item:text-white transition-colors">
+                      Create
+                    </span>
+                  </li>
+                  <li
+                    className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-slate-700/50 transition-all duration-200 group/item"
+                    onClick={() => handleNavigation("/dashboard/permission/view")}
                   >
                     <EyeIcon className="h-4 w-4 text-gray-500 group-hover/item:text-purple-400 transition-colors" />
                     <span className="text-gray-400 group-hover/item:text-white transition-colors">
@@ -642,9 +687,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             )}
 
           {/* Disputes - Student, Admin (not verifyDocAdmin, not employer) */}
-          {(role === "student" || role === "admin" || role === "superadmin") &&
+          {((role === "student" || role === "admin" || role === "superadmin") &&
             role !== "verifyDocAdmin" &&
-            role !== "employer" && (
+            role !== "employer" &&
+            (role === "superadmin" || role === "admin" || hasPermission("/disputes"))) && (
               <div>
                 <div
                   className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-gradient-to-r hover:from-purple-600/20 hover:to-indigo-600/20 cursor-pointer transition-all duration-200 group border border-transparent hover:border-purple-500/30"
@@ -705,9 +751,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               </div>
             )}
 
-          {/* Analytics - Employer, Admin (not verifyDocAdmin) */}
-          {(role === "employer" || role === "admin" || role === "superadmin") &&
-            role !== "verifyDocAdmin" && (
+          {/* Analytics - All roles with permission check (not verifyDocAdmin) */}
+          {role !== "verifyDocAdmin" &&
+            (role === "superadmin" || hasPermission("/analytics")) && (
               <div
                 className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gradient-to-r hover:from-purple-600/20 hover:to-indigo-600/20 cursor-pointer transition-all duration-200 group border border-transparent hover:border-purple-500/30"
                 onClick={() => handleNavigation("/dashboard/analytics")}
@@ -719,9 +765,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               </div>
             )}
 
-          {/* Transaction - Employer, Admin (not verifyDocAdmin) */}
-          {(role === "employer" || role === "admin" || role === "superadmin") &&
-            role !== "verifyDocAdmin" && (
+          {/* Transaction - All roles with permission check (not verifyDocAdmin) */}
+          {role !== "verifyDocAdmin" &&
+            (role === "superadmin" || hasPermission("/transactions")) && (
               <div
                 className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gradient-to-r hover:from-purple-600/20 hover:to-indigo-600/20 cursor-pointer transition-all duration-200 group border border-transparent hover:border-purple-500/30"
                 onClick={() => handleNavigation("/dashboard/transactions")}

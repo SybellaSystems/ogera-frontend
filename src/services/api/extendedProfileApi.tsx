@@ -1,5 +1,5 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
-import { baseQueryWithReauth } from "./apiSlice";
+import { baseQueryWithReauth } from "./baseQuery";
 
 // ====================== TYPES ======================
 export interface UserSkill {

@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useFormik } from "formik";
-import { useCreateRoleMutation } from "../../services/api/adminApi";
+import {
+  useCreateRoleMutation,
+  useGetAllPermissionsQuery,
+  type Permission,
+} from "../../services/api/adminApi";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import {
   ShieldCheckIcon,
-  PlusIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
 import { styled } from "@mui/material/styles";
@@ -15,7 +18,7 @@ import * as Yup from "yup";
 
 interface CreateRoleFormValues {
   roleName: string;
-  roleType: "student" | "employer" | "superAdmin" | "admin";
+  roleType: "student" | "employer" | "admin";
   permission_json: Array<{
     route: string;
     permission: {
@@ -37,7 +40,7 @@ const validationSchema = Yup.object({
       "Role name can only contain letters, numbers, and underscores"
     ),
   roleType: Yup.string()
-    .oneOf(["student", "employer", "superAdmin", "admin"], "Invalid role type")
+    .oneOf(["student", "employer", "admin"], "Invalid role type")
     .required("Role type is required"),
   permission_json: Yup.array()
     .of(
@@ -54,61 +57,96 @@ const validationSchema = Yup.object({
     .optional(),
 });
 
-// Common routes available in the system
-const COMMON_ROUTES = [
-  "/academic-verifications",
-  "/jobs",
-  "/roles",
-  "/auth/subadmins",
-  "/auth/users",
-  "/disputes",
-  "/analytics",
-  "/transactions",
-];
-
 const CreateRole: React.FC = () => {
   const navigate = useNavigate();
 
   const [createRole, { isLoading, isError, error, isSuccess, data }] =
     useCreateRoleMutation();
 
-  const addPermission = () => {
-    const newPermissions = [
-      ...formik.values.permission_json,
-      {
-        route: "",
-        permission: {
-          view: false,
-          create: false,
-          edit: false,
-          delete: false,
-        },
-      },
-    ];
-    formik.setFieldValue("permission_json", newPermissions);
+  const { data: permissionsData, isLoading: isLoadingPermissions } =
+    useGetAllPermissionsQuery();
+
+  const availablePermissions = permissionsData?.data || [];
+
+  const [selectedApiNames, setSelectedApiNames] = useState<string[]>([]);
+
+  // When an API name is selected, add it to permission_json
+  const handleApiNameSelect = (apiName: string) => {
+    if (selectedApiNames.includes(apiName)) {
+      // Remove if already selected
+      setSelectedApiNames(selectedApiNames.filter((name) => name !== apiName));
+      const newPermissions = formik.values.permission_json.filter(
+        (perm) => perm.route !== getRouteForApiName(apiName)
+      );
+      formik.setFieldValue("permission_json", newPermissions);
+    } else {
+      // Add if not selected
+      const permission = availablePermissions.find(
+        (p) => p.api_name === apiName
+      );
+      if (permission) {
+        setSelectedApiNames([...selectedApiNames, apiName]);
+        const newPermissions = [
+          ...formik.values.permission_json,
+          {
+            route: permission.route,
+            permission: {
+              view: false,
+              create: false,
+              edit: false,
+              delete: false,
+            },
+          },
+        ];
+        formik.setFieldValue("permission_json", newPermissions);
+      }
+    }
   };
 
-  const removePermission = (index: number) => {
+  const getRouteForApiName = (apiName: string) => {
+    const permission = availablePermissions.find((p) => p.api_name === apiName);
+    return permission?.route || "";
+  };
+
+  const getPermissionForApiName = (apiName: string) => {
+    const permission = availablePermissions.find((p) => p.api_name === apiName);
+    return permission?.permission || null;
+  };
+
+  const removePermission = (apiName: string) => {
+    setSelectedApiNames(selectedApiNames.filter((name) => name !== apiName));
+    const route = getRouteForApiName(apiName);
     const newPermissions = formik.values.permission_json.filter(
-      (_, i) => i !== index
+      (perm) => perm.route !== route
     );
     formik.setFieldValue("permission_json", newPermissions);
   };
 
-  const updatePermissionRoute = (index: number, route: string) => {
-    const newPermissions = [...formik.values.permission_json];
-    newPermissions[index].route = route;
-    formik.setFieldValue("permission_json", newPermissions);
-  };
-
   const updatePermission = (
-    index: number,
+    apiName: string,
     permissionType: "view" | "create" | "edit" | "delete",
     value: boolean
   ) => {
-    const newPermissions = [...formik.values.permission_json];
-    newPermissions[index].permission[permissionType] = value;
+    const route = getRouteForApiName(apiName);
+    const newPermissions = formik.values.permission_json.map((perm) => {
+      if (perm.route === route) {
+        return {
+          ...perm,
+          permission: {
+            ...perm.permission,
+            [permissionType]: value,
+          },
+        };
+      }
+      return perm;
+    });
     formik.setFieldValue("permission_json", newPermissions);
+  };
+
+  const getPermissionValue = (apiName: string, permissionType: string) => {
+    const route = getRouteForApiName(apiName);
+    const perm = formik.values.permission_json.find((p) => p.route === route);
+    return perm?.permission[permissionType as keyof typeof perm.permission] || false;
   };
 
   const initialValues: CreateRoleFormValues = {
@@ -196,7 +234,6 @@ const CreateRole: React.FC = () => {
             onBlur={formik.handleBlur}
           >
             <option value="admin">Admin</option>
-            <option value="superAdmin">Super Admin</option>
             <option value="student">Student</option>
             <option value="employer">Employer</option>
           </Select>
@@ -207,107 +244,132 @@ const CreateRole: React.FC = () => {
 
         {/* Permissions */}
         <FormGroup>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: "12px",
-            }}
-          >
-            <Label>Permissions (Optional)</Label>
-            <AddPermissionButton type="button" onClick={addPermission}>
-              <PlusIcon className="h-4 w-4" />
-              Add Permission
-            </AddPermissionButton>
-          </div>
-
-          {formik.values.permission_json.length === 0 && (
+          <Label>Select API Permissions (Optional)</Label>
+          {isLoadingPermissions ? (
+            <HelperText>Loading permissions...</HelperText>
+          ) : availablePermissions.length === 0 ? (
             <HelperText>
-              No permissions added. Click "Add Permission" to grant access to
-              specific routes.
+              No permissions available. Please create permissions first in the Permission section.
             </HelperText>
+          ) : (
+            <>
+              <HelperText style={{ marginBottom: "12px" }}>
+                Select API names from the list below. For each selected API, you can choose which permissions to grant.
+              </HelperText>
+
+              {/* API Name Selection */}
+              <ApiNameList>
+                {availablePermissions.map((perm) => (
+                  <ApiNameItem
+                    key={perm.id}
+                    selected={selectedApiNames.includes(perm.api_name)}
+                    onClick={() => handleApiNameSelect(perm.api_name)}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedApiNames.includes(perm.api_name)}
+                      onChange={() => handleApiNameSelect(perm.api_name)}
+                    />
+                    <div>
+                      <span className="api-name">{perm.api_name}</span>
+                      <span className="api-route">{perm.route}</span>
+                    </div>
+                  </ApiNameItem>
+                ))}
+              </ApiNameList>
+
+              {/* Selected Permissions Details */}
+              {selectedApiNames.length > 0 && (
+                <SelectedPermissionsSection>
+                  <Label style={{ marginBottom: "16px" }}>
+                    Configure Permissions for Selected APIs
+                  </Label>
+                  {selectedApiNames.map((apiName) => {
+                    const availablePerm = getPermissionForApiName(apiName);
+                    return (
+                      <PermissionCard key={apiName}>
+                        <PermissionHeader>
+                          <div>
+                            <span style={{ fontWeight: 600, color: "#374151" }}>
+                              {apiName}
+                            </span>
+                            <span
+                              style={{
+                                fontSize: "12px",
+                                color: "#6b7280",
+                                marginLeft: "8px",
+                              }}
+                            >
+                              ({getRouteForApiName(apiName)})
+                            </span>
+                          </div>
+                          <RemoveButton
+                            type="button"
+                            onClick={() => removePermission(apiName)}
+                          >
+                            <TrashIcon className="h-4 w-4" />
+                          </RemoveButton>
+                        </PermissionHeader>
+
+                        <PermissionCheckboxes>
+                          <CheckboxGroup>
+                            {availablePerm?.view && (
+                              <CheckboxLabel>
+                                <input
+                                  type="checkbox"
+                                  checked={getPermissionValue(apiName, "view")}
+                                  onChange={(e) =>
+                                    updatePermission(apiName, "view", e.target.checked)
+                                  }
+                                />
+                                <span>View</span>
+                              </CheckboxLabel>
+                            )}
+                            {availablePerm?.create && (
+                              <CheckboxLabel>
+                                <input
+                                  type="checkbox"
+                                  checked={getPermissionValue(apiName, "create")}
+                                  onChange={(e) =>
+                                    updatePermission(apiName, "create", e.target.checked)
+                                  }
+                                />
+                                <span>Create</span>
+                              </CheckboxLabel>
+                            )}
+                            {availablePerm?.edit && (
+                              <CheckboxLabel>
+                                <input
+                                  type="checkbox"
+                                  checked={getPermissionValue(apiName, "edit")}
+                                  onChange={(e) =>
+                                    updatePermission(apiName, "edit", e.target.checked)
+                                  }
+                                />
+                                <span>Update</span>
+                              </CheckboxLabel>
+                            )}
+                            {availablePerm?.delete && (
+                              <CheckboxLabel>
+                                <input
+                                  type="checkbox"
+                                  checked={getPermissionValue(apiName, "delete")}
+                                  onChange={(e) =>
+                                    updatePermission(apiName, "delete", e.target.checked)
+                                  }
+                                />
+                                <span>Delete</span>
+                              </CheckboxLabel>
+                            )}
+                          </CheckboxGroup>
+                        </PermissionCheckboxes>
+                      </PermissionCard>
+                    );
+                  })}
+                </SelectedPermissionsSection>
+              )}
+            </>
           )}
-
-          {formik.values.permission_json.map((permission, index) => (
-            <PermissionCard key={index}>
-              <PermissionHeader>
-                <span style={{ fontWeight: 600, color: "#374151" }}>
-                  Permission {index + 1}
-                </span>
-                <RemoveButton
-                  type="button"
-                  onClick={() => removePermission(index)}
-                >
-                  <TrashIcon className="h-4 w-4" />
-                </RemoveButton>
-              </PermissionHeader>
-
-              <FormGroup style={{ marginBottom: "12px" }}>
-                <Label>Route *</Label>
-                <Input
-                  type="text"
-                  list={`route-list-${index}`}
-                  placeholder="Enter route (e.g., /academic-verifications)"
-                  value={permission.route}
-                  onChange={(e) => updatePermissionRoute(index, e.target.value)}
-                />
-                <datalist id={`route-list-${index}`}>
-                  {COMMON_ROUTES.map((route) => (
-                    <option key={route} value={route} />
-                  ))}
-                </datalist>
-                <HelperText style={{ marginTop: "4px" }}>
-                  Common routes: {COMMON_ROUTES.join(", ")}
-                </HelperText>
-              </FormGroup>
-
-              <PermissionCheckboxes>
-                <CheckboxGroup>
-                  <CheckboxLabel>
-                    <input
-                      type="checkbox"
-                      checked={permission.permission.view}
-                      onChange={(e) =>
-                        updatePermission(index, "view", e.target.checked)
-                      }
-                    />
-                    <span>View</span>
-                  </CheckboxLabel>
-                  <CheckboxLabel>
-                    <input
-                      type="checkbox"
-                      checked={permission.permission.create}
-                      onChange={(e) =>
-                        updatePermission(index, "create", e.target.checked)
-                      }
-                    />
-                    <span>Create</span>
-                  </CheckboxLabel>
-                  <CheckboxLabel>
-                    <input
-                      type="checkbox"
-                      checked={permission.permission.edit}
-                      onChange={(e) =>
-                        updatePermission(index, "edit", e.target.checked)
-                      }
-                    />
-                    <span>Edit</span>
-                  </CheckboxLabel>
-                  <CheckboxLabel>
-                    <input
-                      type="checkbox"
-                      checked={permission.permission.delete}
-                      onChange={(e) =>
-                        updatePermission(index, "delete", e.target.checked)
-                      }
-                    />
-                    <span>Delete</span>
-                  </CheckboxLabel>
-                </CheckboxGroup>
-              </PermissionCheckboxes>
-            </PermissionCard>
-          ))}
         </FormGroup>
 
         <Button
@@ -424,27 +486,59 @@ const Select = styled("select")`
   }
 `;
 
-const AddPermissionButton = styled("button")`
+const ApiNameList = styled("div")`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #f9fafb;
+  margin-bottom: 16px;
+`;
+
+const ApiNameItem = styled("div")<{ selected: boolean }>`
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  background: #7f56d9;
-  color: white;
-  border: none;
+  gap: 12px;
+  padding: 12px;
   border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.2s;
+  background: ${(props) => (props.selected ? "#ede9fe" : "white")};
+  border: 1px solid ${(props) => (props.selected ? "#7f56d9" : "#e5e7eb")};
 
   &:hover {
-    background: #6d47c7;
+    background: ${(props) => (props.selected ? "#ddd6fe" : "#f3f4f6")};
+    border-color: ${(props) => (props.selected ? "#7f56d9" : "#d1d5db")};
   }
 
-  &:active {
-    background: #5b3ba5;
+  input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: #7f56d9;
   }
+
+  .api-name {
+    font-weight: 600;
+    color: #111827;
+    display: block;
+  }
+
+  .api-route {
+    font-size: 12px;
+    color: #6b7280;
+    font-family: monospace;
+    display: block;
+    margin-top: 4px;
+  }
+`;
+
+const SelectedPermissionsSection = styled("div")`
+  margin-top: 16px;
 `;
 
 const PermissionCard = styled("div")`

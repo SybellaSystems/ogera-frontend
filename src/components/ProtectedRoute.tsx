@@ -21,7 +21,28 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles }) => {
   }
 
   // If specific roles are required, check if user has access
-  if (allowedRoles && !allowedRoles.includes(role)) {
+  if (allowedRoles) {
+    // Check if role name matches (for superadmin)
+    if (allowedRoles.includes(role)) {
+      return <Outlet />;
+    }
+    
+    // Check if user's roleType matches (for admin, student, employer)
+    // user.role might be an object with roleType, or we need to check differently
+    const userRoleType = user?.role?.roleType || user?.role_type;
+    if (userRoleType && allowedRoles.includes(userRoleType)) {
+      return <Outlet />;
+    }
+    
+    // If role name is a custom admin role (contains "admin" but not exact "admin")
+    // and allowedRoles includes "admin", check if it's an admin roleType
+    if (role?.toLowerCase().includes('admin') && allowedRoles.includes('admin')) {
+      // We'll allow it through - the backend PermissionChecker will handle the actual permission check
+      // This is a fallback for custom admin roles
+      return <Outlet />;
+    }
+
+    // No match found
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <div className="text-center p-8 bg-white rounded-xl shadow-lg">

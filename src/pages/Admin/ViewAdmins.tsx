@@ -19,7 +19,8 @@ interface Admin {
   id: string;
   name: string;
   email: string;
-  role: "Admin" | "Subadmin";
+  role: "Admin";
+  roleName: string;
   joinDate: string;
   mobile_number?: string;
 }
@@ -58,8 +59,8 @@ const ViewAdmins: React.FC = () => {
     id: admin.user_id,
     name: admin.full_name,
     email: admin.email,
-    role:
-      admin.role?.roleName === "admin" ? "Admin" : "Subadmin",
+    role: "Admin", // All admins show as "Admin"
+    roleName: admin.role?.roleName || "-", // Show the actual role name (e.g., "job-admin", "users-admin")
     joinDate: admin.created_at
       ? new Date(admin.created_at).toLocaleDateString("en-US", {
           year: "numeric",
@@ -70,10 +71,14 @@ const ViewAdmins: React.FC = () => {
     mobile_number: admin.mobile_number,
   });
 
-  const admins: Admin[] = (data?.data || []).map((admin, index) =>
-    mapAdmin(admin, index)
-  );
-  const totalCount = data?.pagination?.total || admins.length;
+  // Filter out superadmin from the list
+  const admins: Admin[] = (data?.data || [])
+    .filter((admin: AdminProfile) => {
+      // Exclude superadmin - only show admins with roleType "admin"
+      return admin.role?.roleType === "admin";
+    })
+    .map((admin, index) => mapAdmin(admin, index));
+  const totalCount = admins.length;
 
   const columns: Column<Admin>[] = [
     {
@@ -125,11 +130,21 @@ const ViewAdmins: React.FC = () => {
           label={value}
           size="small"
           sx={{
-            bgcolor: value === "Admin" ? "#dbeafe" : "#fef3c7",
-            color: value === "Admin" ? "#1e40af" : "#92400e",
+            bgcolor: "#dbeafe",
+            color: "#1e40af",
             fontWeight: 600,
           }}
         />
+      ),
+    },
+    {
+      id: "roleName",
+      label: "Role Name",
+      minWidth: 150,
+      format: (value) => (
+        <Typography sx={{ color: "#111827", fontWeight: 500 }}>
+          {value || "-"}
+        </Typography>
       ),
     },
     {
@@ -185,16 +200,16 @@ const ViewAdmins: React.FC = () => {
         <div>
           <h1 className="text-2xl md:text-4xl font-extrabold text-gray-900 flex items-center gap-2 md:gap-3">
             <UserGroupIcon className="h-8 w-8 md:h-10 md:w-10 text-purple-600" />
-            Admins & Subadmins
+            Admins
           </h1>
           <p className="text-sm md:text-base text-gray-500 mt-2">
-            Manage all admin and subadmin accounts
+            Manage all admin accounts
           </p>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
         <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
           <p className="text-sm text-gray-500 font-medium">Total Admins</p>
           <p className="text-3xl font-bold text-gray-900 mt-2">
@@ -210,15 +225,6 @@ const ViewAdmins: React.FC = () => {
               : admins.filter((a) => a.role === "Admin").length}
           </p>
           <p className="text-sm text-blue-600 mt-2">Full admin access</p>
-        </div>
-        <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
-          <p className="text-sm text-gray-500 font-medium">Subadmins</p>
-          <p className="text-3xl font-bold text-gray-900 mt-2">
-            {isLoading
-              ? "…"
-              : admins.filter((a) => a.role === "Subadmin").length}
-          </p>
-          <p className="text-sm text-amber-600 mt-2">Limited admin access</p>
         </div>
       </div>
 
