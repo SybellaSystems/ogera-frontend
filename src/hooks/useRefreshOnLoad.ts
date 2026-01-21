@@ -38,12 +38,20 @@ const useRefreshOnLoad = () => {
 
         // Step 2: If role is not in Redux (first load), fetch user data from backend
         if (!currentRole) {
+          console.log('🔍 [FRONTEND] Fetching user data from /auth/me');
           const userRes = await axios.get<UserResponse>(`${BASE_URL}/auth/me`, {
             headers: { Authorization: `Bearer ${newAccessToken}` },
             withCredentials: true,
           });
 
           const userData = userRes.data.user;
+          console.log('🔍 [FRONTEND] User data received:', {
+            role: userData.role,
+            userId: userData.user_id,
+            permissions: userData.permissions,
+            permissionsType: typeof userData.permissions,
+            permissionsLength: Array.isArray(userData.permissions) ? userData.permissions.length : 'not array',
+          });
 
           // Update Redux with complete user data including the fresh token
           dispatch(
@@ -51,9 +59,13 @@ const useRefreshOnLoad = () => {
               user: userData,
               accessToken: newAccessToken,
               role: userData.role,
+              permissions: userData.permissions || null,
             })
           );
+          
+          console.log('🔍 [FRONTEND] Permissions stored in Redux:', userData.permissions || null);
         } else {
+          console.log('🔍 [FRONTEND] User already in Redux, just updating token');
           // If user data exists in Redux/localStorage, just update the token
           dispatch(setAccessToken(newAccessToken));
         }

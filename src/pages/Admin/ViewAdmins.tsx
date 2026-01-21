@@ -171,7 +171,7 @@ const ViewAdmins: React.FC = () => {
       onClick: (row) => {
         // Navigate to detail page or show modal
         console.log("View admin:", row);
-        toast.info("View functionality coming soon");
+        toast("View functionality coming soon");
       },
       color: "primary",
     },
@@ -181,7 +181,7 @@ const ViewAdmins: React.FC = () => {
       onClick: (row) => {
         // Navigate to edit page or show modal
         console.log("Edit admin:", row);
-        toast.info("Edit functionality coming soon");
+        toast("Edit functionality coming soon");
       },
       color: "primary",
     },

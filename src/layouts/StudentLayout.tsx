@@ -5,9 +5,9 @@ import { Outlet } from "react-router-dom";
 
 const StudentLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
+// bg-gradient-to-br
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 overflow-hidden">
+    <div className="flex min-h-screen  from-gray-50 via-white to-gray-50 overflow-hidden">
       <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
       <div className="flex-1 w-full lg:ml-64 transition-all duration-300 overflow-x-hidden">

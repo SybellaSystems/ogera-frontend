@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { useGetAllRolesQuery } from "../../services/api/adminApi";
+import { hasAnyPermission } from "../../utils/permissionUtils";
+import { SIDEBAR_MENU_CONFIG } from "../../config/sidebarMenuConfig";
 import {
   HomeIcon,
   UsersIcon,
@@ -39,41 +40,32 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
 
   const role = useSelector((state: any) => state.auth.role);
-  const { data: rolesData } = useGetAllRolesQuery(undefined, {
-    skip: role === "superadmin" || !role,
-  });
+  const permissions = useSelector((state: any) => state.auth.permissions);
 
-  // Get user's role permissions
-  const userPermissions = useMemo(() => {
-    if (role === "superadmin") {
-      // Superadmin has access to everything
-      return null; // null means full access
+  // Filter menu items based on user permissions
+  const visibleMenuItems = useMemo(() => {
+    if (!permissions || !Array.isArray(permissions)) {
+      return [];
     }
-    if (!rolesData || !Array.isArray(rolesData)) return [];
-    const userRole = rolesData.find((r: any) => r.roleName === role);
-    if (!userRole) return [];
-    const permissions = userRole.permission_json;
-    if (typeof permissions === "string") {
-      try {
-        return JSON.parse(permissions);
-      } catch {
-        return [];
-      }
-    }
-    return permissions || [];
-  }, [role, rolesData]);
 
-  // Check if user has permission for a route
-  const hasPermission = (route: string) => {
-    if (role === "superadmin") return true; // Superadmin sees everything
-    if (!userPermissions || userPermissions.length === 0) return false;
-    return userPermissions.some(
-      (perm: any) =>
-        perm.route === route ||
-        route.startsWith(perm.route + "/") ||
-        perm.route === route.split("/")[1]
-    );
-  };
+    // For superadmin/admin/subadmin, show all menu items (they bypass permissions)
+    if (role === "superadmin" || role === "admin" || role === "subadmin") {
+      return SIDEBAR_MENU_CONFIG;
+    }
+
+    // For other roles, filter based on permissions
+    return SIDEBAR_MENU_CONFIG.filter((config) => {
+      return hasAnyPermission(permissions, config.permissionRoute);
+    });
+  }, [permissions, role]);
+
+  // Log permissions on component mount/update
+  React.useEffect(() => {
+    console.log('🔍 [SIDEBAR] Sidebar rendered with:');
+    console.log('  - Role:', role);
+    console.log('  - Permissions:', permissions);
+    console.log('  - Visible menu items:', visibleMenuItems.length);
+  }, [role, permissions, visibleMenuItems]);
 
   const toggleMenu = (menu: string) => {
     setOpenMenu(openMenu === menu ? null : menu);
@@ -435,9 +427,20 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             </div>
           )}
 
-          {/* Academic Verification - All roles with permission check (not verifyDocAdmin, already shown above) */}
-          {role !== "verifyDocAdmin" &&
-            (role === "superadmin" || hasPermission("/academic-verifications")) && (
+          {/* Academic Verification - Student, Admin, or users with permission (not verifyDocAdmin, already shown above, not employer) */}
+          {(() => {
+            const roleCheck = role === "student" || role === "admin" || role === "superadmin";
+            const permissionCheck = hasAnyPermission(permissions, "/academic-verifications");
+            const shouldShow = (roleCheck || permissionCheck) && role !== "verifyDocAdmin" && role !== "employer";
+            
+            console.log('🔍 [SIDEBAR] Academic Verification check:');
+            console.log('  - Role:', role);
+            console.log('  - Role check (student/admin/superadmin):', roleCheck);
+            console.log('  - Permission check result:', permissionCheck);
+            console.log('  - Should show:', shouldShow);
+            
+            return shouldShow;
+          })() && (
             <div>
               <div
                 className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-gradient-to-r hover:from-purple-600/20 hover:to-indigo-600/20 cursor-pointer transition-all duration-200 group border border-transparent hover:border-purple-500/30"
@@ -518,9 +521,20 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             </div>
           )}
 
-          {/* Jobs - All roles with permission check (not verifyDocAdmin) */}
-          {role !== "verifyDocAdmin" &&
-            (role === "superadmin" || hasPermission("/jobs")) && (
+          {/* Jobs - Student, Employer, Admin, or users with permission (not verifyDocAdmin) */}
+          {(() => {
+            const roleCheck = role === "student" || role === "employer" || role === "admin" || role === "superadmin";
+            const permissionCheck = hasAnyPermission(permissions, "/jobs");
+            const shouldShow = (roleCheck || permissionCheck) && role !== "verifyDocAdmin";
+            
+            console.log('🔍 [SIDEBAR] Jobs check:');
+            console.log('  - Role:', role);
+            console.log('  - Role check (student/employer/admin/superadmin):', roleCheck);
+            console.log('  - Permission check result:', permissionCheck);
+            console.log('  - Should show:', shouldShow);
+            
+            return shouldShow;
+          })() && (
               <div>
                 <div
                   className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-gradient-to-r hover:from-purple-600/20 hover:to-indigo-600/20 cursor-pointer transition-all duration-200 group border border-transparent hover:border-purple-500/30"
@@ -764,6 +778,88 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 </span>
               </div>
             )}
+
+          {/* ========================= PERMISSION-BASED MENU ITEMS ========================= */}
+          {/* Dynamically render menu items based on JSON permissions from role configuration */}
+          {visibleMenuItems
+            .filter((menuConfig) => {
+              // Skip items that are already shown in hardcoded sections above to avoid duplicates
+              
+              // Role menu is hardcoded for superadmin
+              if (role === "superadmin" && menuConfig.menuKey === "role") {
+                return false;
+              }
+              
+              // Academic is hardcoded for verifyDocAdmin
+              if (role === "verifyDocAdmin" && menuConfig.menuKey === "academic") {
+                return false;
+              }
+              
+              // Show all other permission-based menu items
+              // For custom roles with JSON permissions, these items will be displayed here
+              return true;
+            })
+            .map((menuConfig) => {
+              const IconComponent = menuConfig.icon;
+
+              // Render menu item with submenu
+              if (menuConfig.hasSubmenu && menuConfig.submenuItems) {
+                return (
+                  <div key={menuConfig.menuKey}>
+                    <div
+                      className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-gradient-to-r hover:from-purple-600/20 hover:to-indigo-600/20 cursor-pointer transition-all duration-200 group border border-transparent hover:border-purple-500/30"
+                      onClick={() => toggleMenu(menuConfig.menuKey)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <IconComponent className="h-5 w-5 text-purple-400 group-hover:text-purple-300 transition-colors" />
+                        <span className="font-medium group-hover:text-white transition-colors">
+                          {menuConfig.label}
+                        </span>
+                      </div>
+                      <ChevronDownIcon
+                        className={`h-4 w-4 transition-transform duration-200 text-gray-400 group-hover:text-white ${
+                          openMenu === menuConfig.menuKey ? "rotate-180 text-purple-400" : ""
+                        }`}
+                      />
+                    </div>
+
+                    {openMenu === menuConfig.menuKey && (
+                      <ul className="pl-11 space-y-1 text-sm mt-2 animate-fadeIn">
+                        {menuConfig.submenuItems.map((subItem, idx) => {
+                          const SubIcon = subItem.icon || FolderIcon;
+                          return (
+                            <li
+                              key={idx}
+                              className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-slate-700/50 transition-all duration-200 group/item"
+                              onClick={() => handleNavigation(subItem.path)}
+                            >
+                              <SubIcon className="h-4 w-4 text-gray-500 group-hover/item:text-purple-400 transition-colors" />
+                              <span className="text-gray-400 group-hover/item:text-white transition-colors">
+                                {subItem.label}
+                              </span>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    )}
+                  </div>
+                );
+              }
+
+              // Render simple menu item without submenu
+              return (
+                <div
+                  key={menuConfig.menuKey}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gradient-to-r hover:from-purple-600/20 hover:to-indigo-600/20 cursor-pointer transition-all duration-200 group border border-transparent hover:border-purple-500/30"
+                  onClick={() => handleNavigation(menuConfig.directPath || menuConfig.basePath)}
+                >
+                  <IconComponent className="h-5 w-5 text-purple-400 group-hover:text-purple-300 transition-colors" />
+                  <span className="font-medium group-hover:text-white transition-colors">
+                    {menuConfig.label}
+                  </span>
+                </div>
+              );
+            })}
         </nav>
       </div>
     </>

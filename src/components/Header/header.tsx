@@ -186,7 +186,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
             >
               <BellIcon className="h-6 w-6 text-gray-600 group-hover:text-purple-600 transition-colors" />
               {unreadCount > 0 && (
-                <span className="absolute top-0 right-0 bg-gradient-to-r from-red-500 to-red-600 text-white text-xs font-semibold rounded-full h-5 w-5 flex items-center justify-center shadow-lg" aria-label={`${unreadCount} unread notifications`}>
+                <span className="absolute top-0 right-0 bg-linear-to-r from-red-500 to-red-600 text-white text-xs font-semibold rounded-full h-5 w-5 flex items-center justify-center shadow-lg" aria-label={`${unreadCount} unread notifications`}>
                   {unreadCount > 9 ? "9+" : unreadCount}
                 </span>
               )}
@@ -223,7 +223,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                       >
                         <div className="flex items-start gap-3">
                           <div
-                            className={`h-2 w-2 rounded-full mt-2 flex-shrink-0 ${
+                            className={`h-2 w-2 rounded-full mt-2 shrink-0 ${
                               !notification.is_read ? "bg-purple-600" : "bg-transparent"
                             }`}
                           />
@@ -283,7 +283,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
         <div className="relative" ref={dropdownRef}>
           <button
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className="h-10 w-10 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center cursor-pointer border-2 border-white shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200 ring-2 ring-purple-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+            className="h-10 w-10 rounded-full bg-linear-to-br from-purple-500 to-indigo-600 flex items-center justify-center cursor-pointer border-2 border-white shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200 ring-2 ring-purple-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
             aria-label="User menu"
             type="button"
           >
@@ -298,7 +298,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
           {isDropdownOpen && (
             <div className="absolute right-0 mt-2 w-48 bg-white/95 backdrop-blur-lg border border-gray-200/50 rounded-xl shadow-2xl py-2 z-50 animate-fadeIn overflow-hidden">
               <button
-                className="w-full text-left px-4 py-2.5 text-gray-700 hover:bg-gradient-to-r hover:from-purple-50 hover:to-indigo-50 transition-all duration-200 flex items-center gap-2 group"
+                className="w-full text-left px-4 py-2.5 text-gray-700 hover:bg-linear-to-r hover:from-purple-50 hover:to-indigo-50 transition-all duration-200 flex items-center gap-2 group"
                 onClick={() => {
                   setIsDropdownOpen(false);
                   navigate("/dashboard/profile");
@@ -307,7 +307,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                 <span className="group-hover:text-purple-600 transition-colors">Profile</span>
               </button>
               <button
-                className="w-full text-left px-4 py-2.5 text-gray-700 hover:bg-gradient-to-r hover:from-red-50 hover:to-pink-50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 group"
+                className="w-full text-left px-4 py-2.5 text-gray-700 hover:bg-linear-to-r hover:from-red-50 hover:to-pink-50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 group"
                 onClick={handleLogout}
                 disabled={isLoggingOut}
               >
