@@ -6,8 +6,9 @@ import {
   ExclamationTriangleIcon,
   ShieldCheckIcon,
   BellIcon,
+  BookOpenIcon,
 } from "@heroicons/react/24/outline";
-import { ComponentType } from "react";
+import type { ComponentType } from "react";
 
 export interface SubMenuItem {
   label: string;
@@ -119,6 +120,18 @@ export const SIDEBAR_MENU_CONFIG: MenuItemConfig[] = [
       { label: "Open Disputes", path: "/dashboard/disputes/open" },
       { label: "In Progress", path: "/dashboard/disputes/in-progress" },
       { label: "Resolved", path: "/dashboard/disputes/resolved" },
+    ],
+  },
+  {
+    permissionRoute: "/courses",
+    label: "Courses",
+    icon: BookOpenIcon,
+    menuKey: "courses",
+    basePath: "/dashboard/courses",
+    hasSubmenu: true,
+    submenuItems: [
+      { label: "Add Courses", path: "/dashboard/courses/add" },
+      { label: "View Courses", path: "/dashboard/courses/view" },
     ],
   },
 ];
