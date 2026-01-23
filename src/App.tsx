@@ -28,7 +28,6 @@ import Students from "./pages/Users/Students";
 import Employers from "./pages/Users/Employers";
 import PendingApprovalUsers from "./pages/Users/PendingApproval";
 import SuspendedUsers from "./pages/Users/Suspended";
-import AddUser from "./pages/Users/AddUser";
 
 // Academic Verification Pages
 import PendingReviews from "./pages/AcademicVerification/PendingReviews";
@@ -78,6 +77,7 @@ import ViewPermissions from "./pages/Permission/ViewPermissions";
 import useRefreshOnLoad from "./hooks/useRefreshOnLoad";
 import AddCourse from "./pages/Courses/AddCourse";
 import ViewCourse from "./pages/Courses/ViewCourse";
+import CourseDetail from "./pages/Courses/CourseDetail";
 
 function App() {
   const isLoading = useRefreshOnLoad();
@@ -177,10 +177,6 @@ function App() {
                 {
                   path: "suspended",
                   Component: SuspendedUsers,
-                },
-                {
-                  path: "add",
-                  Component: AddUser,
                 },
               ],
             },
@@ -374,6 +370,10 @@ function App() {
             {
               path: "courses/view",
               Component: ViewCourse,
+            },
+            {
+              path: "courses/:id",
+              Component: CourseDetail,
             },
           ],
         },

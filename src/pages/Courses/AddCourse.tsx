@@ -6,13 +6,8 @@ import { BookOpenIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { styled } from "@mui/material/styles";
 import Button from "../../components/button";
 import * as Yup from "yup";
-
-interface CourseStep {
-  step_type: "video" | "link" | "pdf" | "image" | "text";
-  step_content: string;
-  step_title?: string;
-  step_order: number;
-}
+import { useCreateCourseMutation, type CourseStep } from "../../services/api/coursesApi";
+import type { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 
 interface AddCourseFormValues {
   course_name: string;
@@ -40,8 +35,8 @@ const validationSchema = Yup.object({
 
 const AddCourse: React.FC = () => {
   const navigate = useNavigate();
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [steps, setSteps] = useState<CourseStep[]>([]);
+  const [createCourse, { isLoading: isSubmitting, isError, error, isSuccess, data }] = useCreateCourseMutation();
 
   const initialValues: AddCourseFormValues = {
     course_name: "",
@@ -55,35 +50,40 @@ const AddCourse: React.FC = () => {
     initialValues,
     validationSchema,
     onSubmit: async (values) => {
-      setIsSubmitting(true);
       try {
         const payload = {
-          ...values,
-          steps: steps.map((step, index) => ({
-            ...step,
+          course_name: values.course_name,
+          type: values.type,
+          tag: values.tag,
+          description: values.description || undefined,
+          steps: steps.length > 0 ? steps.map((step, index) => ({
+            step_type: step.step_type,
+            step_content: step.step_content,
+            step_title: step.step_title || undefined,
             step_order: index + 1,
-          })),
+          })) : undefined,
         };
         
-        // TODO: Replace with actual API call when backend is ready
-        // await createCourse(payload).unwrap();
-        
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        console.log("Course data:", payload);
-        toast.success("Course created successfully!");
-        formik.resetForm();
-        setSteps([]);
-        navigate("/dashboard/courses");
+        await createCourse(payload).unwrap();
       } catch (error: any) {
         console.error("Create course error:", error);
-        toast.error(error?.data?.message || "Failed to create course");
-      } finally {
-        setIsSubmitting(false);
+        const err = error as FetchBaseQueryError & {
+          data?: { message?: string };
+        };
+        toast.error(err?.data?.message || "Failed to create course");
       }
     },
   });
+
+  // Handle success/error states
+  useEffect(() => {
+    if (isSuccess && data) {
+      toast.success(data?.message || "Course created successfully!");
+      formik.resetForm();
+      setSteps([]);
+      // Stay on the same page instead of navigating
+    }
+  }, [isSuccess, data]);
 
   return (
     <Container>
@@ -307,7 +307,7 @@ const AddCourse: React.FC = () => {
         <ButtonContainer>
           <Button
             text="Cancel"
-            onClick={() => navigate("/dashboard/courses")}
+            onClick={() => navigate("/dashboard/courses/view")}
             disabled={isSubmitting}
           />
           <Button
