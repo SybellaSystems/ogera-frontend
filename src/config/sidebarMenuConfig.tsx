@@ -43,6 +43,7 @@ export const SIDEBAR_MENU_CONFIG: MenuItemConfig[] = [
       { label: "All Jobs", path: "/dashboard/jobs/all" },
       { label: "Active Jobs", path: "/dashboard/jobs/active" },
       { label: "Completed", path: "/dashboard/jobs/completed" },
+      { label: "Job Categories", path: "/dashboard/jobs/categories" },
     ],
   },
   {

@@ -1,5 +1,5 @@
-import React from "react";
-import { ShieldCheckIcon } from "@heroicons/react/24/outline";
+import React, { useState, useEffect } from "react";
+import { ShieldCheckIcon, TrashIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import CustomTable, {
   type Column,
   type TableAction,
@@ -12,6 +12,9 @@ import {
 import {
   useGetAllPermissionsQuery,
   useDeletePermissionMutation,
+  useGetPermissionByIdQuery,
+  useUpdatePermissionMutation,
+  useGetAllRoutesQuery,
   type Permission,
 } from "../../services/api/adminApi";
 import toast from "react-hot-toast";
@@ -27,24 +30,117 @@ interface PermissionRow {
 
 const ViewPermissions: React.FC = () => {
   const { data: permissionsData, isLoading, isError, refetch } = useGetAllPermissionsQuery();
+  const { data: routesData } = useGetAllRoutesQuery();
   const [deletePermission, { isLoading: isDeleting }] = useDeletePermissionMutation();
+  const [updatePermission, { isLoading: isUpdating }] = useUpdatePermissionMutation();
 
-  const handleDelete = async (id: string, apiName: string) => {
-    if (
-      window.confirm(
-        `Are you sure you want to delete permission "${apiName}"? This action cannot be undone.`
-      )
-    ) {
-      try {
-        await deletePermission(id).unwrap();
-        toast.success("Permission deleted successfully");
-        refetch();
-      } catch (error: any) {
-        toast.error(
-          error?.data?.error || error?.data?.message || "Failed to delete permission. Please try again."
-        );
-      }
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [permissionToDelete, setPermissionToDelete] = useState<{ id: string; name: string } | null>(null);
+  const [selectedPermission, setSelectedPermission] = useState<PermissionRow | null>(null);
+  const [editForm, setEditForm] = useState<{
+    api_name: string;
+    route: string;
+    permission: {
+      view: boolean;
+      create: boolean;
+      edit: boolean;
+      delete: boolean;
+    };
+  }>({
+    api_name: "",
+    route: "",
+    permission: {
+      view: false,
+      create: false,
+      edit: false,
+      delete: false,
+    },
+  });
+
+  const selectedPermissionId = selectedPermission?.id || "";
+  const { data: permissionDetails, refetch: refetchPermissionDetails } = useGetPermissionByIdQuery(selectedPermissionId, {
+    skip: !selectedPermissionId || !showEditModal,
+  });
+
+  useEffect(() => {
+    if (permissionDetails?.data && showEditModal) {
+      setEditForm({
+        api_name: permissionDetails.data.api_name || "",
+        route: permissionDetails.data.route || "",
+        permission: {
+          view: permissionDetails.data.permission?.view || false,
+          create: permissionDetails.data.permission?.create || false,
+          edit: permissionDetails.data.permission?.edit || false,
+          delete: permissionDetails.data.permission?.delete || false,
+        },
+      });
     }
+  }, [permissionDetails, showEditModal]);
+
+  const handleEditClick = (row: PermissionRow) => {
+    setSelectedPermission(row);
+    setShowEditModal(true);
+    refetchPermissionDetails();
+  };
+
+  const handleEditClose = () => {
+    setShowEditModal(false);
+    setSelectedPermission(null);
+    setEditForm({
+      api_name: "",
+      route: "",
+      permission: {
+        view: false,
+        create: false,
+        edit: false,
+        delete: false,
+      },
+    });
+  };
+
+  const handleEditSave = async () => {
+    if (!selectedPermission) return;
+
+    try {
+      await updatePermission({
+        id: selectedPermission.id,
+        data: editForm,
+      }).unwrap();
+      toast.success("Permission updated successfully");
+      handleEditClose();
+      refetch();
+    } catch (error: any) {
+      toast.error(
+        error?.data?.error || error?.data?.message || "Failed to update permission. Please try again."
+      );
+    }
+  };
+
+  const handleDeleteClick = (id: string, apiName: string) => {
+    setPermissionToDelete({ id, name: apiName });
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!permissionToDelete) return;
+
+    try {
+      await deletePermission(permissionToDelete.id).unwrap();
+      toast.success("Permission deleted successfully");
+      setShowDeleteModal(false);
+      setPermissionToDelete(null);
+      refetch();
+    } catch (error: any) {
+      toast.error(
+        error?.data?.error || error?.data?.message || "Failed to delete permission. Please try again."
+      );
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setShowDeleteModal(false);
+    setPermissionToDelete(null);
   };
 
   const formatPermissions = (permission: Permission["permission"]) => {
@@ -139,16 +235,13 @@ const ViewPermissions: React.FC = () => {
     {
       label: "Edit",
       icon: <EditIcon fontSize="small" />,
-      onClick: (row) => {
-        console.log("Edit permission:", row);
-        toast.info("Edit functionality coming soon");
-      },
+      onClick: (row) => handleEditClick(row),
       color: "primary",
     },
     {
       label: "Delete",
       icon: <DeleteIcon fontSize="small" />,
-      onClick: (row) => handleDelete(row.id, row.api_name),
+      onClick: (row) => handleDeleteClick(row.id, row.api_name),
       color: "error",
     },
   ];
@@ -211,6 +304,179 @@ const ViewPermissions: React.FC = () => {
         defaultRowsPerPage={10}
         serverSidePagination={false}
       />
+
+      {/* Edit Permission Modal */}
+      {showEditModal && selectedPermission && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl max-w-2xl w-full shadow-2xl border-2 border-gray-200 max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-900">Edit Permission</h2>
+              <button
+                onClick={handleEditClose}
+                className="text-gray-400 hover:text-gray-600 transition"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
+
+            <form onSubmit={(e) => { e.preventDefault(); handleEditSave(); }} className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  API Name *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editForm.api_name}
+                  onChange={(e) => setEditForm({ ...editForm, api_name: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  placeholder="e.g., Jobs Management"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Route *
+                </label>
+                <select
+                  required
+                  value={editForm.route}
+                  onChange={(e) => setEditForm({ ...editForm, route: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                >
+                  <option value="">Select a route</option>
+                  {routesData?.data?.map((route: string) => (
+                    <option key={route} value={route}>
+                      {route}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Permissions
+                </label>
+                <div className="grid grid-cols-2 gap-4">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={editForm.permission.view}
+                      onChange={(e) => setEditForm({
+                        ...editForm,
+                        permission: { ...editForm.permission, view: e.target.checked }
+                      })}
+                      className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                    />
+                    <span className="text-sm text-gray-700">View</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={editForm.permission.create}
+                      onChange={(e) => setEditForm({
+                        ...editForm,
+                        permission: { ...editForm.permission, create: e.target.checked }
+                      })}
+                      className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                    />
+                    <span className="text-sm text-gray-700">Create</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={editForm.permission.edit}
+                      onChange={(e) => setEditForm({
+                        ...editForm,
+                        permission: { ...editForm.permission, edit: e.target.checked }
+                      })}
+                      className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                    />
+                    <span className="text-sm text-gray-700">Edit</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={editForm.permission.delete}
+                      onChange={(e) => setEditForm({
+                        ...editForm,
+                        permission: { ...editForm.permission, delete: e.target.checked }
+                      })}
+                      className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                    />
+                    <span className="text-sm text-gray-700">Delete</span>
+                  </label>
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={handleEditClose}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isUpdating}
+                  className="flex-1 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition font-medium disabled:opacity-50"
+                >
+                  {isUpdating ? "Updating..." : "Update Permission"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && permissionToDelete && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl max-w-md w-full shadow-2xl border-2 border-red-200">
+            <div className="p-6">
+              <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full mb-4">
+                <TrashIcon className="h-6 w-6 text-red-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 text-center mb-2">
+                Delete Permission?
+              </h3>
+              <p className="text-gray-600 text-center mb-6">
+                Are you sure you want to delete <span className="font-semibold text-gray-900">"{permissionToDelete.name}"</span>? 
+                <br />
+                <span className="text-red-600 font-medium">This action cannot be undone.</span>
+              </p>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={handleDeleteCancel}
+                  className="flex-1 px-4 py-2.5 border-2 border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDeleteConfirm}
+                  disabled={isDeleting}
+                  className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg transition font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {isDeleting ? (
+                    <>
+                      <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Deleting...
+                    </>
+                  ) : (
+                    <>
+                      <TrashIcon className="h-5 w-5" />
+                      Delete
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -9,12 +9,6 @@ import {
   Avatar,
   Box,
   Typography,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  TextField,
 } from "@mui/material";
 import {
   Visibility as ViewIcon,
@@ -22,6 +16,7 @@ import {
   Delete as DeleteIcon,
   Close as CloseIcon,
 } from "@mui/icons-material";
+import { TrashIcon } from "@heroicons/react/24/outline";
 import {
   useGetAllAdminsQuery,
   useDeleteAdminMutation,
@@ -56,6 +51,8 @@ const ViewAdmins: React.FC = () => {
 
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [adminToDelete, setAdminToDelete] = useState<{ id: string; name: string } | null>(null);
   const [selectedAdmin, setSelectedAdmin] = useState<Admin | null>(null);
   const [editForm, setEditForm] = useState<{
     full_name?: string;
@@ -83,22 +80,30 @@ const ViewAdmins: React.FC = () => {
     }
   }, [adminDetails, editDialogOpen]);
 
-  const handleDelete = async (id: string, name: string) => {
-    if (
-      window.confirm(
-        `Are you sure you want to delete ${name}? This action cannot be undone.`
-      )
-    ) {
-      try {
-        await deleteAdmin(id).unwrap();
-        toast.success("Admin deleted successfully");
-        refetch();
-      } catch (error: any) {
-        toast.error(
-          error?.data?.message || "Failed to delete admin. Please try again."
-        );
-      }
+  const handleDeleteClick = (id: string, name: string) => {
+    setAdminToDelete({ id, name });
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!adminToDelete) return;
+
+    try {
+      await deleteAdmin(adminToDelete.id).unwrap();
+      toast.success("Admin deleted successfully");
+      setShowDeleteModal(false);
+      setAdminToDelete(null);
+      refetch();
+    } catch (error: any) {
+      toast.error(
+        error?.data?.message || "Failed to delete admin. Please try again."
+      );
     }
+  };
+
+  const handleDeleteCancel = () => {
+    setShowDeleteModal(false);
+    setAdminToDelete(null);
   };
 
   const handleView = (row: Admin) => {
@@ -268,7 +273,7 @@ const ViewAdmins: React.FC = () => {
     {
       label: "Delete",
       icon: <DeleteIcon fontSize="small" />,
-      onClick: (row) => handleDelete(row.id, row.name),
+      onClick: (row) => handleDeleteClick(row.id, row.name),
       color: "error",
     },
   ];
@@ -334,157 +339,225 @@ const ViewAdmins: React.FC = () => {
         }}
       />
 
-      {/* View Admin Dialog */}
-      <Dialog
-        open={viewDialogOpen}
-        onClose={handleCloseViewDialog}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <Typography variant="h6" component="div">
-            Admin Details
-          </Typography>
-          <Button onClick={handleCloseViewDialog} color="inherit">
-            <CloseIcon fontSize="small" />
-          </Button>
-        </DialogTitle>
-        <DialogContent dividers>
-          {isLoadingAdminDetails || !adminDetails?.data ? (
-            <Typography>Loading...</Typography>
-          ) : (
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                <Avatar
-                  sx={{
-                    bgcolor: "#9333ea",
-                    width: 48,
-                    height: 48,
-                    fontSize: "1.25rem",
-                    fontWeight: 600,
-                  }}
-                >
-                  {adminDetails.data.full_name?.charAt(0) || "A"}
-                </Avatar>
-                <Box>
-                  <Typography variant="subtitle1" fontWeight={600}>
-                    {adminDetails.data.full_name}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {adminDetails.data.role?.roleName || "Admin"}
-                  </Typography>
-                </Box>
-              </Box>
-              <Box>
-                <Typography variant="caption" color="text.secondary">
-                  Email
-                </Typography>
-                <Typography variant="body2">
-                  {adminDetails.data.email}
-                </Typography>
-              </Box>
-              <Box>
-                <Typography variant="caption" color="text.secondary">
-                  Mobile
-                </Typography>
-                <Typography variant="body2">
-                  {adminDetails.data.mobile_number || "-"}
-                </Typography>
-              </Box>
-              <Box>
-                <Typography variant="caption" color="text.secondary">
-                  Created At
-                </Typography>
-                <Typography variant="body2">
-                  {adminDetails.data.created_at
-                    ? new Date(adminDetails.data.created_at).toLocaleString()
-                    : "-"}
-                </Typography>
-              </Box>
-            </Box>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseViewDialog} color="primary">
-            Close
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {/* View Admin Modal */}
+      {viewDialogOpen && selectedAdmin && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl max-w-2xl w-full shadow-2xl border-2 border-gray-200 max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-900">Admin Details</h2>
+              <button
+                onClick={handleCloseViewDialog}
+                className="text-gray-400 hover:text-gray-600 transition"
+              >
+                <CloseIcon fontSize="small" />
+              </button>
+            </div>
+            <div className="p-6">
+              {isLoadingAdminDetails || !adminDetails?.data ? (
+                <div className="text-center py-8">
+                  <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-purple-600 border-r-transparent"></div>
+                  <p className="mt-2 text-gray-600">Loading...</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4">
+                    <Avatar
+                      sx={{
+                        bgcolor: "#9333ea",
+                        width: 48,
+                        height: 48,
+                        fontSize: "1.25rem",
+                        fontWeight: 600,
+                      }}
+                    >
+                      {adminDetails.data.full_name?.charAt(0) || "A"}
+                    </Avatar>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        {adminDetails.data.full_name}
+                      </h3>
+                      <p className="text-sm text-gray-500">
+                        {adminDetails.data.role?.roleName || "Admin"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-xs text-gray-500 mb-1">Email</p>
+                      <p className="text-sm text-gray-900">{adminDetails.data.email}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 mb-1">Mobile</p>
+                      <p className="text-sm text-gray-900">{adminDetails.data.mobile_number || "-"}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 mb-1">Created At</p>
+                      <p className="text-sm text-gray-900">
+                        {adminDetails.data.created_at
+                          ? new Date(adminDetails.data.created_at).toLocaleString()
+                          : "-"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="pt-4 border-t">
+                    <button
+                      onClick={handleCloseViewDialog}
+                      className="w-full px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition font-medium"
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
-      {/* Edit Admin Dialog */}
-      <Dialog
-        open={editDialogOpen}
-        onClose={handleCloseEditDialog}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <Typography variant="h6" component="div">
-            Edit Admin
-          </Typography>
-          <Button onClick={handleCloseEditDialog} color="inherit">
-            <CloseIcon fontSize="small" />
-          </Button>
-        </DialogTitle>
-        <DialogContent dividers>
-          {isLoadingAdminDetails || !adminDetails?.data ? (
-            <Typography>Loading...</Typography>
-          ) : (
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
-              <TextField
-                label="Full Name"
-                value={editForm.full_name ?? ""}
-                onChange={(e) =>
-                  setEditForm((prev) => ({
-                    ...prev,
-                    full_name: e.target.value,
-                  }))
-                }
-                fullWidth
-                size="small"
-              />
-              <TextField
-                label="Email"
-                type="email"
-                value={editForm.email ?? ""}
-                onChange={(e) =>
-                  setEditForm((prev) => ({
-                    ...prev,
-                    email: e.target.value,
-                  }))
-                }
-                fullWidth
-                size="small"
-              />
-              <TextField
-                label="Mobile Number"
-                value={editForm.mobile_number ?? ""}
-                onChange={(e) =>
-                  setEditForm((prev) => ({
-                    ...prev,
-                    mobile_number: e.target.value,
-                  }))
-                }
-                fullWidth
-                size="small"
-              />
-            </Box>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseEditDialog} color="inherit">
-            Cancel
-          </Button>
-          <Button
-            onClick={handleSaveEdit}
-            color="primary"
-            variant="contained"
-            disabled={isUpdating || isLoadingAdminDetails}
-          >
-            {isUpdating ? "Saving..." : "Save Changes"}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {/* Edit Admin Modal */}
+      {editDialogOpen && selectedAdmin && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl max-w-2xl w-full shadow-2xl border-2 border-gray-200 max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-900">Edit Admin</h2>
+              <button
+                onClick={handleCloseEditDialog}
+                className="text-gray-400 hover:text-gray-600 transition"
+              >
+                <CloseIcon fontSize="small" />
+              </button>
+            </div>
+            <form onSubmit={(e) => { e.preventDefault(); handleSaveEdit(); }} className="p-6 space-y-4">
+              {isLoadingAdminDetails || !adminDetails?.data ? (
+                <div className="text-center py-8">
+                  <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-purple-600 border-r-transparent"></div>
+                  <p className="mt-2 text-gray-600">Loading...</p>
+                </div>
+              ) : (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Full Name *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={editForm.full_name ?? ""}
+                      onChange={(e) =>
+                        setEditForm((prev) => ({
+                          ...prev,
+                          full_name: e.target.value,
+                        }))
+                      }
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      placeholder="Enter full name"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Email *
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={editForm.email ?? ""}
+                      onChange={(e) =>
+                        setEditForm((prev) => ({
+                          ...prev,
+                          email: e.target.value,
+                        }))
+                      }
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      placeholder="Enter email"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Mobile Number
+                    </label>
+                    <input
+                      type="tel"
+                      value={editForm.mobile_number ?? ""}
+                      onChange={(e) =>
+                        setEditForm((prev) => ({
+                          ...prev,
+                          mobile_number: e.target.value,
+                        }))
+                      }
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      placeholder="Enter mobile number"
+                    />
+                  </div>
+                  <div className="flex gap-3 pt-4">
+                    <button
+                      type="button"
+                      onClick={handleCloseEditDialog}
+                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition font-medium"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isUpdating || isLoadingAdminDetails}
+                      className="flex-1 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition font-medium disabled:opacity-50"
+                    >
+                      {isUpdating ? "Saving..." : "Save Changes"}
+                    </button>
+                  </div>
+                </>
+              )}
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && adminToDelete && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl max-w-md w-full shadow-2xl border-2 border-red-200">
+            <div className="p-6">
+              <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full mb-4">
+                <TrashIcon className="h-6 w-6 text-red-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 text-center mb-2">
+                Delete Admin?
+              </h3>
+              <p className="text-gray-600 text-center mb-6">
+                Are you sure you want to delete <span className="font-semibold text-gray-900">"{adminToDelete.name}"</span>? 
+                <br />
+                <span className="text-red-600 font-medium">This action cannot be undone.</span>
+              </p>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={handleDeleteCancel}
+                  className="flex-1 px-4 py-2.5 border-2 border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDeleteConfirm}
+                  disabled={isDeleting}
+                  className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg transition font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {isDeleting ? (
+                    <>
+                      <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Deleting...
+                    </>
+                  ) : (
+                    <>
+                      <TrashIcon className="h-5 w-5" />
+                      Delete
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

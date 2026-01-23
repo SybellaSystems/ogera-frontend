@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useFormik } from "formik";
 import { useCreateJobMutation, useUpdateJobMutation, useGetJobByIdQuery, type JobQuestion } from "../../services/api/jobsApi";
 import { useGetUserProfileQuery } from "../../services/api/authApi";
+import { useGetAllCategoriesQuery } from "../../services/api/jobCategoriesApi";
 import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import { BriefcaseIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
@@ -61,12 +62,15 @@ const CreateJob: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const role = useSelector((state: any) => state.auth.role);
   const { data: profileData } = useGetUserProfileQuery();
+  const { data: categoriesResponse } = useGetAllCategoriesQuery();
   const isEditMode = !!id;
 
   // Fetch job data if editing
   const { data: jobData, isLoading: isLoadingJob } = useGetJobByIdQuery(id || "", {
     skip: !isEditMode,
   });
+
+  const categories = categoriesResponse?.data || [];
 
   const [createJob, { isLoading: isCreating, isError: isCreateError, error: createError, isSuccess: isCreateSuccess, data: createData }] =
     useCreateJobMutation();
@@ -256,16 +260,27 @@ const CreateJob: React.FC = () => {
         {/* Category */}
         <FormGroup>
           <Label htmlFor="category">Category *</Label>
-          <Input
+          <Select
             id="category"
             name="category"
-            placeholder="e.g., Technology, Marketing, Design"
             value={formik.values.category}
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
-          />
+          >
+            <option value="">Select a category</option>
+            {categories.map((category: any) => (
+              <option key={category.category_id} value={category.name}>
+                {category.icon || "💼"} {category.name}
+              </option>
+            ))}
+          </Select>
           {formik.touched.category && formik.errors.category && (
             <ErrorText>{formik.errors.category}</ErrorText>
+          )}
+          {categories.length === 0 && (
+            <HelperText>
+              No categories available. Please create categories first from the Job Categories page.
+            </HelperText>
           )}
         </FormGroup>
 
