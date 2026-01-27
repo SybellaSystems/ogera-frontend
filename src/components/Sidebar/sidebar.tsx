@@ -913,38 +913,86 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     {(role === "employer" || role === "superadmin") && (
                       <>
                         <li
-                          className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
+                          className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
+                            isActive("/dashboard/jobs/create")
+                              ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
+                              : "hover:text-purple-300 hover:bg-[#9F7AEA]/10 text-white/60"
+                          }`}
                           onClick={() => handleNavigation("/dashboard/jobs/create")}
                         >
-                          <PlusIcon className="h-4 w-4 text-white/40 group-hover/item:text-[#9F7AEA] transition-colors" />
-                          <span className="text-white/60 group-hover/item:text-white transition-colors">
+                          <PlusIcon className={`h-4 w-4 transition-colors ${
+                            isActive("/dashboard/jobs/create")
+                              ? "text-[#9F7AEA]"
+                              : "text-white/40 group-hover/item:text-[#9F7AEA]"
+                          }`} />
+                          <span className={`transition-colors ${
+                            isActive("/dashboard/jobs/create")
+                              ? "text-white font-medium"
+                              : "group-hover/item:text-white"
+                          }`}>
                             Create Job
                           </span>
                         </li>
                         <li
-                          className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
+                          className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
+                            isActive("/dashboard/jobs/applications")
+                              ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
+                              : "hover:text-purple-300 hover:bg-[#9F7AEA]/10 text-white/60"
+                          }`}
                           onClick={() => handleNavigation("/dashboard/jobs/applications")}
                         >
-                          <BriefcaseIcon className="h-4 w-4 text-white/40 group-hover/item:text-[#9F7AEA] transition-colors" />
-                          <span className="text-white/60 group-hover/item:text-white transition-colors">
+                          <BriefcaseIcon className={`h-4 w-4 transition-colors ${
+                            isActive("/dashboard/jobs/applications")
+                              ? "text-[#9F7AEA]"
+                              : "text-white/40 group-hover/item:text-[#9F7AEA]"
+                          }`} />
+                          <span className={`transition-colors ${
+                            isActive("/dashboard/jobs/applications")
+                              ? "text-white font-medium"
+                              : "group-hover/item:text-white"
+                          }`}>
                             Applications
                           </span>
                         </li>
                         <li
-                          className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
+                          className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
+                            isActive("/dashboard/jobs/applications/accepted")
+                              ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
+                              : "hover:text-purple-300 hover:bg-[#9F7AEA]/10 text-white/60"
+                          }`}
                           onClick={() => handleNavigation("/dashboard/jobs/applications/accepted")}
                         >
-                          <CheckCircleIcon className="h-4 w-4 text-white/40 group-hover/item:text-green-400 transition-colors" />
-                          <span className="text-white/60 group-hover/item:text-white transition-colors">
+                          <CheckCircleIcon className={`h-4 w-4 transition-colors ${
+                            isActive("/dashboard/jobs/applications/accepted")
+                              ? "text-green-400"
+                              : "text-white/40 group-hover/item:text-green-400"
+                          }`} />
+                          <span className={`transition-colors ${
+                            isActive("/dashboard/jobs/applications/accepted")
+                              ? "text-white font-medium"
+                              : "group-hover/item:text-white"
+                          }`}>
                             Accepted
                           </span>
                         </li>
                         <li
-                          className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
+                          className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
+                            isActive("/dashboard/jobs/applications/rejected")
+                              ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
+                              : "hover:text-purple-300 hover:bg-[#9F7AEA]/10 text-white/60"
+                          }`}
                           onClick={() => handleNavigation("/dashboard/jobs/applications/rejected")}
                         >
-                          <XCircleIcon className="h-4 w-4 text-white/40 group-hover/item:text-red-400 transition-colors" />
-                          <span className="text-white/60 group-hover/item:text-white transition-colors">
+                          <XCircleIcon className={`h-4 w-4 transition-colors ${
+                            isActive("/dashboard/jobs/applications/rejected")
+                              ? "text-red-400"
+                              : "text-white/40 group-hover/item:text-red-400"
+                          }`} />
+                          <span className={`transition-colors ${
+                            isActive("/dashboard/jobs/applications/rejected")
+                              ? "text-white font-medium"
+                              : "group-hover/item:text-white"
+                          }`}>
                             Rejected
                           </span>
                         </li>
@@ -953,89 +1001,185 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     {role === "student" && (
                       <>
                         <li
-                          className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
+                          className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
+                            isActive("/dashboard/jobs/my-applications")
+                              ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
+                              : "hover:text-purple-300 hover:bg-[#9F7AEA]/10 text-white/60"
+                          }`}
                           onClick={() => handleNavigation("/dashboard/jobs/my-applications")}
                         >
-                          <BriefcaseIcon className="h-4 w-4 text-white/40 group-hover/item:text-[#9F7AEA] transition-colors" />
-                          <span className="text-white/60 group-hover/item:text-white transition-colors">
+                          <BriefcaseIcon className={`h-4 w-4 transition-colors ${
+                            isActive("/dashboard/jobs/my-applications")
+                              ? "text-[#9F7AEA]"
+                              : "text-white/40 group-hover/item:text-[#9F7AEA]"
+                          }`} />
+                          <span className={`transition-colors ${
+                            isActive("/dashboard/jobs/my-applications")
+                              ? "text-white font-medium"
+                              : "group-hover/item:text-white"
+                          }`}>
                             My Applications
                           </span>
                         </li>
                         <li
-                          className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
+                          className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
+                            isActive("/dashboard/jobs/my-applications/accepted")
+                              ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
+                              : "hover:text-purple-300 hover:bg-[#9F7AEA]/10 text-white/60"
+                          }`}
                           onClick={() => handleNavigation("/dashboard/jobs/my-applications/accepted")}
                         >
-                          <CheckCircleIcon className="h-4 w-4 text-white/40 group-hover/item:text-green-400 transition-colors" />
-                          <span className="text-white/60 group-hover/item:text-white transition-colors">
+                          <CheckCircleIcon className={`h-4 w-4 transition-colors ${
+                            isActive("/dashboard/jobs/my-applications/accepted")
+                              ? "text-green-400"
+                              : "text-white/40 group-hover/item:text-green-400"
+                          }`} />
+                          <span className={`transition-colors ${
+                            isActive("/dashboard/jobs/my-applications/accepted")
+                              ? "text-white font-medium"
+                              : "group-hover/item:text-white"
+                          }`}>
                             Accepted
                           </span>
                         </li>
                         <li
-                          className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
+                          className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
+                            isActive("/dashboard/jobs/my-applications/rejected")
+                              ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
+                              : "hover:text-purple-300 hover:bg-[#9F7AEA]/10 text-white/60"
+                          }`}
                           onClick={() => handleNavigation("/dashboard/jobs/my-applications/rejected")}
                         >
-                          <XCircleIcon className="h-4 w-4 text-white/40 group-hover/item:text-red-400 transition-colors" />
-                          <span className="text-white/60 group-hover/item:text-white transition-colors">
+                          <XCircleIcon className={`h-4 w-4 transition-colors ${
+                            isActive("/dashboard/jobs/my-applications/rejected")
+                              ? "text-red-400"
+                              : "text-white/40 group-hover/item:text-red-400"
+                          }`} />
+                          <span className={`transition-colors ${
+                            isActive("/dashboard/jobs/my-applications/rejected")
+                              ? "text-white font-medium"
+                              : "group-hover/item:text-white"
+                          }`}>
                             Rejected
                           </span>
                         </li>
                       </>
                     )}
                     <li
-                      className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
+                      className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
+                        isActive("/dashboard/jobs/all")
+                          ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
+                          : "hover:text-purple-300 hover:bg-[#9F7AEA]/10 text-white/60"
+                      }`}
                       onClick={() => handleNavigation("/dashboard/jobs/all")}
                     >
-                      <FolderIcon className="h-4 w-4 text-white/40 group-hover/item:text-[#9F7AEA] transition-colors" />
-                      <span className="text-white/60 group-hover/item:text-white transition-colors">
+                      <FolderIcon className={`h-4 w-4 transition-colors ${
+                        isActive("/dashboard/jobs/all")
+                          ? "text-[#9F7AEA]"
+                          : "text-white/40 group-hover/item:text-[#9F7AEA]"
+                      }`} />
+                      <span className={`transition-colors ${
+                        isActive("/dashboard/jobs/all")
+                          ? "text-white font-medium"
+                          : "group-hover/item:text-white"
+                      }`}>
                         All Jobs
                       </span>
                     </li>
                     <li
-                      className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
+                      className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
+                        isActive("/dashboard/jobs/active")
+                          ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
+                          : "hover:text-purple-300 hover:bg-[#9F7AEA]/10 text-white/60"
+                      }`}
                       onClick={() => handleNavigation("/dashboard/jobs/active")}
                     >
-                      <FireIcon className="h-4 w-4 text-white/40 group-hover/item:text-orange-400 transition-colors" />
-                      <span className="text-white/60 group-hover/item:text-white transition-colors">
+                      <FireIcon className={`h-4 w-4 transition-colors ${
+                        isActive("/dashboard/jobs/active")
+                          ? "text-orange-400"
+                          : "text-white/40 group-hover/item:text-orange-400"
+                      }`} />
+                      <span className={`transition-colors ${
+                        isActive("/dashboard/jobs/active")
+                          ? "text-white font-medium"
+                          : "group-hover/item:text-white"
+                      }`}>
                         Active Jobs
                       </span>
                     </li>
                     <li
-                      className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
+                      className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
+                        isActive("/dashboard/jobs/completed")
+                          ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
+                          : "hover:text-purple-300 hover:bg-[#9F7AEA]/10 text-white/60"
+                      }`}
                       onClick={() =>
                         handleNavigation("/dashboard/jobs/completed")
                       }
                     >
-                      <CheckBadgeIcon className="h-4 w-4 text-white/40 group-hover/item:text-green-400 transition-colors" />
-                      <span className="text-white/60 group-hover/item:text-white transition-colors">
+                      <CheckBadgeIcon className={`h-4 w-4 transition-colors ${
+                        isActive("/dashboard/jobs/completed")
+                          ? "text-green-400"
+                          : "text-white/40 group-hover/item:text-green-400"
+                      }`} />
+                      <span className={`transition-colors ${
+                        isActive("/dashboard/jobs/completed")
+                          ? "text-white font-medium"
+                          : "group-hover/item:text-white"
+                      }`}>
                         Completed
                       </span>
                     </li>
                     {isBuiltInAdmin && (
                       <li
-                        className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
+                        className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
+                          isActive("/dashboard/jobs/pending")
+                            ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
+                            : "hover:text-purple-300 hover:bg-[#9F7AEA]/10 text-white/60"
+                        }`}
                         onClick={() =>
                           handleNavigation("/dashboard/jobs/pending")
                         }
                       >
-                        <ClockIcon className="h-4 w-4 text-white/40 group-hover/item:text-[#9F7AEA] transition-colors" />
-                        <span className="text-white/60 group-hover/item:text-white transition-colors">
+                        <ClockIcon className={`h-4 w-4 transition-colors ${
+                          isActive("/dashboard/jobs/pending")
+                            ? "text-[#9F7AEA]"
+                            : "text-white/40 group-hover/item:text-[#9F7AEA]"
+                        }`} />
+                        <span className={`transition-colors ${
+                          isActive("/dashboard/jobs/pending")
+                            ? "text-white font-medium"
+                            : "group-hover/item:text-white"
+                        }`}>
                           Pending Approval
                         </span>
                       </li>
                     )}
                     {isBuiltInAdmin && (
                       <li
-                        className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
+                        className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
+                          isActive("/dashboard/jobs/categories")
+                            ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
+                            : "hover:text-purple-300 hover:bg-[#9F7AEA]/10 text-white/60"
+                        }`}
                         onClick={() =>
                           handleNavigation("/dashboard/jobs/categories")
                         }
                       >
-                        <BriefcaseIcon className="h-4 w-4 text-white/40 group-hover/item:text-[#9F7AEA] transition-colors" />
-                        <span className="text-white/60 group-hover/item:text-white transition-colors">
+                        <BriefcaseIcon className={`h-4 w-4 transition-colors ${
+                          isActive("/dashboard/jobs/categories")
+                            ? "text-[#9F7AEA]"
+                            : "text-white/40 group-hover/item:text-[#9F7AEA]"
+                        }`} />
+                        <span className={`transition-colors ${
+                          isActive("/dashboard/jobs/categories")
+                            ? "text-white font-medium"
+                            : "group-hover/item:text-white"
+                        }`}>
                           Job Categories
                         </span>
                       </li>
-                    )}
+                    )}}
                   </ul>
                 )}
               </div>
@@ -1078,35 +1222,71 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 {openMenu === "disputes" && (
                   <ul className="pl-11 space-y-1 text-sm mt-2 animate-fadeIn">
                     <li
-                      className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
+                      className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
+                        isActive("/dashboard/disputes/open")
+                          ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
+                          : "hover:text-purple-300 hover:bg-[#9F7AEA]/10 text-white/60"
+                      }`}
                       onClick={() =>
                         handleNavigation("/dashboard/disputes/open")
                       }
                     >
-                      <ExclamationTriangleIcon className="h-4 w-4 text-white/40 group-hover/item:text-yellow-400 transition-colors" />
-                      <span className="text-white/60 group-hover/item:text-white transition-colors">
+                      <ExclamationTriangleIcon className={`h-4 w-4 transition-colors ${
+                        isActive("/dashboard/disputes/open")
+                          ? "text-yellow-400"
+                          : "text-white/40 group-hover/item:text-yellow-400"
+                      }`} />
+                      <span className={`transition-colors ${
+                        isActive("/dashboard/disputes/open")
+                          ? "text-white font-medium"
+                          : "group-hover/item:text-white"
+                      }`}>
                         Open Disputes
                       </span>
                     </li>
                     <li
-                      className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
+                      className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
+                        isActive("/dashboard/disputes/in-progress")
+                          ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
+                          : "hover:text-purple-300 hover:bg-[#9F7AEA]/10 text-white/60"
+                      }`}
                       onClick={() =>
                         handleNavigation("/dashboard/disputes/in-progress")
                       }
                     >
-                      <ArrowPathIcon className="h-4 w-4 text-white/40 group-hover/item:text-blue-400 transition-colors" />
-                      <span className="text-white/60 group-hover/item:text-white transition-colors">
+                      <ArrowPathIcon className={`h-4 w-4 transition-colors ${
+                        isActive("/dashboard/disputes/in-progress")
+                          ? "text-blue-400"
+                          : "text-white/40 group-hover/item:text-blue-400"
+                      }`} />
+                      <span className={`transition-colors ${
+                        isActive("/dashboard/disputes/in-progress")
+                          ? "text-white font-medium"
+                          : "group-hover/item:text-white"
+                      }`}>
                         In Progress
                       </span>
                     </li>
                     <li
-                      className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
+                      className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
+                        isActive("/dashboard/disputes/resolved")
+                          ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
+                          : "hover:text-purple-300 hover:bg-[#9F7AEA]/10 text-white/60"
+                      }`}
                       onClick={() =>
                         handleNavigation("/dashboard/disputes/resolved")
                       }
                     >
-                      <CheckCircleIcon className="h-4 w-4 text-white/40 group-hover/item:text-green-400 transition-colors" />
-                      <span className="text-white/60 group-hover/item:text-white transition-colors">
+                      <CheckCircleIcon className={`h-4 w-4 transition-colors ${
+                        isActive("/dashboard/disputes/resolved")
+                          ? "text-green-400"
+                          : "text-white/40 group-hover/item:text-green-400"
+                      }`} />
+                      <span className={`transition-colors ${
+                        isActive("/dashboard/disputes/resolved")
+                          ? "text-white font-medium"
+                          : "group-hover/item:text-white"
+                      }`}>
                         Resolved
                       </span>
                     </li>
@@ -1211,11 +1391,23 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                           return (
                             <li
                               key={idx}
-                              className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
+                              className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
+                                isActive(subItem.path)
+                                  ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
+                                  : "hover:text-purple-300 hover:bg-[#9F7AEA]/10 text-white/60"
+                              }`}
                               onClick={() => handleNavigation(subItem.path)}
                             >
-                              <SubIcon className="h-4 w-4 text-white/40 group-hover/item:text-[#9F7AEA] transition-colors" />
-                              <span className="text-white/60 group-hover/item:text-white transition-colors">
+                              <SubIcon className={`h-4 w-4 transition-colors ${
+                                isActive(subItem.path)
+                                  ? "text-[#9F7AEA]"
+                                  : "text-white/40 group-hover/item:text-[#9F7AEA]"
+                              }`} />
+                              <span className={`transition-colors ${
+                                isActive(subItem.path)
+                                  ? "text-white font-medium"
+                                  : "group-hover/item:text-white"
+                              }`}>
                                 {subItem.label}
                               </span>
                             </li>
