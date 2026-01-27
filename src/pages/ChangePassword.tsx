@@ -1,17 +1,27 @@
+import React, { useState } from "react";
 import { useFormik } from "formik";
 import RestPasswordTemplate from "../components/ResetPassword";
 import { changePasswordValidation } from "../validation/Index";
-import type { ChangePasswordFormValues } from "../type/index";
+import toast from "react-hot-toast";
 
-const ChangePassword = () => {
-  const formik = useFormik<ChangePasswordFormValues>({
-    initialValues: {
-      newPassword: "",
-      confirmPassword: "",
-    },
+const ChangePassword: React.FC = () => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const formik = useFormik({
+    initialValues: { newPassword: "", confirmPassword: "" },
     validationSchema: changePasswordValidation,
-    onSubmit: (values) => {
-      console.log("Change Password values:", values);
+    onSubmit: async (_values) => {
+      try {
+        setIsSubmitting(true);
+        // TODO: Integrate change password API when available
+        // await changePasswordApi(values);
+        toast.success("Password change functionality will be available soon");
+        formik.resetForm();
+      } catch (error: any) {
+        toast.error(error?.message || "Failed to change password. Please try again.");
+      } finally {
+        setIsSubmitting(false);
+      }
     },
   });
 
@@ -45,6 +55,7 @@ const ChangePassword = () => {
         subHeading="Set the new password for your account so you can login and access all features."
         fields={fields}
         buttonText="Change Password"
+        disabled={isSubmitting}
       />
     </form>
   );

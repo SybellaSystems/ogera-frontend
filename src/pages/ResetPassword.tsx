@@ -1,18 +1,48 @@
+import React, { useEffect, useRef } from "react";
 import { useFormik } from "formik";
 import ResetPasswordTemplate from "../components/ResetPassword";
 import { resetPasswordValidation } from "../validation/Index";
+import { useResetPasswordMutation } from "../services/api/authApi";
+import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
+import type { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 
-const ResetPassword = () => {
+const ResetPassword: React.FC = () => {
+  const navigate = useNavigate();
+  const [resetPassword, { data, isLoading, isSuccess, isError, error }] =
+    useResetPasswordMutation();
+
   const formik = useFormik({
-    initialValues: {
-      newPassword: "",
-      confirmPassword: "",
-    },
+    initialValues: { newPassword: "", confirmPassword: "" },
     validationSchema: resetPasswordValidation,
-    onSubmit: (values) => {
-      console.log("Reset Password values:", values);
+    onSubmit: async (values) => {
+      const resetToken = localStorage.getItem("resetToken");
+      try {
+        await resetPassword({ newPassword: values.newPassword, resetToken }).unwrap();
+      } catch (e) {
+        // handled below
+      }
     },
   });
+
+  const prevError = useRef(false);
+  const prevSuccess = useRef(false);
+
+  useEffect(() => {
+    if (!prevError.current && isError && error) {
+      const err = error as FetchBaseQueryError & { data?: { message?: string } };
+      toast.error(err?.data?.message || "Something went wrong");
+    }
+
+    if (!prevSuccess.current && isSuccess && data) {
+      toast.success(data?.message || "Password reset successful");
+      localStorage.removeItem("resetToken");
+      navigate("/auth/login");
+    }
+
+    prevError.current = isError;
+    prevSuccess.current = isSuccess;
+  }, [isError, isSuccess, data, error, navigate]);
 
   const fields = [
     {
@@ -41,10 +71,10 @@ const ResetPassword = () => {
     <form onSubmit={formik.handleSubmit}>
       <ResetPasswordTemplate
         heading="Reset Password"
-        subHeading="Set the new password for your account so you can login and access all features."
+        subHeading="Set the new password for your account."
         fields={fields}
-        showResend={false}
-        buttonText="Reset Password"
+        buttonText={isLoading ? "Resetting..." : "Reset Password"}
+        disabled={isLoading}
       />
     </form>
   );

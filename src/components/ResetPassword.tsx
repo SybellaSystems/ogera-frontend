@@ -1,6 +1,7 @@
+import React from "react";
 import { styled } from "@mui/material/styles";
 import logo from "../assets/Logo.png";
-import Button from "../components/Button";
+import Button from "../components/button";
 
 type InputField = {
   label?: string;
@@ -8,11 +9,14 @@ type InputField = {
   placeholder?: string;
   name?: string;
   value?: string;
-  onChange?: React.ChangeEventHandler<HTMLInputElement>;
+  onChange?: React.ChangeEventHandler<HTMLInputElement> | ((e: React.ChangeEvent<HTMLInputElement>, index: number) => void);
   onBlur?: React.FocusEventHandler<HTMLInputElement>;
+  onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>, index: number) => void;
+  onPaste?: (e: React.ClipboardEvent<HTMLInputElement>) => void;
   error?: string | boolean;
   names?: string[];
   values?: string[];
+  refs?: React.RefObject<HTMLInputElement | null>[];
 };
 
 interface RestPasswordTemplateProps {
@@ -21,15 +25,17 @@ interface RestPasswordTemplateProps {
   fields: InputField[];
   buttonText?: string;
   showResend?: boolean;
+  disabled?: boolean;
 }
 
-const RestPasswordTemplate = ({
+const RestPasswordTemplate: React.FC<RestPasswordTemplateProps> = ({
   heading,
   subHeading,
   fields,
   buttonText = "Submit",
   showResend = false,
-}: RestPasswordTemplateProps) => {
+  disabled = false,
+}) => {
   return (
     <PassMainContainer>
       <BoxContainer>
@@ -38,7 +44,7 @@ const RestPasswordTemplate = ({
         <SubHeading>{subHeading}</SubHeading>
 
         {fields.map((field, index) => (
-          <DynamicBox key={index}>
+          <DynamicBox key={field.name || field.type || index}>
             {field.type !== "otp" && field.label && <Label>{field.label}</Label>}
 
             {field.type === "otp" ? (
@@ -46,18 +52,21 @@ const RestPasswordTemplate = ({
                 <OtpContainer>
                   {field.names?.map((name, i) => (
                     <OtpInput
-                      key={i}
+                      key={name}
+                      ref={field.refs?.[i]}
                       name={name}
                       value={field.values?.[i] || ""}
-                      onChange={field.onChange}
+                      onChange={(e) => field.onChange?.(e, i)}
+                      onKeyDown={(e) => field.onKeyDown?.(e, i)}
+                      onPaste={i === 0 ? field.onPaste : undefined}
                       onBlur={field.onBlur}
                       maxLength={1}
                       inputMode="numeric"
-                      pattern="[0-9]*"
+                      autoComplete="off"
                     />
                   ))}
                 </OtpContainer>
-                {field.error && <ErrorText>{field.error}</ErrorText>}
+                {!!field.error && <ErrorText>{String(field.error)}</ErrorText>}
               </>
             ) : (
               <>
@@ -66,22 +75,25 @@ const RestPasswordTemplate = ({
                   type={field.type || "text"}
                   placeholder={field.placeholder || ""}
                   value={field.value}
-                  onChange={field.onChange}
+                  onChange={field.onChange as React.ChangeEventHandler<HTMLInputElement>}
                   onBlur={field.onBlur}
                 />
-                {field.error && <ErrorText>{field.error}</ErrorText>}
+                {!!field.error && <ErrorText>{String(field.error)}</ErrorText>}
               </>
             )}
           </DynamicBox>
         ))}
 
-        <Button backgroundcolor="#7f56d9" type="submit" text={buttonText} />
+        <Button
+          backgroundcolor="#7f56d9"
+          type="submit"
+          text={buttonText}
+          disabled={disabled}
+        />
 
         {showResend && (
           <ResendClick>
-            <div>
-              If you don't receive a code! <span>Resend</span>
-            </div>
+            If you don't receive a code! <span>Resend</span>
           </ResendClick>
         )}
       </BoxContainer>
@@ -91,146 +103,103 @@ const RestPasswordTemplate = ({
 
 export default RestPasswordTemplate;
 
-// ---------- Styles ----------
-
+/* styles */
 const PassMainContainer = styled("div")(({ theme }) => ({
-  width: "100vw",
+  width: "100%",
+  maxWidth: "100vw",
+  minHeight: "100vh",
   height: "100vh",
   display: "flex",
   justifyContent: "center",
   alignItems: "center",
-  background: `linear-gradient(to right, 
-    ${theme.palette.primary.main}, 
-    ${theme.palette.secondary.main}, 
-    ${theme.palette.info.main})`,
+  background: `linear-gradient(to right, ${theme.palette.primary.main}, ${theme.palette.secondary.main}, ${theme.palette.info.main})`,
+  overflow: "hidden",
+  padding: "20px",
+  boxSizing: "border-box",
 }));
 
 const BoxContainer = styled("div")(({ theme }) => ({
-  width: "35%",
+  width: "100%",
+  maxWidth: "450px",
   backgroundColor: theme.palette.background.paper,
   borderRadius: "20px",
   display: "flex",
   flexDirection: "column",
   padding: "20px",
   gap: "15px",
-
-  [theme.breakpoints.down("md")]: {
-    width: "60%",
-    padding: "16px",
-  },
+  boxSizing: "border-box",
   [theme.breakpoints.down("sm")]: {
-    width: "90%",
-    padding: "12px",
+    width: "100%",
+    maxWidth: "100%",
   },
 }));
 
 const Logo = styled("div")`
-  background: url(${logo}) no-repeat center center;
+  background: url(${logo}) no-repeat center;
   background-size: contain;
   height: 40px;
   width: 120px;
-  margin-bottom: 20px;
   align-self: center;
 `;
 
 const Heading = styled("h1")(({ theme }) => ({
   fontSize: "16px",
   fontWeight: 700,
-  textAlign: "left",
-  paddingLeft: "10px",
-  margin: "5px 0",
   color: theme.palette.text.primary,
-
-  [theme.breakpoints.down("sm")]: {
-    fontSize: "14px",
-    textAlign: "center",
-    paddingLeft: "0",
-  },
 }));
 
 const SubHeading = styled("h2")(({ theme }) => ({
   fontSize: "14px",
   fontWeight: 400,
-  textAlign: "left",
-  paddingLeft: "10px",
-  margin: "0 0 10px 0",
   color: theme.palette.text.secondary,
-
-  [theme.breakpoints.down("sm")]: {
-    fontSize: "13px",
-    textAlign: "center",
-    paddingLeft: "0",
-  },
 }));
 
 const DynamicBox = styled("div")({
   display: "flex",
   flexDirection: "column",
   gap: "10px",
-  paddingLeft: "10px",
 });
 
 const Label = styled("label")(({ theme }) => ({
   fontSize: "13px",
-  fontWeight: 500,
   color: theme.palette.text.primary,
 }));
 
 const Input = styled("input")(({ theme }) => ({
-  padding: "12px 15px",
+  padding: "12px",
   borderRadius: "8px",
   border: `1px solid ${theme.palette.divider}`,
   fontSize: "14px",
-  outline: "none",
-  transition: "border-color 0.2s ease",
-  "&:focus": {
-    borderColor: theme.palette.primary.main,
-  },
-
-  [theme.breakpoints.down("sm")]: {
-    fontSize: "13px",
-    padding: "10px 12px",
-  },
 }));
 
-const OtpContainer = styled("div")(({ theme }) => ({
+const OtpContainer = styled("div")({
   display: "flex",
   gap: "12px",
   justifyContent: "center",
-
-  [theme.breakpoints.down("sm")]: {
-    gap: "8px",
-  },
-}));
+});
 
 const OtpInput = styled("input")(({ theme }) => ({
   width: "50px",
   height: "50px",
   fontSize: "18px",
   textAlign: "center",
-  border: `2px solid ${theme.palette.divider}`,
   borderRadius: "8px",
+  border: `2px solid ${theme.palette.divider}`,
   outline: "none",
+  transition: "border-color 0.2s",
   "&:focus": {
     borderColor: theme.palette.primary.main,
-  },
-
-  [theme.breakpoints.down("sm")]: {
-    width: "40px",
-    height: "40px",
-    fontSize: "16px",
+    borderWidth: "2px",
   },
 }));
 
 const ResendClick = styled("div")(({ theme }) => ({
   textAlign: "center",
   fontSize: "14px",
-  marginTop: "10px",
   color: theme.palette.text.secondary,
-
+  marginTop: "10px",
   "& span": {
     color: theme.palette.primary.main,
-    fontWeight: 600,
     cursor: "pointer",
   },
 }));
