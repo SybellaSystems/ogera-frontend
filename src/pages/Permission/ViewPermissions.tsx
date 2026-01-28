@@ -4,7 +4,7 @@ import CustomTable, {
   type Column,
   type TableAction,
 } from "../../components/Table/CustomTable";
-import { Chip, Box, Typography } from "@mui/material";
+import { Chip, Typography } from "@mui/material";
 import {
   Edit as EditIcon,
   Delete as DeleteIcon,

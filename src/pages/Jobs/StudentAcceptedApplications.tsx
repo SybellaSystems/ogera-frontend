@@ -2,7 +2,6 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useGetStudentApplicationsQuery } from "../../services/api/jobApplicationApi";
 import {
-  BriefcaseIcon,
   CheckCircleIcon,
   ClockIcon,
 } from "@heroicons/react/24/outline";

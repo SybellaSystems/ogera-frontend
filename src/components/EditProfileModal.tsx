@@ -23,12 +23,12 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
   userRole,
 }) => {
   const [isUpdating, setIsUpdating] = useState(false);
-  const [emailChanged, setEmailChanged] = useState(false);
+  const [_emailChanged, setEmailChanged] = useState(false);
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [resumeUrl, setResumeUrl] = useState<string | null>(profileData?.resume_url || null);
   const [isUploadingResume, setIsUploadingResume] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [resendVerificationEmail] = useResendVerificationEmailMutation();
+  const [_resendVerificationEmail] = useResendVerificationEmailMutation();
 
   // Initialize form with profile data
   const formik = useFormik({

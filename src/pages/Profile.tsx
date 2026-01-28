@@ -106,7 +106,7 @@ const Profile: React.FC = () => {
   const [addAccomplishment] = useAddAccomplishmentMutation();
   const [deleteAccomplishment] = useDeleteAccomplishmentMutation();
   const [resendVerificationEmail] = useResendVerificationEmailMutation();
-  const [sendPhoneVerificationOTP] = useSendPhoneVerificationOTPMutation();
+  const [_sendPhoneVerificationOTP] = useSendPhoneVerificationOTPMutation();
   const navigate = useNavigate();
 
   // Fetch TrustScore

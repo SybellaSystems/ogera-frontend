@@ -27,6 +27,11 @@ export interface Job {
   created_at: string;
   updated_at: string;
   questions?: JobQuestion[];
+  employer?: {
+    user_id: string;
+    full_name: string;
+    email: string;
+  };
 }
 
 export interface CreateJobRequest {

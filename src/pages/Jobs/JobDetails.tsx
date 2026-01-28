@@ -6,7 +6,6 @@ import {
   MapPinIcon,
   CurrencyDollarIcon,
   ClockIcon,
-  UserIcon,
   BuildingOfficeIcon,
   BookmarkIcon,
 } from "@heroicons/react/24/outline";
@@ -24,7 +23,7 @@ const JobDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const role = useSelector((state: any) => state.auth.role);
   const { data, isLoading, error } = useGetJobByIdQuery(id || "");
-  const { data: profileData } = useGetUserProfileQuery();
+  const { data: profileData } = useGetUserProfileQuery(undefined);
   const { data: applicationCheck, refetch: refetchApplicationCheck } = useCheckStudentApplicationQuery(id || "", {
     skip: !id || role !== "student",
   });

@@ -61,7 +61,7 @@ const CreateJob: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const role = useSelector((state: any) => state.auth.role);
-  const { data: profileData } = useGetUserProfileQuery();
+  useGetUserProfileQuery(undefined);
   const { data: categoriesResponse } = useGetAllCategoriesQuery();
   const isEditMode = !!id;
 

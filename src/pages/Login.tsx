@@ -55,7 +55,7 @@ const Login = () => {
             withCredentials: true,
           });
 
-          const userData = userRes.data.user;
+          const userData = (userRes.data as any).user;
           console.log('🔍 [LOGIN] User data fetched:', {
             role: userData.role,
             permissions: userData.permissions,
@@ -223,12 +223,12 @@ const LoginLeftContainer = styled("div")(({ theme }) => ({
   },
 }));
 
-const LeftContent = styled("div")(({ theme }) => ({
+const LeftContent = styled("div")({
   width: "70%",
   display: "flex",
   flexDirection: "column",
   gap: "30px",
-}));
+});
 
 const Logo = styled("div")`
   background: url(${logo}) no-repeat center center;

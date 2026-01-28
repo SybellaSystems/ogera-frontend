@@ -6,7 +6,6 @@ import {
 } from "../../services/api/jobApplicationApi";
 import {
   BriefcaseIcon,
-  UserIcon,
   CheckCircleIcon,
   XCircleIcon,
   ClockIcon,
@@ -103,7 +102,7 @@ const JobApplications: React.FC = () => {
       });
 
       // Create a blob URL and open it
-      const blob = new Blob([response.data], { type: response.data.type || 'application/pdf' });
+      const blob = new Blob([response.data as BlobPart], { type: (response.data as any)?.type || 'application/pdf' });
       const blobUrl = window.URL.createObjectURL(blob);
       
       // Open in new tab
@@ -254,7 +253,7 @@ const JobApplications: React.FC = () => {
                     {application.resume_url && (
                       <div className="mt-3">
                         <button
-                          onClick={() => handleViewResume(application.resume_url)}
+                          onClick={() => handleViewResume(application.resume_url!)}
                           className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg font-medium transition text-sm"
                         >
                           <BriefcaseIcon className="h-4 w-4" />

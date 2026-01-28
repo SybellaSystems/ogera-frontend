@@ -116,7 +116,7 @@ const ApplyJobModal: React.FC<ApplyJobModalProps> = ({
       // Prepare answers array - only include questions with question_id (from saved jobs)
       const answersArray: JobApplicationAnswer[] = [];
       if (job.questions && job.questions.length > 0) {
-        job.questions.forEach((q, index) => {
+        job.questions.forEach((q) => {
           // Only submit answers for questions that have question_id (from database)
           if (q.question_id) {
             const key = q.question_id;

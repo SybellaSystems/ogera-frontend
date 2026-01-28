@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { CheckCircleIcon } from "@heroicons/react/24/outline";
+import { CheckCircleIcon, EyeIcon, CalendarIcon, UserIcon, ClockIcon } from "@heroicons/react/24/outline";
 import type { AcademicVerification } from "../../services/api/academicVerificationApi";
 import { getAcademicVerificationsByStatus } from "../../services/api/academicVerificationApi";
 
@@ -33,92 +33,129 @@ const Approved: React.FC = () => {
   }, []);
 
   return (
-    <div className="space-y-6 animate-fadeIn">
-      <div>
-        <h1 className="text-4xl font-extrabold text-gray-900 flex items-center gap-3">
-          <CheckCircleIcon className="h-10 w-10 text-green-600" />
-          Approved Verifications
-        </h1>
-        <p className="text-gray-500 mt-2">
-          Successfully verified academic credentials
-        </p>
-      </div>
-
-      <div className="bg-green-50 border-l-4 border-green-500 p-4 rounded-lg">
-        <p className="text-green-800 font-medium">
-          ✓ {approved.length} verification{approved.length !== 1 ? "s" : ""}{" "}
-          approved
-        </p>
-      </div>
-
-      {error && (
-        <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
-          {error}
+    <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-4">
+      <div className="max-w-7xl mx-auto space-y-4">
+        {/* Header */}
+        <div className="text-center space-y-2">
+          <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full shadow-lg">
+            <CheckCircleIcon className="h-6 w-6 text-white" />
+          </div>
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+            Approved Verifications
+          </h1>
+          <p className="text-gray-600 text-sm">Successfully verified academic credentials</p>
         </div>
-      )}
 
-      {loading ? (
-        <p className="text-sm text-gray-500">Loading approved verifications…</p>
-      ) : approved.length === 0 ? (
-        <p className="text-sm text-gray-500">No approved verifications yet.</p>
-      ) : (
-        <div className="bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b">
-              <tr>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">
-                  Student
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">
-                  Email
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">
-                  Approved Date
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">
-                  Reviewed By
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {approved.map((item) => (
-                <tr key={item.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4">
+        {/* Stats Card */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-4 max-w-xs mx-auto">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-green-600 font-bold text-xs uppercase">Approved</p>
+              <p className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                {approved.length}
+              </p>
+            </div>
+            <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+              <CheckCircleIcon className="h-5 w-5 text-green-600" />
+            </div>
+          </div>
+        </div>
+
+        {error && (
+          <div className="bg-red-50 border-l-4 border-red-400 p-3 rounded-r">
+            <div className="flex items-center gap-2">
+              <svg className="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p className="text-red-600 text-sm">{error}</p>
+            </div>
+          </div>
+        )}
+
+        {loading ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="flex items-center gap-2">
+              <div className="w-5 h-5 border-2 border-green-200 border-t-green-600 rounded-full animate-spin"></div>
+              <p className="text-gray-600 text-sm">Loading approved verifications...</p>
+            </div>
+          </div>
+        ) : approved.length === 0 ? (
+          <div className="text-center py-8">
+            <CheckCircleIcon className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+            <p className="text-gray-500">No approved verifications yet</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {approved.map((item) => (
+              <div key={item.id} className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-4 hover:shadow-xl transition-all">
+                <div className="flex flex-col lg:flex-row gap-4">
+                  <div className="flex-1 space-y-3">
+                    {/* User Info */}
                     <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 font-semibold">
-                        {item.user?.full_name?.charAt(0)?.toUpperCase() ||
-                          item.user_id.charAt(0).toUpperCase()}
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-r from-green-100 to-emerald-100 flex items-center justify-center">
+                        <span className="text-green-600 font-bold text-sm">
+                          {item.user?.full_name?.charAt(0)?.toUpperCase() || item.user_id.charAt(0).toUpperCase()}
+                        </span>
                       </div>
-                      <span className="font-medium text-gray-900">
-                        {item.user?.full_name || `User ${item.user_id.slice(0, 8)}`}
-                      </span>
+                      <div className="flex-1">
+                        <h3 className="font-bold text-gray-800">
+                          {item.user?.full_name || `User ${item.user_id.slice(0, 8)}`}
+                        </h3>
+                        <div className="flex items-center gap-4 text-xs text-gray-500">
+                          <div className="flex items-center gap-1">
+                            <UserIcon className="w-3 h-3" />
+                            <span>{item.user?.email || "N/A"}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <CalendarIcon className="w-3 h-3" />
+                            <span>
+                              {item.reviewed_at ? new Date(item.reviewed_at).toLocaleDateString() : "N/A"}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+                          <CheckCircleIcon className="w-3 h-3" />
+                          Approved
+                        </span>
+                      </div>
                     </div>
-                  </td>
-                  <td className="px-6 py-4 text-gray-600">
-                    {item.user?.email || "N/A"}
-                  </td>
-                  <td className="px-6 py-4 text-gray-600">
-                    {item.reviewed_at
-                      ? new Date(item.reviewed_at).toLocaleDateString()
-                      : "N/A"}
-                  </td>
-                  <td className="px-6 py-4 text-gray-600">
-                    {item.reviewer?.full_name || "N/A"}
-                  </td>
-                  <td className="px-6 py-4">
-                    <button className="text-blue-600 hover:text-blue-800 font-medium text-sm">
-                      View Details
+
+                    {/* Details */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                      <div className="bg-gray-50 rounded-lg p-2">
+                        <div className="flex items-center gap-1 text-gray-600 mb-1">
+                          <ClockIcon className="w-3 h-3" />
+                          <span className="font-medium">Reviewed By</span>
+                        </div>
+                        <p className="text-gray-800">{item.reviewer?.full_name || "N/A"}</p>
+                      </div>
+                      <div className="bg-gray-50 rounded-lg p-2">
+                        <div className="flex items-center gap-1 text-gray-600 mb-1">
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                          <span className="font-medium">Storage Type</span>
+                        </div>
+                        <p className="text-gray-800 uppercase">{item.storage_type}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex lg:flex-col gap-2 lg:min-w-[120px]">
+                    <button className="flex-1 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-all text-sm flex items-center justify-center gap-1">
+                      <EyeIcon className="w-4 h-4" />
+                      <span>View</span>
                     </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

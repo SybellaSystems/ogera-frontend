@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { useFormik } from "formik";
 import {
   useCreatePermissionMutation,
@@ -8,7 +8,6 @@ import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import {
   ShieldCheckIcon,
-  PlusIcon,
 } from "@heroicons/react/24/outline";
 import { styled } from "@mui/material/styles";
 import Button from "../../components/button";

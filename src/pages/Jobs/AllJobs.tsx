@@ -21,7 +21,7 @@ const AllJobs: React.FC = () => {
   const navigate = useNavigate();
   const role = useSelector((state: any) => state.auth.role);
   const { data, isLoading, error, refetch } = useGetAllJobsQuery();
-  const { data: profileData } = useGetUserProfileQuery();
+  const { data: profileData } = useGetUserProfileQuery(undefined);
   const { data: studentApplications, refetch: refetchApplications } = useGetStudentApplicationsQuery(undefined, {
     skip: role !== "student",
   });
@@ -119,7 +119,7 @@ const AllJobs: React.FC = () => {
     }
   };
 
-  const handleToggleStatus = async (jobId: string, currentStatus: string) => {
+  const handleToggleStatus = async (jobId: string, _currentStatus: string) => {
     try {
       await toggleStatus(jobId).unwrap();
       refetch();

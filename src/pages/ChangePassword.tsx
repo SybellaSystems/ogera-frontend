@@ -10,7 +10,7 @@ const ChangePassword: React.FC = () => {
   const formik = useFormik({
     initialValues: { newPassword: "", confirmPassword: "" },
     validationSchema: changePasswordValidation,
-    onSubmit: async (values) => {
+    onSubmit: async (_values) => {
       try {
         setIsSubmitting(true);
         // TODO: Integrate change password API when available

@@ -17,7 +17,6 @@ import {
   CircularProgress,
   TextField,
   Grid,
-  Divider,
   useMediaQuery,
   useTheme,
   IconButton,
@@ -560,7 +559,7 @@ const AllUsers: React.FC = () => {
               {/* Details Section */}
               <Grid container spacing={isSmallMobile ? 1.5 : isMobile ? 2 : 2}>
                 {/* Email */}
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <Box
                     sx={{
                       p: isSmallMobile ? 1.25 : isMobile ? 1.5 : 1.75,
@@ -599,7 +598,7 @@ const AllUsers: React.FC = () => {
                 </Grid>
 
                 {/* Mobile Number */}
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <Box
                     sx={{
                       p: isSmallMobile ? 1.25 : isMobile ? 1.5 : 1.75,
@@ -638,7 +637,7 @@ const AllUsers: React.FC = () => {
 
                 {/* National ID Number - Only for Students */}
                 {userDetails.data.role?.roleType === "student" && (
-                  <Grid item xs={12} sm={6}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                     <Box
                       sx={{
                         p: isSmallMobile ? 1.25 : isMobile ? 1.5 : 1.75,
@@ -679,7 +678,7 @@ const AllUsers: React.FC = () => {
 
                 {/* Business Registration ID - Only for Employers */}
                 {userDetails.data.role?.roleType === "employer" && (
-                  <Grid item xs={12} sm={6}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                     <Box
                       sx={{
                         p: isSmallMobile ? 1.25 : isMobile ? 1.5 : 1.75,
@@ -719,7 +718,7 @@ const AllUsers: React.FC = () => {
                 )}
 
                 {/* Preferred Location */}
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <Box
                     sx={{
                       p: isSmallMobile ? 1.25 : isMobile ? 1.5 : 1.75,
@@ -756,7 +755,7 @@ const AllUsers: React.FC = () => {
                   </Box>
                 </Grid>
                 {/* Verification Status */}
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <Box
                     sx={{
                       p: isSmallMobile ? 1.25 : isMobile ? 1.5 : 1.75,
@@ -808,7 +807,7 @@ const AllUsers: React.FC = () => {
                   </Box>
                 </Grid>
 
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <Box
                     sx={{
                       p: isSmallMobile ? 1.25 : isMobile ? 1.5 : 1.75,
@@ -861,7 +860,7 @@ const AllUsers: React.FC = () => {
                 </Grid>
 
                 {/* Account Dates */}
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <Box
                     sx={{
                       p: isSmallMobile ? 1.25 : isMobile ? 1.5 : 1.75,
@@ -920,7 +919,7 @@ const AllUsers: React.FC = () => {
                   </Box>
                 </Grid>
 
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <Box
                     sx={{
                       p: isSmallMobile ? 1.25 : isMobile ? 1.5 : 1.75,
@@ -1119,7 +1118,7 @@ const AllUsers: React.FC = () => {
               </Box>
 
               <Grid container spacing={isSmallMobile ? 2 : isMobile ? 2.5 : 3}>
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
                     fullWidth
                     label="Full Name"
@@ -1146,7 +1145,7 @@ const AllUsers: React.FC = () => {
                     }}
                   />
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
                     fullWidth
                     label="Email"
@@ -1174,7 +1173,7 @@ const AllUsers: React.FC = () => {
                     }}
                   />
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
                     fullWidth
                     label="Mobile Number"
@@ -1203,7 +1202,7 @@ const AllUsers: React.FC = () => {
                 </Grid>
                 {/* Show National ID only for Students */}
                 {userDetails.data.role?.roleType === "student" && (
-                  <Grid item xs={12} sm={6}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                     <TextField
                       fullWidth
                       label="National ID Number"
@@ -1233,7 +1232,7 @@ const AllUsers: React.FC = () => {
                 )}
                 {/* Show Business Registration ID only for Employers */}
                 {userDetails.data.role?.roleType === "employer" && (
-                  <Grid item xs={12} sm={6}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                     <TextField
                       fullWidth
                       label="Business Registration ID"
@@ -1261,7 +1260,7 @@ const AllUsers: React.FC = () => {
                     />
                   </Grid>
                 )}
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
                     fullWidth
                     label="Preferred Location"

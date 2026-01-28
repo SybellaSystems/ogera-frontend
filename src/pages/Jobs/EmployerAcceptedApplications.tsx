@@ -46,7 +46,7 @@ const EmployerAcceptedApplications: React.FC = () => {
         responseType: 'blob',
       });
 
-      const blob = new Blob([response.data], { type: response.data.type || 'application/pdf' });
+      const blob = new Blob([response.data as BlobPart], { type: (response.data as any)?.type || 'application/pdf' });
       const blobUrl = window.URL.createObjectURL(blob);
       
       window.open(blobUrl, '_blank');
@@ -170,7 +170,7 @@ const EmployerAcceptedApplications: React.FC = () => {
                     {application.resume_url && (
                       <div className="mt-3">
                         <button
-                          onClick={() => handleViewResume(application.resume_url)}
+                          onClick={() => handleViewResume(application.resume_url!)}
                           className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg font-medium transition text-sm"
                         >
                           <BriefcaseIcon className="h-4 w-4" />

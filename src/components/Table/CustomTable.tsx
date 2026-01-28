@@ -256,7 +256,11 @@ function CustomTable<T extends Record<string, any>>({
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value);
-              setPage(0);
+              if (serverSidePagination && externalOnPageChange) {
+                externalOnPageChange(0);
+              } else {
+                setInternalPage(0);
+              }
             }}
             InputProps={{
               startAdornment: (
