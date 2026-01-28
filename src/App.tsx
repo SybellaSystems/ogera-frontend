@@ -78,6 +78,7 @@ import useRefreshOnLoad from "./hooks/useRefreshOnLoad";
 import AddCourse from "./pages/Courses/AddCourse";
 import ViewCourse from "./pages/Courses/ViewCourse";
 import CourseDetail from "./pages/Courses/CourseDetail";
+import CourseAnalytics from "./pages/Courses/CourseAnalytics";
 
 function App() {
   const isLoading = useRefreshOnLoad();
@@ -370,6 +371,26 @@ function App() {
             {
               path: "courses/view",
               Component: ViewCourse,
+            },
+            {
+              path: "courses/analytics",
+              element: <ProtectedRoute allowedRoles={["employer", "superadmin", "superAdmin", "admin", "courseAdmin", "CourseAdmin"]} />,
+              children: [
+                {
+                  index: true,
+                  Component: CourseAnalytics,
+                },
+              ],
+            },
+            {
+              path: "courses/analytics/:courseId",
+              element: <ProtectedRoute allowedRoles={["employer", "superadmin", "superAdmin", "admin", "courseAdmin", "CourseAdmin"]} />,
+              children: [
+                {
+                  index: true,
+                  Component: CourseAnalytics,
+                },
+              ],
             },
             {
               path: "courses/:id",
