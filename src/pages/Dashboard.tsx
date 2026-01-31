@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import {
   UserGroupIcon,
@@ -20,6 +20,13 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
+interface DashboardMetrics {
+  totalUsers: number;
+  totalStudents: number;
+  activeJobs: number;
+  totalEarnings: number;
+}
+
 const getGreeting = (): string => {
   const hour = new Date().getHours();
   if (hour < 12) return "Good morning";
@@ -31,6 +38,38 @@ const Dashboard: React.FC = () => {
   const user = useSelector((state: any) => state.auth.user);
   const role = useSelector((state: any) => state.auth.role);
   const greeting = getGreeting();
+
+  // State for dashboard metrics
+  const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
+  const [metricsLoading, setMetricsLoading] = useState(false);
+
+  // Fetch dashboard metrics for superadmin
+  useEffect(() => {
+    if (role === "superAdmin") {
+      setMetricsLoading(true);
+      console.log("[Dashboard] Fetching metrics for superAdmin...");
+      fetch("/api/dashboard/metrics")
+        .then((res) => {
+          console.log("[Dashboard] Response status:", res.status);
+          return res.json();
+        })
+        .then((data) => {
+          console.log("[Dashboard] Response data:", data);
+          if (data.success && data.data) {
+            console.log("[Dashboard] Setting metrics:", data.data);
+            setMetrics(data.data);
+          } else {
+            console.warn("[Dashboard] Invalid response format:", data);
+          }
+        })
+        .catch((error) => {
+          console.error("[Dashboard] Failed to fetch dashboard metrics:", error);
+        })
+        .finally(() => {
+          setMetricsLoading(false);
+        });
+    }
+  }, [role]);
 
   const getStats = () => {
     if (role === "student") {
@@ -125,7 +164,7 @@ const Dashboard: React.FC = () => {
     return [
       {
         title: "Total Users",
-        value: "12,450",
+        value: metricsLoading ? "..." : (metrics?.totalUsers?.toLocaleString() || "0"),
         change: "+12.5%",
         trending: "up" as const,
         icon: <UserGroupIcon className="h-4 w-4" />,
@@ -135,7 +174,7 @@ const Dashboard: React.FC = () => {
       },
       {
         title: "Total Students",
-        value: "8,120",
+        value: metricsLoading ? "..." : (metrics?.totalStudents?.toLocaleString() || "0"),
         change: "+8.2%",
         trending: "up" as const,
         icon: <AcademicCapIcon className="h-4 w-4" />,
@@ -145,7 +184,7 @@ const Dashboard: React.FC = () => {
       },
       {
         title: "Active Jobs",
-        value: "1,480",
+        value: metricsLoading ? "..." : (metrics?.activeJobs?.toLocaleString() || "0"),
         change: "-3.1%",
         trending: "down" as const,
         icon: <BriefcaseIcon className="h-4 w-4" />,
@@ -155,7 +194,7 @@ const Dashboard: React.FC = () => {
       },
       {
         title: "Total Earnings",
-        value: "$240,000",
+        value: metricsLoading ? "..." : (`$${(metrics?.totalEarnings || 0).toLocaleString('en-US', { maximumFractionDigits: 0 })}`),
         change: "+18.7%",
         trending: "up" as const,
         icon: <ChartBarIcon className="h-4 w-4" />,
