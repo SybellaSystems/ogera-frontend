@@ -2,6 +2,7 @@ import React, { useState, useMemo } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate, useLocation } from "react-router-dom";
 import { hasAnyPermission } from "../../utils/permissionUtils";
+import type { Role } from "../../utils/permissionUtils";
 import { SIDEBAR_MENU_CONFIG } from "../../config/sidebarMenuConfig";
 import {
   HomeIcon,
@@ -43,7 +44,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const isActive = (path: string) => location.pathname === path;
   const isActiveGroup = (prefix: string) => location.pathname.startsWith(prefix);
 
-  const roleRaw = useSelector((state: any) => state.auth.role);
+  const roleRaw = useSelector((state: any) => state.auth.role) as Role | string | undefined;
   const permissions = useSelector((state: any) => state.auth.permissions);
   const role = roleRaw ? String(roleRaw).toLowerCase().trim() : "";
 

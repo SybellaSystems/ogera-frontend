@@ -45,6 +45,10 @@ const Dashboard: React.FC = () => {
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
   const [metricsLoading, setMetricsLoading] = useState(false);
   const [metricsError, setMetricsError] = useState<string | null>(null);
+  // Student-specific metrics fetched from backend
+  const [studentMetrics, setStudentMetrics] = useState<any | null>(null);
+  const [studentLoading, setStudentLoading] = useState(false);
+  const [studentError, setStudentError] = useState<string | null>(null);
 
   // Fetch dashboard metrics for superadmin
   useEffect(() => {
@@ -83,48 +87,88 @@ const Dashboard: React.FC = () => {
     }
   }, [role]);
 
+  // Fetch student-specific dashboard metrics
+  useEffect(() => {
+    if (role === 'student') {
+      setStudentLoading(true);
+      setStudentError(null);
+      fetch('/api/dashboard/student', {
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data && data.success && data.data) {
+            setStudentMetrics(data.data);
+          } else {
+            setStudentMetrics(null);
+            setStudentError('Invalid response from server');
+          }
+        })
+        .catch((err) => {
+          console.error('[Dashboard] Failed to fetch student metrics:', err);
+          setStudentMetrics(null);
+          setStudentError(String(err));
+        })
+        .finally(() => setStudentLoading(false));
+    }
+  }, [role, accessToken]);
+
   const getStats = () => {
     if (role === "student") {
+      // Use backend-provided student metrics when available
+      const appsValue = studentMetrics?.applications?.value ?? null;
+      const appsChange = studentMetrics?.applications?.change ?? null;
+      const earningsValue = studentMetrics?.earnings?.value ?? null;
+      const earningsCurrency = studentMetrics?.earnings?.currency ?? null;
+      const jobsCompletedValue = studentMetrics?.jobsCompleted?.value ?? null;
+      const interviewsValue = studentMetrics?.interviews?.value ?? null;
+
+      const formatNumber = (v: any) => {
+        if (v === null || v === undefined) return 'N/A';
+        if (typeof v === 'number') return v.toLocaleString();
+        return String(v);
+      };
+
       return [
         {
-          title: "Applications Sent",
-          value: "24",
-          change: "+4",
-          trending: "up" as const,
+          title: 'Applications Sent',
+          value: studentLoading ? '...' : (appsValue !== null ? formatNumber(appsValue) : (studentError ? 'Error' : (studentMetrics?.applications?.note || 'N/A'))),
+          change: appsChange !== null && appsChange !== undefined ? (appsChange >= 0 ? `+${appsChange}` : String(appsChange)) : undefined,
+          trending: appsChange !== null && appsChange !== undefined ? (appsChange >= 0 ? 'up' as const : 'down' as const) : 'up' as const,
           icon: <BriefcaseIcon className="h-4 w-4" />,
-          color: "text-indigo-600",
-          bg: "bg-indigo-50",
-          changeBg: "bg-green-50 text-green-700",
+          color: 'text-indigo-600',
+          bg: 'bg-indigo-50',
+          changeBg: 'bg-green-50 text-green-700',
         },
         {
-          title: "Jobs Completed",
-          value: "13",
-          change: "+3",
-          trending: "up" as const,
+          title: 'Jobs Completed',
+          value: studentLoading ? '...' : (jobsCompletedValue !== null && jobsCompletedValue !== undefined ? String(jobsCompletedValue) : (studentMetrics?.jobsCompleted?.note || 'N/A')),
+          change: undefined,
+          trending: 'up' as const,
           icon: <AcademicCapIcon className="h-4 w-4" />,
-          color: "text-emerald-600",
-          bg: "bg-emerald-50",
-          changeBg: "bg-green-50 text-green-700",
+          color: 'text-emerald-600',
+          bg: 'bg-emerald-50',
+          changeBg: 'bg-green-50 text-green-700',
         },
         {
-          title: "Interviews",
-          value: "3",
-          change: "+1",
-          trending: "up" as const,
+          title: 'Interviews',
+          value: studentLoading ? '...' : (interviewsValue !== null && interviewsValue !== undefined ? String(interviewsValue) : (studentMetrics?.interviews?.note || 'N/A')),
+          change: undefined,
+          trending: 'up' as const,
           icon: <UserGroupIcon className="h-4 w-4" />,
-          color: "text-orange-600",
-          bg: "bg-orange-50",
-          changeBg: "bg-green-50 text-green-700",
+          color: 'text-orange-600',
+          bg: 'bg-orange-50',
+          changeBg: 'bg-green-50 text-green-700',
         },
         {
-          title: "Earnings",
-          value: "$1,200",
-          change: "+15.3%",
-          trending: "up" as const,
+          title: 'Earnings',
+          value: studentLoading ? '...' : (earningsValue !== null ? `${earningsCurrency ?? '$'}${formatNumber(earningsValue)}` : (studentError ? 'Error' : 'N/A')),
+          change: undefined,
+          trending: 'up' as const,
           icon: <ChartBarIcon className="h-4 w-4" />,
-          color: "text-[#7F56D9]",
-          bg: "bg-purple-50",
-          changeBg: "bg-green-50 text-green-700",
+          color: 'text-[#7F56D9]',
+          bg: 'bg-purple-50',
+          changeBg: 'bg-green-50 text-green-700',
         },
       ];
     }

@@ -1,5 +1,14 @@
 import type { RoutePermission } from "../features/auth/authSlice";
 
+// Define role union including variants used across the codebase
+export type Role =
+  | 'superadmin'
+  | 'admin'
+  | 'student'
+  | 'employer'
+  | 'verifyDocAdmin'
+  | 'verifydocadmin';
+
 /**
  * Map permission routes to actual app routes
  * Permission routes in DB: "/academic-verifications", "/jobs", "/users"
@@ -60,7 +69,7 @@ export const hasPermission = (
   permissions: RoutePermission[] | null,
   route: string,
   action: "view" | "create" | "edit" | "delete",
-  role?: string
+  role?: Role | string
 ): boolean => {
   // Normalize role for case-insensitive comparisons
   const normalizedRole = role ? String(role).toLowerCase().trim() : "";
@@ -117,7 +126,7 @@ export const hasPermission = (
 export const hasAnyPermission = (
   permissions: RoutePermission[] | null,
   route: string,
-  role?: string
+  role?: Role | string
 ): boolean => {
   console.log('🔍 [PERMISSION CHECK] hasAnyPermission called with:');
   console.log('  - Route:', route);
