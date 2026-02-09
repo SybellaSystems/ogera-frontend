@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
-// https://vite.dev/config/
+
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
@@ -14,4 +14,18 @@ export default defineConfig({
       },
     },
   },
+    host: '0.0.0.0',
+    port: 5173,
+    strictPort: true,
+
+    hmr: {
+      host: 'app.ogera.sybellasystems.co.rw',
+      protocol: 'ws'
+    },
+
+    allowedHosts: [
+      'app.ogera.sybellasystems.co.rw'
+    ]
+  }
 })
+
