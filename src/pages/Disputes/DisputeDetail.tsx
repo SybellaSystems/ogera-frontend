@@ -22,12 +22,14 @@ import {
 import { useSelector } from "react-redux";
 import toast from "react-hot-toast";
 import Loader from "../../components/Loader";
+import { hasPermission } from "../../utils/permissionUtils";
 
 const DisputeDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const role = useSelector((state: any) => state.auth.role);
   const user_id = useSelector((state: any) => state.auth.user_id);
+  const permissions = useSelector((state: any) => state.auth.permissions);
 
   const [dispute, setDispute] = useState<Dispute | null>(null);
   const [evidence, setEvidence] = useState<DisputeEvidence[]>([]);
@@ -37,6 +39,7 @@ const DisputeDetail: React.FC = () => {
   const [messageText, setMessageText] = useState("");
   const [sendingMessage, setSendingMessage] = useState(false);
   const [uploadingFile, setUploadingFile] = useState(false);
+  const [resolvingDispute, setResolvingDispute] = useState(false);
   const [showResolveModal, setShowResolveModal] = useState(false);
   const [resolutionData, setResolutionData] = useState({
     resolution: "Refunded" as "Refunded" | "Settled" | "Dismissed" | "Escalated",
@@ -44,7 +47,11 @@ const DisputeDetail: React.FC = () => {
     refund_amount: "",
   });
 
-  const isModerator = role === "admin" || role === "superadmin" || role === "moderator";
+  // Check if user is moderator (superadmin, admin, or has dispute edit permission)
+  const isSuperadmin = role?.toLowerCase() === "superadmin";
+  const isAdmin = role?.toLowerCase() === "admin";
+  const hasDisputeEditPermission = hasPermission(permissions, "/disputes", "edit", role);
+  const isModerator = isSuperadmin || isAdmin || hasDisputeEditPermission;
   const canResolve = isModerator && dispute?.status !== "Resolved";
 
   useEffect(() => {
@@ -111,6 +118,7 @@ const DisputeDetail: React.FC = () => {
     }
 
     try {
+      setResolvingDispute(true);
       await resolveDispute(
         id,
         resolutionData.resolution,
@@ -119,9 +127,16 @@ const DisputeDetail: React.FC = () => {
       );
       toast.success("Dispute resolved successfully");
       setShowResolveModal(false);
+      setResolutionData({
+        resolution: "Refunded",
+        resolution_notes: "",
+        refund_amount: "",
+      });
       await fetchDisputeDetails();
     } catch (error: any) {
       toast.error(error?.response?.data?.message || "Failed to resolve dispute");
+    } finally {
+      setResolvingDispute(false);
     }
   };
 
@@ -202,7 +217,14 @@ const DisputeDetail: React.FC = () => {
         </div>
         <div className="bg-white rounded-xl p-4 shadow-md border border-gray-100">
           <p className="text-xs text-gray-500 font-medium">Reported By</p>
-          <p className="text-lg font-bold mt-1 capitalize">{dispute.reported_by}</p>
+          <p className="text-lg font-bold mt-1">
+            {dispute.reported_by === 'student' 
+              ? dispute.student?.full_name || 'Student'
+              : dispute.employer?.full_name || 'Employer'}
+            <span className="text-sm font-normal text-gray-500 ml-2 capitalize">
+              ({dispute.reported_by})
+            </span>
+          </p>
         </div>
       </div>
 
@@ -329,18 +351,29 @@ const DisputeDetail: React.FC = () => {
               <div>
                 <p className="text-xs text-gray-500 font-medium">Student</p>
                 <p className="font-semibold text-gray-900">{dispute.student?.full_name || "N/A"}</p>
-                <p className="text-sm text-gray-600">{dispute.student?.email}</p>
+                <p className="text-sm text-gray-600">
+                  {dispute.reported_by === 'student' ? (dispute.student?.email || "-") : "-"}
+                </p>
               </div>
               <div>
                 <p className="text-xs text-gray-500 font-medium">Employer</p>
                 <p className="font-semibold text-gray-900">{dispute.employer?.full_name || "N/A"}</p>
-                <p className="text-sm text-gray-600">{dispute.employer?.email}</p>
+                <p className="text-sm text-gray-600">
+                  {dispute.reported_by === 'employer' ? (dispute.employer?.email || "-") : "-"}
+                </p>
               </div>
               {dispute.moderator && (
                 <div>
                   <p className="text-xs text-gray-500 font-medium">Moderator</p>
-                  <p className="font-semibold text-gray-900">{dispute.moderator.full_name}</p>
-                  <p className="text-sm text-gray-600">{dispute.moderator.email}</p>
+                  <p className="font-semibold text-gray-900">
+                    {dispute.moderator.full_name}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    {dispute.moderator.email}
+                    <span className="text-xs font-normal text-gray-500 ml-2">
+                      ({dispute.moderator.role?.roleType === 'superAdmin' ? 'superadmin' : 'Admin'})
+                    </span>
+                  </p>
                 </div>
               )}
             </div>
@@ -356,18 +389,47 @@ const DisputeDetail: React.FC = () => {
               {timeline.length === 0 ? (
                 <p className="text-gray-500 text-sm">No timeline events</p>
               ) : (
-                timeline.map((event) => (
-                  <div key={event.timeline_id} className="border-l-2 border-purple-500 pl-4">
-                    <p className="font-semibold text-gray-900 capitalize">{event.action.replace(/_/g, " ")}</p>
-                    <p className="text-xs text-gray-500">
-                      {event.performer?.full_name || event.performed_by_type} •{" "}
-                      {new Date(event.created_at).toLocaleString()}
-                    </p>
-                    {event.details && (
-                      <p className="text-sm text-gray-600 mt-1">{event.details}</p>
-                    )}
-                  </div>
-                ))
+                timeline.map((event) => {
+                  // Determine display name and role
+                  let displayName = event.performer?.full_name || event.performed_by_type;
+                  let displayRole = event.performed_by_type;
+                  
+                  // If performer is admin, show "Admin" instead of roleName
+                  if (event.performer?.role?.roleType === 'admin' || event.performer?.role?.roleType === 'superAdmin') {
+                    displayRole = event.performer.role.roleType === 'superAdmin' ? 'superadmin' : 'Admin';
+                    // Update details to show "Admin" instead of roleName
+                    let details = event.details || '';
+                    if (details.includes('admin')) {
+                      // Replace roleName with "Admin" or "superadmin"
+                      const roleName = event.performer.role.roleName;
+                      details = details.replace(new RegExp(roleName, 'gi'), displayRole);
+                    }
+                    
+                    return (
+                      <div key={event.timeline_id} className="border-l-2 border-purple-500 pl-4">
+                        <p className="font-semibold text-gray-900 capitalize">{event.action.replace(/_/g, " ")}</p>
+                        <p className="text-xs text-gray-500">
+                          {displayName} ({displayRole}) • {new Date(event.created_at).toLocaleString()}
+                        </p>
+                        {details && (
+                          <p className="text-sm text-gray-600 mt-1">{details}</p>
+                        )}
+                      </div>
+                    );
+                  }
+                  
+                  return (
+                    <div key={event.timeline_id} className="border-l-2 border-purple-500 pl-4">
+                      <p className="font-semibold text-gray-900 capitalize">{event.action.replace(/_/g, " ")}</p>
+                      <p className="text-xs text-gray-500">
+                        {displayName} • {new Date(event.created_at).toLocaleString()}
+                      </p>
+                      {event.details && (
+                        <p className="text-sm text-gray-600 mt-1">{event.details}</p>
+                      )}
+                    </div>
+                  );
+                })
               )}
             </div>
           </div>
@@ -481,9 +543,20 @@ const DisputeDetail: React.FC = () => {
                 </button>
                 <button
                   onClick={handleResolve}
-                  className="px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition"
+                  disabled={resolvingDispute}
+                  className="px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
-                  Confirm Resolution
+                  {resolvingDispute ? (
+                    <>
+                      <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Resolving...
+                    </>
+                  ) : (
+                    "Confirm Resolution"
+                  )}
                 </button>
               </div>
             </div>

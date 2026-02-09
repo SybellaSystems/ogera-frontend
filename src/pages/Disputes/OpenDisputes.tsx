@@ -12,16 +12,23 @@ import {
 } from "@mui/icons-material";
 import { getAllDisputes, type Dispute } from "../../services/api/disputesApi";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 import Loader from "../../components/Loader";
 
 const OpenDisputes: React.FC = () => {
+  const role = useSelector((state: any) => state.auth.role);
   const [disputes, setDisputes] = useState<Dispute[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Only allow admins/superadmin to view this page
+    if (role === "student" || role === "employer") {
+      navigate("/dashboard/disputes/my-disputes");
+      return;
+    }
     fetchDisputes();
-  }, []);
+  }, [role]);
 
   const fetchDisputes = async () => {
     try {
@@ -66,13 +73,19 @@ const OpenDisputes: React.FC = () => {
       id: "student",
       label: "Student",
       minWidth: 150,
-      format: (value: any) => value?.full_name || "N/A",
+      format: (value: any, row: any) => {
+        // If dispute was created by student, show name, otherwise show "-"
+        return row.reported_by === 'student' ? (value?.full_name || "N/A") : "-";
+      },
     },
     {
       id: "employer",
       label: "Employer",
       minWidth: 150,
-      format: (value: any) => value?.full_name || "N/A",
+      format: (value: any, row: any) => {
+        // If dispute was created by employer, show name, otherwise show "-"
+        return row.reported_by === 'employer' ? (value?.full_name || "N/A") : "-";
+      },
     },
     {
       id: "priority",

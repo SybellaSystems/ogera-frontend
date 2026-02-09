@@ -26,7 +26,7 @@ export type Dispute = {
   updated_at: string;
   student?: { user_id: string; full_name: string; email: string };
   employer?: { user_id: string; full_name: string; email: string };
-  moderator?: { user_id: string; full_name: string; email: string };
+  moderator?: { user_id: string; full_name: string; email: string; role?: { roleName: string; roleType: string } };
   job?: { job_id: string; job_title: string; budget?: number };
 };
 
@@ -62,7 +62,7 @@ export type DisputeTimeline = {
   performed_by_type: 'student' | 'employer' | 'moderator' | 'system';
   details?: string;
   created_at: string;
-  performer?: { user_id: string; full_name: string };
+  performer?: { user_id: string; full_name: string; email?: string; role?: { roleName: string; roleType: string } };
 };
 
 export type CreateDisputeRequest = {
@@ -213,8 +213,9 @@ export const getDisputeStats = async (): Promise<DisputeStats> => {
 };
 
 // Get user disputes
-export const getUserDisputes = async (): Promise<{ data: Dispute[]; pagination?: any }> => {
+export const getUserDisputes = async (): Promise<Dispute[]> => {
   const response = await api.get<DisputeResponse>('/disputes/my-disputes');
-  return response.data.data as { data: Dispute[]; pagination?: any };
+  // Backend returns array directly in data.data
+  return (response.data.data as Dispute[]) || [];
 };
 

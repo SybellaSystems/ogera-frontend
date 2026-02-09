@@ -26,8 +26,8 @@ const MyDisputes: React.FC = () => {
   const fetchDisputes = async () => {
     try {
       setLoading(true);
-      const result = await getUserDisputes();
-      setDisputes(result.data || []);
+      const disputes = await getUserDisputes();
+      setDisputes(disputes || []);
     } catch (error: any) {
       console.error("Failed to fetch my disputes:", error);
       toast.error(error?.response?.data?.message || "Failed to load disputes");

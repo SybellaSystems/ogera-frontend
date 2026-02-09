@@ -1045,9 +1045,15 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             )}
 
           {/* Disputes - Student, Admin (not verifyDocAdmin, not employer) */}
-          {((role === "student" || role === "employer" || isBuiltInAdmin) &&
+          {/* {((role === "student" || role === "employer" || isBuiltInAdmin) &&
             role !== "verifyDocAdmin" &&
-            (isBuiltInAdmin || hasAnyPermission(permissions, "/disputes", role))) && (
+            (isBuiltInAdmin || hasAnyPermission(permissions, "/disputes", role))) && ( */}
+              {(
+            isBuiltInAdmin || 
+            role === "superadmin" || 
+           (role !== "verifyDocAdmin" && hasAnyPermission(permissions, "/disputes", role)) ||
+           ((role === "student" || role === "employer") && hasAnyPermission(permissions, "/disputes", role))
+            ) && (
               <div>
                 <div
                   className={`flex items-center justify-between px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 group ${isActiveGroup("/dashboard/disputes") ? "bg-[#9F7AEA]/15 border-l-2 border-[#9F7AEA]" : "hover:bg-[#9F7AEA]/10"}`}
@@ -1083,68 +1089,78 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
                 {openMenu === "disputes" && (
                   <ul className="pl-11 space-y-1 text-sm mt-2 animate-fadeIn">
-                    <li
-                      className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
-                      onClick={() =>
-                        handleNavigation("/dashboard/disputes/open")
-                      }
-                    >
-                      <ExclamationTriangleIcon className="h-4 w-4 text-white/40 group-hover/item:text-yellow-400 transition-colors" />
-                      <span className="text-white/60 group-hover/item:text-white transition-colors">
-                        Open Disputes
-                      </span>
-                    </li>
-                    <li
-                      className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
-                      onClick={() =>
-                        handleNavigation("/dashboard/disputes/in-progress")
-                      }
-                    >
-                      <ArrowPathIcon className="h-4 w-4 text-white/40 group-hover/item:text-blue-400 transition-colors" />
-                      <span className="text-white/60 group-hover/item:text-white transition-colors">
-                        In Progress
-                      </span>
-                    </li>
-                    <li
-                      className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
-                      onClick={() =>
-                        handleNavigation("/dashboard/disputes/resolved")
-                      }
-                    >
-                      <CheckCircleIcon className="h-4 w-4 text-white/40 group-hover/item:text-green-400 transition-colors" />
-                      <span className="text-white/60 group-hover/item:text-white transition-colors">
-                        Resolved
-                      </span>
-                    </li>
-                    <li
-                    className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
-                    onClick={() => handleNavigation("/dashboard/disputes")}
-                    >
-                      <ListBulletIcon className="h-4 w-4 text-white/40 group-hover/item:text-purple-400 transition-colors" />
-                      <span className="text-white/60 group-hover/item:text-white transition-colors">
-                     All Disputes
-                     </span>
-                    </li>
+                    {/* Only show admin/superadmin options for admins */}
+                    {(role !== "student" && role !== "employer") && (
+                      <>
+                        <li
+                          className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
+                          onClick={() =>
+                            handleNavigation("/dashboard/disputes/open")
+                          }
+                        >
+                          <ExclamationTriangleIcon className="h-4 w-4 text-white/40 group-hover/item:text-yellow-400 transition-colors" />
+                          <span className="text-white/60 group-hover/item:text-white transition-colors">
+                            Open Disputes
+                          </span>
+                        </li>
+                        <li
+                          className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
+                          onClick={() =>
+                            handleNavigation("/dashboard/disputes/in-progress")
+                          }
+                        >
+                          <ArrowPathIcon className="h-4 w-4 text-white/40 group-hover/item:text-blue-400 transition-colors" />
+                          <span className="text-white/60 group-hover/item:text-white transition-colors">
+                            In Progress
+                          </span>
+                        </li>
+                        <li
+                          className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
+                          onClick={() =>
+                            handleNavigation("/dashboard/disputes/resolved")
+                          }
+                        >
+                          <CheckCircleIcon className="h-4 w-4 text-white/40 group-hover/item:text-green-400 transition-colors" />
+                          <span className="text-white/60 group-hover/item:text-white transition-colors">
+                            Resolved
+                          </span>
+                        </li>
+                        <li
+                        className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
+                        onClick={() => handleNavigation("/dashboard/disputes")}
+                        >
+                          <ListBulletIcon className="h-4 w-4 text-white/40 group-hover/item:text-purple-400 transition-colors" />
+                          <span className="text-white/60 group-hover/item:text-white transition-colors">
+                         All Disputes
+                         </span>
+                        </li>
+                      </>
+                    )}
 
-                   <li
-                    className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
-                   onClick={() => handleNavigation("/dashboard/disputes/create")}
-                   >
-                     <PlusIcon className="h-4 w-4 text-white/40 group-hover/item:text-purple-400 transition-colors" />
-                      <span className="text-white/60 group-hover/item:text-white transition-colors">
-                     Create Dispute
-                     </span>
-                   </li>
+                   {/* Only show Create Dispute and My Disputes for students and employers */}
+                   {(role === "student" || role === "employer") && (
+                     <>
+                       <li
+                        className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
+                       onClick={() => handleNavigation("/dashboard/disputes/create")}
+                       >
+                         <PlusIcon className="h-4 w-4 text-white/40 group-hover/item:text-purple-400 transition-colors" />
+                          <span className="text-white/60 group-hover/item:text-white transition-colors">
+                         Create Dispute
+                         </span>
+                       </li>
 
-                  <li
-                   className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
-                  onClick={() => handleNavigation("/dashboard/disputes/my-disputes")}
-                  >
-                    <UsersIcon className="h-4 w-4 text-white/40 group-hover/item:text-purple-400 transition-colors" />
-                      <span className="text-white/60 group-hover/item:text-white transition-colors">
-                   My Disputes
-                   </span>
-                  </li>
+                      <li
+                       className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
+                      onClick={() => handleNavigation("/dashboard/disputes/my-disputes")}
+                      >
+                        <UsersIcon className="h-4 w-4 text-white/40 group-hover/item:text-purple-400 transition-colors" />
+                          <span className="text-white/60 group-hover/item:text-white transition-colors">
+                       My Disputes
+                       </span>
+                      </li>
+                     </>
+                   )}
 
                   </ul>
                 )}

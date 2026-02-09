@@ -71,13 +71,19 @@ const InProgress: React.FC = () => {
       id: "student",
       label: "Student",
       minWidth: 150,
-      format: (value: any) => value?.full_name || "N/A",
+      format: (value: any, row: any) => {
+        // If dispute was created by student, show name, otherwise show "-"
+        return row.reported_by === 'student' ? (value?.full_name || "N/A") : "-";
+      },
     },
     {
       id: "employer",
       label: "Employer",
       minWidth: 150,
-      format: (value: any) => value?.full_name || "N/A",
+      format: (value: any, row: any) => {
+        // If dispute was created by employer, show name, otherwise show "-"
+        return row.reported_by === 'employer' ? (value?.full_name || "N/A") : "-";
+      },
     },
     {
       id: "moderator",

@@ -98,11 +98,11 @@ const CreateDispute: React.FC = () => {
     setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // Auto-set priority based on type
+  // Auto-set priority based on type (but allow user to change it)
   useEffect(() => {
-    if (formik.values.type === "Payment") {
+    if (formik.values.type === "Payment" && !formik.values.priority) {
       formik.setFieldValue("priority", "High");
-    } else {
+    } else if (!formik.values.priority) {
       formik.setFieldValue("priority", "Medium");
     }
   }, [formik.values.type]);
@@ -180,6 +180,32 @@ const CreateDispute: React.FC = () => {
             <p className="mt-1 text-xs text-gray-500">
               {formik.values.type === "Payment" && "Payment disputes are automatically set to High priority"}
             </p>
+          </div>
+
+          {/* Priority */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Priority <span className="text-red-500">*</span>
+            </label>
+            <select
+              name="priority"
+              value={formik.values.priority || ""}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                formik.touched.priority && formik.errors.priority
+                  ? "border-red-500"
+                  : "border-gray-300"
+              }`}
+            >
+              <option value="">-- Select priority --</option>
+              <option value="High">High</option>
+              <option value="Medium">Medium</option>
+              <option value="Low">Low</option>
+            </select>
+            {formik.touched.priority && formik.errors.priority && (
+              <p className="mt-1 text-sm text-red-600">{formik.errors.priority}</p>
+            )}
           </div>
 
           {/* Title */}
