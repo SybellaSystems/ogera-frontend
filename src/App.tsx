@@ -57,6 +57,9 @@ import Disputes from "./pages/Disputes";
 import OpenDisputes from "./pages/Disputes/OpenDisputes";
 import InProgress from "./pages/Disputes/InProgress";
 import ResolvedDisputes from "./pages/Disputes/Resolved";
+import CreateDispute from "./pages/Disputes/CreateDispute";
+import DisputeDetail from "./pages/Disputes/DisputeDetail";
+import MyDisputes from "./pages/Disputes/MyDisputes";
 
 // Other Pages
 import Analytics from "./pages/Analytics";
@@ -345,6 +348,10 @@ function App() {
               Component: Disputes,
             },
             {
+              path: "disputes/create",
+              Component: CreateDispute,
+            },
+            {
               path: "disputes/open",
               Component: OpenDisputes,
             },
@@ -355,6 +362,14 @@ function App() {
             {
               path: "disputes/resolved",
               Component: ResolvedDisputes,
+            },
+            {
+              path: "disputes/my-disputes",
+              Component: MyDisputes,
+            },
+            {
+              path: "disputes/:id",
+              Component: DisputeDetail,
             },
             // Other Routes
             {
