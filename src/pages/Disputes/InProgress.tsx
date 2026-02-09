@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { ClockIcon } from "@heroicons/react/24/outline";
 import CustomTable, {
   type Column,
@@ -9,36 +9,38 @@ import {
   Visibility as ViewIcon,
   MessageOutlined as MessageIcon,
 } from "@mui/icons-material";
-import { getAllDisputes, type Dispute } from "../../services/api/disputesApi";
-import { useNavigate } from "react-router-dom";
-import Loader from "../../components/Loader";
+
+interface Dispute {
+  id: number;
+  type: string;
+  student: string;
+  employer: string;
+  description: string;
+  assignedTo: string;
+  startedDate: string;
+}
 
 const InProgress: React.FC = () => {
-  const [disputes, setDisputes] = useState<Dispute[]>([]);
-  const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    fetchDisputes();
-  }, []);
-
-  const fetchDisputes = async () => {
-    try {
-      setLoading(true);
-      // Fetch disputes with status "Under Review" or "Mediation" (in progress)
-      const result = await getAllDisputes({ 
-        status: ["Under Review", "Mediation"], 
-        page: 1, 
-        limit: 100 
-      });
-      setDisputes(result.data || []);
-    } catch (error) {
-      console.error("Failed to fetch in-progress disputes:", error);
-      setDisputes([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const disputes: Dispute[] = [
+    {
+      id: 1,
+      type: "Service Quality",
+      student: "Sarah Wilson",
+      employer: "Marketing Pro",
+      description: "Dispute over service quality standards",
+      assignedTo: "Admin John",
+      startedDate: "2024-03-08",
+    },
+    {
+      id: 2,
+      type: "Timeline",
+      student: "David Lee",
+      employer: "DevShop",
+      description: "Project deadline extension dispute",
+      assignedTo: "Admin Sarah",
+      startedDate: "2024-03-09",
+    },
+  ];
 
   const columns: Column<Dispute>[] = [
     {
@@ -58,11 +60,11 @@ const InProgress: React.FC = () => {
       ),
     },
     {
-      id: "title",
+      id: "description",
       label: "Description",
       minWidth: 250,
       format: (value) => (
-        <Typography sx={{ fontSize: "0.875rem", color: "#374151", fontWeight: 600 }}>
+        <Typography sx={{ fontSize: "0.875rem", color: "#374151" }}>
           {value}
         </Typography>
       ),
@@ -71,27 +73,19 @@ const InProgress: React.FC = () => {
       id: "student",
       label: "Student",
       minWidth: 150,
-      format: (value: any, row: any) => {
-        // If dispute was created by student, show name, otherwise show "-"
-        return row.reported_by === 'student' ? (value?.full_name || "N/A") : "-";
-      },
     },
     {
       id: "employer",
       label: "Employer",
       minWidth: 150,
-      format: (value: any, row: any) => {
-        // If dispute was created by employer, show name, otherwise show "-"
-        return row.reported_by === 'employer' ? (value?.full_name || "N/A") : "-";
-      },
     },
     {
-      id: "moderator",
+      id: "assignedTo",
       label: "Assigned To",
       minWidth: 130,
-      format: (value: any) => (
+      format: (value) => (
         <Chip
-          label={value?.full_name || "Unassigned"}
+          label={value}
           size="small"
           sx={{
             bgcolor: "#dbeafe",
@@ -102,10 +96,9 @@ const InProgress: React.FC = () => {
       ),
     },
     {
-      id: "created_at",
+      id: "startedDate",
       label: "Started",
       minWidth: 120,
-      format: (value) => new Date(value).toLocaleDateString(),
     },
   ];
 
@@ -114,7 +107,7 @@ const InProgress: React.FC = () => {
       label: "View Details",
       icon: <ViewIcon fontSize="small" />,
       onClick: (row) => {
-        navigate(`/dashboard/disputes/${row.dispute_id}`);
+        console.log("View dispute:", row);
       },
       color: "primary",
     },
@@ -122,15 +115,11 @@ const InProgress: React.FC = () => {
       label: "Message",
       icon: <MessageIcon fontSize="small" />,
       onClick: (row) => {
-        navigate(`/dashboard/disputes/${row.dispute_id}`);
+        console.log("Message:", row);
       },
       color: "primary",
     },
   ];
-
-  if (loading) {
-    return <Loader />;
-  }
 
   return (
     <div className="space-y-6 animate-fadeIn">
