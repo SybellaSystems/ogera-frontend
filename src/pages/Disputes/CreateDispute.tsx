@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { ExclamationTriangleIcon, XMarkIcon, PaperClipIcon } from "@heroicons/react/24/outline";
 import { createDispute, type CreateDisputeRequest } from "../../services/api/disputesApi";
 import { useGetAllJobsQuery } from "../../services/api/jobsApi";
-import { useGetStudentApplicationsQuery } from "../../services/api/jobApplicationApi";
+import { useGetStudentApplicationsQuery, useGetJobApplicationsQuery } from "../../services/api/jobApplicationApi";
 import { useGetUserProfileQuery } from "../../services/api/authApi";
 import toast from "react-hot-toast";
 import Loader from "../../components/Loader";
@@ -98,6 +98,11 @@ const CreateDispute: React.FC = () => {
     setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
+  // For employers: fetch job applications when a job is selected
+  const { data: jobApplicationsData } = useGetJobApplicationsQuery(formik.values.job_id, {
+    skip: role !== "employer" || !formik.values.job_id,
+  });
+
   // Auto-set priority based on type (but allow user to change it)
   useEffect(() => {
     if (formik.values.type === "Payment" && !formik.values.priority) {
@@ -106,6 +111,7 @@ const CreateDispute: React.FC = () => {
       formik.setFieldValue("priority", "Medium");
     }
   }, [formik.values.type]);
+
 
   if (isLoadingJobs) {
     return <Loader />;
@@ -133,7 +139,13 @@ const CreateDispute: React.FC = () => {
             <select
               name="job_id"
               value={formik.values.job_id}
-              onChange={formik.handleChange}
+              onChange={(e) => {
+                formik.handleChange(e);
+                // Reset job_application_id when job changes (for employers)
+                if (role === "employer") {
+                  formik.setFieldValue("job_application_id", "");
+                }
+              }}
               onBlur={formik.handleBlur}
               className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
                 formik.touched.job_id && formik.errors.job_id
@@ -152,6 +164,34 @@ const CreateDispute: React.FC = () => {
               <p className="mt-1 text-sm text-red-600">{formik.errors.job_id}</p>
             )}
           </div>
+
+          {/* Job Application Selection (for employers only, optional) */}
+          {role === "employer" && formik.values.job_id && (
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Select Student Application (Optional)
+              </label>
+              <select
+                name="job_application_id"
+                value={formik.values.job_application_id || ""}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              >
+                <option value="">-- Auto-select first accepted/hired student --</option>
+                {(jobApplicationsData?.data || [])
+                  .filter((app: any) => app.status === "Accepted" || app.status === "Hired")
+                  .map((app: any) => (
+                    <option key={app.application_id} value={app.application_id}>
+                      {app.student?.full_name || "Student"} - {app.status} (Applied: {new Date(app.applied_at).toLocaleDateString()})
+                    </option>
+                  ))}
+              </select>
+              <p className="mt-1 text-xs text-gray-500">
+                If not specified, the system will automatically select the first accepted or hired student for this job.
+              </p>
+            </div>
+          )}
 
           {/* Dispute Type */}
           <div>
