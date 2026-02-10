@@ -7,6 +7,7 @@ import {
   getPendingAcademicVerifications,
   reviewAcademicVerification,
 } from "../../services/api/academicVerificationApi";
+import api from "../../services/api/axiosInstance";
 
 interface RootState {
   auth: {
@@ -33,6 +34,10 @@ const PendingReviews: React.FC = () => {
   const [rejectionNotes, setRejectionNotes] = useState<Record<string, string>>(
     {}
   );
+  const [showViewer, setShowViewer] = useState(false);
+  const [viewerUrl, setViewerUrl] = useState<string | null>(null);
+  const [viewerBlob, setViewerBlob] = useState<Blob | null>(null);
+  const [viewerContentType, setViewerContentType] = useState<string | null>(null);
 
   // ---------- helpers ----------
   const loadMyVerification = async () => {
@@ -145,6 +150,83 @@ const PendingReviews: React.FC = () => {
     }
   };
 
+  const handleViewDocument = async (item: AcademicVerification) => {
+    try {
+      setAdminError(null);
+
+      if (item.storage_type === 's3') {
+        const res = await api.get(`/academic-verifications/${item.id}/document`);
+        const url = res?.data?.url;
+        if (url) {
+          setViewerUrl(url);
+          setViewerBlob(null);
+          setViewerContentType(null);
+          setShowViewer(true);
+        } else {
+          setAdminError('Could not obtain document URL');
+        }
+        return;
+      }
+
+      // Local storage: fetch blob and open inside modal
+      const blobRes = await api.get(`/academic-verifications/${item.id}/document`, {
+        responseType: 'blob',
+      });
+
+      const blob = blobRes.data as Blob;
+      const objectUrl = window.URL.createObjectURL(blob);
+      setViewerUrl(objectUrl);
+      setViewerBlob(blob);
+      setViewerContentType(blob.type || null);
+      setShowViewer(true);
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || err?.message || 'Failed to open document';
+      setAdminError(msg);
+    }
+  };
+
+  const closeViewer = () => {
+    if (viewerUrl && viewerUrl.startsWith('blob:')) {
+      window.URL.revokeObjectURL(viewerUrl);
+    }
+    setShowViewer(false);
+    setViewerUrl(null);
+    setViewerBlob(null);
+    setViewerContentType(null);
+  };
+
+  const downloadViewer = async () => {
+    try {
+      if (viewerBlob) {
+        const url = window.URL.createObjectURL(viewerBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'document';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+        return;
+      }
+
+      if (viewerUrl) {
+        // fetch the resource and download as blob
+        const r = await fetch(viewerUrl, { credentials: 'include' });
+        const b = await r.blob();
+        const url = window.URL.createObjectURL(b);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'document';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+      }
+    } catch (e: any) {
+      setAdminError(e?.message || 'Download failed');
+    }
+  };
+
   // ===================== STUDENT VIEW =====================
   if (role === "student") {
     return (
@@ -195,7 +277,7 @@ const PendingReviews: React.FC = () => {
             <h2 className="text-base font-bold text-gray-800 mb-2">
               {myVerification?.status === "rejected" ? "Re-upload" : "Upload"}
             </h2>
-            
+
             <div className="bg-purple-50 border border-purple-200 rounded-lg p-2 mb-2">
               <p className="text-purple-600 text-xs">PDF, JPG, PNG, DOC, DOCX • Max 10MB</p>
             </div>
@@ -330,6 +412,12 @@ const PendingReviews: React.FC = () => {
                   {/* Actions */}
                   <div className="flex lg:flex-col gap-2 lg:min-w-[130px] flex-shrink-0">
                     <button
+                      className={`flex-1 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-all text-xs disabled:opacity-50`}
+                      onClick={() => handleViewDocument(item)}
+                    >
+                      View
+                    </button>
+                    <button
                       className={`flex-1 px-3 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition-all text-xs disabled:opacity-50 ${
                         reviewLoadingId === item.id ? 'animate-pulse' : ''
                       }`}
@@ -352,6 +440,33 @@ const PendingReviews: React.FC = () => {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+        {showViewer && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="fixed inset-0 bg-black/60" onClick={closeViewer} />
+            <div className="relative bg-white rounded-lg shadow-lg max-w-4xl w-full max-h-[90vh] overflow-hidden z-60">
+              <div className="flex items-center justify-between p-2 border-b">
+                <h3 className="text-sm font-semibold">Document Viewer</h3>
+                <div className="flex items-center gap-2">
+                  <button className="px-3 py-1 text-sm bg-gray-100 rounded" onClick={downloadViewer}>Download</button>
+                  <button className="px-3 py-1 text-sm bg-red-100 rounded" onClick={closeViewer}>Close</button>
+                </div>
+              </div>
+              <div className="p-2">
+                {viewerUrl ? (
+                  viewerContentType?.startsWith('image/') ? (
+                    <img src={viewerUrl} alt="document" className="mx-auto max-h-[75vh] w-auto" />
+                  ) : viewerContentType === 'application/pdf' || viewerUrl.toLowerCase().endsWith('.pdf') ? (
+                    <iframe src={viewerUrl} className="w-full h-[75vh] border-0" title="Document" />
+                  ) : (
+                    <iframe src={viewerUrl} className="w-full h-[75vh] border-0" title="Document" />
+                  )
+                ) : (
+                  <div className="text-center p-8">No document to display</div>
+                )}
+              </div>
+            </div>
           </div>
         )}
       </div>
