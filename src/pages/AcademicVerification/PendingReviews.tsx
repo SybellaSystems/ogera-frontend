@@ -443,24 +443,24 @@ const PendingReviews: React.FC = () => {
           </div>
         )}
         {showViewer && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="fixed inset-0 bg-black/60" onClick={closeViewer} />
-            <div className="relative bg-white rounded-lg shadow-lg max-w-4xl w-full max-h-[90vh] overflow-hidden z-60">
-              <div className="flex items-center justify-between p-2 border-b">
-                <h3 className="text-sm font-semibold">Document Viewer</h3>
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 backdrop-blur-sm">
+            <div className="fixed inset-0 bg-black/40" onClick={closeViewer} />
+            <div className="relative bg-white rounded-lg shadow-lg max-w-4xl w-full max-h-[85vh] sm:max-h-[90vh] z-60 flex flex-col overflow-hidden">
+              <div className="flex items-center justify-between p-3 sm:p-4 border-b flex-shrink-0">
+                <h3 className="text-lg font-bold">Document Viewer</h3>
                 <div className="flex items-center gap-2">
-                  <button className="px-3 py-1 text-sm bg-gray-100 rounded" onClick={downloadViewer}>Download</button>
-                  <button className="px-3 py-1 text-sm bg-red-100 rounded" onClick={closeViewer}>Close</button>
+                  <button className="px-3 py-1 text-sm bg-green-500 rounded" onClick={downloadViewer}>Download</button>
+                  <button className="px-3 py-1 text-sm bg-red-400 rounded" onClick={closeViewer}>Close</button>
                 </div>
               </div>
-              <div className="p-2">
+              <div className="flex-1 overflow-y-auto p-2 sm:p-4">
                 {viewerUrl ? (
                   viewerContentType?.startsWith('image/') ? (
-                    <img src={viewerUrl} alt="document" className="mx-auto max-h-[75vh] w-auto" />
+                    <img src={viewerUrl} alt="document" className="mx-auto max-h-full w-auto object-contain" />
                   ) : viewerContentType === 'application/pdf' || viewerUrl.toLowerCase().endsWith('.pdf') ? (
-                    <iframe src={viewerUrl} className="w-full h-[75vh] border-0" title="Document" />
+                    <iframe src={viewerUrl} className="w-full h-full border-0 min-h-[500px] sm:min-h-[600px]" title="Document" />
                   ) : (
-                    <iframe src={viewerUrl} className="w-full h-[75vh] border-0" title="Document" />
+                    <iframe src={viewerUrl} className="w-full h-full border-0 min-h-[500px] sm:min-h-[600px]" title="Document" />
                   )
                 ) : (
                   <div className="text-center p-8">No document to display</div>

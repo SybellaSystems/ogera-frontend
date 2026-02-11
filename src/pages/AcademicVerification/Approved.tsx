@@ -2,11 +2,16 @@ import React, { useEffect, useState } from "react";
 import { CheckCircleIcon, EyeIcon, CalendarIcon, UserIcon, ClockIcon } from "@heroicons/react/24/outline";
 import type { AcademicVerification } from "../../services/api/academicVerificationApi";
 import { getAcademicVerificationsByStatus } from "../../services/api/academicVerificationApi";
+import api from "../../services/api/axiosInstance";
 
 const Approved: React.FC = () => {
   const [approved, setApproved] = useState<AcademicVerification[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showViewer, setShowViewer] = useState(false);
+  const [viewerUrl, setViewerUrl] = useState<string | null>(null);
+  const [viewerBlob, setViewerBlob] = useState<Blob | null>(null);
+  const [viewerContentType, setViewerContentType] = useState<string | null>(null);
 
   useEffect(() => {
     const loadApproved = async () => {
@@ -31,6 +36,83 @@ const Approved: React.FC = () => {
 
     void loadApproved();
   }, []);
+
+  const handleViewDocument = async (item: AcademicVerification) => {
+    try {
+      setError(null);
+
+      if (item.storage_type === 's3') {
+        const res = await api.get(`/academic-verifications/${item.id}/document`);
+        const url = res?.data?.url;
+        if (url) {
+          setViewerUrl(url);
+          setViewerBlob(null);
+          setViewerContentType(null);
+          setShowViewer(true);
+        } else {
+          setError('Could not obtain document URL');
+        }
+        return;
+      }
+
+      // Local storage: fetch blob and open inside modal
+      const blobRes = await api.get(`/academic-verifications/${item.id}/document`, {
+        responseType: 'blob',
+      });
+
+      const blob = blobRes.data as Blob;
+      const objectUrl = window.URL.createObjectURL(blob);
+      setViewerUrl(objectUrl);
+      setViewerBlob(blob);
+      setViewerContentType(blob.type || null);
+      setShowViewer(true);
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || err?.message || 'Failed to open document';
+      setError(msg);
+    }
+  };
+
+  const closeViewer = () => {
+    if (viewerUrl && viewerUrl.startsWith('blob:')) {
+      window.URL.revokeObjectURL(viewerUrl);
+    }
+    setShowViewer(false);
+    setViewerUrl(null);
+    setViewerBlob(null);
+    setViewerContentType(null);
+  };
+
+  const downloadViewer = async () => {
+    try {
+      if (viewerBlob) {
+        const url = window.URL.createObjectURL(viewerBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'document';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+        return;
+      }
+
+      if (viewerUrl) {
+        // fetch the resource and download as blob
+        const r = await fetch(viewerUrl, { credentials: 'include' });
+        const b = await r.blob();
+        const url = window.URL.createObjectURL(b);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'document';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+      }
+    } catch (e: any) {
+      setError(e?.message || 'Download failed');
+    }
+  };
 
   return (
     <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-4">
@@ -145,7 +227,9 @@ const Approved: React.FC = () => {
 
                   {/* Actions */}
                   <div className="flex lg:flex-col gap-2 lg:min-w-[120px]">
-                    <button className="flex-1 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-all text-sm flex items-center justify-center gap-1">
+                    <button 
+                      onClick={() => handleViewDocument(item)}
+                      className="flex-1 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-all text-sm flex items-center justify-center gap-1">
                       <EyeIcon className="w-4 h-4" />
                       <span>View</span>
                     </button>
@@ -153,6 +237,33 @@ const Approved: React.FC = () => {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+        {showViewer && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 backdrop-blur-sm">
+            <div className="fixed inset-0 bg-black/40" onClick={closeViewer} />
+            <div className="relative bg-white rounded-lg shadow-lg max-w-4xl w-full max-h-[85vh] sm:max-h-[90vh] z-60 flex flex-col overflow-hidden">
+              <div className="flex items-center justify-between p-3 sm:p-4 border-b flex-shrink-0">
+                <h3 className="text-lg font-bold">Document Viewer</h3>
+                <div className="flex items-center gap-2">
+                  <button className="px-3 py-1 text-sm bg-green-500 rounded" onClick={downloadViewer}>Download</button>
+                  <button className="px-3 py-1 text-sm bg-red-400 rounded" onClick={closeViewer}>Close</button>
+                </div>
+              </div>
+              <div className="flex-1 overflow-y-auto p-2 sm:p-4">
+                {viewerUrl ? (
+                  viewerContentType?.startsWith('image/') ? (
+                    <img src={viewerUrl} alt="document" className="mx-auto max-h-full w-auto object-contain" />
+                  ) : viewerContentType === 'application/pdf' || viewerUrl.toLowerCase().endsWith('.pdf') ? (
+                    <iframe src={viewerUrl} className="w-full h-full border-0 min-h-[500px] sm:min-h-[600px]" title="Document" />
+                  ) : (
+                    <iframe src={viewerUrl} className="w-full h-full border-0 min-h-[500px] sm:min-h-[600px]" title="Document" />
+                  )
+                ) : (
+                  <div className="text-center p-8">No document to display</div>
+                )}
+              </div>
+            </div>
           </div>
         )}
       </div>
