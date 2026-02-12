@@ -44,7 +44,6 @@ interface AddUserFormValues {
 
 const AddUserDialog: React.FC<AddUserDialogProps> = ({ open, onClose }) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const fullScreen = useMediaQuery(theme.breakpoints.down("md"));
   
   const [showPassword, setShowPassword] = useState(false);

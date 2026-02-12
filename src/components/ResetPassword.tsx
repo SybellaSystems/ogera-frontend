@@ -116,7 +116,7 @@ export default RestPasswordTemplate;
 
 /* ——— Styled Components ——— */
 
-const PassMainContainer = styled("div")(({ theme }) => ({
+const PassMainContainer = styled("div")(({ theme: _theme }) => ({
   width: "100%",
   maxWidth: "100vw",
   minHeight: "100vh",

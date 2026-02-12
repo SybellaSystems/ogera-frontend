@@ -125,7 +125,7 @@ const CourseDetail: React.FC = () => {
     return url;
   };
 
-  const handlePdfDownload = async (filePath: string, fileName: string) => {
+  const handlePdfDownload = async (filePath: string, _fileName: string) => {
     try {
       // Check if it's already a full URL (S3)
       if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
@@ -142,7 +142,7 @@ const CourseDetail: React.FC = () => {
       );
 
       // Create a blob URL and open it
-      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const blob = new Blob([response.data as BlobPart], { type: 'application/pdf' });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;

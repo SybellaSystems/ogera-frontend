@@ -1,0 +1,97 @@
+import { apiSlice } from "./apiSlice";
+
+// Dashboard Stats Types
+export interface DashboardStat {
+  title: string;
+  value: string | number;
+  change?: string;
+  trending?: "up" | "down";
+}
+
+export interface QuickStat {
+  color: string;
+  text: string;
+}
+
+export interface StudentProgress {
+  profileCompletion: number;
+  jobCompletionRate: number;
+  applicationSuccessRate: number;
+}
+
+export interface StudentRating {
+  value: number;
+  reviews: number;
+  breakdown?: {
+    communication: number;
+    quality: number;
+    punctuality: number;
+  };
+}
+
+// Student Dashboard Response
+export interface StudentDashboardData {
+  stats: {
+    applicationsSent: number;
+    jobsCompleted: number;
+    interviews: number;
+    earnings: string;
+  };
+  quickStats: QuickStat[];
+  recentActivity: string[];
+  progress: StudentProgress;
+  rating: StudentRating;
+  chartData: any[];
+}
+
+// Employer Dashboard Response
+export interface EmployerDashboardData {
+  stats: {
+    jobsPosted: number;
+    applicationsReceived: number;
+    activeHires: number;
+    totalSpent: string;
+  };
+  quickStats: QuickStat[];
+  recentActivity: string[];
+  chartData: any[];
+}
+
+// Admin Dashboard Response
+export interface AdminDashboardData {
+  stats: {
+    totalUsers: number;
+    totalStudents: number;
+    activeJobs: number;
+    totalEarnings: string;
+  };
+  quickStats: QuickStat[];
+  recentActivity: string[];
+  chartData: any[];
+}
+
+export type DashboardData = StudentDashboardData | EmployerDashboardData | AdminDashboardData;
+
+export interface DashboardResponse {
+  success: boolean;
+  status: number;
+  message: string;
+  data: DashboardData;
+}
+
+export const dashboardApi = apiSlice.injectEndpoints({
+  endpoints: (builder) => ({
+    // Get dashboard stats
+    getDashboardStats: builder.query<DashboardResponse, void>({
+      query: () => ({
+        url: "/dashboard/stats",
+        method: "GET",
+      }),
+      providesTags: ["User"],
+    }),
+  }),
+});
+
+export const {
+  useGetDashboardStatsQuery,
+} = dashboardApi;

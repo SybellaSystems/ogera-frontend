@@ -13,7 +13,6 @@ import {
   addDisputeMessage,
   uploadEvidence,
   resolveDispute,
-  updateDispute,
   type Dispute,
   type DisputeEvidence,
   type DisputeMessage,
@@ -392,7 +391,7 @@ const DisputeDetail: React.FC = () => {
                 timeline.map((event) => {
                   // Determine display name and role
                   let displayName = event.performer?.full_name || event.performed_by_type;
-                  let displayRole = event.performed_by_type;
+                  let displayRole: string = event.performed_by_type;
                   
                   // If performer is admin, show "Admin" instead of roleName
                   if (event.performer?.role?.roleType === 'admin' || event.performer?.role?.roleType === 'superAdmin') {

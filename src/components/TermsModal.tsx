@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { styled } from "@mui/material/styles";
 
 interface TermsModalProps {
@@ -19,7 +19,7 @@ const sections = [
   { id: "changes-terms", title: "Changes to Terms" },
 ];
 
-const sectionContent: Record<string, { heading: string; content: JSX.Element }> = {
+const sectionContent: Record<string, { heading: string; content: React.ReactNode }> = {
   "user-responsibilities": {
     heading: "User Responsibilities",
     content: (

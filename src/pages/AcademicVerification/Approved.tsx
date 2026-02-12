@@ -43,7 +43,7 @@ const Approved: React.FC = () => {
 
       if (item.storage_type === 's3') {
         const res = await api.get(`/academic-verifications/${item.id}/document`);
-        const url = res?.data?.url;
+        const url = (res?.data as any)?.url;
         if (url) {
           setViewerUrl(url);
           setViewerBlob(null);
