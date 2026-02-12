@@ -4,7 +4,6 @@ import { useVerifyEmailMutation, useResendVerificationEmailMutation } from "../s
 import toast from "react-hot-toast";
 import type { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import { styled } from "@mui/material/styles";
-import logo from "../assets/logoWhite.png";
 
 const VerifyEmail: React.FC = () => {
   const navigate = useNavigate();
@@ -59,25 +58,29 @@ const VerifyEmail: React.FC = () => {
 
   if (isVerified) {
     return (
-      <VerifyEmailContainer>
-        <VerifyEmailCard>
+      <PageContainer>
+        <Card>
           <Logo />
-          <SuccessIcon>✓</SuccessIcon>
+          <SuccessIcon>
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </SuccessIcon>
           <Heading>Email Verified!</Heading>
           <Message>
             Your email has been successfully verified. You can now log in to your account.
           </Message>
-          <Button onClick={() => navigate("/auth/login")}>
+          <SubmitButton onClick={() => navigate("/auth/login")}>
             Go to Login
-          </Button>
-        </VerifyEmailCard>
-      </VerifyEmailContainer>
+          </SubmitButton>
+        </Card>
+      </PageContainer>
     );
   }
 
   return (
-    <VerifyEmailContainer>
-      <VerifyEmailCard>
+    <PageContainer>
+      <Card>
         <Logo />
         <Heading>Verify Your Email</Heading>
         {token ? (
@@ -88,9 +91,9 @@ const VerifyEmail: React.FC = () => {
                 : "Click the button below to verify your email address."}
             </Message>
             {!isLoading && (
-              <Button onClick={handleVerifyEmail} disabled={isLoading}>
+              <SubmitButton onClick={handleVerifyEmail} disabled={isLoading}>
                 Verify Email
-              </Button>
+              </SubmitButton>
             )}
           </>
         ) : (
@@ -104,129 +107,191 @@ const VerifyEmail: React.FC = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
-            <Button onClick={handleResendEmail} disabled={isResending}>
-              {isResending ? "Sending..." : "Resend Verification Email"}
-            </Button>
+            <SubmitButton onClick={handleResendEmail} disabled={isResending}>
+              {isResending ? (
+                <>
+                  <Spinner />
+                  Sending...
+                </>
+              ) : (
+                "Resend Verification Email"
+              )}
+            </SubmitButton>
           </>
         )}
-        <LinkText onClick={() => navigate("/auth/login")}>
+        <BackLink href="/auth/login">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M19 12H5M12 19l-7-7 7-7" />
+          </svg>
           Back to Login
-        </LinkText>
-      </VerifyEmailCard>
-    </VerifyEmailContainer>
+        </BackLink>
+      </Card>
+    </PageContainer>
   );
 };
 
 export default VerifyEmail;
 
-const VerifyEmailContainer = styled("div")`
-  width: 100%;
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #7f56d9 0%, #5b21b6 100%);
-  padding: 20px;
-`;
+/* ——— Styled Components ——— */
 
-const VerifyEmailCard = styled("div")`
-  background: white;
-  border-radius: 16px;
-  padding: 40px;
-  max-width: 500px;
-  width: 100%;
-  text-align: center;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-`;
+const PageContainer = styled("div")({
+  width: "100%",
+  minHeight: "100vh",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  background: "linear-gradient(180deg, #e4daf5 0%, #ede7f8 50%, #f5f0fc 100%)",
+  fontFamily: "'Nunito', sans-serif",
+  padding: "20px",
+});
 
-const Logo = styled("div")`
-  background: url(${logo}) no-repeat center center;
-  background-size: contain;
-  height: 50px;
-  width: 120px;
-  margin: 0 auto 30px;
-`;
+const Card = styled("div")(({ theme }) => ({
+  background: "#ffffff",
+  borderRadius: "20px",
+  padding: "36px 32px",
+  maxWidth: "440px",
+  width: "100%",
+  textAlign: "center",
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  gap: "16px",
+  boxShadow: "0 8px 30px rgba(91, 59, 165, 0.1)",
+  [theme.breakpoints.down("sm")]: {
+    padding: "28px 20px",
+  },
+}));
 
-const SuccessIcon = styled("div")`
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  background: #10b981;
-  color: white;
-  font-size: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 20px;
-  font-weight: bold;
-`;
+const Logo = styled("div")({
+  background: "linear-gradient(135deg, #7F56D9 0%, #6941C6 100%)",
+  height: 42,
+  width: 130,
+  borderRadius: 10,
+  position: "relative",
+  marginBottom: "8px",
+  "&::after": {
+    content: '""',
+    position: "absolute",
+    inset: 0,
+    background: 'url("/ogera_logo-removebg-preview.png") no-repeat center center',
+    backgroundSize: "80%",
+  },
+});
 
-const Heading = styled("h1")`
-  font-size: 28px;
-  font-weight: 700;
-  color: #333;
-  margin-bottom: 16px;
-`;
+const SuccessIcon = styled("div")({
+  width: "72px",
+  height: "72px",
+  borderRadius: "50%",
+  background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+  color: "#ffffff",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  marginBottom: "4px",
+  boxShadow: "0 4px 15px rgba(16, 185, 129, 0.3)",
+});
 
-const Message = styled("p")`
-  font-size: 16px;
-  color: #666;
-  margin-bottom: 24px;
-  line-height: 1.6;
-`;
+const Heading = styled("h1")({
+  fontSize: "24px",
+  fontWeight: 800,
+  color: "#2d2252",
+  fontFamily: "'Nunito', sans-serif",
+  lineHeight: 1.2,
+});
 
-const Input = styled("input")`
-  width: 100%;
-  padding: 12px 16px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  font-size: 16px;
-  margin-bottom: 20px;
-  outline: none;
-  transition: border-color 0.3s;
+const Message = styled("p")({
+  fontSize: "14px",
+  color: "#6b6580",
+  fontFamily: "'Nunito', sans-serif",
+  fontWeight: 400,
+  lineHeight: 1.6,
+});
 
-  &:focus {
-    border-color: #7f56d9;
-  }
-`;
+const Input = styled("input")({
+  width: "100%",
+  padding: "11px 14px",
+  borderRadius: "10px",
+  border: "1.5px solid #ddd0ec",
+  fontSize: "14px",
+  fontFamily: "'Nunito', sans-serif",
+  outline: "none",
+  backgroundColor: "#ffffff",
+  boxShadow: "0 1px 3px rgba(91, 59, 165, 0.08)",
+  transition: "border-color 0.2s ease, box-shadow 0.2s ease",
+  color: "#2d2252",
+  boxSizing: "border-box",
+  "&:hover": {
+    borderColor: "#9B7DE8",
+  },
+  "&:focus": {
+    borderColor: "#7F56D9",
+    borderWidth: "2px",
+    boxShadow: "0 0 0 3px rgba(127, 86, 217, 0.12)",
+    padding: "10.5px 13.5px",
+  },
+  "&::placeholder": {
+    color: "#7a7290",
+  },
+});
 
-const Button = styled("button")`
-  width: 100%;
-  padding: 14px;
-  background: #7f56d9;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.3s;
-  margin-bottom: 16px;
+const SubmitButton = styled("button")({
+  width: "100%",
+  padding: "12px",
+  background: "linear-gradient(135deg, #7F56D9 0%, #6941C6 100%)",
+  color: "#ffffff",
+  border: "none",
+  borderRadius: "50px",
+  fontSize: "15px",
+  fontWeight: 700,
+  fontFamily: "'Nunito', sans-serif",
+  cursor: "pointer",
+  transition: "all 0.3s ease",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: "8px",
+  "&:hover": {
+    background: "linear-gradient(135deg, #6941C6 0%, #5B3BA5 100%)",
+    transform: "translateY(-1px)",
+    boxShadow: "0 4px 15px rgba(127, 86, 217, 0.4)",
+  },
+  "&:active": {
+    transform: "translateY(0)",
+  },
+  "&:disabled": {
+    opacity: 0.7,
+    cursor: "not-allowed",
+    transform: "none",
+    boxShadow: "none",
+  },
+});
 
-  &:hover:not(:disabled) {
-    background: #6e47c4;
-  }
+const Spinner = styled("span")({
+  width: "18px",
+  height: "18px",
+  border: "2.5px solid rgba(255,255,255,0.3)",
+  borderTopColor: "#ffffff",
+  borderRadius: "50%",
+  animation: "spin 0.6s linear infinite",
+  "@keyframes spin": {
+    to: { transform: "rotate(360deg)" },
+  },
+});
 
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-`;
-
-const LinkText = styled("p")`
-  color: #7f56d9;
-  font-size: 14px;
-  cursor: pointer;
-  text-decoration: underline;
-  margin-top: 16px;
-
-  &:hover {
-    color: #6e47c4;
-  }
-`;
-
-
-
-
-
-
+const BackLink = styled("a")({
+  display: "inline-flex",
+  alignItems: "center",
+  gap: "6px",
+  fontSize: "14px",
+  fontWeight: 600,
+  fontFamily: "'Nunito', sans-serif",
+  color: "#7F56D9",
+  textDecoration: "none",
+  cursor: "pointer",
+  transition: "color 0.2s",
+  marginTop: "4px",
+  "&:hover": {
+    color: "#6941C6",
+    textDecoration: "underline",
+  },
+});

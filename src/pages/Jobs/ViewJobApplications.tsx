@@ -168,7 +168,7 @@ const ViewJobApplications: React.FC = () => {
           </button>
           <div>
             <h1 className="text-4xl font-extrabold text-gray-900 flex items-center gap-3">
-              <BriefcaseIcon className="h-10 w-10 text-purple-600" />
+              <BriefcaseIcon className="h-10 w-10 text-[#6941C6]" />
               Applications for {job.job_title}
             </h1>
             <p className="text-gray-500 mt-2">
@@ -179,7 +179,7 @@ const ViewJobApplications: React.FC = () => {
       </div>
 
       {/* Job Info Card */}
-      <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
+      <div className="bg-white rounded-xl p-6 shadow-md border border-[#ede7f8]">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
             <p className="text-sm text-gray-600">Location</p>
@@ -214,9 +214,9 @@ const ViewJobApplications: React.FC = () => {
 
       {/* Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-purple-50 rounded-xl p-6 border border-purple-200">
-          <p className="text-sm text-purple-700 font-medium">Total Applications</p>
-          <p className="text-3xl font-bold text-purple-900 mt-2">
+        <div className="bg-[#f5f0fc] rounded-xl p-6 border border-[#ddd0ec]">
+          <p className="text-sm text-[#6941C6] font-medium">Total Applications</p>
+          <p className="text-3xl font-bold text-[#2d1b69] mt-2">
             {applications.length}
           </p>
         </div>
@@ -235,7 +235,7 @@ const ViewJobApplications: React.FC = () => {
       </div>
 
       {applications.length === 0 ? (
-        <div className="bg-white rounded-xl p-12 shadow-md border border-gray-100 text-center">
+        <div className="bg-white rounded-xl p-12 shadow-md border border-[#ede7f8] text-center">
           <UserIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
           <h3 className="text-xl font-semibold text-gray-900 mb-2">
             No applications yet
@@ -249,12 +249,12 @@ const ViewJobApplications: React.FC = () => {
           {applications.map((application) => (
             <div
               key={application.application_id}
-              className="bg-white rounded-xl p-6 shadow-md border border-gray-100 hover:shadow-lg transition-shadow"
+              className="bg-white rounded-xl p-6 shadow-md border border-[#ede7f8] hover:shadow-lg transition-shadow"
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="h-12 w-12 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg">
+                    <div className="h-12 w-12 rounded-full bg-gradient-to-br from-[#6941C6] to-[#2d1b69] flex items-center justify-center text-white font-bold text-lg">
                       {application.student?.full_name?.charAt(0) || "S"}
                     </div>
                     <div>

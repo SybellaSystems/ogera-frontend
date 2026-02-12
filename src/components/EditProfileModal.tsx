@@ -83,6 +83,12 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
           updateData.preferred_location = values.preferred_location || null;
         }
 
+        // Add employer-specific fields
+        if (userRole === "employer") {
+          // Include preferred_location (company location) for employers
+          updateData.preferred_location = values.preferred_location || null;
+        }
+
         console.log("Updating profile with data:", updateData);
 
         const response = await updateUserProfile(updateData);
@@ -208,8 +214,8 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl p-6 relative max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-white/30 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl p-6 relative max-h-[90vh] overflow-y-auto my-auto">
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -501,27 +507,27 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
               </div>
             )}
 
-            {/* Preferred Location (for students) */}
-            {userRole === "student" && (
+            {/* Preferred Location (for students and employers) */}
+            {(userRole === "student" || userRole === "employer") && (
               <div className="md:col-span-2">
                 <label
                   htmlFor="preferred_location"
                   className="block text-sm font-medium text-gray-700 mb-2"
                 >
-                  Preferred Work Location (Optional)
+                  {userRole === "employer" ? "Company Location" : "Preferred Work Location"} (Optional)
                 </label>
                 <input
                   id="preferred_location"
                   name="preferred_location"
                   type="text"
-                  placeholder="e.g., New York, Remote, London"
+                  placeholder={userRole === "employer" ? "e.g., Nairobi, Kenya" : "e.g., New York, Remote, London"}
                   value={formik.values.preferred_location}
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all"
                 />
                 <p className="mt-1 text-xs text-gray-500">
-                  Where would you prefer to work?
+                  {userRole === "employer" ? "Where is your company located?" : "Where would you prefer to work?"}
                 </p>
               </div>
             )}

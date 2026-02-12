@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { ClockIcon } from "@heroicons/react/24/outline";
+import React from "react";
+import { ClockIcon, ArrowPathIcon, ExclamationCircleIcon, CheckCircleIcon } from "@heroicons/react/24/outline";
 import CustomTable, {
   type Column,
   type TableAction,
@@ -9,39 +9,35 @@ import {
   Visibility as ViewIcon,
   MessageOutlined as MessageIcon,
 } from "@mui/icons-material";
-
-import { getAllDisputes, type Dispute } from "../../services/api/disputesApi";
+import { useGetDisputesQuery, type Dispute as ApiDispute } from "../../services/api/disputeApi";
 import { useNavigate } from "react-router-dom";
-import Loader from "../../components/Loader";
+
+interface DisputeRow {
+  id: string;
+  type: string;
+  student: string;
+  employer: string;
+  description: string;
+  assignedTo: string;
+  startedDate: string;
+}
 
 const InProgress: React.FC = () => {
-  const [disputes, setDisputes] = useState<Dispute[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: disputesData, isLoading, error, refetch } = useGetDisputesQuery({ status: "In Progress" });
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchDisputes();
-  }, []);
+  // Transform API data to table format
+  const disputes: DisputeRow[] = (disputesData?.data || []).map((dispute: ApiDispute) => ({
+    id: dispute.dispute_id,
+    type: dispute.type,
+    student: dispute.student?.full_name || 'N/A',
+    employer: dispute.employer?.full_name || 'N/A',
+    description: dispute.description,
+    assignedTo: dispute.assignedAdmin?.full_name || 'Unassigned',
+    startedDate: dispute.started_at ? new Date(dispute.started_at).toLocaleDateString() : new Date(dispute.created_at).toLocaleDateString(),
+  }));
 
-  const fetchDisputes = async () => {
-    try {
-      setLoading(true);
-      // Fetch disputes with status "Under Review" or "Mediation" (in progress)
-      const result = await getAllDisputes({ 
-        status: ["Under Review", "Mediation"], 
-        page: 1, 
-        limit: 100 
-      });
-      setDisputes(result.data || []);
-    } catch (error) {
-      console.error("Failed to fetch in-progress disputes:", error);
-      setDisputes([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const columns: Column<Dispute>[] = [
+  const columns: Column<DisputeRow>[] = [
     {
       id: "type",
       label: "Type",
@@ -92,7 +88,7 @@ const InProgress: React.FC = () => {
       minWidth: 130,
       format: (value: any) => (
         <Chip
-          label={value?.full_name || "Unassigned"} 
+          label={value?.full_name || "Unassigned"}
                    size="small"
           sx={{
             bgcolor: "#dbeafe",
@@ -110,7 +106,7 @@ const InProgress: React.FC = () => {
     },
   ];
 
-  const actions: TableAction<Dispute>[] = [
+  const actions: TableAction<DisputeRow>[] = [
     {
       label: "View Details",
       icon: <ViewIcon fontSize="small" />,
@@ -129,8 +125,33 @@ const InProgress: React.FC = () => {
     },
   ];
 
-   if (loading) {
-    return <Loader />;
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <ArrowPathIcon className="h-8 w-8 text-[#7F56D9] animate-spin" />
+        <span className="ml-2 text-gray-500">Loading in-progress disputes...</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6 animate-fadeIn">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3">
+          <ExclamationCircleIcon className="h-6 w-6 text-red-500" />
+          <div>
+            <p className="text-sm font-medium text-red-800">Failed to load in-progress disputes</p>
+            <p className="text-xs text-red-600 mt-1">Please try again later</p>
+          </div>
+          <button
+            onClick={() => refetch()}
+            className="ml-auto px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 rounded text-xs font-medium transition"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -146,8 +167,18 @@ const InProgress: React.FC = () => {
       </div>
 
       <div className="bg-orange-50 border-l-4 border-orange-500 p-4 rounded-lg">
-        <p className="text-orange-800 font-medium text-sm md:text-base">
-          🔄 {disputes.length} disputes under review
+        <p className="text-orange-800 font-medium text-sm md:text-base flex items-center gap-2">
+          {disputes.length > 0 ? (
+            <>
+              <ArrowPathIcon className="h-5 w-5 text-orange-600 flex-shrink-0" />
+              <span>{disputes.length} dispute{disputes.length > 1 ? 's' : ''} under review</span>
+            </>
+          ) : (
+            <>
+              <CheckCircleIcon className="h-5 w-5 text-green-600 flex-shrink-0" />
+              <span>No disputes currently under review</span>
+            </>
+          )}
         </p>
       </div>
 
@@ -165,4 +196,3 @@ const InProgress: React.FC = () => {
 };
 
 export default InProgress;
-
