@@ -94,7 +94,7 @@ const EmployerAcceptedApplications: React.FC = () => {
         </div>
         <button
           onClick={() => navigate("/dashboard/jobs/applications")}
-          className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2.5 rounded-lg font-semibold transition shadow-md"
+          className="bg-[#2d1b69] hover:bg-[#1a1035] text-white px-6 py-2.5 rounded-lg font-semibold transition shadow-md"
         >
           View All Applications
         </button>
@@ -109,7 +109,7 @@ const EmployerAcceptedApplications: React.FC = () => {
       </div>
 
       {acceptedApplications.length === 0 ? (
-        <div className="bg-white rounded-xl p-12 shadow-md border border-gray-100 text-center">
+        <div className="bg-white rounded-xl p-12 shadow-md border border-[#ede7f8] text-center">
           <CheckCircleIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
           <h3 className="text-xl font-semibold text-gray-900 mb-2">
             No accepted applications yet
@@ -123,7 +123,7 @@ const EmployerAcceptedApplications: React.FC = () => {
           {acceptedApplications.map((application) => (
             <div
               key={application.application_id}
-              className="bg-white rounded-xl p-6 shadow-md border border-gray-100 hover:shadow-lg transition-shadow"
+              className="bg-white rounded-xl p-6 shadow-md border border-[#ede7f8] hover:shadow-lg transition-shadow"
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">

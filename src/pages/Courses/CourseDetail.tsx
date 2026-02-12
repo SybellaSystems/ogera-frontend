@@ -9,16 +9,58 @@ import {
   DocumentTextIcon,
   ArrowLeftIcon,
 } from "@heroicons/react/24/outline";
-import { useGetCourseByIdQuery, type CourseStep } from "../../services/api/coursesApi";
+import { 
+  useGetCourseByIdQuery, 
+  useGetCourseCompletionQuery,
+  useGetCourseProgressQuery,
+  useMarkStepCompleteMutation,
+  useMarkStepIncompleteMutation,
+  type CourseStep 
+} from "../../services/api/coursesApi";
 import Loader from "../../components/Loader";
 import { formatRelativeTime } from "../../utils/timeUtils";
+import api from "../../services/api/axiosInstance";
+import { CheckCircleIcon } from "@heroicons/react/24/solid";
+import { CheckCircleIcon as CheckCircleIconOutline } from "@heroicons/react/24/outline";
+
+const BASE_URL = import.meta.env.VITE_API_URL;
 
 const CourseDetail: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { data, isLoading, error } = useGetCourseByIdQuery(id || "");
+  const { data: completionData, refetch: refetchCompletion } = useGetCourseCompletionQuery(id || "", {
+    skip: !id,
+  });
+  const { data: progressData, refetch: refetchProgress } = useGetCourseProgressQuery(id || "", {
+    skip: !id,
+  });
+  const [markStepComplete] = useMarkStepCompleteMutation();
+  const [markStepIncomplete] = useMarkStepIncompleteMutation();
 
   const course = data?.data;
+  const completion = completionData?.data || { completed: 0, total: 0, percentage: 0, started: false, started_at: null };
+  const completedStepIds = new Set(
+    progressData?.data?.progress
+      ?.filter((p) => p.completed)
+      .map((p) => p.step_id) || []
+  );
+
+  const handleToggleStepComplete = async (step_id: string, isCompleted: boolean) => {
+    if (!id) return;
+    
+    try {
+      if (isCompleted) {
+        await markStepIncomplete({ course_id: id, step_id }).unwrap();
+      } else {
+        await markStepComplete({ course_id: id, step_id }).unwrap();
+      }
+      refetchCompletion();
+      refetchProgress();
+    } catch (error) {
+      console.error('Error toggling step completion:', error);
+    }
+  };
 
   const getStepTypeIcon = (stepType: string) => {
     switch (stepType) {
@@ -83,6 +125,39 @@ const CourseDetail: React.FC = () => {
     return url;
   };
 
+  const handlePdfDownload = async (filePath: string, fileName: string) => {
+    try {
+      // Check if it's already a full URL (S3)
+      if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
+        window.open(filePath, '_blank');
+        return;
+      }
+
+      // Use API endpoint with authentication
+      const response = await api.get(
+        `/courses/content/download?path=${encodeURIComponent(filePath)}`,
+        {
+          responseType: 'blob',
+        }
+      );
+
+      // Create a blob URL and open it
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
+      alert('Failed to open PDF. Please try again.');
+    }
+  };
+
   const renderStepContent = (step: CourseStep) => {
     switch (step.step_type) {
       case "video":
@@ -122,24 +197,50 @@ const CourseDetail: React.FC = () => {
           </div>
         );
       case "pdf":
+        // Check if step_content is already a full URL (S3)
+        const isFullUrl = step.step_content.startsWith('http://') || step.step_content.startsWith('https://');
+        
+        if (isFullUrl) {
+          // For S3 URLs, use direct link
+          return (
+            <div className="mt-4">
+              <a
+                href={step.step_content}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-red-600 hover:text-red-700 underline flex items-center gap-2"
+              >
+                <DocumentIcon className="h-4 w-4" />
+                View PDF
+              </a>
+            </div>
+          );
+        }
+        
+        // For local files, use download handler with authentication
+        const fileName = step.step_content.split('/').pop() || 'course-content.pdf';
         return (
           <div className="mt-4">
-            <a
-              href={step.step_content}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-red-600 hover:text-red-700 underline flex items-center gap-2"
+            <button
+              onClick={() => handlePdfDownload(step.step_content, fileName)}
+              className="text-red-600 hover:text-red-700 underline flex items-center gap-2 cursor-pointer bg-transparent border-none p-0"
             >
               <DocumentIcon className="h-4 w-4" />
               View PDF
-            </a>
+            </button>
           </div>
         );
       case "image":
+        // Check if step_content is already a full URL (S3) or needs API endpoint
+        const isImageFullUrl = step.step_content.startsWith('http://') || step.step_content.startsWith('https://');
+        const imageUrl = isImageFullUrl 
+          ? step.step_content 
+          : `${BASE_URL}/courses/content/download?path=${encodeURIComponent(step.step_content)}`;
+        
         return (
           <div className="mt-4">
             <img
-              src={step.step_content}
+              src={imageUrl}
               alt={step.step_title || "Course image"}
               className="w-full rounded-lg"
             />
@@ -215,6 +316,36 @@ const CourseDetail: React.FC = () => {
               Created {formatRelativeTime(course.created_at)}
             </span>
           </div>
+          {/* Completion Status */}
+          {completion.total > 0 && (
+            <div className="mt-4 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg p-4 border border-purple-200">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-semibold text-gray-700">Course Progress</span>
+                <span className="text-lg font-bold text-purple-600">{completion.percentage}%</span>
+              </div>
+              <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-purple-600 to-indigo-600 rounded-full transition-all duration-500"
+                  style={{ width: `${completion.percentage}%` }}
+                />
+              </div>
+              <div className="flex items-center justify-between mt-2">
+                <p className="text-xs text-gray-600">
+                  {completion.completed} of {completion.total} steps completed
+                </p>
+                {completion.started && completion.started_at && (
+                  <p className="text-xs text-gray-500">
+                    Started {formatRelativeTime(completion.started_at)}
+                  </p>
+                )}
+              </div>
+              {!completion.started && (
+                <p className="text-xs text-purple-600 mt-1 italic">
+                  Start learning by marking your first step as complete
+                </p>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -254,6 +385,25 @@ const CourseDetail: React.FC = () => {
                       <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
                         {getStepTypeLabel(step.step_type)}
                       </span>
+                      {step.step_id && (
+                        <button
+                          onClick={() => handleToggleStepComplete(step.step_id!, completedStepIds.has(step.step_id!))}
+                          className="ml-auto flex items-center gap-1 text-sm text-gray-600 hover:text-green-600 transition-colors"
+                          title={completedStepIds.has(step.step_id!) ? "Mark as incomplete" : "Mark as complete"}
+                        >
+                          {completedStepIds.has(step.step_id!) ? (
+                            <>
+                              <CheckCircleIcon className="h-5 w-5 text-green-600" />
+                              <span className="text-xs text-green-600 font-medium">Completed</span>
+                            </>
+                          ) : (
+                            <>
+                              <CheckCircleIconOutline className="h-5 w-5" />
+                              <span className="text-xs">Mark Complete</span>
+                            </>
+                          )}
+                        </button>
+                      )}
                     </div>
                     {step.step_title && (
                       <h4 className="text-lg font-semibold text-gray-900 mb-2">

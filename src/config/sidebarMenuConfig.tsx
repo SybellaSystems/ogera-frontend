@@ -133,6 +133,7 @@ export const SIDEBAR_MENU_CONFIG: MenuItemConfig[] = [
     submenuItems: [
       { label: "Add Courses", path: "/dashboard/courses/add" },
       { label: "View Courses", path: "/dashboard/courses/view" },
+      { label: "Course Analytics", path: "/dashboard/courses/analytics" },
     ],
   },
 ];

@@ -156,7 +156,7 @@ const JobCategories: React.FC = () => {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-purple-600 border-r-transparent"></div>
+          <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-[#6941C6] border-r-transparent"></div>
           <p className="mt-4 text-gray-600 font-medium">Loading categories...</p>
         </div>
       </div>
@@ -168,7 +168,7 @@ const JobCategories: React.FC = () => {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 flex items-center gap-3">
-            <TagIcon className="h-8 w-10 md:h-10 md:w-10 text-purple-600" />
+            <TagIcon className="h-8 w-10 md:h-10 md:w-10 text-[#6941C6]" />
             Job Categories
           </h1>
           <p className="text-gray-500 mt-2">Organize jobs by category and industry</p>
@@ -176,7 +176,7 @@ const JobCategories: React.FC = () => {
         {isSuperAdmin && (
           <button
             onClick={() => handleOpenModal()}
-            className="bg-purple-600 hover:bg-purple-700 text-white px-4 md:px-6 py-2.5 rounded-lg font-semibold transition shadow-md flex items-center gap-2 w-full sm:w-auto justify-center"
+            className="bg-[#2d1b69] hover:bg-[#1a1035] text-white px-4 md:px-6 py-2.5 rounded-lg font-semibold transition shadow-md flex items-center gap-2 w-full sm:w-auto justify-center"
           >
             <PlusIcon className="h-5 w-5" />
             Add Category
@@ -184,19 +184,19 @@ const JobCategories: React.FC = () => {
         )}
       </div>
 
-      <div className="bg-purple-50 rounded-xl p-4 md:p-6 border border-purple-200">
+      <div className="bg-[#f5f0fc] rounded-xl p-4 md:p-6 border border-[#ddd0ec]">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
           <div>
-            <p className="text-sm text-purple-700 font-medium">Total Categories</p>
-            <p className="text-2xl md:text-3xl font-bold text-purple-900 mt-1">{categories.length}</p>
+            <p className="text-sm text-[#6941C6] font-medium">Total Categories</p>
+            <p className="text-2xl md:text-3xl font-bold text-[#2d1b69] mt-1">{categories.length}</p>
           </div>
           <div>
-            <p className="text-sm text-purple-700 font-medium">Total Jobs</p>
-            <p className="text-2xl md:text-3xl font-bold text-purple-900 mt-1">{totalJobs}</p>
+            <p className="text-sm text-[#6941C6] font-medium">Total Jobs</p>
+            <p className="text-2xl md:text-3xl font-bold text-[#2d1b69] mt-1">{totalJobs}</p>
           </div>
           <div>
-            <p className="text-sm text-purple-700 font-medium">Most Popular</p>
-            <p className="text-lg md:text-xl font-bold text-purple-900 mt-1">
+            <p className="text-sm text-[#6941C6] font-medium">Most Popular</p>
+            <p className="text-lg md:text-xl font-bold text-[#2d1b69] mt-1">
               {mostPopularCategory?.name || "N/A"}
             </p>
           </div>
@@ -211,7 +211,7 @@ const JobCategories: React.FC = () => {
           {isSuperAdmin && (
             <button
               onClick={() => handleOpenModal()}
-              className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2.5 rounded-lg font-semibold transition shadow-md inline-flex items-center gap-2"
+              className="bg-[#2d1b69] hover:bg-[#1a1035] text-white px-6 py-2.5 rounded-lg font-semibold transition shadow-md inline-flex items-center gap-2"
             >
               <PlusIcon className="h-5 w-5" />
               Create First Category
@@ -290,7 +290,7 @@ const JobCategories: React.FC = () => {
                   required
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6941C6] focus:border-transparent"
                   placeholder="e.g., Software Development"
                 />
               </div>
@@ -302,7 +302,7 @@ const JobCategories: React.FC = () => {
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6941C6] focus:border-transparent"
                   placeholder="Brief description of this category"
                   rows={3}
                 />
@@ -320,7 +320,7 @@ const JobCategories: React.FC = () => {
                       onClick={() => setFormData({ ...formData, icon })}
                       className={`p-3 text-2xl rounded-lg border-2 transition ${
                         formData.icon === icon
-                          ? "border-purple-600 bg-purple-50"
+                          ? "border-[#6941C6] bg-[#f5f0fc]"
                           : "border-gray-200 hover:border-gray-300"
                       }`}
                     >
@@ -337,7 +337,7 @@ const JobCategories: React.FC = () => {
                 <select
                   value={formData.color}
                   onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6941C6] focus:border-transparent"
                 >
                   {colorOptions.map((option) => (
                     <option key={option.value} value={option.value}>
@@ -364,7 +364,7 @@ const JobCategories: React.FC = () => {
                     const value = e.target.value === "" ? 0 : parseInt(e.target.value, 10);
                     setFormData({ ...formData, job_count: isNaN(value) ? 0 : Math.max(0, value) });
                   }}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6941C6] focus:border-transparent"
                   placeholder="Enter number of jobs (e.g., 1, 2, 10)"
                 />
                 <p className="text-xs text-gray-500 mt-1">Set the number of jobs for this category</p>
@@ -381,7 +381,7 @@ const JobCategories: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isCreating || isUpdating}
-                  className="flex-1 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition font-medium disabled:opacity-50"
+                  className="flex-1 px-4 py-2 bg-[#2d1b69] hover:bg-[#1a1035] text-white rounded-lg transition font-medium disabled:opacity-50"
                 >
                   {isCreating || isUpdating
                     ? editingCategory

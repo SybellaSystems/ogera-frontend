@@ -154,7 +154,7 @@ const ActiveJobs: React.FC = () => {
 
       {/* Jobs List */}
       {filteredJobs.length === 0 ? (
-        <div className="bg-white rounded-xl p-12 shadow-md border border-gray-100 text-center">
+        <div className="bg-white rounded-xl p-12 shadow-md border border-[#ede7f8] text-center">
           <CheckBadgeIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
           <h3 className="text-xl font-semibold text-gray-900 mb-2">
             {searchQuery || selectedLocation
@@ -182,7 +182,7 @@ const ActiveJobs: React.FC = () => {
                 <div className="flex gap-4">
                   {/* Company Logo */}
                   <div className="flex-shrink-0">
-                    <div className="h-16 w-16 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-xl shadow-md">
+                    <div className="h-16 w-16 rounded-lg bg-gradient-to-br from-[#6941C6] to-[#2d1b69] flex items-center justify-center text-white font-bold text-xl shadow-md">
                       {companyInitial}
                     </div>
                   </div>
@@ -258,7 +258,7 @@ const ActiveJobs: React.FC = () => {
                         </span>
                       )}
                       {job.experience_level && (
-                        <span className="px-3 py-1 bg-purple-50 text-purple-700 rounded-full text-xs font-medium">
+                        <span className="px-3 py-1 bg-[#f5f0fc] text-[#6941C6] rounded-full text-xs font-medium">
                           {job.experience_level}
                         </span>
                       )}
@@ -295,7 +295,7 @@ const ActiveJobs: React.FC = () => {
                             onClick={() =>
                               navigate(`/dashboard/jobs/${job.job_id}/applications`)
                             }
-                            className="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition shadow-sm whitespace-nowrap min-w-[120px]"
+                            className="px-6 py-2.5 bg-[#2d1b69] hover:bg-[#1a1035] text-white rounded-lg font-semibold transition shadow-sm whitespace-nowrap min-w-[120px]"
                           >
                             Manage ({job.applications || 0})
                           </button>

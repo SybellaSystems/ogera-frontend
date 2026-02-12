@@ -52,6 +52,14 @@ const authSlice = createSlice({
       state.role = action.payload;
     },
 
+    setUser: (state, action: PayloadAction<any>) => {
+      // Merge new user data with existing user data (or create new if null)
+      state.user = state.user
+        ? { ...state.user, ...action.payload }
+        : action.payload;
+      // Note: localStorage is automatically updated via store.subscribe() in store.tsx
+    },
+
     logout: (state) => {
       state.user = null;
       state.accessToken = null;
@@ -63,7 +71,7 @@ const authSlice = createSlice({
   },
 });
 
-export const { setCredentials, setAccessToken, setRole, logout } =
+export const { setCredentials, setAccessToken, setRole, setUser, logout } =
   authSlice.actions;
 
 export default authSlice.reducer;

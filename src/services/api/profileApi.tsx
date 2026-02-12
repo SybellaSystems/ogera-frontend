@@ -5,6 +5,8 @@ export interface UserProfile {
   email: string;
   mobile_number: string;
   full_name: string;
+  profile_image_url?: string;
+  bio?: string;
   national_id_number?: string;
   business_registration_id?: string;
   resume_url?: string;
@@ -15,6 +17,7 @@ export interface UserProfile {
   two_fa_enabled: boolean;
   terms_accepted: boolean;
   privacy_accepted: boolean;
+  profile_completion_percentage?: number;
   created_at: string;
   updated_at: string;
   role: {

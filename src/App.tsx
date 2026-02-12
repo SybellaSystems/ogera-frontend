@@ -34,6 +34,7 @@ import PendingReviews from "./pages/AcademicVerification/PendingReviews";
 import Approved from "./pages/AcademicVerification/Approved";
 import Rejected from "./pages/AcademicVerification/Rejected";
 import PerformanceTrack from "./pages/AcademicVerification/PerformanceTrack";
+import StudentPerformanceReport from "./pages/AcademicVerification/StudentPerformanceReport";
 import AccountLocks from "./pages/AcademicVerification/AccountLocks";
 
 // Jobs Pages
@@ -57,10 +58,14 @@ import Disputes from "./pages/Disputes";
 import OpenDisputes from "./pages/Disputes/OpenDisputes";
 import InProgress from "./pages/Disputes/InProgress";
 import ResolvedDisputes from "./pages/Disputes/Resolved";
+import CreateDispute from "./pages/Disputes/CreateDispute";
+import DisputeDetail from "./pages/Disputes/DisputeDetail";
+import MyDisputes from "./pages/Disputes/MyDisputes";
 
 // Other Pages
 import Analytics from "./pages/Analytics";
 import Transactions from "./pages/Transactions";
+import Notifications from "./pages/Notifications/Notifications";
 
 // Admin Pages
 import CreateAdmin from "./pages/Admin/CreateAdmin";
@@ -78,10 +83,12 @@ import useRefreshOnLoad from "./hooks/useRefreshOnLoad";
 import AddCourse from "./pages/Courses/AddCourse";
 import ViewCourse from "./pages/Courses/ViewCourse";
 import CourseDetail from "./pages/Courses/CourseDetail";
+import CourseAnalytics from "./pages/Courses/CourseAnalytics";
 
 function App() {
   const isLoading = useRefreshOnLoad();
-  const role = useSelector((state: any) => state.auth.role);
+  const roleRaw = useSelector((state: any) => state.auth.role);
+  const role = roleRaw ? String(roleRaw).toLowerCase().trim() : undefined;
 
   // Show loading spinner while checking authentication
   if (isLoading) {
@@ -97,7 +104,7 @@ function App() {
 
   // Decide layout based on role
   const DashboardLayout =
-    role === "admin" || role === "superadmin" || role === "verifyDocAdmin"
+    role === "admin" || role === "superadmin" || role === "verifydocadmin"
       ? AdminLayout
       : role === "student"
       ? StudentLayout
@@ -243,13 +250,21 @@ function App() {
               Component: PerformanceTrack,
             },
             {
+              path: "academic/performance/:studentId/report",
+              Component: StudentPerformanceReport,
+            },
+            {
               path: "academic/locks",
               Component: AccountLocks,
             },
             // Jobs Routes - Order matters: specific routes first, then dynamic routes
             {
+              path: "jobs",
+              element: <Navigate to="/dashboard/jobs/all" replace />,
+            },
+            {
               path: "jobs/create",
-              element: <ProtectedRoute allowedRoles={["employer", "superadmin"]} />,
+              element: <ProtectedRoute allowedRoles={["employer", "admin", "superadmin"]} />,
               children: [
                 {
                   index: true,
@@ -279,7 +294,7 @@ function App() {
             },
             {
               path: "jobs/applications",
-              element: <ProtectedRoute allowedRoles={["employer", "superadmin"]} />,
+              element: <ProtectedRoute allowedRoles={["employer", "admin", "superadmin"]} />,
               children: [
                 {
                   index: true,
@@ -315,7 +330,7 @@ function App() {
             },
             {
               path: "jobs/:id/edit",
-              element: <ProtectedRoute allowedRoles={["employer", "superadmin"]} />,
+              element: <ProtectedRoute allowedRoles={["employer", "admin", "superadmin"]} />,
               children: [
                 {
                   index: true,
@@ -325,7 +340,7 @@ function App() {
             },
             {
               path: "jobs/:id/applications",
-              element: <ProtectedRoute allowedRoles={["employer", "superadmin"]} />,
+              element: <ProtectedRoute allowedRoles={["employer", "admin", "superadmin"]} />,
               children: [
                 {
                   index: true,
@@ -342,6 +357,10 @@ function App() {
               path: "disputes",
               Component: Disputes,
             },
+             {
+              path: "disputes/create",
+              Component: CreateDispute,
+            },
             {
               path: "disputes/open",
               Component: OpenDisputes,
@@ -354,6 +373,14 @@ function App() {
               path: "disputes/resolved",
               Component: ResolvedDisputes,
             },
+            {
+              path: "disputes/my-disputes",
+              Component: MyDisputes,
+            },
+            {
+              path: "disputes/:id",
+              Component: DisputeDetail,
+            },
             // Other Routes
             {
               path: "analytics",
@@ -364,12 +391,36 @@ function App() {
               Component: Transactions,
             },
             {
+              path: "notifications",
+              Component: Notifications,
+            },
+            {
               path: "courses/add",
               Component: AddCourse,
             },
             {
               path: "courses/view",
               Component: ViewCourse,
+            },
+            {
+              path: "courses/analytics",
+              element: <ProtectedRoute allowedRoles={["employer", "superadmin", "superAdmin", "admin", "courseAdmin", "CourseAdmin"]} />,
+              children: [
+                {
+                  index: true,
+                  Component: CourseAnalytics,
+                },
+              ],
+            },
+            {
+              path: "courses/analytics/:courseId",
+              element: <ProtectedRoute allowedRoles={["employer", "superadmin", "superAdmin", "admin", "courseAdmin", "CourseAdmin"]} />,
+              children: [
+                {
+                  index: true,
+                  Component: CourseAnalytics,
+                },
+              ],
             },
             {
               path: "courses/:id",
@@ -399,7 +450,7 @@ const NotFound = () => (
       justifyContent: "center",
       height: "100vh",
       color: "#7F56D9",
-      fontFamily: "Inter, sans-serif",
+      fontFamily: "'Nunito', sans-serif",
     }}
   >
     <h1 style={{ fontSize: "50px", marginBottom: "20px" }}>404</h1>

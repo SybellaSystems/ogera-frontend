@@ -1,14 +1,16 @@
 import React from "react";
-import { CheckCircleIcon } from "@heroicons/react/24/outline";
+import { CheckCircleIcon, ArrowPathIcon, ExclamationCircleIcon, ClipboardDocumentListIcon } from "@heroicons/react/24/outline";
 import CustomTable, {
   type Column,
   type TableAction,
 } from "../../components/Table/CustomTable";
 import { Chip, Typography } from "@mui/material";
 import { Visibility as ViewIcon } from "@mui/icons-material";
+import { useGetDisputesQuery, type Dispute as ApiDispute } from "../../services/api/disputeApi";
+import { useNavigate } from "react-router-dom";
 
-interface Dispute {
-  id: number;
+interface DisputeRow {
+  id: string;
   type: string;
   student: string;
   employer: string;
@@ -18,28 +20,21 @@ interface Dispute {
 }
 
 const Resolved: React.FC = () => {
-  const disputes: Dispute[] = [
-    {
-      id: 1,
-      type: "Payment",
-      student: "Alice Brown",
-      employer: "WebDesign Co",
-      description: "Payment issue resolved with refund",
-      resolvedDate: "2024-03-05",
-      outcome: "Refunded",
-    },
-    {
-      id: 2,
-      type: "Quality",
-      student: "Tom Wilson",
-      employer: "App Builders",
-      description: "Quality dispute settled with additional work",
-      resolvedDate: "2024-03-03",
-      outcome: "Settled",
-    },
-  ];
+  const { data: disputesData, isLoading, error, refetch } = useGetDisputesQuery({ status: "Resolved" });
+  const navigate = useNavigate();
 
-  const columns: Column<Dispute>[] = [
+  // Transform API data to table format
+  const disputes: DisputeRow[] = (disputesData?.data || []).map((dispute: ApiDispute) => ({
+    id: dispute.dispute_id,
+    type: dispute.type,
+    student: dispute.student?.full_name || 'N/A',
+    employer: dispute.employer?.full_name || 'N/A',
+    description: dispute.description,
+    resolvedDate: dispute.resolved_at ? new Date(dispute.resolved_at).toLocaleDateString() : 'N/A',
+    outcome: dispute.outcome || 'Resolved',
+  }));
+
+  const columns: Column<DisputeRow>[] = [
     {
       id: "type",
       label: "Type",
@@ -57,11 +52,11 @@ const Resolved: React.FC = () => {
       ),
     },
     {
-      id: "description",
+      id: "title",
       label: "Description",
       minWidth: 250,
       format: (value) => (
-        <Typography sx={{ fontSize: "0.875rem", color: "#374151" }}>
+        <Typography sx={{ fontSize: "0.875rem", color: "#374151", fontWeight: 600 }}>
           {value}
         </Typography>
       ),
@@ -70,19 +65,27 @@ const Resolved: React.FC = () => {
       id: "student",
       label: "Student",
       minWidth: 150,
+        format: (value: any, row: any) => {
+        // If dispute was created by student, show name, otherwise show "-"
+        return row.reported_by === 'student' ? (value?.full_name || "N/A") : "-";
+      },
     },
     {
       id: "employer",
       label: "Employer",
       minWidth: 150,
+      format: (value: any, row: any) => {
+        // If dispute was created by employer, show name, otherwise show "-"
+        return row.reported_by === 'employer' ? (value?.full_name || "N/A") : "-";
+      },
     },
     {
-      id: "outcome",
+      id: "resolution",
       label: "Outcome",
       minWidth: 120,
       format: (value) => (
         <Chip
-          label={value}
+          label={value || "Pending"}
           size="small"
           sx={{
             bgcolor: "#d1fae5",
@@ -93,22 +96,52 @@ const Resolved: React.FC = () => {
       ),
     },
     {
-      id: "resolvedDate",
+      id: "resolved_at",
       label: "Resolved Date",
       minWidth: 130,
+            format: (value) => value ? new Date(value).toLocaleDateString() : "N/A",
     },
   ];
 
-  const actions: TableAction<Dispute>[] = [
+  const actions: TableAction<DisputeRow>[] = [
     {
       label: "View Details",
       icon: <ViewIcon fontSize="small" />,
       onClick: (row) => {
-        console.log("View resolved dispute:", row);
+                navigate(`/dashboard/disputes/${row.dispute_id}`);
       },
       color: "primary",
     },
   ];
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <ArrowPathIcon className="h-8 w-8 text-[#7F56D9] animate-spin" />
+        <span className="ml-2 text-gray-500">Loading resolved disputes...</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6 animate-fadeIn">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3">
+          <ExclamationCircleIcon className="h-6 w-6 text-red-500" />
+          <div>
+            <p className="text-sm font-medium text-red-800">Failed to load resolved disputes</p>
+            <p className="text-xs text-red-600 mt-1">Please try again later</p>
+          </div>
+          <button
+            onClick={() => refetch()}
+            className="ml-auto px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 rounded text-xs font-medium transition"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 animate-fadeIn">
@@ -123,8 +156,18 @@ const Resolved: React.FC = () => {
       </div>
 
       <div className="bg-green-50 border-l-4 border-green-500 p-4 rounded-lg">
-        <p className="text-green-800 font-medium text-sm md:text-base">
-          ✓ {disputes.length} disputes resolved this month
+        <p className="text-green-800 font-medium text-sm md:text-base flex items-center gap-2">
+          {disputes.length > 0 ? (
+            <>
+              <CheckCircleIcon className="h-5 w-5 text-green-600 flex-shrink-0" />
+              <span>{disputes.length} dispute{disputes.length > 1 ? 's' : ''} resolved</span>
+            </>
+          ) : (
+            <>
+              <ClipboardDocumentListIcon className="h-5 w-5 text-green-600 flex-shrink-0" />
+              <span>No resolved disputes yet</span>
+            </>
+          )}
         </p>
       </div>
 
@@ -142,4 +185,3 @@ const Resolved: React.FC = () => {
 };
 
 export default Resolved;
-
