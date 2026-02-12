@@ -33,9 +33,8 @@ const validationSchema = Yup.object({
     .max(255, "Job title must not exceed 255 characters")
     .required("Job title is required"),
   category: Yup.string()
-    .min(2, "Category must be at least 2 characters")
-    .max(100, "Category must not exceed 100 characters")
-    .required("Category is required"),
+    .required("Category is required")
+    .test("not-empty", "Please select a category", (value) => value !== "" && value !== undefined),
   budget: Yup.number()
     .positive("Budget must be a positive number")
     .required("Budget is required"),
@@ -62,7 +61,7 @@ const CreateJob: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const role = useSelector((state: any) => state.auth.role);
   useGetUserProfileQuery(undefined);
-  const { data: categoriesResponse } = useGetAllCategoriesQuery();
+  const { data: categoriesResponse, isLoading: isLoadingCategories, isError: isCategoriesError } = useGetAllCategoriesQuery();
   const isEditMode = !!id;
 
   // Fetch job data if editing
@@ -101,6 +100,28 @@ const CreateJob: React.FC = () => {
     validationSchema,
     onSubmit: async (values) => {
       try {
+        // Additional validation: ensure category is selected
+        if (!values.category || values.category.trim() === "") {
+          formik.setFieldError("category", "Please select a category");
+          formik.setFieldTouched("category", true);
+          toast.error("❌ Category is required to create a job");
+          return;
+        }
+
+        // Ensure categories are available
+        if (categories.length === 0) {
+          toast.error("📋 No categories available. Please create categories first.");
+          return;
+        }
+
+        // Verify selected category exists in the available categories
+        const categoryExists = categories.some((c: any) => c.name === values.category.trim());
+        if (!categoryExists) {
+          formik.setFieldError("category", "Selected category is no longer available");
+          toast.error("❌ Selected category is no longer available. Please select another category.");
+          return;
+        }
+
         const payload: any = {
           job_title: values.job_title.trim(),
           category: values.category.trim(),
@@ -259,28 +280,74 @@ const CreateJob: React.FC = () => {
 
         {/* Category */}
         <FormGroup>
-          <Label htmlFor="category">Category *</Label>
-          <Select
-            id="category"
-            name="category"
-            value={formik.values.category}
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-          >
-            <option value="">Select a category</option>
-            {categories.map((category: any) => (
-              <option key={category.category_id} value={category.name}>
-                {category.icon || "💼"} {category.name}
-              </option>
-            ))}
-          </Select>
-          {formik.touched.category && formik.errors.category && (
-            <ErrorText>{formik.errors.category}</ErrorText>
-          )}
-          {categories.length === 0 && (
-            <HelperText>
-              No categories available. Please create categories first from the Job Categories page.
-            </HelperText>
+          <Label htmlFor="category">
+            Category *
+          </Label>
+          {isLoadingCategories ? (
+            <div>
+              <Select id="category" name="category" disabled>
+                <option value="">Loading categories...</option>
+              </Select>
+              <HelperText>Please wait while categories are being loaded...</HelperText>
+            </div>
+          ) : isCategoriesError ? (
+            <div>
+              <Select id="category" name="category" disabled>
+                <option value="">Error loading categories</option>
+              </Select>
+              <ErrorText>⚠️ Failed to load categories. Please try refreshing the page or contact support.</ErrorText>
+            </div>
+          ) : categories.length === 0 ? (
+            <div>
+              <Select id="category" name="category" disabled style={{background: '#fef2f2', borderColor: '#fca5a5'}}>
+                <option value="">No categories available</option>
+              </Select>
+              <ErrorText>
+                📋 No categories available. Please create categories first.
+              </ErrorText>
+              <HelperText>
+                Only superadmins can create job categories. Ask your administrator to set up categories.
+              </HelperText>
+            </div>
+          ) : (
+            <div>
+              <Select
+                id="category"
+                name="category"
+                value={formik.values.category}
+                onChange={(e) => {
+                  formik.handleChange(e);
+                  // Clear error on change
+                  if (formik.errors.category) {
+                    formik.setFieldTouched("category", true);
+                  }
+                }}
+                onBlur={formik.handleBlur}
+                required
+                aria-required="true"
+                aria-describedby={formik.errors.category ? "category-error" : undefined}
+              >
+                <option value="">-- Select a category --</option>
+                {categories.map((category: any) => (
+                  <option key={category.category_id} value={category.name}>
+                    {category.icon || "💼"} {category.name}
+                  </option>
+                ))}
+              </Select>
+              {formik.touched.category && formik.errors.category && (
+                <ErrorText id="category-error" role="alert">
+                  ❌ {formik.errors.category}
+                </ErrorText>
+              )}
+              {!formik.errors.category && formik.values.category && (
+                <HelperText style={{color: '#16a34a', fontWeight: 500}}>
+                  ✓ Category selected
+                </HelperText>
+              )}
+              <HelperText>
+                Select the category that best describes this job position
+              </HelperText>
+            </div>
           )}
         </FormGroup>
 
@@ -573,7 +640,7 @@ const CreateJob: React.FC = () => {
           backgroundcolor="#7f56d9"
           type="submit"
           text={isCreating || isUpdating ? (isEditMode ? "Updating..." : "Creating...") : (isEditMode ? "Update Job" : "Create Job")}
-          disabled={isCreating || isUpdating || isLoadingJob}
+          disabled={isCreating || isUpdating || isLoadingJob || isLoadingCategories || categories.length === 0 || isCategoriesError}
         />
       </FormContainer>
     </Container>

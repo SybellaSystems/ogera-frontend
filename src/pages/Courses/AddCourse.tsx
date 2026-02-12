@@ -2,11 +2,11 @@ import React, { useState, useEffect } from "react";
 import { useFormik } from "formik";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import { BookOpenIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { BookOpenIcon, PlusIcon, TrashIcon, CloudArrowUpIcon } from "@heroicons/react/24/outline";
 import { styled } from "@mui/material/styles";
 import Button from "../../components/button";
 import * as Yup from "yup";
-import { useCreateCourseMutation, type CourseStep } from "../../services/api/coursesApi";
+import { useCreateCourseMutation, type CourseStep, uploadCourseContent } from "../../services/api/coursesApi";
 import type { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 
 interface AddCourseFormValues {
@@ -33,10 +33,18 @@ const validationSchema = Yup.object({
     .optional(),
 });
 
+interface StepUploadState {
+  inputType: "url" | "upload"; // Whether using URL or file upload
+  file: File | null;
+  isUploading: boolean;
+  uploadError: string | null;
+}
+
 const AddCourse: React.FC = () => {
   const navigate = useNavigate();
   const [steps, setSteps] = useState<CourseStep[]>([]);
-  const [createCourse, { isLoading: isSubmitting, isSuccess, data }] = useCreateCourseMutation();
+  const [stepUploadStates, setStepUploadStates] = useState<Record<number, StepUploadState>>({});
+  const [createCourse, { isLoading: isSubmitting,  isSuccess, data }] = useCreateCourseMutation();
 
   const initialValues: AddCourseFormValues = {
     course_name: "",
@@ -81,9 +89,111 @@ const AddCourse: React.FC = () => {
       toast.success(data?.message || "Course created successfully!");
       formik.resetForm();
       setSteps([]);
+      setStepUploadStates({});
       // Stay on the same page instead of navigating
     }
   }, [isSuccess, data]);
+
+  // Initialize upload state for a step
+  const initializeStepUploadState = (index: number) => {
+    if (!stepUploadStates[index]) {
+      setStepUploadStates((prev) => ({
+        ...prev,
+        [index]: {
+          inputType: "url",
+          file: null,
+          isUploading: false,
+          uploadError: null,
+        },
+      }));
+    }
+  };
+
+  // Handle file selection
+  const handleFileChange = async (index: number, file: File | null, stepType: CourseStep["step_type"]) => {
+    if (!file) return;
+
+    // Validate file type
+    if (stepType === "pdf" && file.type !== "application/pdf") {
+      toast.error("Please select a PDF file");
+      return;
+    }
+    if (stepType === "image" && !file.type.startsWith("image/")) {
+      toast.error("Please select an image file");
+      return;
+    }
+
+    // Validate file size (max 10MB)
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (file.size > maxSize) {
+      toast.error("File size must be less than 10MB");
+      return;
+    }
+
+    // Update state
+    setStepUploadStates((prev) => ({
+      ...prev,
+      [index]: {
+        ...prev[index],
+        file,
+        isUploading: true,
+        uploadError: null,
+      },
+    }));
+
+    try {
+      // Upload file
+      const response = await uploadCourseContent(file, stepType);
+      
+      if (response.success && response.data.file_url) {
+        // Update step content with the uploaded file URL
+        const newSteps = [...steps];
+        newSteps[index].step_content = response.data.file_url;
+        setSteps(newSteps);
+
+        // Update upload state
+        setStepUploadStates((prev) => ({
+          ...prev,
+          [index]: {
+            ...prev[index],
+            isUploading: false,
+            uploadError: null,
+          },
+        }));
+
+        toast.success("File uploaded successfully!");
+      } else {
+        throw new Error(response.message || "Upload failed");
+      }
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.message || error?.message || "Failed to upload file";
+      setStepUploadStates((prev) => ({
+        ...prev,
+        [index]: {
+          ...prev[index],
+          isUploading: false,
+          uploadError: errorMessage,
+        },
+      }));
+      toast.error(errorMessage);
+    }
+  };
+
+  // Handle input type change (URL vs Upload)
+  const handleInputTypeChange = (index: number, inputType: "url" | "upload") => {
+    setStepUploadStates((prev) => ({
+      ...prev,
+      [index]: {
+        ...prev[index] || { file: null, isUploading: false, uploadError: null },
+        inputType,
+      },
+    }));
+
+    // Clear step content when switching input types
+    const newSteps = [...steps];
+    newSteps[index].step_content = "";
+    setSteps(newSteps);
+  };
 
   return (
     <Container>
@@ -183,106 +293,204 @@ const AddCourse: React.FC = () => {
             </HelperText>
           </StepsHeader>
           
-          {steps.map((step, index) => (
-            <StepCard key={index}>
-              <StepHeader>
-                <StepNumber>Step {index + 1}</StepNumber>
-                <DeleteStepButton
-                  type="button"
-                  onClick={() => {
-                    const newSteps = steps.filter((_, i) => i !== index);
-                    setSteps(newSteps);
-                  }}
-                >
-                  <TrashIcon className="h-5 w-5" />
-                </DeleteStepButton>
-              </StepHeader>
-              
-              <FormGroup>
-                <Label htmlFor={`step_title_${index}`}>Step Title (Optional)</Label>
-                <Input
-                  id={`step_title_${index}`}
-                  value={step.step_title || ""}
-                  onChange={(e) => {
-                    const newSteps = [...steps];
-                    newSteps[index].step_title = e.target.value;
-                    setSteps(newSteps);
-                  }}
-                  placeholder="e.g., Introduction to HTML"
-                />
-              </FormGroup>
+          {steps.map((step, index) => {
+            // Initialize upload state if not exists
+            if (!stepUploadStates[index]) {
+              initializeStepUploadState(index);
+            }
+            const uploadState = stepUploadStates[index] || { inputType: "url" as const, file: null, isUploading: false, uploadError: null };
+            const supportsFileUpload = step.step_type === "pdf" || step.step_type === "image";
 
-              <FormGroup>
-                <Label htmlFor={`step_type_${index}`}>Step Type *</Label>
-                <Select
-                  id={`step_type_${index}`}
-                  value={step.step_type}
-                  onChange={(e) => {
-                    const newSteps = [...steps];
-                    newSteps[index].step_type = e.target.value as CourseStep["step_type"];
-                    newSteps[index].step_content = ""; // Reset content when type changes
-                    setSteps(newSteps);
-                  }}
-                >
-                  <option value="video">Watch YouTube Video</option>
-                  <option value="link">Read Link</option>
-                  <option value="pdf">Read PDF</option>
-                  <option value="image">View Image</option>
-                  <option value="text">Read Text</option>
-                </Select>
-              </FormGroup>
-
-              <FormGroup>
-                <Label htmlFor={`step_content_${index}`}>
-                  {step.step_type === "video" && "YouTube Video URL *"}
-                  {step.step_type === "link" && "Link URL *"}
-                  {step.step_type === "pdf" && "PDF URL *"}
-                  {step.step_type === "image" && "Image URL *"}
-                  {step.step_type === "text" && "Text Content *"}
-                </Label>
-                {step.step_type === "text" ? (
-                  <TextArea
-                    id={`step_content_${index}`}
-                    rows={4}
-                    value={step.step_content}
-                    onChange={(e) => {
-                      const newSteps = [...steps];
-                      newSteps[index].step_content = e.target.value;
+            return (
+              <StepCard key={index}>
+                <StepHeader>
+                  <StepNumber>Step {index + 1}</StepNumber>
+                  <DeleteStepButton
+                    type="button"
+                    onClick={() => {
+                      const newSteps = steps.filter((_, i) => i !== index);
                       setSteps(newSteps);
+                      // Clean up upload state
+                      const newUploadStates = { ...stepUploadStates };
+                      delete newUploadStates[index];
+                      setStepUploadStates(newUploadStates);
                     }}
-                    placeholder="Enter text content for this step..."
-                  />
-                ) : (
+                  >
+                    <TrashIcon className="h-5 w-5" />
+                  </DeleteStepButton>
+                </StepHeader>
+                
+                <FormGroup>
+                  <Label htmlFor={`step_title_${index}`}>Step Title (Optional)</Label>
                   <Input
-                    id={`step_content_${index}`}
-                    type="url"
-                    value={step.step_content}
+                    id={`step_title_${index}`}
+                    value={step.step_title || ""}
                     onChange={(e) => {
                       const newSteps = [...steps];
-                      newSteps[index].step_content = e.target.value;
+                      newSteps[index].step_title = e.target.value;
                       setSteps(newSteps);
                     }}
-                    placeholder={
-                      step.step_type === "video" 
-                        ? "e.g., https://www.youtube.com/watch?v=..." 
-                        : step.step_type === "link"
-                        ? "e.g., https://example.com/article"
-                        : step.step_type === "pdf"
-                        ? "e.g., https://example.com/document.pdf"
-                        : "e.g., https://example.com/image.jpg"
-                    }
+                    placeholder="e.g., Introduction to HTML"
                   />
+                </FormGroup>
+
+                <FormGroup>
+                  <Label htmlFor={`step_type_${index}`}>Step Type *</Label>
+                  <Select
+                    id={`step_type_${index}`}
+                    value={step.step_type}
+                    onChange={(e) => {
+                      const newSteps = [...steps];
+                      newSteps[index].step_type = e.target.value as CourseStep["step_type"];
+                      newSteps[index].step_content = ""; // Reset content when type changes
+                      setSteps(newSteps);
+                      // Reset upload state when type changes
+                      setStepUploadStates((prev) => ({
+                        ...prev,
+                        [index]: {
+                          inputType: "url",
+                          file: null,
+                          isUploading: false,
+                          uploadError: null,
+                        },
+                      }));
+                    }}
+                  >
+                    <option value="video">Watch YouTube Video</option>
+                    <option value="link">Read Link</option>
+                    <option value="pdf">Read PDF</option>
+                    <option value="image">View Image</option>
+                    <option value="text">Read Text</option>
+                  </Select>
+                </FormGroup>
+
+                {/* Input Type Selection (URL or Upload) - Only for PDF and Image */}
+                {supportsFileUpload && (
+                  <FormGroup>
+                    <Label>Content Source *</Label>
+                    <InputTypeContainer>
+                      <InputTypeOption>
+                        <input
+                          type="radio"
+                          id={`input_type_url_${index}`}
+                          name={`input_type_${index}`}
+                          checked={uploadState.inputType === "url"}
+                          onChange={() => handleInputTypeChange(index, "url")}
+                        />
+                        <label htmlFor={`input_type_url_${index}`}>Enter URL</label>
+                      </InputTypeOption>
+                      <InputTypeOption>
+                        <input
+                          type="radio"
+                          id={`input_type_upload_${index}`}
+                          name={`input_type_${index}`}
+                          checked={uploadState.inputType === "upload"}
+                          onChange={() => handleInputTypeChange(index, "upload")}
+                        />
+                        <label htmlFor={`input_type_upload_${index}`}>Upload from Computer</label>
+                      </InputTypeOption>
+                    </InputTypeContainer>
+                  </FormGroup>
                 )}
-                <HelperText>
-                  {step.step_type === "video" && "Enter a YouTube video URL"}
-                  {step.step_type === "link" && "Enter a web page URL"}
-                  {step.step_type === "pdf" && "Enter a PDF document URL"}
-                  {step.step_type === "image" && "Enter an image URL"}
-                  {step.step_type === "text" && "Enter the text content for this step"}
-                </HelperText>
-              </FormGroup>
-            </StepCard>
-          ))}
+
+                <FormGroup>
+                  <Label htmlFor={`step_content_${index}`}>
+                    {step.step_type === "video" && "YouTube Video URL *"}
+                    {step.step_type === "link" && "Link URL *"}
+                    {step.step_type === "pdf" && uploadState.inputType === "url" && "PDF URL *"}
+                    {step.step_type === "pdf" && uploadState.inputType === "upload" && "PDF File *"}
+                    {step.step_type === "image" && uploadState.inputType === "url" && "Image URL *"}
+                    {step.step_type === "image" && uploadState.inputType === "upload" && "Image File *"}
+                    {step.step_type === "text" && "Text Content *"}
+                  </Label>
+                  {step.step_type === "text" ? (
+                    <TextArea
+                      id={`step_content_${index}`}
+                      rows={4}
+                      value={step.step_content}
+                      onChange={(e) => {
+                        const newSteps = [...steps];
+                        newSteps[index].step_content = e.target.value;
+                        setSteps(newSteps);
+                      }}
+                      placeholder="Enter text content for this step..."
+                    />
+                  ) : supportsFileUpload && uploadState.inputType === "upload" ? (
+                    <FileUploadContainer>
+                      <FileInput
+                        id={`step_content_${index}`}
+                        type="file"
+                        accept={step.step_type === "pdf" ? "application/pdf" : "image/*"}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0] || null;
+                          handleFileChange(index, file, step.step_type);
+                        }}
+                        disabled={uploadState.isUploading}
+                      />
+                      <FileUploadLabel htmlFor={`step_content_${index}`}>
+                        {uploadState.isUploading ? (
+                          <>
+                            <CloudArrowUpIcon className="h-5 w-5 animate-pulse" />
+                            Uploading...
+                          </>
+                        ) : uploadState.file ? (
+                          <>
+                            <CloudArrowUpIcon className="h-5 w-5" />
+                            {uploadState.file.name}
+                          </>
+                        ) : (
+                          <>
+                            <CloudArrowUpIcon className="h-5 w-5" />
+                            Choose file to upload
+                          </>
+                        )}
+                      </FileUploadLabel>
+                      {uploadState.file && !uploadState.isUploading && (
+                        <FileInfo>
+                          {(uploadState.file.size / 1024 / 1024).toFixed(2)} MB
+                        </FileInfo>
+                      )}
+                      {uploadState.uploadError && (
+                        <ErrorText>{uploadState.uploadError}</ErrorText>
+                      )}
+                      {step.step_content && !uploadState.isUploading && (
+                        <SuccessText>✓ File uploaded successfully</SuccessText>
+                      )}
+                    </FileUploadContainer>
+                  ) : (
+                    <Input
+                      id={`step_content_${index}`}
+                      type="url"
+                      value={step.step_content}
+                      onChange={(e) => {
+                        const newSteps = [...steps];
+                        newSteps[index].step_content = e.target.value;
+                        setSteps(newSteps);
+                      }}
+                      placeholder={
+                        step.step_type === "video" 
+                          ? "e.g., https://www.youtube.com/watch?v=..." 
+                          : step.step_type === "link"
+                          ? "e.g., https://example.com/article"
+                          : step.step_type === "pdf"
+                          ? "e.g., https://example.com/document.pdf"
+                          : "e.g., https://example.com/image.jpg"
+                      }
+                    />
+                  )}
+                  <HelperText>
+                    {step.step_type === "video" && "Enter a YouTube video URL"}
+                    {step.step_type === "link" && "Enter a web page URL"}
+                    {step.step_type === "pdf" && uploadState.inputType === "url" && "Enter a PDF document URL"}
+                    {step.step_type === "pdf" && uploadState.inputType === "upload" && "Upload a PDF file from your computer (max 10MB)"}
+                    {step.step_type === "image" && uploadState.inputType === "url" && "Enter an image URL"}
+                    {step.step_type === "image" && uploadState.inputType === "upload" && "Upload an image file from your computer (max 10MB)"}
+                    {step.step_type === "text" && "Enter the text content for this step"}
+                  </HelperText>
+                </FormGroup>
+              </StepCard>
+            );
+          })}
 
           <AddStepButton
             type="button"
@@ -553,4 +761,82 @@ const AddStepButton = styled("button")`
     border-color: #7f56d9;
     color: #7f56d9;
   }
+`;
+
+const InputTypeContainer = styled("div")`
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+`;
+
+const InputTypeOption = styled("div")`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  input[type="radio"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: #7f56d9;
+  }
+
+  label {
+    font-size: 14px;
+    color: #374151;
+    cursor: pointer;
+    user-select: none;
+  }
+`;
+
+const FileUploadContainer = styled("div")`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+`;
+
+const FileInput = styled("input")`
+  display: none;
+`;
+
+const FileUploadLabel = styled("label")`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  background: #f9fafb;
+  border: 2px dashed #d1d5db;
+  border-radius: 8px;
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background: #f3f4f6;
+    border-color: #7f56d9;
+    color: #7f56d9;
+  }
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+`;
+
+const FileInfo = styled("div")`
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: -4px;
+`;
+
+const SuccessText = styled("div")`
+  font-size: 12px;
+  color: #10b981;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 `;

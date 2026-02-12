@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import {
   UserGroupIcon,
@@ -20,6 +20,13 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
+interface DashboardMetrics {
+  totalUsers: number;
+  totalStudents: number;
+  activeJobs: number;
+  totalEarnings: number;
+}
+
 const getGreeting = (): string => {
   const hour = new Date().getHours();
   if (hour < 12) return "Good morning";
@@ -29,51 +36,139 @@ const getGreeting = (): string => {
 
 const Dashboard: React.FC = () => {
   const user = useSelector((state: any) => state.auth.user);
-  const role = useSelector((state: any) => state.auth.role);
+  const roleRaw = useSelector((state: any) => state.auth.role);
+  const accessToken = useSelector((state: any) => state.auth.accessToken);
+  const role = roleRaw ? String(roleRaw).toLowerCase().trim() : undefined;
   const greeting = getGreeting();
+
+  // State for dashboard metrics
+  const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
+  const [metricsLoading, setMetricsLoading] = useState(false);
+  const [metricsError, setMetricsError] = useState<string | null>(null);
+  // Student-specific metrics fetched from backend
+  const [studentMetrics, setStudentMetrics] = useState<any | null>(null);
+  const [studentLoading, setStudentLoading] = useState(false);
+  const [studentError, setStudentError] = useState<string | null>(null);
+
+  // Fetch dashboard metrics for superadmin
+  useEffect(() => {
+    // Only superadmin should fetch these metrics
+    if (role === "superadmin") {
+      setMetricsLoading(true);
+      setMetricsError(null);
+      console.log("[Dashboard] Fetching metrics for superadmin...");
+      fetch("/api/dashboard/metrics", {
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
+      })
+        .then((res) => {
+          console.log("[Dashboard] Response status:", res.status);
+          return res.json();
+        })
+        .then((data) => {
+          console.log("[Dashboard] Response data:", data);
+          if (data && data.success && data.data) {
+            // Ensure the backend returned numeric values; do not coerce here.
+            const d = data.data as DashboardMetrics;
+            setMetrics(d);
+          } else {
+            console.warn("[Dashboard] Invalid response format:", data);
+            setMetrics(null);
+            setMetricsError("Invalid response format from server");
+          }
+        })
+        .catch((error) => {
+          console.error("[Dashboard] Failed to fetch dashboard metrics:", error);
+          setMetrics(null);
+          setMetricsError(String(error));
+        })
+        .finally(() => {
+          setMetricsLoading(false);
+        });
+    }
+  }, [role]);
+
+  // Fetch student-specific dashboard metrics
+  useEffect(() => {
+    if (role === 'student') {
+      setStudentLoading(true);
+      setStudentError(null);
+      fetch('/api/dashboard/student', {
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data && data.success && data.data) {
+            setStudentMetrics(data.data);
+          } else {
+            setStudentMetrics(null);
+            setStudentError('Invalid response from server');
+          }
+        })
+        .catch((err) => {
+          console.error('[Dashboard] Failed to fetch student metrics:', err);
+          setStudentMetrics(null);
+          setStudentError(String(err));
+        })
+        .finally(() => setStudentLoading(false));
+    }
+  }, [role, accessToken]);
 
   const getStats = () => {
     if (role === "student") {
+      // Use backend-provided student metrics when available
+      const appsValue = studentMetrics?.applications?.value ?? null;
+      const appsChange = studentMetrics?.applications?.change ?? null;
+      const earningsValue = studentMetrics?.earnings?.value ?? null;
+      const earningsCurrency = studentMetrics?.earnings?.currency ?? null;
+      const jobsCompletedValue = studentMetrics?.jobsCompleted?.value ?? null;
+      const interviewsValue = studentMetrics?.interviews?.value ?? null;
+
+      const formatNumber = (v: any) => {
+        if (v === null || v === undefined) return 'N/A';
+        if (typeof v === 'number') return v.toLocaleString();
+        return String(v);
+      };
+
       return [
         {
-          title: "Applications Sent",
-          value: "24",
-          change: "+4",
-          trending: "up" as const,
+          title: 'Applications Sent',
+          value: studentLoading ? '...' : (appsValue !== null ? formatNumber(appsValue) : (studentError ? 'Error' : (studentMetrics?.applications?.note || 'N/A'))),
+          change: appsChange !== null && appsChange !== undefined ? (appsChange >= 0 ? `+${appsChange}` : String(appsChange)) : undefined,
+          trending: appsChange !== null && appsChange !== undefined ? (appsChange >= 0 ? 'up' as const : 'down' as const) : 'up' as const,
           icon: <BriefcaseIcon className="h-4 w-4" />,
-          color: "text-indigo-600",
-          bg: "bg-indigo-50",
-          changeBg: "bg-green-50 text-green-700",
+          color: 'text-indigo-600',
+          bg: 'bg-indigo-50',
+          changeBg: 'bg-green-50 text-green-700',
         },
         {
-          title: "Jobs Completed",
-          value: "13",
-          change: "+3",
-          trending: "up" as const,
+          title: 'Jobs Completed',
+          value: studentLoading ? '...' : (jobsCompletedValue !== null && jobsCompletedValue !== undefined ? String(jobsCompletedValue) : (studentMetrics?.jobsCompleted?.note || 'N/A')),
+          change: undefined,
+          trending: 'up' as const,
           icon: <AcademicCapIcon className="h-4 w-4" />,
-          color: "text-emerald-600",
-          bg: "bg-emerald-50",
-          changeBg: "bg-green-50 text-green-700",
+          color: 'text-emerald-600',
+          bg: 'bg-emerald-50',
+          changeBg: 'bg-green-50 text-green-700',
         },
         {
-          title: "Interviews",
-          value: "3",
-          change: "+1",
-          trending: "up" as const,
+          title: 'Interviews',
+          value: studentLoading ? '...' : (interviewsValue !== null && interviewsValue !== undefined ? String(interviewsValue) : (studentMetrics?.interviews?.note || 'N/A')),
+          change: undefined,
+          trending: 'up' as const,
           icon: <UserGroupIcon className="h-4 w-4" />,
-          color: "text-orange-600",
-          bg: "bg-orange-50",
-          changeBg: "bg-green-50 text-green-700",
+          color: 'text-orange-600',
+          bg: 'bg-orange-50',
+          changeBg: 'bg-green-50 text-green-700',
         },
         {
-          title: "Earnings",
-          value: "$1,200",
-          change: "+15.3%",
-          trending: "up" as const,
+          title: 'Earnings',
+          value: studentLoading ? '...' : (earningsValue !== null ? `${earningsCurrency ?? '$'}${formatNumber(earningsValue)}` : (studentError ? 'Error' : 'N/A')),
+          change: undefined,
+          trending: 'up' as const,
           icon: <ChartBarIcon className="h-4 w-4" />,
-          color: "text-[#7F56D9]",
-          bg: "bg-purple-50",
-          changeBg: "bg-green-50 text-green-700",
+          color: 'text-[#7F56D9]',
+          bg: 'bg-purple-50',
+          changeBg: 'bg-green-50 text-green-700',
         },
       ];
     }
@@ -122,10 +217,19 @@ const Dashboard: React.FC = () => {
       ];
     }
     // superadmin / default
+    const formatNumber = (v: unknown) => {
+      if (v === null || v === undefined) return "N/A";
+      if (typeof v === "number") return v.toLocaleString();
+      // if value is a numeric string, still show it raw
+      if (!Number.isNaN(Number(v))) return String(v);
+      return String(v);
+    };
+
     return [
       {
         title: "Total Users",
-        value: "12,450",
+        // Show loading indicator while loading. When loaded, show exact number returned by API.
+        value: metricsLoading ? "..." : (metrics ? formatNumber(metrics.totalUsers) : (metricsError ? "Error" : "N/A")),
         change: "+12.5%",
         trending: "up" as const,
         icon: <UserGroupIcon className="h-4 w-4" />,
@@ -135,7 +239,7 @@ const Dashboard: React.FC = () => {
       },
       {
         title: "Total Students",
-        value: "8,120",
+        value: metricsLoading ? "..." : (metrics ? formatNumber(metrics.totalStudents) : (metricsError ? "Error" : "N/A")),
         change: "+8.2%",
         trending: "up" as const,
         icon: <AcademicCapIcon className="h-4 w-4" />,
@@ -145,7 +249,7 @@ const Dashboard: React.FC = () => {
       },
       {
         title: "Active Jobs",
-        value: "1,480",
+        value: metricsLoading ? "..." : (metrics ? formatNumber(metrics.activeJobs) : (metricsError ? "Error" : "N/A")),
         change: "-3.1%",
         trending: "down" as const,
         icon: <BriefcaseIcon className="h-4 w-4" />,
@@ -155,7 +259,7 @@ const Dashboard: React.FC = () => {
       },
       {
         title: "Total Earnings",
-        value: "$240,000",
+        value: metricsLoading ? "..." : (metrics ? (`$${formatNumber(metrics.totalEarnings)}`) : (metricsError ? "Error" : "N/A")),
         change: "+18.7%",
         trending: "up" as const,
         icon: <ChartBarIcon className="h-4 w-4" />,

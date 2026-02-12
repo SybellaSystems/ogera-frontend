@@ -2,6 +2,7 @@ import React, { useState, useMemo } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate, useLocation } from "react-router-dom";
 import { hasAnyPermission } from "../../utils/permissionUtils";
+import type { Role } from "../../utils/permissionUtils";
 import { SIDEBAR_MENU_CONFIG } from "../../config/sidebarMenuConfig";
 import {
   HomeIcon,
@@ -28,6 +29,7 @@ import {
   ShieldCheckIcon,
   PlusIcon,
   EyeIcon,
+  ListBulletIcon,
 } from "@heroicons/react/24/outline";
 
 interface SidebarProps {
@@ -43,13 +45,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const isActive = (path: string) => location.pathname === path;
   const isActiveGroup = (prefix: string) => location.pathname.startsWith(prefix);
 
-  const role = useSelector((state: any) => state.auth.role);
+  const roleRaw = useSelector((state: any) => state.auth.role) as Role | string | undefined;
   const permissions = useSelector((state: any) => state.auth.permissions);
+  const role = roleRaw ? String(roleRaw).toLowerCase().trim() : "";
 
   // Check if this is a built-in admin role (superadmin or exact "admin" roleName) that bypasses permissions
   // Note: Custom admin roles like "admin1", "admin2" etc. are NOT built-in admins and must check permissions
   const isBuiltInAdmin = role === "superadmin" || role === "admin";
-  
+
   // Check if this is a custom admin role (has roleType "admin" but roleName is not exactly "admin")
   // For custom admin roles, we only check permissions, not role-based checks
   const isCustomAdmin = !isBuiltInAdmin && permissions && Array.isArray(permissions) && permissions.length > 0;
@@ -127,8 +130,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               <h2 className="text-white font-bold text-lg">
                 Ogera
               </h2>
-              <p className="text-xs text-white/50 uppercase font-medium">
-                {role}
+                <p className="text-xs text-white/50 uppercase font-medium">
+                {String(roleRaw || "").toUpperCase()}
               </p>
             </div>
           </div>
@@ -1186,10 +1189,16 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             )}
 
           {/* Disputes - Student, Admin (not verifyDocAdmin, not employer) */}
-          {((role === "student" || isBuiltInAdmin) &&
+          {/* {((role === "student" || isBuiltInAdmin) &&
             role !== "verifyDocAdmin" &&
             role !== "employer" &&
-            (isBuiltInAdmin || hasAnyPermission(permissions, "/disputes", role))) && (
+            (isBuiltInAdmin || hasAnyPermission(permissions, "/disputes", role))) && ( */}
+                {(
+            isBuiltInAdmin || 
+            role === "superadmin" || 
+           (role !== "verifyDocAdmin" && hasAnyPermission(permissions, "/disputes", role)) ||
+           ((role === "student" || role === "employer") && hasAnyPermission(permissions, "/disputes", role))
+            ) && (
               <div>
                 <div
                   className={`flex items-center justify-between px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 group ${isActiveGroup("/dashboard/disputes") ? "bg-[#9F7AEA]/15 border-l-2 border-[#9F7AEA]" : "hover:bg-[#9F7AEA]/10"}`}
@@ -1203,9 +1212,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                       </span>
                       {isActiveGroup("/dashboard/disputes") && openMenu !== "disputes" && (
                         <span className="text-xs text-[#9F7AEA] font-medium">
+                                                    {location.pathname === "/dashboard/disputes" && "All Disputes"}
                           {location.pathname === "/dashboard/disputes/open" && "Open Disputes"}
                           {location.pathname === "/dashboard/disputes/in-progress" && "In Progress"}
                           {location.pathname === "/dashboard/disputes/resolved" && "Resolved"}
+                           {location.pathname === "/dashboard/disputes/create" && "Create Dispute"}
+                          {location.pathname.startsWith("/dashboard/disputes/detail") && "Dispute Detail"}
+                          {location.pathname === "/dashboard/disputes/my-disputes" && "My Disputes"}
                         </span>
                       )}
                     </div>
@@ -1221,75 +1234,77 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
                 {openMenu === "disputes" && (
                   <ul className="pl-11 space-y-1 text-sm mt-2 animate-fadeIn">
-                    <li
-                      className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
-                        isActive("/dashboard/disputes/open")
-                          ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
-                          : "hover:text-purple-300 hover:bg-[#9F7AEA]/10 text-white/60"
-                      }`}
-                      onClick={() =>
-                        handleNavigation("/dashboard/disputes/open")
-                      }
-                    >
-                      <ExclamationTriangleIcon className={`h-4 w-4 transition-colors ${
-                        isActive("/dashboard/disputes/open")
-                          ? "text-yellow-400"
-                          : "text-white/40 group-hover/item:text-yellow-400"
-                      }`} />
-                      <span className={`transition-colors ${
-                        isActive("/dashboard/disputes/open")
-                          ? "text-white font-medium"
-                          : "group-hover/item:text-white"
-                      }`}>
-                        Open Disputes
-                      </span>
-                    </li>
-                    <li
-                      className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
-                        isActive("/dashboard/disputes/in-progress")
-                          ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
-                          : "hover:text-purple-300 hover:bg-[#9F7AEA]/10 text-white/60"
-                      }`}
-                      onClick={() =>
-                        handleNavigation("/dashboard/disputes/in-progress")
-                      }
-                    >
-                      <ArrowPathIcon className={`h-4 w-4 transition-colors ${
-                        isActive("/dashboard/disputes/in-progress")
-                          ? "text-blue-400"
-                          : "text-white/40 group-hover/item:text-blue-400"
-                      }`} />
-                      <span className={`transition-colors ${
-                        isActive("/dashboard/disputes/in-progress")
-                          ? "text-white font-medium"
-                          : "group-hover/item:text-white"
-                      }`}>
-                        In Progress
-                      </span>
-                    </li>
-                    <li
-                      className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
-                        isActive("/dashboard/disputes/resolved")
-                          ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
-                          : "hover:text-purple-300 hover:bg-[#9F7AEA]/10 text-white/60"
-                      }`}
-                      onClick={() =>
-                        handleNavigation("/dashboard/disputes/resolved")
-                      }
-                    >
-                      <CheckCircleIcon className={`h-4 w-4 transition-colors ${
-                        isActive("/dashboard/disputes/resolved")
-                          ? "text-green-400"
-                          : "text-white/40 group-hover/item:text-green-400"
-                      }`} />
-                      <span className={`transition-colors ${
-                        isActive("/dashboard/disputes/resolved")
-                          ? "text-white font-medium"
-                          : "group-hover/item:text-white"
-                      }`}>
-                        Resolved
-                      </span>
-                    </li>
+                    {(role !== "student" && role !== "employer") && (
+                      <>
+                        <li
+                          className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
+                          onClick={() =>
+                            handleNavigation("/dashboard/disputes/open")
+                          }
+                        >
+                          <ExclamationTriangleIcon className="h-4 w-4 text-white/40 group-hover/item:text-yellow-400 transition-colors" />
+                          <span className="text-white/60 group-hover/item:text-white transition-colors">
+                            Open Disputes
+                          </span>
+                        </li>
+                        <li
+                          className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
+                          onClick={() =>
+                            handleNavigation("/dashboard/disputes/in-progress")
+                          }
+                        >
+                          <ArrowPathIcon className="h-4 w-4 text-white/40 group-hover/item:text-blue-400 transition-colors" />
+                          <span className="text-white/60 group-hover/item:text-white transition-colors">
+                            In Progress
+                          </span>
+                        </li>
+                        <li
+                          className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
+                          onClick={() =>
+                            handleNavigation("/dashboard/disputes/resolved")
+                          }
+                        >
+                          <CheckCircleIcon className="h-4 w-4 text-white/40 group-hover/item:text-green-400 transition-colors" />
+                          <span className="text-white/60 group-hover/item:text-white transition-colors">
+                            Resolved
+                          </span>
+                        </li>
+                        <li
+                        className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
+                        onClick={() => handleNavigation("/dashboard/disputes")}
+                        >
+                          <ListBulletIcon className="h-4 w-4 text-white/40 group-hover/item:text-purple-400 transition-colors" />
+                          <span className="text-white/60 group-hover/item:text-white transition-colors">
+                         All Disputes
+                         </span>
+                        </li>
+                      </>
+                    )}
+
+                   {/* Only show Create Dispute and My Disputes for students and employers */}
+                   {(role === "student" || role === "employer") && (
+                     <>
+                       <li
+                        className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
+                       onClick={() => handleNavigation("/dashboard/disputes/create")}
+                       >
+                         <PlusIcon className="h-4 w-4 text-white/40 group-hover/item:text-purple-400 transition-colors" />
+                          <span className="text-white/60 group-hover/item:text-white transition-colors">
+                         Create Dispute
+                         </span>
+                       </li>
+
+                      <li
+                       className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
+                      onClick={() => handleNavigation("/dashboard/disputes/my-disputes")}
+                      >
+                        <UsersIcon className="h-4 w-4 text-white/40 group-hover/item:text-purple-400 transition-colors" />
+                          <span className="text-white/60 group-hover/item:text-white transition-colors">
+                       My Disputes
+                       </span>
+                      </li>
+                     </>
+                   )}
                   </ul>
                 )}
               </div>
