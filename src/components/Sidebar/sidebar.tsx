@@ -114,17 +114,17 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       {/* Sidebar */}
       <div
         className={`
-          h-screen w-64 bg-[#101828] text-white flex flex-col fixed left-0 top-0
+          h-screen w-64 bg-[#1a1035] text-white flex flex-col fixed left-0 top-0
           overflow-y-auto scrollbar-hide shadow-2xl z-50 transition-transform duration-300
-          lg:translate-x-0 lg:rounded-tr-3xl lg:rounded-br-3xl border-r border-[#1D2939]
+          lg:translate-x-0 lg:rounded-tr-3xl lg:rounded-br-3xl border-r border-[#2d1b69]
           ${isOpen ? "translate-x-0" : "-translate-x-full"}
         `}
       >
         {/* Header / Logo */}
-        <div className="flex items-center justify-between p-6 border-b border-[#1D2939]">
+        <div className="flex items-center justify-between p-6 border-b border-[#2d1b69]">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-[#7F56D9] flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-[#7F56D9]/30">
-              O
+            <div className="h-10 w-10 rounded-xl bg-[#7F56D9] flex items-center justify-center shadow-lg shadow-[#7F56D9]/30 overflow-hidden">
+              <img src="/ogera_logo-removebg-preview.png" alt="Ogera" className="h-8 w-8 object-contain" />
             </div>
             <div>
               <h2 className="text-white font-bold text-lg">
@@ -138,7 +138,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           {/* Close button for mobile */}
           <button
             onClick={onClose}
-            className="lg:hidden text-white/70 hover:text-white transition-colors p-1 rounded-lg hover:bg-[#1D2939]"
+            className="lg:hidden text-white/70 hover:text-white transition-colors p-1 rounded-lg hover:bg-[#2d1b69]"
           >
             <XMarkIcon className="h-6 w-6" />
           </button>
@@ -286,29 +286,32 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                       Performance Track
                     </span>
                   </li>
-                  <li
-                    className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
-                      isActive("/dashboard/academic/locks")
-                        ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
-                        : "hover:text-purple-300 hover:bg-[#9F7AEA]/10 text-white/60"
-                    }`}
-                    onClick={() =>
-                      handleNavigation("/dashboard/academic/locks")
-                    }
-                  >
-                    <LockClosedIcon className={`h-4 w-4 transition-colors ${
-                      isActive("/dashboard/academic/locks")
-                        ? "text-[#9F7AEA]"
-                        : "text-white/40 group-hover/item:text-[#9F7AEA]"
-                    }`} />
-                    <span className={`transition-colors ${
-                      isActive("/dashboard/academic/locks")
-                        ? "text-white font-medium"
-                        : "group-hover/item:text-white"
-                    }`}>
-                      Account Locks
-                    </span>
-                  </li>
+                  {/* Account Locks - Admin only */}
+                  {isBuiltInAdmin && (
+                    <li
+                      className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
+                        isActive("/dashboard/academic/locks")
+                          ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
+                          : "hover:text-purple-300 hover:bg-[#9F7AEA]/10 text-white/60"
+                      }`}
+                      onClick={() =>
+                        handleNavigation("/dashboard/academic/locks")
+                      }
+                    >
+                      <LockClosedIcon className={`h-4 w-4 transition-colors ${
+                        isActive("/dashboard/academic/locks")
+                          ? "text-[#9F7AEA]"
+                          : "text-white/40 group-hover/item:text-[#9F7AEA]"
+                      }`} />
+                      <span className={`transition-colors ${
+                        isActive("/dashboard/academic/locks")
+                          ? "text-white font-medium"
+                          : "group-hover/item:text-white"
+                      }`}>
+                        Account Locks
+                      </span>
+                    </li>
+                  )}
                 </ul>
               )}
             </div>
@@ -832,29 +835,32 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                       Performance Track
                     </span>
                   </li>
-                  <li
-                    className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
-                      isActive("/dashboard/academic/locks")
-                        ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
-                        : "hover:text-purple-300 hover:bg-[#9F7AEA]/10 text-white/60"
-                    }`}
-                    onClick={() =>
-                      handleNavigation("/dashboard/academic/locks")
-                    }
-                  >
-                    <LockClosedIcon className={`h-4 w-4 transition-colors ${
-                      isActive("/dashboard/academic/locks")
-                        ? "text-[#9F7AEA]"
-                        : "text-white/40 group-hover/item:text-[#9F7AEA]"
-                    }`} />
-                    <span className={`transition-colors ${
-                      isActive("/dashboard/academic/locks")
-                        ? "text-white font-medium"
-                        : "group-hover/item:text-white"
-                    }`}>
-                      Account Locks
-                    </span>
-                  </li>
+                  {/* Account Locks - Admin only */}
+                  {isBuiltInAdmin && (
+                    <li
+                      className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
+                        isActive("/dashboard/academic/locks")
+                          ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
+                          : "hover:text-purple-300 hover:bg-[#9F7AEA]/10 text-white/60"
+                      }`}
+                      onClick={() =>
+                        handleNavigation("/dashboard/academic/locks")
+                      }
+                    >
+                      <LockClosedIcon className={`h-4 w-4 transition-colors ${
+                        isActive("/dashboard/academic/locks")
+                          ? "text-[#9F7AEA]"
+                          : "text-white/40 group-hover/item:text-[#9F7AEA]"
+                      }`} />
+                      <span className={`transition-colors ${
+                        isActive("/dashboard/academic/locks")
+                          ? "text-white font-medium"
+                          : "group-hover/item:text-white"
+                      }`}>
+                        Account Locks
+                      </span>
+                    </li>
+                  )}
                 </ul>
               )}
             </div>
@@ -1182,7 +1188,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                           Job Categories
                         </span>
                       </li>
-                    )}}
+                    )}
                   </ul>
                 )}
               </div>
@@ -1343,7 +1349,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           {visibleMenuItems
             .filter((menuConfig) => {
               // Skip items that are already shown in hardcoded sections above to avoid duplicates
-              
+
               // These menu items are hardcoded above, so exclude them from dynamic rendering
               const hardcodedMenuKeys = [
                 "jobs",           // Hardcoded Jobs menu
@@ -1352,17 +1358,22 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 "analytics",      // Hardcoded Analytics menu
                 "transactions",   // Hardcoded Transaction menu
               ];
-              
+
               // Role menu is hardcoded for superadmin
               if (role === "superadmin" && menuConfig.menuKey === "role") {
                 return false;
               }
-              
+
+              // Hide "Job Applications" tab for students - they should use "My Applications" instead
+              if (role === "student" && menuConfig.menuKey === "job-applications") {
+                return false;
+              }
+
               // Exclude all hardcoded menu items to prevent duplicates
               if (hardcodedMenuKeys.includes(menuConfig.menuKey)) {
                 return false;
               }
-              
+
               // Show all other permission-based menu items
               // For custom roles with JSON permissions, these items will be displayed here
               // (e.g., job-applications, notifications, etc.)

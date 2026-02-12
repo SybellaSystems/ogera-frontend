@@ -2,12 +2,10 @@ import React, { useState, useEffect } from "react";
 import { useFormik } from "formik";
 import { useCreateJobMutation, useUpdateJobMutation, useGetJobByIdQuery, type JobQuestion } from "../../services/api/jobsApi";
 import { useGetUserProfileQuery } from "../../services/api/authApi";
-import { useGetAllCategoriesQuery } from "../../services/api/jobCategoriesApi";
+// Work arrangement options
 import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
-import { BriefcaseIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
-import { styled } from "@mui/material/styles";
-import Button from "../../components/button";
+import { BriefcaseIcon, PlusIcon, XMarkIcon, HomeIcon, ArrowPathIcon, BuildingOfficeIcon, TruckIcon } from "@heroicons/react/24/outline";
 import type { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import * as Yup from "yup";
 import { useSelector } from "react-redux";
@@ -24,7 +22,7 @@ interface CreateJobFormValues {
   employment_type?: string;
   experience_level?: string;
   status?: "Pending" | "Active" | "Inactive" | "Completed";
-  employer_id?: string; // For superadmin only
+  employer_id?: string;
 }
 
 const validationSchema = Yup.object({
@@ -33,8 +31,9 @@ const validationSchema = Yup.object({
     .max(255, "Job title must not exceed 255 characters")
     .required("Job title is required"),
   category: Yup.string()
-    .required("Category is required")
-    .test("not-empty", "Please select a category", (value) => value !== "" && value !== undefined),
+    .min(2, "Work arrangement must be at least 2 characters")
+    .max(100, "Work arrangement must not exceed 100 characters")
+    .required("Work arrangement is required"),
   budget: Yup.number()
     .positive("Budget must be a positive number")
     .required("Budget is required"),
@@ -61,19 +60,23 @@ const CreateJob: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const role = useSelector((state: any) => state.auth.role);
   useGetUserProfileQuery(undefined);
-  const { data: categoriesResponse, isLoading: isLoadingCategories, isError: isCategoriesError } = useGetAllCategoriesQuery();
   const isEditMode = !!id;
 
-  // Fetch job data if editing
   const { data: jobData, isLoading: isLoadingJob } = useGetJobByIdQuery(id || "", {
     skip: !isEditMode,
   });
 
-  const categories = categoriesResponse?.data || [];
+  // Work arrangement options with SVG icons
+  const workArrangementOptions = [
+    { value: "Remote", label: "Remote", icon: HomeIcon },
+    { value: "Hybrid", label: "Hybrid", icon: ArrowPathIcon },
+    { value: "On-site", label: "On-site", icon: BuildingOfficeIcon },
+    { value: "Field", label: "Field Work", icon: TruckIcon },
+  ];
 
   const [createJob, { isLoading: isCreating, isError: isCreateError, error: createError, isSuccess: isCreateSuccess, data: createData }] =
     useCreateJobMutation();
-  
+
   const [updateJob, { isLoading: isUpdating, isError: isUpdateError, error: updateError, isSuccess: isUpdateSuccess, data: updateData }] =
     useUpdateJobMutation();
 
@@ -98,27 +101,14 @@ const CreateJob: React.FC = () => {
   const formik = useFormik<CreateJobFormValues>({
     initialValues,
     validationSchema,
+    enableReinitialize: true,
     onSubmit: async (values) => {
       try {
-        // Additional validation: ensure category is selected
+        // Additional validation: ensure work arrangement is selected
         if (!values.category || values.category.trim() === "") {
-          formik.setFieldError("category", "Please select a category");
+          formik.setFieldError("category", "Please select a work arrangement");
           formik.setFieldTouched("category", true);
-          toast.error("❌ Category is required to create a job");
-          return;
-        }
-
-        // Ensure categories are available
-        if (categories.length === 0) {
-          toast.error("📋 No categories available. Please create categories first.");
-          return;
-        }
-
-        // Verify selected category exists in the available categories
-        const categoryExists = categories.some((c: any) => c.name === values.category.trim());
-        if (!categoryExists) {
-          formik.setFieldError("category", "Selected category is no longer available");
-          toast.error("❌ Selected category is no longer available. Please select another category.");
+          toast.error("Work arrangement is required to create a job");
           return;
         }
 
@@ -131,7 +121,6 @@ const CreateJob: React.FC = () => {
           status: values.status || "Pending",
         };
 
-        // Add optional fields if provided
         if (values.description?.trim()) {
           payload.description = values.description.trim();
         }
@@ -148,12 +137,10 @@ const CreateJob: React.FC = () => {
           payload.experience_level = values.experience_level.trim();
         }
 
-        // For superadmin, allow setting employer_id
         if (role === "superadmin" && values.employer_id?.trim()) {
           payload.employer_id = values.employer_id.trim();
         }
 
-        // Add questions if any
         if (questions.length > 0) {
           payload.questions = questions.map((q, index) => ({
             question_text: q.question_text,
@@ -177,9 +164,8 @@ const CreateJob: React.FC = () => {
 
   const { resetForm } = formik;
 
-  // Update form when job data loads
   useEffect(() => {
-    if (isEditMode && job && formik.values.job_title === "") {
+    if (isEditMode && job) {
       formik.setValues({
         job_title: job.job_title || "",
         category: job.category || "",
@@ -194,7 +180,6 @@ const CreateJob: React.FC = () => {
         status: job.status || "Active",
         employer_id: "",
       });
-      // Load questions if they exist
       if (job.questions && job.questions.length > 0) {
         setQuestions(job.questions.map(q => ({
           question_text: q.question_text,
@@ -226,640 +211,454 @@ const CreateJob: React.FC = () => {
       toast.success(data?.message || `Job ${isEditMode ? "updated" : "created"} successfully!`);
       if (!isEditMode) {
         resetForm();
+        setQuestions([]);
       }
       navigate("/dashboard/jobs/all");
     }
   }, [isCreateSuccess, createData, isUpdateSuccess, updateData, isEditMode, resetForm, navigate]);
 
+  if (isLoadingJob && isEditMode) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#6941C6]"></div>
+      </div>
+    );
+  }
+
   return (
-    <Container>
-      <FormContainer onSubmit={formik.handleSubmit}>
-        <Header>
-          <IconWrapper>
-            <BriefcaseIcon className="h-8 w-8 text-purple-600" />
-          </IconWrapper>
-          <Title>{isEditMode ? "Edit Job" : "Create Job"}</Title>
-          <Subtitle>
-            {isEditMode ? "Update job posting details." : "Create a new job posting."} {role === "employer" ? "This job will be associated with your account." : "You can assign this job to any employer."}
-          </Subtitle>
-        </Header>
-
-        {/* Employer ID - Only for superadmin */}
-        {role === "superadmin" && (
-          <FormGroup>
-            <Label htmlFor="employer_id">Employer ID (Optional)</Label>
-            <Input
-              id="employer_id"
-              name="employer_id"
-              placeholder="Enter employer user ID (leave empty to assign to yourself)"
-              value={formik.values.employer_id}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-            />
-            <HelperText>
-              Leave empty to create the job for yourself, or enter an employer's user ID
-            </HelperText>
-          </FormGroup>
-        )}
-
-        {/* Job Title */}
-        <FormGroup>
-          <Label htmlFor="job_title">Job Title *</Label>
-          <Input
-            id="job_title"
-            name="job_title"
-            placeholder="e.g., Full Stack Developer"
-            value={formik.values.job_title}
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-          />
-          {formik.touched.job_title && formik.errors.job_title && (
-            <ErrorText>{formik.errors.job_title}</ErrorText>
-          )}
-        </FormGroup>
-
-        {/* Category */}
-        <FormGroup>
-          <Label htmlFor="category">
-            Category *
-          </Label>
-          {isLoadingCategories ? (
-            <div>
-              <Select id="category" name="category" disabled>
-                <option value="">Loading categories...</option>
-              </Select>
-              <HelperText>Please wait while categories are being loaded...</HelperText>
+    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-3xl mx-auto">
+        <form onSubmit={formik.handleSubmit} className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+          {/* Header */}
+          <div className="bg-gradient-to-r from-[#2d1b69] to-[#1a1035] px-6 py-5">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-white/20 rounded-lg">
+                <BriefcaseIcon className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-white">
+                  {isEditMode ? "Edit Job" : "Create New Job"}
+                </h1>
+                <p className="text-purple-100 text-sm">
+                  {isEditMode ? "Update job posting details" : "Fill in the details to post a new job"}
+                </p>
+              </div>
             </div>
-          ) : isCategoriesError ? (
-            <div>
-              <Select id="category" name="category" disabled>
-                <option value="">Error loading categories</option>
-              </Select>
-              <ErrorText>⚠️ Failed to load categories. Please try refreshing the page or contact support.</ErrorText>
-            </div>
-          ) : categories.length === 0 ? (
-            <div>
-              <Select id="category" name="category" disabled style={{background: '#fef2f2', borderColor: '#fca5a5'}}>
-                <option value="">No categories available</option>
-              </Select>
-              <ErrorText>
-                📋 No categories available. Please create categories first.
-              </ErrorText>
-              <HelperText>
-                Only superadmins can create job categories. Ask your administrator to set up categories.
-              </HelperText>
-            </div>
-          ) : (
-            <div>
-              <Select
-                id="category"
-                name="category"
-                value={formik.values.category}
-                onChange={(e) => {
-                  formik.handleChange(e);
-                  // Clear error on change
-                  if (formik.errors.category) {
-                    formik.setFieldTouched("category", true);
-                  }
-                }}
-                onBlur={formik.handleBlur}
-                required
-                aria-required="true"
-                aria-describedby={formik.errors.category ? "category-error" : undefined}
-              >
-                <option value="">-- Select a category --</option>
-                {categories.map((category: any) => (
-                  <option key={category.category_id} value={category.name}>
-                    {category.icon || "💼"} {category.name}
-                  </option>
-                ))}
-              </Select>
-              {formik.touched.category && formik.errors.category && (
-                <ErrorText id="category-error" role="alert">
-                  ❌ {formik.errors.category}
-                </ErrorText>
-              )}
-              {!formik.errors.category && formik.values.category && (
-                <HelperText style={{color: '#16a34a', fontWeight: 500}}>
-                  ✓ Category selected
-                </HelperText>
-              )}
-              <HelperText>
-                Select the category that best describes this job position
-              </HelperText>
-            </div>
-          )}
-        </FormGroup>
+          </div>
 
-        {/* Budget */}
-        <FormGroup>
-          <Label htmlFor="budget">Budget *</Label>
-          <Input
-            id="budget"
-            name="budget"
-            type="number"
-            step="0.01"
-            min="0"
-            placeholder="e.g., 5000.00"
-            value={formik.values.budget}
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-          />
-          {formik.touched.budget && formik.errors.budget && (
-            <ErrorText>{formik.errors.budget}</ErrorText>
-          )}
-        </FormGroup>
-
-        {/* Duration */}
-        <FormGroup>
-          <Label htmlFor="duration">Duration *</Label>
-          <Input
-            id="duration"
-            name="duration"
-            placeholder="e.g., 3 months, 6 months, 1 year"
-            value={formik.values.duration}
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-          />
-          {formik.touched.duration && formik.errors.duration && (
-            <ErrorText>{formik.errors.duration}</ErrorText>
-          )}
-        </FormGroup>
-
-        {/* Location */}
-        <FormGroup>
-          <Label htmlFor="location">Location *</Label>
-          <Input
-            id="location"
-            name="location"
-            placeholder="e.g., New York, NY or Remote"
-            value={formik.values.location}
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-          />
-          {formik.touched.location && formik.errors.location && (
-            <ErrorText>{formik.errors.location}</ErrorText>
-          )}
-        </FormGroup>
-
-        {/* Description */}
-        <FormGroup>
-          <Label htmlFor="description">Description (Optional)</Label>
-          <TextArea
-            id="description"
-            name="description"
-            rows={4}
-            placeholder="Enter job description..."
-            value={formik.values.description}
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-          />
-          {formik.touched.description && formik.errors.description && (
-            <ErrorText>{formik.errors.description}</ErrorText>
-          )}
-        </FormGroup>
-
-        {/* Requirements */}
-        <FormGroup>
-          <Label htmlFor="requirements">Requirements (Optional)</Label>
-          <TextArea
-            id="requirements"
-            name="requirements"
-            rows={3}
-            placeholder="Enter job requirements..."
-            value={formik.values.requirements}
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-          />
-          {formik.touched.requirements && formik.errors.requirements && (
-            <ErrorText>{formik.errors.requirements}</ErrorText>
-          )}
-        </FormGroup>
-
-        {/* Skills */}
-        <FormGroup>
-          <Label htmlFor="skills">Skills (Optional)</Label>
-          <Input
-            id="skills"
-            name="skills"
-            placeholder="e.g., React, Node.js, TypeScript"
-            value={formik.values.skills}
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-          />
-          {formik.touched.skills && formik.errors.skills && (
-            <ErrorText>{formik.errors.skills}</ErrorText>
-          )}
-        </FormGroup>
-
-        {/* Employment Type */}
-        <FormGroup>
-          <Label htmlFor="employment_type">Employment Type (Optional)</Label>
-          <Select
-            id="employment_type"
-            name="employment_type"
-            value={formik.values.employment_type}
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-          >
-            <option value="">Select employment type</option>
-            <option value="Full-time">Full-time</option>
-            <option value="Part-time">Part-time</option>
-            <option value="Contract">Contract</option>
-            <option value="Freelance">Freelance</option>
-            <option value="Internship">Internship</option>
-          </Select>
-          {formik.touched.employment_type && formik.errors.employment_type && (
-            <ErrorText>{formik.errors.employment_type}</ErrorText>
-          )}
-        </FormGroup>
-
-        {/* Experience Level */}
-        <FormGroup>
-          <Label htmlFor="experience_level">Experience Level (Optional)</Label>
-          <Select
-            id="experience_level"
-            name="experience_level"
-            value={formik.values.experience_level}
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-          >
-            <option value="">Select experience level</option>
-            <option value="Entry Level">Entry Level</option>
-            <option value="Mid Level">Mid Level</option>
-            <option value="Senior Level">Senior Level</option>
-            <option value="Executive">Executive</option>
-          </Select>
-          {formik.touched.experience_level && formik.errors.experience_level && (
-            <ErrorText>{formik.errors.experience_level}</ErrorText>
-          )}
-        </FormGroup>
-
-        {/* Status - Only for superadmin */}
-        {role === "superadmin" && (
-          <FormGroup>
-            <Label htmlFor="status">Status</Label>
-            <Select
-              id="status"
-              name="status"
-              value={formik.values.status}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-            >
-              <option value="Pending">Pending</option>
-              <option value="Active">Active</option>
-              <option value="Completed">Completed</option>
-            </Select>
-            {formik.touched.status && formik.errors.status && (
-              <ErrorText>{formik.errors.status}</ErrorText>
+          <div className="p-6 space-y-6">
+            {/* Employer ID - Only for superadmin */}
+            {role === "superadmin" && (
+              <div>
+                <label htmlFor="employer_id" className="block text-sm font-medium text-gray-700 mb-1">
+                  Employer ID (Optional)
+                </label>
+                <input
+                  id="employer_id"
+                  name="employer_id"
+                  type="text"
+                  placeholder="Enter employer user ID (leave empty for yourself)"
+                  value={formik.values.employer_id}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6941C6] focus:border-[#6941C6] transition-all text-sm"
+                />
+                <p className="text-xs text-gray-500 mt-1">Leave empty to create for yourself</p>
+              </div>
             )}
-          </FormGroup>
-        )}
 
-        {/* Questions Section */}
-        <QuestionsSection>
-          <QuestionsHeader>
-            <Label>Application Questions (Optional)</Label>
-            <HelperText>
-              Add questions that applicants must answer when applying for this job
-            </HelperText>
-          </QuestionsHeader>
-          
-          {questions.map((question, index) => (
-            <QuestionCard key={index}>
-              <QuestionHeader>
-                <QuestionNumber>Question {index + 1}</QuestionNumber>
-                <DeleteButton
+            {/* Two column layout for basic fields */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Job Title */}
+              <div className="md:col-span-2">
+                <label htmlFor="job_title" className="block text-sm font-medium text-gray-700 mb-1">
+                  Job Title <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="job_title"
+                  name="job_title"
+                  type="text"
+                  placeholder="e.g., Full Stack Developer"
+                  value={formik.values.job_title}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-[#6941C6] focus:border-[#6941C6] transition-all text-sm ${
+                    formik.touched.job_title && formik.errors.job_title ? "border-red-500" : "border-gray-300"
+                  }`}
+                />
+                {formik.touched.job_title && formik.errors.job_title && (
+                  <p className="text-xs text-red-500 mt-1">{formik.errors.job_title}</p>
+                )}
+              </div>
+
+              {/* Work Arrangement (Category) */}
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Work Arrangement <span className="text-red-500">*</span>
+                </label>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                  {workArrangementOptions.map((option) => {
+                    const IconComponent = option.icon;
+                    const isSelected = formik.values.category === option.value;
+                    return (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => formik.setFieldValue("category", option.value)}
+                        className={`flex flex-col items-center gap-1.5 p-3 rounded-lg border-2 transition-all cursor-pointer ${
+                          isSelected
+                            ? "border-[#6941C6] bg-[#f5f0fc] text-[#6941C6]"
+                            : "border-gray-200 hover:border-[#ddd0ec] hover:bg-[#f5f0fc]/50 text-gray-600"
+                        }`}
+                      >
+                        <IconComponent className={`h-5 w-5 ${isSelected ? "text-[#6941C6]" : "text-gray-500"}`} />
+                        <span className="text-xs font-medium">{option.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                {formik.touched.category && formik.errors.category && (
+                  <p className="text-xs text-red-500 mt-1">{formik.errors.category}</p>
+                )}
+              </div>
+
+              {/* Budget */}
+              <div>
+                <label htmlFor="budget" className="block text-sm font-medium text-gray-700 mb-1">
+                  Budget (RWF) <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="budget"
+                  name="budget"
+                  type="number"
+                  step="1000"
+                  min="0"
+                  placeholder="e.g., 500000"
+                  value={formik.values.budget}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-[#6941C6] focus:border-[#6941C6] transition-all text-sm ${
+                    formik.touched.budget && formik.errors.budget ? "border-red-500" : "border-gray-300"
+                  }`}
+                />
+                {formik.touched.budget && formik.errors.budget && (
+                  <p className="text-xs text-red-500 mt-1">{formik.errors.budget}</p>
+                )}
+              </div>
+
+              {/* Duration */}
+              <div>
+                <label htmlFor="duration" className="block text-sm font-medium text-gray-700 mb-1">
+                  Duration <span className="text-red-500">*</span>
+                </label>
+                <select
+                  id="duration"
+                  name="duration"
+                  value={formik.values.duration}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-[#6941C6] focus:border-[#6941C6] transition-all text-sm bg-white cursor-pointer ${
+                    formik.touched.duration && formik.errors.duration ? "border-red-500" : "border-gray-300"
+                  }`}
+                >
+                  <option value="">Select duration</option>
+                  <option value="1 month">1 Month</option>
+                  <option value="2 months">2 Months</option>
+                  <option value="3 months">3 Months</option>
+                  <option value="6 months">6 Months</option>
+                  <option value="1 year">1 Year</option>
+                  <option value="2 years">2 Years</option>
+                  <option value="Permanent">Permanent</option>
+                </select>
+                {formik.touched.duration && formik.errors.duration && (
+                  <p className="text-xs text-red-500 mt-1">{formik.errors.duration}</p>
+                )}
+              </div>
+
+              {/* Location */}
+              <div>
+                <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-1">
+                  Location <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="location"
+                  name="location"
+                  type="text"
+                  placeholder="e.g., Kigali, Rwanda or Remote"
+                  value={formik.values.location}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-[#6941C6] focus:border-[#6941C6] transition-all text-sm ${
+                    formik.touched.location && formik.errors.location ? "border-red-500" : "border-gray-300"
+                  }`}
+                />
+                {formik.touched.location && formik.errors.location && (
+                  <p className="text-xs text-red-500 mt-1">{formik.errors.location}</p>
+                )}
+              </div>
+
+              {/* Employment Type */}
+              <div>
+                <label htmlFor="employment_type" className="block text-sm font-medium text-gray-700 mb-1">
+                  Employment Type
+                </label>
+                <select
+                  id="employment_type"
+                  name="employment_type"
+                  value={formik.values.employment_type}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6941C6] focus:border-[#6941C6] transition-all text-sm bg-white cursor-pointer"
+                >
+                  <option value="">Select type</option>
+                  <option value="Full-time">Full-time</option>
+                  <option value="Part-time">Part-time</option>
+                  <option value="Contract">Contract</option>
+                  <option value="Freelance">Freelance</option>
+                  <option value="Internship">Internship</option>
+                </select>
+              </div>
+
+              {/* Experience Level */}
+              <div>
+                <label htmlFor="experience_level" className="block text-sm font-medium text-gray-700 mb-1">
+                  Experience Level
+                </label>
+                <select
+                  id="experience_level"
+                  name="experience_level"
+                  value={formik.values.experience_level}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6941C6] focus:border-[#6941C6] transition-all text-sm bg-white cursor-pointer"
+                >
+                  <option value="">Select level</option>
+                  <option value="Entry Level">Entry Level</option>
+                  <option value="Mid Level">Mid Level</option>
+                  <option value="Senior Level">Senior Level</option>
+                  <option value="Executive">Executive</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Description */}
+            <div>
+              <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+                Job Description
+              </label>
+              <textarea
+                id="description"
+                name="description"
+                rows={4}
+                placeholder="Describe the job role, responsibilities, and what you're looking for..."
+                value={formik.values.description}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6941C6] focus:border-[#6941C6] transition-all text-sm resize-none"
+              />
+            </div>
+
+            {/* Requirements */}
+            <div>
+              <label htmlFor="requirements" className="block text-sm font-medium text-gray-700 mb-1">
+                Requirements
+              </label>
+              <textarea
+                id="requirements"
+                name="requirements"
+                rows={3}
+                placeholder="List the requirements and qualifications needed..."
+                value={formik.values.requirements}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6941C6] focus:border-[#6941C6] transition-all text-sm resize-none"
+              />
+            </div>
+
+            {/* Skills */}
+            <div>
+              <label htmlFor="skills" className="block text-sm font-medium text-gray-700 mb-1">
+                Required Skills
+              </label>
+              <input
+                id="skills"
+                name="skills"
+                type="text"
+                placeholder="e.g., React, Node.js, TypeScript (comma-separated)"
+                value={formik.values.skills}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6941C6] focus:border-[#6941C6] transition-all text-sm"
+              />
+            </div>
+
+            {/* Status - Only for superadmin */}
+            {role === "superadmin" && (
+              <div>
+                <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
+                  Status
+                </label>
+                <select
+                  id="status"
+                  name="status"
+                  value={formik.values.status}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6941C6] focus:border-[#6941C6] transition-all text-sm bg-white cursor-pointer"
+                >
+                  <option value="Pending">Pending</option>
+                  <option value="Active">Active</option>
+                  <option value="Inactive">Inactive</option>
+                  <option value="Completed">Completed</option>
+                </select>
+              </div>
+            )}
+
+            {/* Questions Section */}
+            <div className="border-t border-gray-200 pt-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-900">Application Questions</h3>
+                  <p className="text-xs text-gray-500">Add custom questions for applicants (optional)</p>
+                </div>
+                <button
                   type="button"
                   onClick={() => {
-                    const newQuestions = questions.filter((_, i) => i !== index);
-                    setQuestions(newQuestions);
+                    setQuestions([
+                      ...questions,
+                      {
+                        question_text: "",
+                        question_type: "text",
+                        is_required: false,
+                        display_order: questions.length,
+                      },
+                    ]);
                   }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-[#f5f0fc] hover:bg-[#ede7f8] text-[#6941C6] rounded-lg text-sm font-medium transition-colors cursor-pointer"
                 >
-                  <TrashIcon className="h-5 w-5" />
-                </DeleteButton>
-              </QuestionHeader>
-              
-              <FormGroup>
-                <Label htmlFor={`question_text_${index}`}>Question Text *</Label>
-                <Input
-                  id={`question_text_${index}`}
-                  value={question.question_text}
-                  onChange={(e) => {
-                    const newQuestions = [...questions];
-                    newQuestions[index].question_text = e.target.value;
-                    setQuestions(newQuestions);
-                  }}
-                  placeholder="e.g., How many years of experience do you have?"
-                />
-              </FormGroup>
+                  <PlusIcon className="h-4 w-4" />
+                  Add Question
+                </button>
+              </div>
 
-              <FormGroup>
-                <Label htmlFor={`question_type_${index}`}>Question Type *</Label>
-                <Select
-                  id={`question_type_${index}`}
-                  value={question.question_type}
-                  onChange={(e) => {
-                    const newQuestions = [...questions];
-                    newQuestions[index].question_type = e.target.value as JobQuestion["question_type"];
-                    if (e.target.value !== "multiple_choice") {
-                      delete newQuestions[index].options;
-                    }
-                    setQuestions(newQuestions);
-                  }}
-                >
-                  <option value="text">Text</option>
-                  <option value="number">Number</option>
-                  <option value="yes_no">Yes/No</option>
-                  <option value="multiple_choice">Multiple Choice</option>
-                </Select>
-              </FormGroup>
+              {questions.length > 0 && (
+                <div className="space-y-4">
+                  {questions.map((question, index) => (
+                    <div key={index} className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-sm font-medium text-[#6941C6]">Question {index + 1}</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newQuestions = questions.filter((_, i) => i !== index);
+                            setQuestions(newQuestions);
+                          }}
+                          className="p-1 text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                        >
+                          <XMarkIcon className="h-4 w-4" />
+                        </button>
+                      </div>
 
-              {question.question_type === "multiple_choice" && (
-                <FormGroup>
-                  <Label htmlFor={`question_options_${index}`}>
-                    Options (comma-separated) *
-                  </Label>
-                  <Input
-                    id={`question_options_${index}`}
-                    value={Array.isArray(question.options) 
-                      ? question.options.join(", ") 
-                      : typeof question.options === "string" 
-                        ? question.options 
-                        : ""}
-                    onChange={(e) => {
-                      const newQuestions = [...questions];
-                      newQuestions[index].options = e.target.value;
-                      setQuestions(newQuestions);
-                    }}
-                    placeholder="e.g., Option 1, Option 2, Option 3"
-                  />
-                </FormGroup>
+                      <div className="space-y-3">
+                        <input
+                          type="text"
+                          value={question.question_text}
+                          onChange={(e) => {
+                            const newQuestions = [...questions];
+                            newQuestions[index].question_text = e.target.value;
+                            setQuestions(newQuestions);
+                          }}
+                          placeholder="Enter your question..."
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6941C6] focus:border-[#6941C6] text-sm"
+                        />
+
+                        <div className="flex gap-3">
+                          <select
+                            value={question.question_type}
+                            onChange={(e) => {
+                              const newQuestions = [...questions];
+                              newQuestions[index].question_type = e.target.value as JobQuestion["question_type"];
+                              if (e.target.value !== "multiple_choice") {
+                                delete newQuestions[index].options;
+                              }
+                              setQuestions(newQuestions);
+                            }}
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6941C6] focus:border-[#6941C6] text-sm bg-white cursor-pointer"
+                          >
+                            <option value="text">Text Answer</option>
+                            <option value="number">Number</option>
+                            <option value="yes_no">Yes/No</option>
+                            <option value="multiple_choice">Multiple Choice</option>
+                          </select>
+
+                          <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={question.is_required}
+                              onChange={(e) => {
+                                const newQuestions = [...questions];
+                                newQuestions[index].is_required = e.target.checked;
+                                setQuestions(newQuestions);
+                              }}
+                              className="w-4 h-4 text-[#6941C6] border-gray-300 rounded focus:ring-[#6941C6] cursor-pointer"
+                            />
+                            Required
+                          </label>
+                        </div>
+
+                        {question.question_type === "multiple_choice" && (
+                          <input
+                            type="text"
+                            value={Array.isArray(question.options)
+                              ? question.options.join(", ")
+                              : typeof question.options === "string"
+                                ? question.options
+                                : ""}
+                            onChange={(e) => {
+                              const newQuestions = [...questions];
+                              newQuestions[index].options = e.target.value;
+                              setQuestions(newQuestions);
+                            }}
+                            placeholder="Options (comma-separated): Option 1, Option 2, Option 3"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6941C6] focus:border-[#6941C6] text-sm"
+                          />
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               )}
 
-              <FormGroup>
-                <CheckboxContainer>
-                  <input
-                    type="checkbox"
-                    id={`question_required_${index}`}
-                    checked={question.is_required}
-                    onChange={(e) => {
-                      const newQuestions = [...questions];
-                      newQuestions[index].is_required = e.target.checked;
-                      setQuestions(newQuestions);
-                    }}
-                  />
-                  <Label htmlFor={`question_required_${index}`} style={{ margin: 0, cursor: "pointer" }}>
-                    Required question
-                  </Label>
-                </CheckboxContainer>
-              </FormGroup>
-            </QuestionCard>
-          ))}
+              {questions.length === 0 && (
+                <div className="text-center py-6 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
+                  <p className="text-sm text-gray-500">No questions added yet</p>
+                </div>
+              )}
+            </div>
 
-          <AddQuestionButton
-            type="button"
-            onClick={() => {
-              setQuestions([
-                ...questions,
-                {
-                  question_text: "",
-                  question_type: "text",
-                  is_required: false,
-                  display_order: questions.length,
-                },
-              ]);
-            }}
-          >
-            <PlusIcon className="h-5 w-5" />
-            Add Question
-          </AddQuestionButton>
-        </QuestionsSection>
-
-        <Button
-          backgroundcolor="#7f56d9"
-          type="submit"
-          text={isCreating || isUpdating ? (isEditMode ? "Updating..." : "Creating...") : (isEditMode ? "Update Job" : "Create Job")}
-          disabled={isCreating || isUpdating || isLoadingJob || isLoadingCategories || categories.length === 0 || isCategoriesError}
-        />
-      </FormContainer>
-    </Container>
+            {/* Submit Button */}
+            <div className="pt-4">
+              <button
+                type="submit"
+                disabled={isCreating || isUpdating}
+                className="w-full px-6 py-3 bg-[#2d1b69] hover:bg-[#1a1035] text-white rounded-xl font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
+              >
+                {(isCreating || isUpdating) && (
+                  <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                )}
+                {isCreating || isUpdating
+                  ? (isEditMode ? "Updating..." : "Creating...")
+                  : (isEditMode ? "Update Job" : "Create Job")}
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 };
 
 export default CreateJob;
-
-const Container = styled("div")`
-  width: 100%;
-  min-height: calc(100vh - 80px);
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  padding: 20px 16px;
-  background: #f9fafb;
-
-  @media (min-width: 640px) {
-    padding: 40px 20px;
-  }
-`;
-
-const FormContainer = styled("form")`
-  max-width: 700px;
-  width: 100%;
-  background: white;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-
-  @media (min-width: 640px) {
-    border-radius: 16px;
-    padding: 40px;
-  }
-`;
-
-const Header = styled("div")`
-  text-align: center;
-  margin-bottom: 32px;
-`;
-
-const IconWrapper = styled("div")`
-  display: flex;
-  justify-content: center;
-  margin-bottom: 16px;
-`;
-
-const Title = styled("h1")`
-  font-size: 24px;
-  font-weight: 700;
-  color: #111827;
-  margin-bottom: 8px;
-
-  @media (min-width: 640px) {
-    font-size: 28px;
-  }
-`;
-
-const Subtitle = styled("p")`
-  font-size: 12px;
-  color: #6b7280;
-  margin: 0;
-
-  @media (min-width: 640px) {
-    font-size: 14px;
-  }
-`;
-
-const FormGroup = styled("div")`
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 20px;
-`;
-
-const Label = styled("label")`
-  margin-bottom: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  color: #374151;
-`;
-
-const Input = styled("input")`
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid #d1d5db;
-  font-size: 14px;
-  transition: border-color 0.2s;
-
-  &:focus {
-    outline: none;
-    border-color: #7f56d9;
-  }
-`;
-
-const TextArea = styled("textarea")`
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid #d1d5db;
-  font-size: 14px;
-  transition: border-color 0.2s;
-  resize: vertical;
-  font-family: inherit;
-
-  &:focus {
-    outline: none;
-    border-color: #7f56d9;
-  }
-`;
-
-const Select = styled("select")`
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid #d1d5db;
-  font-size: 14px;
-  background: white;
-  cursor: pointer;
-  transition: border-color 0.2s;
-  width: 100%;
-
-  &:focus {
-    outline: none;
-    border-color: #7f56d9;
-  }
-
-  option {
-    padding: 8px;
-  }
-`;
-
-const ErrorText = styled("div")`
-  font-size: 12px;
-  color: #ef4444;
-  margin-top: 4px;
-`;
-
-const HelperText = styled("div")`
-  font-size: 12px;
-  color: #6b7280;
-  margin-top: 4px;
-`;
-
-const QuestionsSection = styled("div")`
-  margin-top: 32px;
-  padding-top: 32px;
-  border-top: 2px solid #e5e7eb;
-`;
-
-const QuestionsHeader = styled("div")`
-  margin-bottom: 20px;
-`;
-
-const QuestionCard = styled("div")`
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 16px;
-`;
-
-const QuestionHeader = styled("div")`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-`;
-
-const QuestionNumber = styled("span")`
-  font-weight: 600;
-  color: #7f56d9;
-  font-size: 14px;
-`;
-
-const DeleteButton = styled("button")`
-  background: #fee2e2;
-  color: #dc2626;
-  border: none;
-  border-radius: 6px;
-  padding: 6px 10px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  transition: background 0.2s;
-
-  &:hover {
-    background: #fecaca;
-  }
-`;
-
-const CheckboxContainer = styled("div")`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-
-  input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
-    cursor: pointer;
-    accent-color: #7f56d9;
-  }
-`;
-
-const AddQuestionButton = styled("button")`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 20px;
-  background: #f3f4f6;
-  border: 2px dashed #d1d5db;
-  border-radius: 8px;
-  color: #6b7280;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-  width: 100%;
-
-  &:hover {
-    background: #e5e7eb;
-    border-color: #7f56d9;
-    color: #7f56d9;
-  }
-`;
-

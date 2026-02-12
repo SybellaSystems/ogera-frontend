@@ -247,7 +247,7 @@ function CustomTable<T extends Record<string, any>>({
       {/* Search Bar */}
       {searchable && (
         <Box
-          sx={{ p: 2, borderBottom: "1px solid #e5e7eb", bgcolor: "#fafafa" }}
+          sx={{ p: { xs: 1.5, sm: 2 }, borderBottom: "1px solid #e5e7eb", bgcolor: "#fafafa" }}
         >
           <TextField
             fullWidth
@@ -519,6 +519,26 @@ function CustomTable<T extends Record<string, any>>({
           },
           "& .MuiTablePagination-actions button": {
             color: "#9333ea",
+          },
+          // Mobile-friendly pagination layout
+          "& .MuiTablePagination-toolbar": {
+            flexWrap: "wrap",
+            justifyContent: "center",
+            minHeight: { xs: "auto", sm: 52 },
+            px: { xs: 1, sm: 2 },
+            py: { xs: 0.5, sm: 0 },
+            gap: { xs: 0.5, sm: 0 },
+          },
+          "& .MuiTablePagination-spacer": {
+            display: { xs: "none", sm: "block" },
+          },
+          "& .MuiTablePagination-selectLabel": {
+            fontSize: { xs: "0.75rem", sm: "0.875rem" },
+            m: { xs: 0, sm: undefined },
+          },
+          "& .MuiTablePagination-displayedRows": {
+            fontSize: { xs: "0.75rem", sm: "0.875rem" },
+            m: { xs: 0, sm: undefined },
           },
         }}
       />

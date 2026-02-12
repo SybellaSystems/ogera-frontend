@@ -1,39 +1,64 @@
 import { apiSlice } from "./apiSlice";
 
-/**
- * Dashboard metrics interface
- */
-export interface DashboardMetrics {
+// ===================== ADMIN/SUPERADMIN TYPES =====================
+export interface AdminMetricsData {
   totalUsers: number;
   totalStudents: number;
   activeJobs: number;
   totalEarnings: number;
 }
 
-/**
- * API response for dashboard metrics
- */
-export interface DashboardMetricsResponse {
+export interface AdminMetricsResponse {
   success: boolean;
   status: number;
-  data: DashboardMetrics;
+  data: AdminMetricsData;
   message: string;
 }
 
-/**
- * Dashboard API slice
- * Provides endpoints for fetching dashboard metrics
- */
+// ===================== STUDENT TYPES =====================
+export interface StudentDashboardData {
+  applications: {
+    value: number;
+    change: number | null;
+  };
+  jobsCompleted: {
+    value: number | null;
+    change: number | null;
+    note?: string;
+  };
+  interviews: {
+    value: number | null;
+    growthPercentage: number | null;
+    note?: string;
+  };
+  earnings: {
+    value: number;
+    currency: string | null;
+  };
+}
+
+export interface StudentDashboardResponse {
+  success: boolean;
+  status: number;
+  data: StudentDashboardData;
+  message: string;
+}
+
+// ===================== API =====================
 export const dashboardApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-    /**
-     * Get dashboard metrics
-     * Fetches total users, total students, active jobs, and total earnings
-     * Requires superadmin authentication
-     */
-    getDashboardMetrics: builder.query<DashboardMetricsResponse, void>({
+    // Admin/Superadmin metrics
+    getDashboardMetrics: builder.query<AdminMetricsResponse, void>({
       query: () => ({
         url: "/dashboard/metrics",
+        method: "GET",
+      }),
+      providesTags: ["DashboardMetrics"],
+    }),
+    // Student dashboard
+    getStudentDashboard: builder.query<StudentDashboardResponse, void>({
+      query: () => ({
+        url: "/dashboard/student",
         method: "GET",
       }),
       providesTags: ["DashboardMetrics"],
@@ -41,7 +66,7 @@ export const dashboardApi = apiSlice.injectEndpoints({
   }),
 });
 
-/**
- * Export the hook for use in components
- */
-export const { useGetDashboardMetricsQuery } = dashboardApi;
+export const {
+  useGetDashboardMetricsQuery,
+  useGetStudentDashboardQuery,
+} = dashboardApi;

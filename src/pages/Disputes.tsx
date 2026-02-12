@@ -1,37 +1,41 @@
-import React, { useEffect, useState } from "react";
-import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
-import { getAllDisputes, getDisputeStats, type Dispute, type DisputeStats } from "../services/api/disputesApi";
-import { useNavigate } from "react-router-dom";
-import Loader from "../components/Loader";
+import React from "react";
+import { ExclamationTriangleIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
+import { useGetDisputesQuery, useGetDisputeStatsQuery } from "../services/api/disputeApi";
 
 const Disputes: React.FC = () => {
-  const [disputes, setDisputes] = useState<Dispute[]>([]);
-  const [stats, setStats] = useState<DisputeStats>({ open: 0, underReview: 0, resolved: 0, highPriority: 0 });
-  const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
+  const { data: disputesData, isLoading: disputesLoading, error: disputesError, refetch } = useGetDisputesQuery();
+  const { data: statsData, isLoading: statsLoading } = useGetDisputeStatsQuery();
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  const disputes = disputesData?.data || [];
+  const stats = statsData?.data;
 
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      const [disputesData, statsData] = await Promise.all([
-        getAllDisputes({ page: 1, limit: 10 }),
-        getDisputeStats(),
-      ]);
-      setDisputes(disputesData.data || []);
-      setStats(statsData);
-    } catch (error) {
-      console.error("Failed to fetch disputes:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  if (disputesLoading || statsLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <ArrowPathIcon className="h-8 w-8 text-[#7F56D9] animate-spin" />
+        <span className="ml-2 text-gray-500">Loading disputes...</span>
+      </div>
+    );
+  }
 
-  if (loading) {
-    return <Loader />;
+  if (disputesError) {
+    return (
+      <div className="space-y-6 animate-fadeIn">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3">
+          <ExclamationTriangleIcon className="h-6 w-6 text-red-500" />
+          <div>
+            <p className="text-sm font-medium text-red-800">Failed to load disputes</p>
+            <p className="text-xs text-red-600 mt-1">Please try again later</p>
+          </div>
+          <button
+            onClick={() => refetch()}
+            className="ml-auto px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 rounded text-xs font-medium transition"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -47,34 +51,35 @@ const Disputes: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-red-50 rounded-xl p-6 border border-red-200">
           <p className="text-sm text-red-700 font-medium">Open Disputes</p>
-                    <p className="text-3xl font-bold text-red-900 mt-2">{stats.open}</p>
+          <p className="text-3xl font-bold text-red-900 mt-2">{stats?.byStatus?.open || 0}</p>
         </div>
         <div className="bg-orange-50 rounded-xl p-6 border border-orange-200">
           <p className="text-sm text-orange-700 font-medium">Under Review</p>
-                    <p className="text-3xl font-bold text-orange-900 mt-2">{stats.underReview}</p>
+          <p className="text-3xl font-bold text-orange-900 mt-2">{stats?.byStatus?.inProgress || 0}</p>
         </div>
         <div className="bg-green-50 rounded-xl p-6 border border-green-200">
           <p className="text-sm text-green-700 font-medium">Resolved This Month</p>
-                    <p className="text-3xl font-bold text-green-900 mt-2">{stats.resolved}</p>
+          <p className="text-3xl font-bold text-green-900 mt-2">{stats?.resolvedThisMonth || 0}</p>
         </div>
       </div>
 
-      <div className="space-y-4">
-        {disputes.length === 0 ? (
-          <div className="bg-white rounded-xl p-8 shadow-md border border-gray-100 text-center">
-            <p className="text-gray-500 text-lg">No disputes found</p>
-          </div>
-        ) : (
-          disputes.map((dispute) => (
+      {disputes.length === 0 ? (
+        <div className="bg-white rounded-xl p-8 shadow-md border border-gray-100 text-center">
+          <ExclamationTriangleIcon className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+          <p className="text-gray-500">No disputes found</p>
+          <p className="text-sm text-gray-400 mt-1">All disputes will appear here when created</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {disputes.map((dispute) => (
             <div key={dispute.dispute_id} className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-3">
                     <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
                       dispute.status === "Open" ? "bg-red-100 text-red-700" :
-                      dispute.status === "Under Review" ? "bg-orange-100 text-orange-700" :
-                      dispute.status === "Resolved" ? "bg-green-100 text-green-700" :
-                      "bg-gray-100 text-gray-700"
+                      dispute.status === "In Progress" ? "bg-orange-100 text-orange-700" :
+                      "bg-green-100 text-green-700"
                     }`}>
                       {dispute.status}
                     </span>
@@ -89,16 +94,15 @@ const Disputes: React.FC = () => {
                       {dispute.type}
                     </span>
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{dispute.title}</h3>
-                  <p className="text-sm text-gray-600 mb-3">{dispute.description}</p>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{dispute.description}</h3>
                   <div className="grid grid-cols-3 gap-4 mt-3">
                     <div>
                       <p className="text-xs text-gray-500 font-medium">Student</p>
-                      <p className="text-sm font-semibold text-gray-900">{dispute.student?.full_name || "N/A"}</p>
+                      <p className="text-sm font-semibold text-gray-900">{dispute.student?.full_name || 'N/A'}</p>
                     </div>
                     <div>
                       <p className="text-xs text-gray-500 font-medium">Employer</p>
-                      <p className="text-sm font-semibold text-gray-900">{dispute.employer?.full_name || "N/A"}</p>
+                      <p className="text-sm font-semibold text-gray-900">{dispute.employer?.full_name || 'N/A'}</p>
                     </div>
                     <div>
                       <p className="text-xs text-gray-500 font-medium">Reported</p>
@@ -108,36 +112,26 @@ const Disputes: React.FC = () => {
                     </div>
                   </div>
                 </div>
-               <div className="flex flex-col gap-2 ml-6">
-                  <button
-                    onClick={() => navigate(`/dashboard/disputes/${dispute.dispute_id}`)}
-                    className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition shadow-md whitespace-nowrap"
-                  >
+                <div className="flex flex-col gap-2 ml-6">
+                  <button className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition shadow-md whitespace-nowrap">
                     View Details
                   </button>
                   {dispute.status !== "Resolved" && (
-                    <button
-                      onClick={() => navigate(`/dashboard/disputes/${dispute.dispute_id}`)}
-                      className="px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition shadow-md whitespace-nowrap"
-                    >
+                    <button className="px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition shadow-md whitespace-nowrap">
                       Resolve
                     </button>
                   )}
-                  <button
-                    onClick={() => navigate(`/dashboard/disputes/${dispute.dispute_id}`)}
-                    className="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition shadow-md whitespace-nowrap"
-                  >
+                  <button className="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition shadow-md whitespace-nowrap">
                     Message Parties
                   </button>
                 </div>
               </div>
             </div>
-         ))
-        )}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
 
 export default Disputes;
-

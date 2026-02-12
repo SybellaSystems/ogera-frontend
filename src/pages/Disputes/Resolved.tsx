@@ -1,43 +1,40 @@
-import React, { useEffect, useState } from "react";
-import { CheckCircleIcon } from "@heroicons/react/24/outline";
+import React from "react";
+import { CheckCircleIcon, ArrowPathIcon, ExclamationCircleIcon, ClipboardDocumentListIcon } from "@heroicons/react/24/outline";
 import CustomTable, {
   type Column,
   type TableAction,
 } from "../../components/Table/CustomTable";
 import { Chip, Typography } from "@mui/material";
 import { Visibility as ViewIcon } from "@mui/icons-material";
-
-import { getAllDisputes, type Dispute } from "../../services/api/disputesApi";
+import { useGetDisputesQuery, type Dispute as ApiDispute } from "../../services/api/disputeApi";
 import { useNavigate } from "react-router-dom";
-import Loader from "../../components/Loader";
+
+interface DisputeRow {
+  id: string;
+  type: string;
+  student: string;
+  employer: string;
+  description: string;
+  resolvedDate: string;
+  outcome: string;
+}
 
 const Resolved: React.FC = () => {
-   const [disputes, setDisputes] = useState<Dispute[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: disputesData, isLoading, error, refetch } = useGetDisputesQuery({ status: "Resolved" });
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchDisputes();
-  }, []);
+  // Transform API data to table format
+  const disputes: DisputeRow[] = (disputesData?.data || []).map((dispute: ApiDispute) => ({
+    id: dispute.dispute_id,
+    type: dispute.type,
+    student: dispute.student?.full_name || 'N/A',
+    employer: dispute.employer?.full_name || 'N/A',
+    description: dispute.description,
+    resolvedDate: dispute.resolved_at ? new Date(dispute.resolved_at).toLocaleDateString() : 'N/A',
+    outcome: dispute.outcome || 'Resolved',
+  }));
 
-  const fetchDisputes = async () => {
-    try {
-      setLoading(true);
-      // Fetch disputes with status "Resolved"
-      const result = await getAllDisputes({ 
-        status: "Resolved", 
-        page: 1, 
-        limit: 100 
-      });
-      setDisputes(result.data || []);
-    } catch (error) {
-      console.error("Failed to fetch resolved disputes:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const columns: Column<Dispute>[] = [
+  const columns: Column<DisputeRow>[] = [
     {
       id: "type",
       label: "Type",
@@ -106,7 +103,7 @@ const Resolved: React.FC = () => {
     },
   ];
 
-  const actions: TableAction<Dispute>[] = [
+  const actions: TableAction<DisputeRow>[] = [
     {
       label: "View Details",
       icon: <ViewIcon fontSize="small" />,
@@ -117,17 +114,33 @@ const Resolved: React.FC = () => {
     },
   ];
 
-   // Calculate resolved this month
-  const resolvedThisMonth = disputes.filter((d) => {
-    if (!d.resolved_at) return false;
-    const resolvedDate = new Date(d.resolved_at);
-    const now = new Date();
-    return resolvedDate.getMonth() === now.getMonth() && 
-           resolvedDate.getFullYear() === now.getFullYear();
-  }).length;
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <ArrowPathIcon className="h-8 w-8 text-[#7F56D9] animate-spin" />
+        <span className="ml-2 text-gray-500">Loading resolved disputes...</span>
+      </div>
+    );
+  }
 
-  if (loading) {
-    return <Loader />;
+  if (error) {
+    return (
+      <div className="space-y-6 animate-fadeIn">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3">
+          <ExclamationCircleIcon className="h-6 w-6 text-red-500" />
+          <div>
+            <p className="text-sm font-medium text-red-800">Failed to load resolved disputes</p>
+            <p className="text-xs text-red-600 mt-1">Please try again later</p>
+          </div>
+          <button
+            onClick={() => refetch()}
+            className="ml-auto px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 rounded text-xs font-medium transition"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -143,8 +156,18 @@ const Resolved: React.FC = () => {
       </div>
 
       <div className="bg-green-50 border-l-4 border-green-500 p-4 rounded-lg">
-        <p className="text-green-800 font-medium text-sm md:text-base">
-                    ✓ {resolvedThisMonth} disputes resolved this month
+        <p className="text-green-800 font-medium text-sm md:text-base flex items-center gap-2">
+          {disputes.length > 0 ? (
+            <>
+              <CheckCircleIcon className="h-5 w-5 text-green-600 flex-shrink-0" />
+              <span>{disputes.length} dispute{disputes.length > 1 ? 's' : ''} resolved</span>
+            </>
+          ) : (
+            <>
+              <ClipboardDocumentListIcon className="h-5 w-5 text-green-600 flex-shrink-0" />
+              <span>No resolved disputes yet</span>
+            </>
+          )}
         </p>
       </div>
 
@@ -162,4 +185,3 @@ const Resolved: React.FC = () => {
 };
 
 export default Resolved;
-
