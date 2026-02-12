@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { styled } from "@mui/material/styles";
 
 interface PrivacyModalProps {
@@ -19,7 +19,7 @@ const sections = [
   { id: "changes", title: "Changes to Policy" },
 ];
 
-const sectionContent: Record<string, { heading: string; content: JSX.Element }> = {
+const sectionContent: Record<string, { heading: string; content: React.ReactNode }> = {
   "info-collect": {
     heading: "Types of Information We Collect",
     content: (

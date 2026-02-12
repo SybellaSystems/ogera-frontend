@@ -11,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 
 interface DisputeRow {
   id: string;
+  dispute_id: string;
   type: string;
   student: string;
   employer: string;
@@ -26,6 +27,7 @@ const Resolved: React.FC = () => {
   // Transform API data to table format
   const disputes: DisputeRow[] = (disputesData?.data || []).map((dispute: ApiDispute) => ({
     id: dispute.dispute_id,
+    dispute_id: dispute.dispute_id,
     type: dispute.type,
     student: dispute.student?.full_name || 'N/A',
     employer: dispute.employer?.full_name || 'N/A',

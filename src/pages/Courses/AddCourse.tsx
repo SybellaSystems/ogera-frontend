@@ -143,7 +143,7 @@ const AddCourse: React.FC = () => {
 
     try {
       // Upload file
-      const response = await uploadCourseContent(file, stepType);
+      const response = await uploadCourseContent(file, stepType as "image" | "pdf");
       
       if (response.success && response.data.file_url) {
         // Update step content with the uploaded file URL

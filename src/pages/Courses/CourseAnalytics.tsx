@@ -63,7 +63,7 @@ const CourseAnalytics: React.FC = () => {
     }
     
     // Fallback: try to get from nested structure if API returns differently
-    return studentsData.data?.data || studentsData.data || [];
+    return (studentsData.data as any)?.data || studentsData.data || [];
   }, [studentsData]);
 
   // Filter students based on status
@@ -354,7 +354,7 @@ const CourseAnalytics: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {students.map((student) => (
+                    {students.map((student: any) => (
                       <tr key={student.user_id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div>
