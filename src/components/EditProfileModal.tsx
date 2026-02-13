@@ -6,6 +6,8 @@ import { updateUserProfile, type UserProfile } from "../services/api/profileApi"
 import { useResendVerificationEmailMutation } from "../services/api/authApi";
 import { uploadResume } from "../services/api/resumeApi";
 import toast from "react-hot-toast";
+import { getCountriesList, validateMobileNumber, getExpectedDigitMessage, getCountryCodeFromDialCode } from "../utils/mobileValidation";
+import CountryCodeSelector from "./CountryCodeSelector";
 
 interface EditProfileModalProps {
   isOpen: boolean;
@@ -27,8 +29,23 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [resumeUrl, setResumeUrl] = useState<string | null>(profileData?.resume_url || null);
   const [isUploadingResume, setIsUploadingResume] = useState(false);
+  const [mobileValidationError, setMobileValidationError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [_resendVerificationEmail] = useResendVerificationEmailMutation();
+
+  // derive initial dial code from existing profile number (if any)
+  const initialDialCode = (() => {
+    const num = profileData?.mobile_number || "";
+    if (num.startsWith("+")) {
+      const codes = getCountriesList().map((c) => c.dialCode).sort((a, b) => b.length - a.length);
+      for (const d of codes) {
+        if (num.startsWith(d)) return d;
+      }
+    }
+    return "+1";
+  })();
+  const initialCountryISO = getCountryCodeFromDialCode(initialDialCode) || "PK";
+  const [countryDialCode, setCountryDialCode] = useState<string>(initialDialCode);
 
   // Initialize form with profile data
   const formik = useFormik({
@@ -36,6 +53,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
       firstName: profileData?.full_name?.split(" ")[0] || "",
       lastName: profileData?.full_name?.split(" ")[1] || "",
       email: profileData?.email || "",
+      countryCode: initialCountryISO,
       mobile_number: profileData?.mobile_number || "",
       national_id_number: profileData?.national_id_number || "",
       business_registration_id: profileData?.business_registration_id || "",
@@ -48,15 +66,22 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
     validateOnBlur: true,
     onSubmit: async (values, { setSubmitting }) => {
       try {
+        // Validate mobile number based on country code from form
+        const mobileValidation = validateMobileNumber(values.mobile_number, values.countryCode);
+        if (!mobileValidation.isValid) {
+          toast.error(mobileValidation.message || "Invalid mobile number");
+          setSubmitting(false);
+          return;
+        }
         console.log("Form onSubmit called with values:", values);
         console.log("Resume URL:", resumeUrl);
         setIsUpdating(true);
-        setSubmitting(true);
 
         // Prepare data for API
         const updateData: any = {
           full_name: `${values.firstName} ${values.lastName}`.trim(),
           mobile_number: values.mobile_number,
+          country_code: values.countryCode,
         };
 
         // Check if email changed
@@ -126,6 +151,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
           firstName: profileData?.full_name?.split(" ")[0] || "",
           lastName: profileData?.full_name?.split(" ")[1] || "",
           email: profileData?.email || "",
+          countryCode: initialCountryISO, // Reset to default country
           mobile_number: profileData?.mobile_number || "",
           national_id_number: profileData?.national_id_number || "",
           business_registration_id: profileData?.business_registration_id || "",
@@ -133,6 +159,8 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
           preferred_location: profileData?.preferred_location || "",
         },
       });
+      setMobileValidationError(null);
+      setCountryDialCode(initialDialCode);
       setEmailChanged(false);
       setResumeFile(null);
       setResumeUrl(profileData?.resume_url || null);
@@ -202,6 +230,40 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
     setResumeUrl(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
+    }
+  };
+
+  const handleMobileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    formik.setFieldValue("mobile_number", value);
+    
+    // Validate mobile number in real-time (only if not empty)
+    if (value.trim()) {
+      const validation = validateMobileNumber(value, formik.values.countryCode);
+      if (!validation.isValid) {
+        setMobileValidationError(validation.message || "Invalid mobile number");
+      } else {
+        setMobileValidationError(null);
+      }
+    } else {
+      setMobileValidationError(null);
+    }
+  };
+
+  const handleCountryChange = (newDialCode: string) => {
+    // newDialCode is like "+1" or "+965" from CountryCodeSelector
+    setCountryDialCode(newDialCode);
+    const iso = getCountryCodeFromDialCode(newDialCode) || "";
+    formik.setFieldValue("countryCode", iso);
+
+    // Revalidate mobile number with new country code if one is already entered
+    if (formik.values.mobile_number.trim()) {
+      const validation = validateMobileNumber(formik.values.mobile_number, iso);
+      if (!validation.isValid) {
+        setMobileValidationError(validation.message || "Invalid mobile number");
+      } else {
+        setMobileValidationError(null);
+      }
     }
   };
 
@@ -294,39 +356,58 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
               )}
             </div>
 
-            {/* Phone Number */}
-            <div>
-              <label
-                htmlFor="mobile_number"
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
+            {/* Phone Number with Country Code */}
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Phone Number <span className="text-red-500">*</span>
               </label>
-              <input
-                id="mobile_number"
-                maxLength={10}
-                name="mobile_number"
-                type="tel"
-                placeholder="Enter phone number"
-                value={formik.values.mobile_number}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all"
-              />
-              {formik.touched.mobile_number && formik.errors.mobile_number && (
-                <p className="mt-1 text-sm text-red-600">
-                  {formik.errors.mobile_number}
+              <div className="flex gap-2">
+                {/* Country Code Dropdown */}
+                <div className="w-32">
+                  <CountryCodeSelector
+                    value={countryDialCode}
+                    onChange={(d) => handleCountryChange(d)}
+                  />
+                </div>
+                
+                {/* Mobile Number Input */}
+                <input
+                  id="mobile_number"
+                  name="mobile_number"
+                  type="tel"
+                  placeholder="Enter phone number"
+                  value={formik.values.mobile_number}
+                  onChange={handleMobileChange}
+                  onBlur={formik.handleBlur}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all"
+                />
+              </div>
+
+              {/* Expected Digit Format Message - Show only when empty */}
+              {!formik.values.mobile_number && (
+                <p className="mt-2 text-xs text-blue-600 font-medium">
+                  ℹ️ {getExpectedDigitMessage(formik.values.countryCode)}
                 </p>
               )}
-              {formik.values.mobile_number !== profileData?.mobile_number && (
-                <p className="mt-1 text-xs text-amber-600">
+
+              {/*  Validation Error Message - Show when digits don't match */}
+              {mobileValidationError && (
+                <p className="mt-2 text-sm text-red-600 flex items-start">
+                  <span className="mr-2">⚠️</span>
+                  {mobileValidationError}
+                </p>
+              )}
+
+              {/* Warning when changing phone number
+              {formik.values.mobile_number !== profileData?.mobile_number && formik.values.mobile_number && (
+                <p className="mt-2 text-xs text-amber-600">
                   ⚠️ Changing your phone number will require verification
                 </p>
-              )}
+              )} */}
             </div>
 
             {/* Email (Editable) */}
-            <div>
+            <div className="md:col-span-2">
               <label
                 htmlFor="email"
                 className="block text-sm font-medium text-gray-700 mb-2"
