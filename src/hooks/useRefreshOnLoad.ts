@@ -26,9 +26,19 @@ const useRefreshOnLoad = () => {
 
   useEffect(() => {
     const refreshAndFetchUser = async () => {
+      // ⭐ Step 0: Check for the "isLoggedIn" hint cookie
+      const hasSessionHint = document.cookie
+        .split(";")
+        .some((item) => item.trim().startsWith("isLoggedIn="));
+
+      if (!hasSessionHint) {
+        console.log("ℹ️ No session hint found. Skipping auto-refresh.");
+        setIsLoading(false);
+        return;
+      }
+
       try {
-        // Step 1: Always refresh the access token on page load
-        // (Token is never stored in localStorage for security)
+        // Step 1: Refresh the access token
         const refreshRes = await axios.get<RefreshResponse>(
           `${BASE_URL}/auth/refresh`,
           { withCredentials: true }
@@ -36,24 +46,15 @@ const useRefreshOnLoad = () => {
 
         const newAccessToken = refreshRes.data.data.accessToken;
 
-        // Step 2: If role is not in Redux (first load), fetch user data from backend
+        // Step 2: Fetch full user profile if not in state
         if (!currentRole) {
-          console.log('🔍 [FRONTEND] Fetching user data from /auth/me');
           const userRes = await axios.get<UserResponse>(`${BASE_URL}/auth/me`, {
             headers: { Authorization: `Bearer ${newAccessToken}` },
             withCredentials: true,
           });
 
           const userData = userRes.data.user;
-          console.log('🔍 [FRONTEND] User data received:', {
-            role: userData.role,
-            userId: userData.user_id,
-            permissions: userData.permissions,
-            permissionsType: typeof userData.permissions,
-            permissionsLength: Array.isArray(userData.permissions) ? userData.permissions.length : 'not array',
-          });
 
-          // Update Redux with complete user data including the fresh token
           dispatch(
             setCredentials({
               user: userData,
@@ -62,19 +63,18 @@ const useRefreshOnLoad = () => {
               permissions: userData.permissions || null,
             })
           );
-          
-          console.log('🔍 [FRONTEND] Permissions stored in Redux:', userData.permissions || null);
         } else {
-          console.log('🔍 [FRONTEND] User already in Redux, just updating token');
-          // If user data exists in Redux/localStorage, just update the token
           dispatch(setAccessToken(newAccessToken));
         }
 
         setIsLoading(false);
       } catch (err: any) {
-        // 401 is expected when no session exists (e.g. first visit / logged out)
-        if (err?.response?.status !== 401) {
-          console.error("Refresh failed:", err);
+        // If refresh fails (e.g., token expired), clear hint and logout
+        if (err?.response?.status === 401) {
+          console.warn("⚠️ Session hint was present but session is invalid.");
+          document.cookie = "isLoggedIn=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        } else {
+          console.error("❌ Refresh failed unexpectedly:", err);
         }
         dispatch(logout());
         setIsLoading(false);
@@ -82,7 +82,7 @@ const useRefreshOnLoad = () => {
     };
 
     refreshAndFetchUser();
-  }, []);
+  }, [dispatch, currentRole, BASE_URL]);
 
   return isLoading;
 };

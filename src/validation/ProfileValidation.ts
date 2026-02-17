@@ -1,4 +1,5 @@
 import * as Yup from "yup";
+import { getCountryMobileConfig } from "../utils/mobileValidation";
 
 export const createProfileUpdateValidation = (userRole: string) => {
   return Yup.object({
@@ -16,9 +17,43 @@ export const createProfileUpdateValidation = (userRole: string) => {
       .email("Invalid email address")
       .required("Email is required"),
 
-    mobile_number: Yup.string()
-      .matches(/^[0-9]{10}$/, "Phone number must be 10 digits")
-      .required("Phone number is required"),
+    // mobile_number: Yup.string()
+    //   .matches(/^[0-9]{10}$/, "Phone number must be 10 digits")
+    //   .required("Phone number is required"),
+
+      countryCode: Yup.string().required("Country is required"),
+      mobile_number: Yup.string()
+        .required("Phone number is required")
+        .test("mobile-digits", function (value) {
+          const { parent, createError } = this as any;
+          const countryCode = parent?.countryCode;
+    
+          if (!value) return this.createError({ message: "Phone number is required" });
+    
+          const config = getCountryMobileConfig(countryCode);
+          if (!config) {
+            return this.createError({ message: "Invalid country selected" });
+          }
+    
+          const digitCount = String(value).replace(/\D/g, "").length;
+    
+          if (config.digitCountRange) {
+            const { min, max } = config.digitCountRange;
+            if (digitCount < min || digitCount > max) {
+              return this.createError({
+                message: `Phone number must be between ${min} and ${max} digits for ${config.country}`,
+              });
+            }
+          } else {
+            if (digitCount !== config.digitCount) {
+              return this.createError({
+                message: `Phone number must be exactly ${config.digitCount} digits for ${config.country}`,
+              });
+            }
+          }
+    
+          return true;
+        }),
 
     national_id_number:
       userRole === "student"
