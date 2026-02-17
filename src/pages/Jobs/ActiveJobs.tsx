@@ -129,7 +129,7 @@ const ActiveJobs: React.FC = () => {
               placeholder="Search jobs by title, company, or skills..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-10 pr-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
 
@@ -139,7 +139,7 @@ const ActiveJobs: React.FC = () => {
             <select
               value={selectedLocation}
               onChange={(e) => setSelectedLocation(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white"
+              className="w-full pl-10 pr-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white"
             >
               <option value="">All Locations</option>
               {locations.map((location: string) => (
@@ -179,10 +179,10 @@ const ActiveJobs: React.FC = () => {
                 key={job.job_id}
                 className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 p-5"
               >
-                <div className="flex gap-4">
+                <div className="flex gap-2">
                   {/* Company Logo */}
                   <div className="flex-shrink-0">
-                    <div className="h-16 w-16 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-xl shadow-md">
+                    <div className="h-12 w-16 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-xl shadow-md">
                       {companyInitial}
                     </div>
                   </div>
@@ -269,13 +269,11 @@ const ActiveJobs: React.FC = () => {
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex-shrink-0 flex flex-col gap-2 ml-4">
-                    {role === "student" ? (
+<div className="flex flex-col sm:flex-row md:flex-col gap-2 mt-4 md:mt-0 md:ml-4 md:flex-shrink-0 md:w-44">                      {role === "student" ? (
                       <button
                         onClick={() => !appliedJobIds.has(job.job_id) && handleApply(job)}
                         disabled={appliedJobIds.has(job.job_id)}
-                        className={`px-6 py-2.5 rounded-lg font-semibold transition shadow-sm whitespace-nowrap min-w-[120px] ${
-                          appliedJobIds.has(job.job_id)
+className={`px-3 md:px-4 py-1.5 md:py-2 rounded-md font-medium transition shadow-sm whitespace-nowrap text-xs md:text-sm flex-1 sm:flex-none cursor-pointer ${                          appliedJobIds.has(job.job_id)
                             ? "bg-gray-400 text-white cursor-not-allowed"
                             : "bg-blue-600 hover:bg-blue-700 text-white"
                         }`}
@@ -286,8 +284,7 @@ const ActiveJobs: React.FC = () => {
                       <>
                         <button
                           onClick={() => navigate(`/dashboard/jobs/${job.job_id}`)}
-                          className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition shadow-sm whitespace-nowrap min-w-[120px]"
-                        >
+className="px-3 md:px-4 py-1.5 md:py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-md font-medium transition shadow-sm whitespace-nowrap text-xs md:text-sm flex-1 sm:flex-none cursor-pointer">                        
                           View Details
                         </button>
                         {(role === "employer" || role === "superadmin") && (
@@ -295,8 +292,7 @@ const ActiveJobs: React.FC = () => {
                             onClick={() =>
                               navigate(`/dashboard/jobs/${job.job_id}/applications`)
                             }
-                            className="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition shadow-sm whitespace-nowrap min-w-[120px]"
-                          >
+className="px-3 md:px-4 py-1.5 md:py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium transition shadow-sm whitespace-nowrap text-xs md:text-sm flex-1 sm:flex-none cursor-pointer">                          
                             Manage ({job.applications || 0})
                           </button>
                         )}

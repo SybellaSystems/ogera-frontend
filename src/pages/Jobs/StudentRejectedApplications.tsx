@@ -57,7 +57,7 @@ const StudentRejectedApplications: React.FC = () => {
         </div>
         <button
           onClick={() => navigate("/dashboard/jobs/my-applications")}
-          className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2.5 rounded-lg font-semibold transition shadow-md"
+          className=" text-sm font-medium bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg font-semibold transition shadow-sm cursor-pointer"
         >
           View All Applications
         </button>
@@ -88,7 +88,7 @@ const StudentRejectedApplications: React.FC = () => {
           </button>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {rejectedApplications.map((application) => (
             <div
               key={application.application_id}

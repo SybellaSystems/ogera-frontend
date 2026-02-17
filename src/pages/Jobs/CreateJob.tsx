@@ -278,6 +278,7 @@ const CreateJob: React.FC = () => {
           )}
         </FormGroup>
 
+               <InputRow>
         {/* Category */}
         <FormGroup>
           <Label htmlFor="category">
@@ -351,7 +352,31 @@ const CreateJob: React.FC = () => {
           )}
         </FormGroup>
 
+        {/* Status - Only for superadmin */}
+        {role === "superadmin" && (
+          <FormGroup>
+            <Label htmlFor="status">Status</Label>
+            <Select
+              id="status"
+              name="status"
+              value={formik.values.status}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+            >
+              <option value="Pending">Pending</option>
+              <option value="Active">Active</option>
+              <option value="Completed">Completed</option>
+            </Select>
+            {formik.touched.status && formik.errors.status && (
+              <ErrorText>{formik.errors.status}</ErrorText>
+            )}
+          </FormGroup>
+        )}
+                </InputRow>
+
+
         {/* Budget */}
+        <InputRow>
         <FormGroup>
           <Label htmlFor="budget">Budget *</Label>
           <Input
@@ -385,6 +410,7 @@ const CreateJob: React.FC = () => {
             <ErrorText>{formik.errors.duration}</ErrorText>
           )}
         </FormGroup>
+        </InputRow>
 
         {/* Location */}
         <FormGroup>
@@ -453,6 +479,7 @@ const CreateJob: React.FC = () => {
         </FormGroup>
 
         {/* Employment Type */}
+                <InputRow>
         <FormGroup>
           <Label htmlFor="employment_type">Employment Type (Optional)</Label>
           <Select
@@ -494,27 +521,7 @@ const CreateJob: React.FC = () => {
             <ErrorText>{formik.errors.experience_level}</ErrorText>
           )}
         </FormGroup>
-
-        {/* Status - Only for superadmin */}
-        {role === "superadmin" && (
-          <FormGroup>
-            <Label htmlFor="status">Status</Label>
-            <Select
-              id="status"
-              name="status"
-              value={formik.values.status}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-            >
-              <option value="Pending">Pending</option>
-              <option value="Active">Active</option>
-              <option value="Completed">Completed</option>
-            </Select>
-            {formik.touched.status && formik.errors.status && (
-              <ErrorText>{formik.errors.status}</ErrorText>
-            )}
-          </FormGroup>
-        )}
+                </InputRow>
 
         {/* Questions Section */}
         <QuestionsSection>
@@ -636,18 +643,27 @@ const CreateJob: React.FC = () => {
           </AddQuestionButton>
         </QuestionsSection>
 
+       <ActionContainer>
         <Button
           backgroundcolor="#7f56d9"
           type="submit"
           text={isCreating || isUpdating ? (isEditMode ? "Updating..." : "Creating...") : (isEditMode ? "Update Job" : "Create Job")}
           disabled={isCreating || isUpdating || isLoadingJob || isLoadingCategories || categories.length === 0 || isCategoriesError}
         />
+        </ActionContainer>
       </FormContainer>
     </Container>
   );
 };
 
 export default CreateJob;
+
+const ActionContainer = styled("div")`
+  margin-top: 40px; /* Adjust this value to slide it further down */
+  display: flex;
+  justify-content: flex-end; /* Optional: Aligns button to the right for a dashboard look */
+  padding-bottom: 20px;
+`;
 
 const Container = styled("div")`
   width: 100%;
@@ -664,11 +680,12 @@ const Container = styled("div")`
 `;
 
 const FormContainer = styled("form")`
-  max-width: 700px;
+  max-width: 1200px;
   width: 100%;
+  margin: 0 auto;
   background: white;
   border-radius: 12px;
-  padding: 24px;
+  padding: 32px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 
   @media (min-width: 640px) {
@@ -722,9 +739,22 @@ const Label = styled("label")`
   color: #374151;
 `;
 
+// Change: Add a grid helper for side-by-side inputs
+const InputRow = styled("div")`
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* Two columns */
+  gap: 20px;
+  width: 100%;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr; /* Stack on mobile */
+  }
+`;
+
 const Input = styled("input")`
-  padding: 12px;
-  border-radius: 8px;
+  height: 40px;
+  padding: 8px 12px;
+  border-radius: 6px;
   border: 1px solid #d1d5db;
   font-size: 14px;
   transition: border-color 0.2s;
@@ -751,8 +781,9 @@ const TextArea = styled("textarea")`
 `;
 
 const Select = styled("select")`
-  padding: 12px;
-  border-radius: 8px;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 6px;
   border: 1px solid #d1d5db;
   font-size: 14px;
   background: white;
