@@ -15,6 +15,7 @@ export interface RegisterFormValues {
 export interface LoginFormValues {
   email: string;
   password: string;
+  captchaToken?: string;
 }
 
 export interface ResetPasswordFormValues {

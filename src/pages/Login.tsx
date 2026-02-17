@@ -14,6 +14,7 @@ import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useDispatch } from "react-redux";
 import { loginApi } from "../services/api/loginApi";
+import { verifyLogin2FA } from "../services/api/twoFactorApi";
 import { jwtDecode } from "jwt-decode";
 import { setCredentials } from "../features/auth/authSlice";
 import axios from "axios";
@@ -24,6 +25,10 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const reCaptchaRef = useRef<any>(null);
+  const [twoFactorRequired, setTwoFactorRequired] = useState(false);
+  const [twoFactorToken, setTwoFactorToken] = useState("");
+  const [twoFactorCode, setTwoFactorCode] = useState("");
+  const [verifying2FA, setVerifying2FA] = useState(false);
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -48,6 +53,54 @@ const Login = () => {
   }, []);
 
   const handleClickShowPassword = () => setShowPassword((prev) => !prev);
+
+  const finishLogin = async (accessToken: string) => {
+    const decoded: any = jwtDecode(accessToken);
+    const role = decoded.role;
+    const user = { id: decoded.user_id };
+
+    // Fetch user data including permissions immediately after login
+    const BASE_URL = import.meta.env.VITE_API_URL;
+    try {
+      const userRes = await axios.get(`${BASE_URL}/auth/me`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+        withCredentials: true,
+      });
+
+      const userData = (userRes.data as any).user;
+
+      // Update Redux with complete user data including permissions
+      dispatch(
+        setCredentials({
+          user: userData,
+          accessToken,
+          role: userData.role,
+          permissions: userData.permissions || null,
+        })
+      );
+    } catch (error: any) {
+      console.error("⚠️ [LOGIN] Failed to fetch user data, using basic info:", error);
+      // Fallback: store basic info without permissions (will be fetched on page load)
+      dispatch(
+        setCredentials({
+          user,
+          accessToken,
+          role,
+        })
+      );
+    }
+
+    toast.success("You're logged in!");
+    formik.resetForm();
+
+    // Reset reCAPTCHA widget after successful login
+    if (RECAPTCHA_SITE_KEY && (window as any).grecaptcha && reCaptchaRef.current) {
+      (window as any).grecaptcha.reset();
+    }
+
+    // Allow navigation for all roles (including custom admin roles)
+    navigate("/dashboard");
+  };
 
   const formik = useFormik<LoginFormValues>({
     initialValues: {
@@ -77,57 +130,19 @@ const Login = () => {
 
         const result: any = await dispatch<any>(loginApi(values));
 
-        const accessToken = result.data.accessToken;
-        const decoded: any = jwtDecode(accessToken);
-
-        const role = decoded.role;
-        const user = { id: decoded.user_id };
-
-        // Fetch user data including permissions immediately after login
-        const BASE_URL = import.meta.env.VITE_API_URL;
-        try {
-          const userRes = await axios.get(`${BASE_URL}/auth/me`, {
-            headers: { Authorization: `Bearer ${accessToken}` },
-            withCredentials: true,
-          });
-
-          const userData = (userRes.data as any).user;
-          console.log('🔍 [LOGIN] User data fetched:', {
-            role: userData.role,
-            permissions: userData.permissions,
-          });
-
-          // Update Redux with complete user data including permissions
-          dispatch(
-            setCredentials({
-              user: userData,
-              accessToken,
-              role: userData.role,
-              permissions: userData.permissions || null,
-            })
-          );
-        } catch (error: any) {
-          console.error('⚠️ [LOGIN] Failed to fetch user data, using basic info:', error);
-          // Fallback: store basic info without permissions (will be fetched on page load)
-          dispatch(
-            setCredentials({
-              user,
-              accessToken,
-              role,
-            })
-          );
+        if (result?.data?.requires2FA) {
+          setTwoFactorRequired(true);
+          setTwoFactorToken(result.data.twoFactorToken || "");
+          toast("Enter the 6-digit code from Google Authenticator to complete login.");
+          return;
         }
 
-        toast.success("You're logged in!");
-        formik.resetForm();
-        
-        // Reset reCAPTCHA widget after successful login
-        if (RECAPTCHA_SITE_KEY && (window as any).grecaptcha && reCaptchaRef.current) {
-          (window as any).grecaptcha.reset();
+        const accessToken = result?.data?.accessToken;
+        if (!accessToken) {
+          throw new Error("Login failed: access token missing");
         }
 
-        // Allow navigation for all roles (including custom admin roles)
-        navigate("/dashboard");
+        await finishLogin(accessToken);
       } catch (error: any) {
         // Log error details for debugging
         console.log("🔍 Login error:", error);
@@ -149,6 +164,35 @@ const Login = () => {
       }
     },
   });
+
+  const handleVerify2FALogin = async () => {
+    try {
+      if (!twoFactorToken) {
+        toast.error("2FA session expired. Please login again.");
+        setTwoFactorRequired(false);
+        return;
+      }
+      if (!twoFactorCode.trim()) {
+        toast.error("Please enter the 6-digit code");
+        return;
+      }
+      setVerifying2FA(true);
+      const res = await verifyLogin2FA(twoFactorToken, twoFactorCode.trim());
+      const accessToken = res.data.accessToken;
+      setTwoFactorRequired(false);
+      setTwoFactorToken("");
+      setTwoFactorCode("");
+      await finishLogin(accessToken);
+    } catch (error: any) {
+      toast.error(
+        error?.response?.data?.message ||
+          error?.message ||
+          "2FA verification failed"
+      );
+    } finally {
+      setVerifying2FA(false);
+    }
+  };
 
   return (
     <>
@@ -213,6 +257,31 @@ const Login = () => {
                 )}
               </FormGroup>
 
+              {/* 2FA Step (only when required) */}
+              {twoFactorRequired && (
+                <FormGroup>
+                  <Label htmlFor="twoFactorCode">2FA Code</Label>
+                  <Input
+                    id="twoFactorCode"
+                    name="twoFactorCode"
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="Enter 6-digit code"
+                    
+                  className="mb-3 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-300 focus:border-transparent outline-none transition-all"
+                    value={twoFactorCode}
+                    onChange={(e: any) => setTwoFactorCode(e.target.value)}
+                  />
+                  <ReuseButton
+                    backgroundcolor="#16a34a"
+                    type="button"
+                    text={verifying2FA ? "Verifying..." : "Verify & Continue"}
+                    disabled={verifying2FA}
+                    onClick={handleVerify2FALogin as any}
+                  />
+                </FormGroup>
+              )}
+
               <ForgotPassword href="/auth/forgot-password">Forgot Password?</ForgotPassword>
 
               {/* reCAPTCHA */}
@@ -230,7 +299,7 @@ const Login = () => {
                 backgroundcolor="#7f56d9"
                 type="submit"
                 text={loading ? "Please Wait ..." : "Sign In"}
-                disabled={loading}
+                disabled={loading || twoFactorRequired}
               />
 
               <SignUpText>
@@ -357,7 +426,7 @@ const ForgotPassword = styled("a")(({ theme }) => ({
   "&:hover": { textDecoration: "underline" },
 }));
 
-const RecaptchaContainer = styled("div")(({ theme }) => ({
+const RecaptchaContainer = styled("div")(() => ({
   display: "flex",
   justifyContent: "center",
   margin: "10px 0",

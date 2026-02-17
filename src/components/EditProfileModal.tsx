@@ -5,6 +5,7 @@ import { createProfileUpdateValidation } from "../validation/Index";
 import { updateUserProfile, type UserProfile } from "../services/api/profileApi";
 import { useResendVerificationEmailMutation } from "../services/api/authApi";
 import { uploadResume } from "../services/api/resumeApi";
+import { setup2FA, verify2FA, disable2FA } from "../services/api/twoFactorApi";
 import toast from "react-hot-toast";
 import { getCountriesList, validateMobileNumber, getExpectedDigitMessage, getCountryCodeFromDialCode } from "../utils/mobileValidation";
 import CountryCodeSelector from "./CountryCodeSelector";
@@ -32,6 +33,77 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
   const [mobileValidationError, setMobileValidationError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [_resendVerificationEmail] = useResendVerificationEmailMutation();
+
+  // 2FA state (Google Authenticator)
+  const [twoFASetupData, setTwoFASetupData] = useState<{ qrCode: string; secret: string } | null>(null);
+  const [twoFAToken, setTwoFAToken] = useState("");
+  const [twoFADisablePassword, setTwoFADisablePassword] = useState("");
+  const [twoFADisableToken, setTwoFADisableToken] = useState("");
+  const [twoFALoading, setTwoFALoading] = useState(false);
+  const [showDisable2FA, setShowDisable2FA] = useState(false);
+
+  const handleStart2FASetup = async () => {
+    try {
+      setTwoFALoading(true);
+      const res = await setup2FA();
+      setTwoFASetupData(res.data);
+      toast.success("Scan the QR code in Google Authenticator, then enter the 6-digit code to enable 2FA.");
+    } catch (error: any) {
+      toast.error(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Failed to start 2FA setup"
+      );
+    } finally {
+      setTwoFALoading(false);
+    }
+  };
+
+  const handleEnable2FA = async () => {
+    try {
+      if (!twoFAToken.trim()) {
+        toast.error("Please enter the 6-digit code from your authenticator app");
+        return;
+      }
+      setTwoFALoading(true);
+      await verify2FA(twoFAToken.trim());
+      toast.success("2FA enabled successfully!");
+      setTwoFASetupData(null);
+      setTwoFAToken("");
+      onUpdateSuccess();
+    } catch (error: any) {
+      toast.error(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Failed to enable 2FA"
+      );
+    } finally {
+      setTwoFALoading(false);
+    }
+  };
+
+  const handleDisable2FA = async () => {
+    try {
+      if (!twoFADisablePassword.trim()) {
+        toast.error("Password is required to disable 2FA");
+        return;
+      }
+      setTwoFALoading(true);
+      await disable2FA(twoFADisablePassword.trim(), twoFADisableToken.trim() || undefined);
+      toast.success("2FA disabled successfully!");
+      setTwoFADisablePassword("");
+      setTwoFADisableToken("");
+      onUpdateSuccess();
+    } catch (error: any) {
+      toast.error(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Failed to disable 2FA"
+      );
+    } finally {
+      setTwoFALoading(false);
+    }
+  };
 
   // derive initial dial code from existing profile number (if any)
   const initialDialCode = (() => {
@@ -164,6 +236,11 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
       setEmailChanged(false);
       setResumeFile(null);
       setResumeUrl(profileData?.resume_url || null);
+      setTwoFASetupData(null);
+      setTwoFAToken("");
+      setTwoFADisablePassword("");
+      setTwoFADisableToken("");
+      setShowDisable2FA(false);
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
@@ -434,6 +511,136 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                   ⚠️ Changing your email will require verification
                 </p>
               )}
+            </div>
+
+            {/* Two-Factor Authentication (Optional) */}
+            <div className="md:col-span-2">
+              <div className="p-4 border border-gray-200 rounded-lg bg-gray-50">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-sm font-semibold text-gray-800">
+                      Two-Factor Authentication (2FA)
+                    </p>
+                    <p className="text-xs text-gray-600 mt-1">
+                      Optional. Adds extra security using Google Authenticator.
+                    </p>
+                    <p className="text-xs mt-2">
+                      Status:{" "}
+                      <span className={profileData?.two_fa_enabled ? "text-green-700 font-semibold" : "text-gray-700 font-semibold"}>
+                        {profileData?.two_fa_enabled ? "Enabled" : "Disabled"}
+                      </span>
+                    </p>
+                  </div>
+
+                  {!profileData?.two_fa_enabled ? (
+                    <button
+                      type="button"
+                      onClick={handleStart2FASetup}
+                      disabled={twoFALoading}
+                      className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
+                    >
+                      {twoFALoading ? "Loading..." : "Enable 2FA"}
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setShowDisable2FA((v) => !v)}
+                      disabled={twoFALoading}
+                      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
+                    >
+                      {twoFALoading ? "Loading..." : showDisable2FA ? "Cancel" : "Disable 2FA"}
+                    </button>
+                  )}
+                </div>
+
+                {/* Enable flow */}
+                {!profileData?.two_fa_enabled && twoFASetupData && (
+                  <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex flex-col items-center justify-center bg-white border border-gray-200 rounded-lg p-3">
+                      <img
+                        src={twoFASetupData.qrCode}
+                        alt="2FA QR Code"
+                        className="w-48 h-48 object-contain"
+                      />
+                      <p className="text-[11px] text-gray-600 mt-2 text-center">
+                        Scan this QR code with Google Authenticator.
+                      </p>
+                    </div>
+                    <div className="bg-white border border-gray-200 rounded-lg p-3">
+                      <p className="text-xs text-gray-700 font-medium">
+                        Secret (manual entry)
+                      </p>
+                      <p className="text-xs font-mono break-all mt-1 text-gray-800">
+                        {twoFASetupData.secret}
+                      </p>
+
+                      <label className="block text-sm font-medium text-gray-700 mt-4 mb-2">
+                        6-digit code
+                      </label>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        placeholder="123456"
+                        value={twoFAToken}
+                        onChange={(e) => setTwoFAToken(e.target.value)}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleEnable2FA}
+                        disabled={twoFALoading}
+                        className="mt-3 w-full px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
+                      >
+                        {twoFALoading ? "Verifying..." : "Verify & Enable"}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Disable flow inputs */}
+                {profileData?.two_fa_enabled && showDisable2FA && (
+                  <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Password
+                      </label>
+                      <input
+                        type="password"
+                        placeholder="Enter your password"
+                        value={twoFADisablePassword}
+                        onChange={(e) => setTwoFADisablePassword(e.target.value)}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        2FA code
+                      </label>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        placeholder="123456"
+                        value={twoFADisableToken}
+                        onChange={(e) => setTwoFADisableToken(e.target.value)}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all"
+                      />
+                      <p className="text-xs text-gray-600 mt-1">
+                        Required to disable 2FA (for security).
+                      </p>
+                    </div>
+                    <div className="md:col-span-2">
+                      <button
+                        type="button"
+                        onClick={handleDisable2FA}
+                        disabled={twoFALoading}
+                        className="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
+                      >
+                        {twoFALoading ? "Disabling..." : "Confirm Disable 2FA"}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* National ID (for students) */}
