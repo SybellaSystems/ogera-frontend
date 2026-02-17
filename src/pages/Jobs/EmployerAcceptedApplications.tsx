@@ -12,12 +12,13 @@ import toast from "react-hot-toast";
 
 const EmployerAcceptedApplications: React.FC = () => {
   const navigate = useNavigate();
-  const { data, isLoading, error } = useGetEmployerApplicationsQuery();
+  const { data, isLoading, error } = useGetEmployerApplicationsQuery(
+    { status: "Accepted" },
+    { refetchOnMountOrArgChange: true }
+  );
 
   const applications = data?.data || [];
-  const acceptedApplications = applications.filter(
-    (app) => app.status === "Accepted"
-  );
+  const acceptedApplications = applications;
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);

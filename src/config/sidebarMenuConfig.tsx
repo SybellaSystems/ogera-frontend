@@ -63,15 +63,6 @@ export const SIDEBAR_MENU_CONFIG: MenuItemConfig[] = [
     ],
   },
   {
-    permissionRoute: "/job-applications",
-    label: "Job Applications",
-    icon: BriefcaseIcon,
-    menuKey: "job-applications",
-    basePath: "/dashboard/jobs/applications",
-    hasSubmenu: false,
-    directPath: "/dashboard/jobs/applications",
-  },
-  {
     permissionRoute: "/notifications",
     label: "Notifications",
     icon: BellIcon,

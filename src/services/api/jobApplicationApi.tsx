@@ -63,6 +63,8 @@ export interface JobApplicationsListResponse {
   message: string;
 }
 
+export type JobApplicationStatusFilter = "Pending" | "Accepted" | "Rejected";
+
 export const jobApplicationApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     // Apply for a job (student only)
@@ -95,20 +97,34 @@ export const jobApplicationApi = apiSlice.injectEndpoints({
     }),
 
     // Get all applications for an employer (employer/superadmin only)
-    getEmployerApplications: builder.query<JobApplicationsListResponse, void>({
-      query: () => ({
-        url: "/employer/applications",
-        method: "GET",
-      }),
+    getEmployerApplications: builder.query<
+      JobApplicationsListResponse,
+      { status?: JobApplicationStatusFilter } | void
+    >({
+      query: (arg) => {
+        const status = arg && "status" in arg ? arg.status : undefined;
+        const qs = status ? `?status=${encodeURIComponent(status)}` : "";
+        return {
+          url: `/employer/applications${qs}`,
+          method: "GET",
+        };
+      },
       providesTags: ["Job"],
     }),
 
     // Get student's own applications
-    getStudentApplications: builder.query<JobApplicationsListResponse, void>({
-      query: () => ({
-        url: "/student/applications",
-        method: "GET",
-      }),
+    getStudentApplications: builder.query<
+      JobApplicationsListResponse,
+      { status?: JobApplicationStatusFilter } | void
+    >({
+      query: (arg) => {
+        const status = arg && "status" in arg ? arg.status : undefined;
+        const qs = status ? `?status=${encodeURIComponent(status)}` : "";
+        return {
+          url: `/student/applications${qs}`,
+          method: "GET",
+        };
+      },
       providesTags: ["Job", "JobApplication"],
     }),
 

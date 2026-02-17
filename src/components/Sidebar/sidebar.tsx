@@ -181,8 +181,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         {location.pathname === "/dashboard/academic/pending" && "Pending Reviews"}
                         {location.pathname === "/dashboard/academic/approved" && "Approved"}
                         {location.pathname === "/dashboard/academic/rejected" && "Rejected"}
-                        {location.pathname === "/dashboard/academic/performance" && "Performance Track"}
-                        {location.pathname === "/dashboard/academic/locks" && "Account Locks"}
+                        {/* {location.pathname === "/dashboard/academic/performance" && "Performance Track"} */}
+                        {/* {location.pathname === "/dashboard/academic/locks" && "Account Locks"} */}
                       </span>
                     )}
                   </div>
@@ -265,7 +265,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                       Rejected
                     </span>
                   </li>
-                  <li
+                  {/* <li
                     className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
                       isActive("/dashboard/academic/performance")
                         ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
@@ -287,8 +287,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     }`}>
                       Performance Track
                     </span>
-                  </li>
-                  <li
+                  </li> */}
+                  {/* <li
                     className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
                       isActive("/dashboard/academic/locks")
                         ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
@@ -310,7 +310,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     }`}>
                       Account Locks
                     </span>
-                  </li>
+                  </li> */}
                 </ul>
               )}
             </div>
@@ -334,8 +334,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         {location.pathname === "/dashboard/users/all" && "All Users"}
                         {location.pathname === "/dashboard/users/students" && "Students"}
                         {location.pathname === "/dashboard/users/employers" && "Employers"}
-                        {location.pathname === "/dashboard/users/pending" && "Pending Approval"}
-                        {location.pathname === "/dashboard/users/suspended" && "Suspended"}
+                        {/* {location.pathname === "/dashboard/users/pending" && "Pending Approval"} */}
+                        {/* {location.pathname === "/dashboard/users/suspended" && "Suspended"} */}
                       </span>
                     )}
                   </div>
@@ -416,7 +416,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                       Employers
                     </span>
                   </li>
-                  <li
+                  {/* <li
                     className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
                       isActive("/dashboard/users/pending")
                         ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
@@ -436,8 +436,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     }`}>
                       Pending Approval
                     </span>
-                  </li>
-                  <li
+                  </li> */}
+                  {/* <li
                     className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
                       isActive("/dashboard/users/suspended")
                         ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
@@ -459,7 +459,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     }`}>
                       Suspended
                     </span>
-                  </li>
+                  </li> */}
                 </ul>
               )}
             </div>
@@ -728,7 +728,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         {location.pathname === "/dashboard/academic/approved" && "Approved"}
                         {location.pathname === "/dashboard/academic/rejected" && "Rejected"}
                         {location.pathname === "/dashboard/academic/performance" && "Performance Track"}
-                        {location.pathname === "/dashboard/academic/locks" && "Account Locks"}
+                        {/* {location.pathname === "/dashboard/academic/locks" && "Account Locks"} */}
                       </span>
                     )}
                   </div>
@@ -811,7 +811,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                       Rejected
                     </span>
                   </li>
-                  <li
+                  {/* <li
                     className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
                       isActive("/dashboard/academic/performance")
                         ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
@@ -833,8 +833,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     }`}>
                       Performance Track
                     </span>
-                  </li>
-                  <li
+                  </li> */}
+                  {/* <li
                     className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
                       isActive("/dashboard/academic/locks")
                         ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
@@ -856,7 +856,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     }`}>
                       Account Locks
                     </span>
-                  </li>
+                  </li> */}
                 </ul>
               )}
             </div>
@@ -1015,7 +1015,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         Completed
                       </span>
                     </li>
-                    {isBuiltInAdmin && (
+                    {/* {isBuiltInAdmin && (
                       <li
                         className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
                         onClick={() =>
@@ -1027,7 +1027,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                           Pending Approval
                         </span>
                       </li>
-                    )}
+                    )} */}
                     {isBuiltInAdmin && (
                       <li
                         className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"

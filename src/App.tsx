@@ -291,6 +291,7 @@ function App() {
             },
             {
               path: "jobs/applications",
+              // Employer/superadmin manage incoming applications. Students should use "My Applications".
               element: <ProtectedRoute allowedRoles={["employer", "superadmin"]} />,
               children: [
                 {
