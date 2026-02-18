@@ -17,6 +17,11 @@ export interface CourseStep {
   step_order: number;
 }
 
+export interface UploadedVideoMeta {
+  path: string;
+  storageType: "local" | "s3";
+}
+
 /** SRS: Free core skills vs paid (RWF 2,000–10,000). Category = trending topics. */
 export const COURSE_CATEGORIES = [
   "Digital Marketing",
@@ -257,6 +262,20 @@ export const coursesApi = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ["Enrollment"],
     }),
+    uploadCourseVideo: builder.mutation<
+      { data: UploadedVideoMeta; message: string },
+      File
+    >({
+      query: (file) => {
+        const formData = new FormData();
+        formData.append("video", file);
+        return {
+          url: "/courses/upload-video",
+          method: "POST",
+          body: formData,
+        };
+      },
+    }),
   }),
 });
 
@@ -272,4 +291,5 @@ export const {
   useCompleteCourseMutation,
   useGetEnrollmentsPendingReviewQuery,
   useUpdateCertificateStatusMutation,
+  useUploadCourseVideoMutation,
 } = coursesApi;

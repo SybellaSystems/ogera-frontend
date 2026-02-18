@@ -28,6 +28,7 @@ const CourseDetail: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const role = useSelector((state: any) => state.auth.role);
+  const accessToken = useSelector((state: any) => state.auth.accessToken);
   const { data, isLoading, error } = useGetCourseByIdQuery(id || "");
   const { data: enrollmentData } = useGetEnrollmentQuery(id || "", {
     skip: !id,
@@ -142,24 +143,62 @@ const CourseDetail: React.FC = () => {
     return url;
   };
 
+  const isYouTubeUrl = (url: string) =>
+    url.includes("youtube.com") || url.includes("youtu.be");
+
+  const videoPlaybackUrl = (url: string) => {
+    if (!url) return url;
+    if (isYouTubeUrl(url)) return url;
+    if (!url.includes("/videos/stream")) return url;
+    const apiBase = import.meta.env.VITE_API_URL || "";
+    const origin = apiBase ? new URL(apiBase).origin : window.location.origin;
+    const fullUrl = url.startsWith("http")
+      ? url
+      : `${origin}${url.startsWith("/") ? url : `/${url}`}`;
+    const sep = fullUrl.includes("?") ? "&" : "?";
+    return accessToken
+      ? `${fullUrl}${sep}token=${encodeURIComponent(accessToken)}`
+      : fullUrl;
+  };
+
   const renderStepContent = (step: CourseStep) => {
     switch (step.step_type) {
-      case "video":
-        if (step.step_content.startsWith("http")) {
-          const embedUrl = convertToEmbedUrl(step.step_content);
+      case "video": {
+        const videoSrc = step.step_content || "";
+        const isOurStream = videoSrc.includes("/videos/stream");
+        const isHttpVideo = videoSrc.startsWith("http");
+        if (isHttpVideo || isOurStream) {
+          if (isHttpVideo && isYouTubeUrl(videoSrc)) {
+            const embedUrl = convertToEmbedUrl(videoSrc);
+            return (
+              <div className="mt-4">
+                <div
+                  className="relative w-full"
+                  style={{ paddingBottom: "56.25%" }}
+                >
+                  <iframe
+                    src={embedUrl}
+                    className="absolute top-0 left-0 w-full h-full rounded-lg"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    frameBorder="0"
+                  ></iframe>
+                </div>
+              </div>
+            );
+          }
           return (
             <div className="mt-4">
               <div
-                className="relative w-full"
+                className="relative w-full rounded-lg overflow-hidden bg-black"
                 style={{ paddingBottom: "56.25%" }}
               >
-                <iframe
-                  src={embedUrl}
-                  className="absolute top-0 left-0 w-full h-full rounded-lg"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  frameBorder="0"
-                ></iframe>
+                <video
+                  src={videoPlaybackUrl(videoSrc)}
+                  controls
+                  className="absolute top-0 left-0 w-full h-full"
+                  playsInline
+                />
               </div>
             </div>
           );
@@ -169,6 +208,7 @@ const CourseDetail: React.FC = () => {
             <p className="text-gray-700">{step.step_content}</p>
           </div>
         );
+      }
       case "link":
         return (
           <div className="mt-4">

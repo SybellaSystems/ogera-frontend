@@ -2,13 +2,20 @@ import React, { useState, useEffect } from "react";
 import { useFormik } from "formik";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import { BookOpenIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
+import {
+  BookOpenIcon,
+  PlusIcon,
+  TrashIcon,
+  CloudArrowUpIcon,
+} from "@heroicons/react/24/outline";
 import { styled } from "@mui/material/styles";
 import Button from "../../components/button";
 import * as Yup from "yup";
 import {
   useCreateCourseMutation,
+  useUploadCourseVideoMutation,
   type CourseStep,
+  type UploadedVideoMeta,
   COURSE_CATEGORIES,
 } from "../../services/api/coursesApi";
 import type { FetchBaseQueryError } from "@reduxjs/toolkit/query";
@@ -70,13 +77,81 @@ const validationSchema = Yup.object({
     .optional(),
 });
 
+const isUploadedVideo = (content: string): boolean => {
+  if (!content?.trim()) return false;
+  try {
+    const parsed = JSON.parse(content);
+    return !!parsed?.path && !!parsed?.storageType;
+  } catch {
+    return false;
+  }
+};
+
+const VideoStepInput: React.FC<{
+  step: CourseStep;
+  index: number;
+  steps: CourseStep[];
+  setSteps: React.Dispatch<React.SetStateAction<CourseStep[]>>;
+  uploadVideo: (file: File) => Promise<any>;
+  isUploading: boolean;
+}> = ({ step, index, steps, setSteps, uploadVideo, isUploading }) => {
+  const youtubeUrl = !isUploadedVideo(step.step_content) ? step.step_content : "";
+  const hasUpload = isUploadedVideo(step.step_content);
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const result = await uploadVideo(file);
+      const meta = (result as any)?.data?.data as UploadedVideoMeta;
+      if (meta?.path && meta?.storageType) {
+        const newSteps = [...steps];
+        newSteps[index].step_content = JSON.stringify(meta);
+        setSteps(newSteps);
+      }
+    } catch (err: any) {
+      toast.error(err?.data?.message || "Video upload failed");
+    }
+    e.target.value = "";
+  };
+  return (
+    <VideoInputWrapper>
+      <Input
+        type="url"
+        value={youtubeUrl}
+        onChange={(e) => {
+          const newSteps = [...steps];
+          newSteps[index].step_content = e.target.value;
+          setSteps(newSteps);
+        }}
+        placeholder="e.g., https://www.youtube.com/watch?v=..."
+      />
+      <UploadDivider>— or upload from computer —</UploadDivider>
+      <UploadArea>
+        <input
+          type="file"
+          id={`video-upload-${index}`}
+          accept="video/mp4,video/webm,video/ogg,video/quicktime,.mp4,.webm,.ogg,.mov"
+          onChange={handleFileChange}
+          style={{ display: "none" }}
+          disabled={isUploading}
+        />
+        <label htmlFor={`video-upload-${index}`}>
+          <CloudArrowUpIcon className="h-6 w-6" />
+          {hasUpload ? "Replace video" : isUploading ? "Uploading..." : "Choose video file"}
+        </label>
+      </UploadArea>
+      {hasUpload && <UploadedBadge>✓ Video uploaded</UploadedBadge>}
+    </VideoInputWrapper>
+  );
+};
+
 const AddCourse: React.FC = () => {
   const navigate = useNavigate();
   const [steps, setSteps] = useState<CourseStep[]>([]);
-  const [
-    createCourse,
-    { isLoading: isSubmitting, isError, error, isSuccess, data },
-  ] = useCreateCourseMutation();
+  const [createCourse, { isLoading: isSubmitting, isSuccess, data }] =
+    useCreateCourseMutation();
+  const [uploadVideo, { isLoading: isUploadingVideo }] =
+    useUploadCourseVideoMutation();
 
   const initialValues: AddCourseFormValues = {
     course_name: "",
@@ -408,7 +483,7 @@ const AddCourse: React.FC = () => {
                     setSteps(newSteps);
                   }}
                 >
-                  <option value="video">Watch YouTube Video</option>
+                  <option value="video">Video (YouTube or upload)</option>
                   <option value="quiz">Quiz</option>
                   <option value="link">Read Link</option>
                   <option value="pdf">Read PDF</option>
@@ -419,7 +494,7 @@ const AddCourse: React.FC = () => {
 
               <FormGroup>
                 <Label htmlFor={`step_content_${index}`}>
-                  {step.step_type === "video" && "YouTube Video URL *"}
+                  {step.step_type === "video" && "Video source *"}
                   {step.step_type === "link" && "Link URL *"}
                   {step.step_type === "pdf" && "PDF URL *"}
                   {step.step_type === "image" && "Image URL *"}
@@ -437,6 +512,15 @@ const AddCourse: React.FC = () => {
                     }}
                     placeholder="Enter text content for this step..."
                   />
+                ) : step.step_type === "video" ? (
+                  <VideoStepInput
+                    step={step}
+                    index={index}
+                    steps={steps}
+                    setSteps={setSteps}
+                    uploadVideo={uploadVideo}
+                    isUploading={isUploadingVideo}
+                  />
                 ) : (
                   <Input
                     id={`step_content_${index}`}
@@ -448,9 +532,7 @@ const AddCourse: React.FC = () => {
                       setSteps(newSteps);
                     }}
                     placeholder={
-                      step.step_type === "video"
-                        ? "e.g., https://www.youtube.com/watch?v=..."
-                        : step.step_type === "link"
+                      step.step_type === "link"
                         ? "e.g., https://example.com/article"
                         : step.step_type === "pdf"
                         ? "e.g., https://example.com/document.pdf"
@@ -459,7 +541,8 @@ const AddCourse: React.FC = () => {
                   />
                 )}
                 <HelperText>
-                  {step.step_type === "video" && "Enter a YouTube video URL"}
+                  {step.step_type === "video" &&
+                    "Enter a YouTube URL or upload a video file (MP4, WebM, OGG, MOV)"}
                   {step.step_type === "link" && "Enter a web page URL"}
                   {step.step_type === "pdf" && "Enter a PDF document URL"}
                   {step.step_type === "image" && "Enter an image URL"}
@@ -716,6 +799,46 @@ const DeleteStepButton = styled("button")`
   &:hover {
     background: #fecaca;
   }
+`;
+
+const VideoInputWrapper = styled("div")`
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+`;
+
+const UploadDivider = styled("span")`
+  font-size: 12px;
+  color: #9ca3af;
+  text-align: center;
+`;
+
+const UploadArea = styled("div")`
+  label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background: #f3f4f6;
+    border: 2px dashed #d1d5db;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #6b7280;
+    transition: all 0.2s;
+  }
+  label:hover {
+    background: #e5e7eb;
+    border-color: #7f56d9;
+    color: #7f56d9;
+  }
+`;
+
+const UploadedBadge = styled("span")`
+  font-size: 12px;
+  color: #059669;
+  font-weight: 500;
 `;
 
 const AddStepButton = styled("button")`
