@@ -9,12 +9,13 @@ import Loader from "../../components/Loader";
 
 const StudentRejectedApplications: React.FC = () => {
   const navigate = useNavigate();
-  const { data, isLoading, error } = useGetStudentApplicationsQuery();
+  const { data, isLoading, error } = useGetStudentApplicationsQuery(
+    { status: "Rejected" },
+    { refetchOnMountOrArgChange: true }
+  );
 
   const applications = data?.data || [];
-  const rejectedApplications = applications.filter(
-    (app) => app.status === "Rejected"
-  );
+  const rejectedApplications = applications;
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
