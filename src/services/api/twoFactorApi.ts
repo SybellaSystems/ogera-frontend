@@ -59,3 +59,65 @@ export const verifyLogin2FA = async (
   return res.data;
 };
 
+// Lost Authenticator APIs
+export interface SendLostAuthenticatorOTPResponse {
+  success: boolean;
+  status: number;
+  message: string;
+  data: {
+    recoveryToken: string;
+  };
+}
+
+export const sendLostAuthenticatorOTP = async (
+  email: string
+): Promise<SendLostAuthenticatorOTPResponse> => {
+  const res = await api.post<SendLostAuthenticatorOTPResponse>(
+    "/auth/2fa/lost-authenticator/send-otp",
+    { email }
+  );
+  return res.data;
+};
+
+export interface VerifyLostAuthenticatorOTPResponse {
+  success: boolean;
+  status: number;
+  message: string;
+  data: {
+    setupToken: string;
+    user: unknown;
+  };
+}
+
+export const verifyLostAuthenticatorOTPAndDisable2FA = async (
+  otp: string,
+  recoveryToken: string
+): Promise<VerifyLostAuthenticatorOTPResponse> => {
+  const res = await api.post<VerifyLostAuthenticatorOTPResponse>(
+    "/auth/2fa/lost-authenticator/verify-and-disable",
+    { otp, recoveryToken }
+  );
+  return res.data;
+};
+
+export const setup2FAWithToken = async (
+  setupToken: string
+): Promise<Setup2FAResponse> => {
+  const res = await api.post<Setup2FAResponse>(
+    "/auth/2fa/lost-authenticator/setup",
+    { setupToken }
+  );
+  return res.data;
+};
+
+export const verify2FAWithToken = async (
+  setupToken: string,
+  token: string
+): Promise<Verify2FAResponse> => {
+  const res = await api.post<Verify2FAResponse>(
+    "/auth/2fa/lost-authenticator/verify",
+    { setupToken, token }
+  );
+  return res.data;
+};
+
