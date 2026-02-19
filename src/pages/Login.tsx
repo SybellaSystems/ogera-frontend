@@ -18,6 +18,7 @@ import { verifyLogin2FA } from "../services/api/twoFactorApi";
 import { jwtDecode } from "jwt-decode";
 import { setCredentials } from "../features/auth/authSlice";
 import axios from "axios";
+import LostAuthenticatorModal from "../components/LostAuthenticatorModal";
 
 const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
 
@@ -29,6 +30,8 @@ const Login = () => {
   const [twoFactorToken, setTwoFactorToken] = useState("");
   const [twoFactorCode, setTwoFactorCode] = useState("");
   const [verifying2FA, setVerifying2FA] = useState(false);
+  const [showLostAuthenticatorModal, setShowLostAuthenticatorModal] = useState(false);
+  const [isLostAuthenticatorClicked, setIsLostAuthenticatorClicked] = useState(false);
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -114,7 +117,7 @@ const Login = () => {
         setLoading(true);
 
         // Get CAPTCHA token from the checkbox widget (only if reCAPTCHA is enabled)
-        if (RECAPTCHA_SITE_KEY) {
+        if (RECAPTCHA_SITE_KEY && !twoFactorRequired) {
           if ((window as any).grecaptcha) {
             const token = (window as any).grecaptcha.getResponse();
             if (!token) {
@@ -133,7 +136,10 @@ const Login = () => {
         if (result?.data?.requires2FA) {
           setTwoFactorRequired(true);
           setTwoFactorToken(result.data.twoFactorToken || "");
-          toast("Enter the 6-digit code from Google Authenticator to complete login.");
+          if (!isLostAuthenticatorClicked) {
+            toast("Enter the 6-digit code from Google Authenticator to complete login.");
+          }
+          setIsLostAuthenticatorClicked(false); // Reset after use
           return;
         }
 
@@ -153,8 +159,15 @@ const Login = () => {
         console.log("🔍 Error type:", error?.type);
         
         const errorMessage = error?.response?.data?.message || error?.payload?.message || error?.message || "";
-        
-        toast.error(errorMessage || "Login failed");
+
+        // Suppress reCAPTCHA client error when 2FA step is active
+        const isNoRecaptchaClientsError =
+          typeof errorMessage === "string" &&
+          errorMessage.toLowerCase().includes("no recaptcha clients exist");
+
+        if (!(twoFactorRequired && isNoRecaptchaClientsError)) {
+          toast.error(errorMessage || "Login failed");
+        }
         // Reset CAPTCHA on error
         if (RECAPTCHA_SITE_KEY && (window as any).grecaptcha) {
           (window as any).grecaptcha.reset();
@@ -184,11 +197,18 @@ const Login = () => {
       setTwoFactorCode("");
       await finishLogin(accessToken);
     } catch (error: any) {
-      toast.error(
+      const msg =
         error?.response?.data?.message ||
-          error?.message ||
-          "2FA verification failed"
-      );
+        error?.message ||
+        "2FA verification failed";
+
+      const isNoRecaptchaClientsError =
+        typeof msg === "string" &&
+        msg.toLowerCase().includes("no recaptcha clients exist");
+
+      if (!isNoRecaptchaClientsError) {
+        toast.error(msg);
+      }
     } finally {
       setVerifying2FA(false);
     }
@@ -257,6 +277,8 @@ const Login = () => {
                 )}
               </FormGroup>
 
+              <ForgotPassword href="/auth/forgot-password">Forgot Password?</ForgotPassword>
+
               {/* 2FA Step (only when required) */}
               {twoFactorRequired && (
                 <FormGroup>
@@ -272,6 +294,14 @@ const Login = () => {
                     value={twoFactorCode}
                     onChange={(e: any) => setTwoFactorCode(e.target.value)}
                   />
+                  <LostAuthenticatorLink
+                    onClick={() => {
+                      setIsLostAuthenticatorClicked(true);
+                      setShowLostAuthenticatorModal(true);
+                    }}
+                  >
+                    Lost Authenticator?
+                  </LostAuthenticatorLink>
                   <ReuseButton
                     backgroundcolor="#16a34a"
                     type="button"
@@ -282,10 +312,10 @@ const Login = () => {
                 </FormGroup>
               )}
 
-              <ForgotPassword href="/auth/forgot-password">Forgot Password?</ForgotPassword>
+              {/* <ForgotPassword href="/auth/forgot-password">Forgot Password?</ForgotPassword> */}
 
               {/* reCAPTCHA */}
-              {RECAPTCHA_SITE_KEY && (
+              {!twoFactorRequired && RECAPTCHA_SITE_KEY && (
                 <RecaptchaContainer>
                   <div
                     ref={reCaptchaRef}
@@ -295,16 +325,20 @@ const Login = () => {
                 </RecaptchaContainer>
               )}
 
-              <ReuseButton
-                backgroundcolor="#7f56d9"
-                type="submit"
-                text={loading ? "Please Wait ..." : "Sign In"}
-                disabled={loading || twoFactorRequired}
-              />
+              {!twoFactorRequired && (
+                <>
+                  <ReuseButton
+                    backgroundcolor="#7f56d9"
+                    type="submit"
+                    text={loading ? "Please Wait ..." : "Sign In"}
+                    disabled={loading}
+                  />
 
-              <SignUpText>
-                Don’t have an account? <a href="/auth/register">Sign Up</a>
-              </SignUpText>
+                  <SignUpText>
+                    Don’t have an account? <a href="/auth/register">Sign Up</a>
+                  </SignUpText>
+                </>
+              )}
             </LoginFormContainer>
           </LeftContent>
         </LoginLeftContainer>
@@ -327,6 +361,14 @@ const Login = () => {
           </RightContent>
         </LoginRightContainer>
       </LoginMainContainer>
+      
+      {/* Lost Authenticator Modal */}
+      <LostAuthenticatorModal
+        isOpen={showLostAuthenticatorModal}
+        onClose={() => setShowLostAuthenticatorModal(false)}
+        userEmail={formik.values.email}
+        userPassword={formik.values.password}
+      />
     </>
   );
 };
@@ -507,6 +549,19 @@ const ErrorText = styled("div")(({ theme }) => ({
   fontSize: "12px",
   color: theme.palette.error.main,
   marginTop: "4px",
+}));
+
+const LostAuthenticatorLink = styled("button")(({ theme }) => ({
+  fontSize: "12px",
+  color: theme.palette.primary.main,
+  cursor: "pointer",
+  alignSelf: "flex-start",
+  textDecoration: "none",
+  marginBottom: "8px",
+  background: "none",
+  border: "none",
+  padding: 0,
+  "&:hover": { textDecoration: "underline" },
 }));
 
 
