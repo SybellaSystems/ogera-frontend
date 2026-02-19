@@ -108,6 +108,16 @@ export interface CourseEnrollment {
   updated_at: string;
 }
 
+/** Course chat message (real-time + history). */
+export interface CourseChatMessage {
+  message_id: string;
+  course_id: string;
+  user_id: string;
+  role: string;
+  content: string;
+  created_at: string;
+}
+
 export interface CourseResponse {
   success: boolean;
   status: number;
@@ -276,6 +286,19 @@ export const coursesApi = apiSlice.injectEndpoints({
         };
       },
     }),
+
+    getCourseChatHistory: builder.query<
+      { data: CourseChatMessage[]; message: string },
+      string
+    >({
+      query: (courseId) => ({
+        url: `/courses/${courseId}/chat`,
+        method: "GET",
+      }),
+      providesTags: (result, error, courseId) => [
+        { type: "Course", id: `chat-${courseId}` },
+      ],
+    }),
   }),
 });
 
@@ -292,4 +315,5 @@ export const {
   useGetEnrollmentsPendingReviewQuery,
   useUpdateCertificateStatusMutation,
   useUploadCourseVideoMutation,
+  useGetCourseChatHistoryQuery,
 } = coursesApi;

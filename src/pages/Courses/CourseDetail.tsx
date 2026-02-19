@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   BookOpenIcon,
@@ -20,23 +20,43 @@ import {
   type CourseStep,
 } from "../../services/api/coursesApi";
 import Loader from "../../components/Loader";
+import { CourseChatPanel } from "../../components/CourseChat/CourseChatPanel";
 import { formatRelativeTime } from "../../utils/timeUtils";
 import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
+import {
+  useGetUnreadCourseChatCountQuery,
+  useMarkCourseChatAsReadMutation,
+} from "../../services/api/notificationApi";
 
 const CourseDetail: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const role = useSelector((state: any) => state.auth.role);
   const accessToken = useSelector((state: any) => state.auth.accessToken);
+  const user = useSelector((state: any) => state.auth.user);
+  const [chatOpen, setChatOpen] = useState(false);
   const { data, isLoading, error } = useGetCourseByIdQuery(id || "");
   const { data: enrollmentData } = useGetEnrollmentQuery(id || "", {
     skip: !id,
   });
   const [enroll, { isLoading: isEnrolling }] = useEnrollCourseMutation();
   const [complete, { isLoading: isCompleting }] = useCompleteCourseMutation();
+  const { data: unreadChatData } = useGetUnreadCourseChatCountQuery(id || "", {
+    skip: !id,
+    pollingInterval: 15000,
+    refetchOnFocus: true,
+  });
+  const [markCourseChatAsRead] = useMarkCourseChatAsReadMutation();
 
   const course = data?.data;
+  const unreadCourseChatCount = Number(unreadChatData?.data?.count ?? 0) || 0;
+
+  useEffect(() => {
+    if (chatOpen && id) {
+      markCourseChatAsRead(id);
+    }
+  }, [chatOpen, id]);
   const enrollment = enrollmentData?.data;
   const isStudent = role === "student";
 
@@ -58,7 +78,12 @@ const CourseDetail: React.FC = () => {
       await enroll(id).unwrap();
       toast.success("Enrolled! You can start learning.");
     } catch (e: any) {
-      toast.error(e?.data?.message || "Enrollment failed");
+      const msg =
+        e?.data?.message ||
+        (e?.error?.status === "FETCH_ERROR" || e?.status === "FETCH_ERROR"
+          ? "Cannot reach server. Is the backend running?"
+          : "Enrollment failed");
+      toast.error(msg);
     }
   };
 
@@ -67,7 +92,7 @@ const CourseDetail: React.FC = () => {
     try {
       await complete(id).unwrap();
       toast.success(
-        "Course marked complete. Certificate will be reviewed by admin."
+        "Course marked complete. Certificate will be reviewed by admin.",
       );
     } catch (e: any) {
       toast.error(e?.data?.message || "Failed to complete");
@@ -128,7 +153,7 @@ const CourseDetail: React.FC = () => {
 
     // Regular YouTube watch URL: https://www.youtube.com/watch?v=VIDEO_ID
     const watchMatch = url.match(
-      /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/,
     );
     if (watchMatch) {
       videoId = watchMatch[1].split("&")[0]; // Remove any additional parameters
@@ -351,17 +376,28 @@ const CourseDetail: React.FC = () => {
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          {/* SRS: Course Support – In-app chat (placeholder for Socket.io) */}
           <button
             type="button"
-            className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 text-sm font-medium"
-            onClick={() =>
-              toast("Course Support chat coming soon (Socket.io).")
-            }
+            className="relative flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 text-sm font-medium"
+            onClick={() => setChatOpen(true)}
           >
             <ChatBubbleLeftRightIcon className="h-5 w-5" />
             Course Support
+            {unreadCourseChatCount > 0 ? (
+              <span className="absolute -top-0.5 -right-0.5 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1.5 text-xs font-bold text-white ring-2 ring-white shadow">
+                {unreadCourseChatCount > 99 ? "99+" : unreadCourseChatCount}
+              </span>
+            ) : null}
           </button>
+          {chatOpen && id && course && (
+            <CourseChatPanel
+              courseId={id}
+              courseName={course.course_name}
+              accessToken={accessToken}
+              currentUserId={user?.user_id ?? user?.id ?? null}
+              onClose={() => setChatOpen(false)}
+            />
+          )}
           {isStudent && enrollment && (
             <span className="flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-lg text-sm">
               {enrollment.completed_at ? (

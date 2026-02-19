@@ -108,6 +108,29 @@ export const notificationApi = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ["Notification"],
     }),
+
+    // Unread count for course support chat (badge on Course Support button)
+    getUnreadCourseChatCount: builder.query<UnreadCountResponse, string>({
+      query: (courseId) => ({
+        url: `/notifications/unread/course-chat?course_id=${encodeURIComponent(courseId)}`,
+        method: "GET",
+      }),
+      providesTags: (result, error, courseId) => [
+        { type: "Notification", id: `course-chat-${courseId}` },
+      ],
+    }),
+
+    // Mark course support chat as read when user opens the panel
+    markCourseChatAsRead: builder.mutation<MarkAllReadResponse, string>({
+      query: (courseId) => ({
+        url: `/notifications/read-course-chat?course_id=${encodeURIComponent(courseId)}`,
+        method: "PATCH",
+      }),
+      invalidatesTags: (result, error, courseId) => [
+        "Notification",
+        { type: "Notification", id: `course-chat-${courseId}` },
+      ],
+    }),
   }),
 });
 
@@ -118,6 +141,8 @@ export const {
   useMarkAllNotificationsAsReadMutation,
   useDeleteNotificationMutation,
   useLazyGetNotificationsQuery,
+  useGetUnreadCourseChatCountQuery,
+  useMarkCourseChatAsReadMutation,
 } = notificationApi;
 
 

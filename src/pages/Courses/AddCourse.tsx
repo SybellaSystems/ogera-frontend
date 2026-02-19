@@ -53,7 +53,7 @@ const validationSchema = Yup.object({
     .max(10)
     .nullable()
     .transform((v) =>
-      v === "" || v === undefined || isNaN(Number(v)) ? undefined : Number(v)
+      v === "" || v === undefined || isNaN(Number(v)) ? undefined : Number(v),
     )
     .optional(),
   category: Yup.string().optional(),
@@ -95,7 +95,9 @@ const VideoStepInput: React.FC<{
   uploadVideo: (file: File) => Promise<any>;
   isUploading: boolean;
 }> = ({ step, index, steps, setSteps, uploadVideo, isUploading }) => {
-  const youtubeUrl = !isUploadedVideo(step.step_content) ? step.step_content : "";
+  const youtubeUrl = !isUploadedVideo(step.step_content)
+    ? step.step_content
+    : "";
   const hasUpload = isUploadedVideo(step.step_content);
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -137,7 +139,11 @@ const VideoStepInput: React.FC<{
         />
         <label htmlFor={`video-upload-${index}`}>
           <CloudArrowUpIcon className="h-6 w-6" />
-          {hasUpload ? "Replace video" : isUploading ? "Uploading..." : "Choose video file"}
+          {hasUpload
+            ? "Replace video"
+            : isUploading
+              ? "Uploading..."
+              : "Choose video file"}
         </label>
       </UploadArea>
       {hasUpload && <UploadedBadge>✓ Video uploaded</UploadedBadge>}
@@ -535,8 +541,8 @@ const AddCourse: React.FC = () => {
                       step.step_type === "link"
                         ? "e.g., https://example.com/article"
                         : step.step_type === "pdf"
-                        ? "e.g., https://example.com/document.pdf"
-                        : "e.g., https://example.com/image.jpg"
+                          ? "e.g., https://example.com/document.pdf"
+                          : "e.g., https://example.com/image.jpg"
                     }
                   />
                 )}
@@ -613,7 +619,9 @@ const FormContainer = styled("form")`
   background: white;
   border-radius: 12px;
   padding: 32px;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 1px 3px 0 rgba(0, 0, 0, 0.1),
+    0 1px 2px 0 rgba(0, 0, 0, 0.06);
 
   @media (min-width: 640px) {
     padding: 40px;
