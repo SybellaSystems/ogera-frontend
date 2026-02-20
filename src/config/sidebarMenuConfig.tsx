@@ -7,6 +7,7 @@ import {
   ShieldCheckIcon,
   BellIcon,
   BookOpenIcon,
+  IdentificationIcon,
 } from "@heroicons/react/24/outline";
 import type { ComponentType } from "react";
 
@@ -60,6 +61,19 @@ export const SIDEBAR_MENU_CONFIG: MenuItemConfig[] = [
       { label: "Rejected", path: "/dashboard/academic/rejected" },
       { label: "Performance Track", path: "/dashboard/academic/performance" },
       { label: "Account Locks", path: "/dashboard/academic/locks" },
+    ],
+  },
+  {
+    permissionRoute: "/identity-verifications",
+    label: "Identity Verification",
+    icon: IdentificationIcon,
+    menuKey: "identity",
+    basePath: "/dashboard/identity",
+    hasSubmenu: true,
+    submenuItems: [
+      { label: "Pending Reviews", path: "/dashboard/identity/pending" },
+      { label: "Approved", path: "/dashboard/identity/approved" },
+      { label: "Rejected", path: "/dashboard/identity/rejected" },
     ],
   },
   {

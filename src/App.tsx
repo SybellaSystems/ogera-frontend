@@ -33,6 +33,11 @@ import SuspendedUsers from "./pages/Users/Suspended";
 import PendingReviews from "./pages/AcademicVerification/PendingReviews";
 import Approved from "./pages/AcademicVerification/Approved";
 import Rejected from "./pages/AcademicVerification/Rejected";
+
+// Identity Verification Pages
+import IdentityPendingReviews from "./pages/IdentityVerification/PendingReviews";
+import IdentityApproved from "./pages/IdentityVerification/Approved";
+import IdentityRejected from "./pages/IdentityVerification/Rejected";
 import PerformanceTrack from "./pages/AcademicVerification/PerformanceTrack";
 import StudentPerformanceReport from "./pages/AcademicVerification/StudentPerformanceReport";
 import AccountLocks from "./pages/AcademicVerification/AccountLocks";
@@ -256,6 +261,19 @@ function App() {
             {
               path: "academic/locks",
               Component: AccountLocks,
+            },
+            // Identity Verification Routes
+            {
+              path: "identity/pending",
+              Component: IdentityPendingReviews,
+            },
+            {
+              path: "identity/approved",
+              Component: IdentityApproved,
+            },
+            {
+              path: "identity/rejected",
+              Component: IdentityRejected,
             },
             // Jobs Routes - Order matters: specific routes first, then dynamic routes
             {
