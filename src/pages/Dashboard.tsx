@@ -23,7 +23,8 @@ import {
   useGetDashboardMetricsQuery,
   useGetStudentDashboardQuery,
 } from "../services/api/dashboardApi";
-import { ProfileCompletionCard, ProfileCompletionWizard } from "../components/ProfileCompletion";
+import { ProfileMilestones, ProfileCompletionWizard } from "../components/ProfileCompletion";
+import { useProfileCompletion } from "../components/ProfileCompletion/useProfileCompletion";
 
 const getGreeting = (): string => {
   const hour = new Date().getHours();
@@ -38,6 +39,7 @@ const Dashboard: React.FC = () => {
   const role = roleRaw ? String(roleRaw).toLowerCase().trim() : undefined;
   const greeting = getGreeting();
   const [showWizard, setShowWizard] = React.useState(false);
+  const { profileCompletion, userId } = useProfileCompletion();
 
   const isAdmin = role === "superadmin" || role === "admin" || role === "verifydocadmin";
   const isStudent = role === "student";
@@ -356,9 +358,13 @@ const Dashboard: React.FC = () => {
         </div>
       )}
 
-      {/* Profile Completion Card - Only for students and employers */}
+      {/* Profile Milestones - Only for students and employers */}
       {(role === "student" || role === "employer") && (
-        <ProfileCompletionCard onStartWizard={() => setShowWizard(true)} />
+        <ProfileMilestones
+          profileCompletion={profileCompletion}
+          userId={userId}
+          onStartWizard={() => setShowWizard(true)}
+        />
       )}
 
       {/* Profile Completion Wizard Modal */}
