@@ -64,10 +64,15 @@ import {
   BuildingOfficeIcon,
   Cog6ToothIcon,
   CameraIcon,
+  UserCircleIcon,
+  AdjustmentsHorizontalIcon,
+  ShieldCheckIcon,
+  BellIcon,
 } from "@heroicons/react/24/outline";
 import toast from "react-hot-toast";
 import { ProfileMilestones, ProfileCompletionWizard } from "../components/ProfileCompletion";
 import { MILESTONES } from "../components/ProfileCompletion/milestoneConfig";
+import { AccountTab, PreferencesTab, SecurityTab, NotificationsTab } from "../components/ProfileSettings";
 
 type ActiveSection =
   | "resume"
@@ -84,7 +89,12 @@ type ActiveSection =
   | "company-description"
   | "posted-jobs"
   // Admin-specific sections
-  | "account-settings";
+  | "account-settings"
+  // Universal settings sections
+  | "account"
+  | "preferences"
+  | "notifications"
+  | "security";
 
 // Section configuration with metadata
 interface SectionConfig {
@@ -93,6 +103,14 @@ interface SectionConfig {
   action?: string;
   Icon: React.ComponentType<{ className?: string }>;
 }
+
+// Shared settings sections appended to all roles
+const SETTINGS_SECTIONS: SectionConfig[] = [
+  { key: "account", label: "Account", Icon: UserCircleIcon },
+  { key: "preferences", label: "Preferences", Icon: AdjustmentsHorizontalIcon },
+  { key: "notifications", label: "Notifications", Icon: BellIcon },
+  { key: "security", label: "Security", Icon: ShieldCheckIcon },
+];
 
 // Role-to-sections mapping
 const ROLE_SECTIONS: Record<string, SectionConfig[]> = {
@@ -106,19 +124,23 @@ const ROLE_SECTIONS: Record<string, SectionConfig[]> = {
     { key: "projects", label: "Projects", Icon: RocketLaunchIcon },
     { key: "profile-summary", label: "Profile summary", Icon: ClipboardDocumentListIcon },
     { key: "accomplishments", label: "Accomplishments", Icon: TrophyIcon },
+    ...SETTINGS_SECTIONS,
   ],
   employer: [
     { key: "company-info", label: "Company Info", action: "Edit", Icon: BuildingOfficeIcon },
     { key: "company-description", label: "About Company", Icon: ClipboardDocumentListIcon },
     { key: "posted-jobs", label: "Posted Jobs", Icon: BriefcaseIcon },
+    ...SETTINGS_SECTIONS,
   ],
   admin: [
     { key: "account-settings", label: "Account Settings", Icon: Cog6ToothIcon },
     { key: "profile-summary", label: "Profile Summary", Icon: ClipboardDocumentListIcon },
+    ...SETTINGS_SECTIONS,
   ],
   superadmin: [
     { key: "account-settings", label: "Account Settings", Icon: Cog6ToothIcon },
     { key: "profile-summary", label: "Profile Summary", Icon: ClipboardDocumentListIcon },
+    ...SETTINGS_SECTIONS,
   ],
 };
 
@@ -995,31 +1017,40 @@ const Profile: React.FC = () => {
                 </h3>
               </div>
               <nav className="p-3 space-y-1">
-                {getSectionsForRole(role).map((item) => (
-                  <button
-                    key={item.key}
-                    onClick={() => setActiveSection(item.key as ActiveSection)}
-                    className={`w-full text-left px-4 py-3 rounded-xl text-sm font-semibold transition-all flex items-center justify-between group cursor-pointer ${
-                      activeSection === item.key
-                        ? "bg-[#2d1b69] text-white shadow-lg transform scale-105"
-                        : "text-gray-700 hover:bg-[#f4f0fa] hover:shadow-md"
-                    }`}
-                  >
-                    <span className="flex items-center gap-2">
-                      <item.Icon className="h-5 w-5" />
-                      <span>{item.label}</span>
-                    </span>
-                    {item.action && (
-                      <span className={`text-xs font-bold px-2 py-1 rounded-full ${
-                        activeSection === item.key
-                          ? "bg-white/20 text-white"
-                          : "bg-[#e8dff5] text-[#2d1b69]"
-                      }`}>
-                        {item.action}
-                      </span>
-                    )}
-                  </button>
-                ))}
+                {getSectionsForRole(role).map((item, index) => {
+                  const isFirstSettingsTab = item.key === "account" && index > 0;
+                  return (
+                    <React.Fragment key={item.key}>
+                      {isFirstSettingsTab && (
+                        <div className="border-t border-gray-200 my-2 pt-1">
+                          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-4 py-1">Settings</p>
+                        </div>
+                      )}
+                      <button
+                        onClick={() => setActiveSection(item.key as ActiveSection)}
+                        className={`w-full text-left px-4 py-3 rounded-xl text-sm font-semibold transition-all flex items-center justify-between group cursor-pointer ${
+                          activeSection === item.key
+                            ? "bg-[#2d1b69] text-white shadow-lg transform scale-105"
+                            : "text-gray-700 hover:bg-[#f4f0fa] hover:shadow-md"
+                        }`}
+                      >
+                        <span className="flex items-center gap-2">
+                          <item.Icon className="h-5 w-5" />
+                          <span>{item.label}</span>
+                        </span>
+                        {item.action && (
+                          <span className={`text-xs font-bold px-2 py-1 rounded-full ${
+                            activeSection === item.key
+                              ? "bg-white/20 text-white"
+                              : "bg-[#e8dff5] text-[#2d1b69]"
+                          }`}>
+                            {item.action}
+                          </span>
+                        )}
+                      </button>
+                    </React.Fragment>
+                  );
+                })}
               </nav>
             </div>
           </div>
@@ -2118,6 +2149,42 @@ const Profile: React.FC = () => {
                   </div>
                 )}
               </>
+            )}
+
+            {/* =================== UNIVERSAL SETTINGS SECTIONS =================== */}
+
+            {/* Account Tab */}
+            {activeSection === "account" && (
+              <AccountTab
+                profileData={profileData}
+                userData={userData}
+                userRole={userRole}
+                onEditProfile={() => setIsEditProfileModalOpen(true)}
+                onVerifyEmail={() => setIsEmailVerificationModalOpen(true)}
+                onVerifyPhone={() => setIsPhoneVerificationModalOpen(true)}
+              />
+            )}
+
+            {/* Preferences Tab */}
+            {activeSection === "preferences" && (
+              <PreferencesTab />
+            )}
+
+            {/* Notifications Tab */}
+            {activeSection === "notifications" && (
+              <NotificationsTab userId={profileData?.user_id || user?.user_id} />
+            )}
+
+            {/* Security Tab */}
+            {activeSection === "security" && (
+              <SecurityTab
+                profileData={profileData}
+                userData={userData}
+                onChangePassword={() => setIsChangePasswordModalOpen(true)}
+                onVerifyEmail={() => setIsEmailVerificationModalOpen(true)}
+                onVerifyPhone={() => setIsPhoneVerificationModalOpen(true)}
+                onDeleteAccount={() => setIsDeleteAccountModalOpen(true)}
+              />
             )}
 
           </div>

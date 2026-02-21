@@ -23,6 +23,7 @@ import {
   useGetDashboardMetricsQuery,
   useGetStudentDashboardQuery,
 } from "../services/api/dashboardApi";
+import { useTheme } from "../context/ThemeContext";
 import { ProfileMilestones, ProfileCompletionWizard } from "../components/ProfileCompletion";
 import { useProfileCompletion } from "../components/ProfileCompletion/useProfileCompletion";
 
@@ -40,6 +41,8 @@ const Dashboard: React.FC = () => {
   const greeting = getGreeting();
   const [showWizard, setShowWizard] = React.useState(false);
   const { profileCompletion, userId } = useProfileCompletion();
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
 
   const isAdmin = role === "superadmin" || role === "admin" || role === "verifydocadmin";
   const isStudent = role === "student";
@@ -236,7 +239,7 @@ const Dashboard: React.FC = () => {
     return (
       <div className="flex items-center justify-center h-64">
         <ArrowPathIcon className="h-8 w-8 text-[#7F56D9] animate-spin" />
-        <span className="ml-2 text-gray-500">Loading dashboard...</span>
+        <span className="ml-2 text-gray-500 dark:text-gray-400">Loading dashboard...</span>
       </div>
     );
   }
@@ -290,15 +293,15 @@ const Dashboard: React.FC = () => {
             {subtitle}
           </p>
         </div>
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3">
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/50 rounded-lg p-4 flex items-center gap-3">
           <ExclamationTriangleIcon className="h-6 w-6 text-red-500" />
           <div>
-            <p className="text-sm font-medium text-red-800">Failed to load dashboard data</p>
-            <p className="text-xs text-red-600 mt-1">{errorMessage}</p>
+            <p className="text-sm font-medium text-red-800 dark:text-red-300">Failed to load dashboard data</p>
+            <p className="text-xs text-red-600 dark:text-red-400 mt-1">{errorMessage}</p>
           </div>
           <button
             onClick={() => refetch()}
-            className="ml-auto px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 rounded text-xs font-medium transition"
+            className="ml-auto px-3 py-1.5 bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 text-red-700 dark:text-red-300 rounded text-xs font-medium transition"
           >
             Retry
           </button>
@@ -325,14 +328,24 @@ const Dashboard: React.FC = () => {
           {stats.map((item, index) => (
             <div
               key={index}
-              className="bg-white rounded-lg p-2.5 shadow-sm hover:shadow-md transition-all duration-300 border border-[#ede7f8]"
+              className="rounded-lg p-2.5 shadow-sm hover:shadow-md transition-all duration-300 border"
+              style={{
+                backgroundColor: isDark ? "#1a1528" : "#fff",
+                borderColor: isDark ? "rgba(45,27,105,0.5)" : "#ede7f8",
+              }}
             >
               <div className="flex items-center justify-between mb-1.5">
-                <div className={`p-1.5 rounded ${item.bg}`}>
+                <div
+                  className={`p-1.5 rounded ${isDark ? "" : item.bg}`}
+                  style={isDark ? { backgroundColor: "rgba(45,27,105,0.25)" } : undefined}
+                >
                   <span className={item.color}>{item.icon}</span>
                 </div>
                 {item.change !== "--" && (
-                  <span className={`inline-flex items-center gap-0.5 text-[9px] font-semibold px-1 py-0.5 rounded-full animate-trend ${item.changeBg}`}>
+                  <span
+                    className={`inline-flex items-center gap-0.5 text-[9px] font-semibold px-1 py-0.5 rounded-full animate-trend ${isDark ? "" : item.changeBg}`}
+                    style={isDark ? { backgroundColor: "rgba(45,27,105,0.3)", color: "#c084fc" } : undefined}
+                  >
                     {item.trending === "up" ? (
                       <ArrowTrendingUpIcon className="h-2.5 w-2.5" />
                     ) : (
@@ -342,8 +355,8 @@ const Dashboard: React.FC = () => {
                   </span>
                 )}
               </div>
-              <p className="text-base font-bold text-gray-900">{item.value}</p>
-              <p className="text-[11px] text-gray-500">{item.title}</p>
+              <p className="text-base font-bold" style={{ color: isDark ? "#fff" : "#111827" }}>{item.value}</p>
+              <p className="text-[11px]" style={{ color: isDark ? "#a0aec0" : "#6b7280" }}>{item.title}</p>
             </div>
           ))}
         </div>
@@ -351,10 +364,16 @@ const Dashboard: React.FC = () => {
 
       {/* Employer placeholder - no backend endpoint yet */}
       {role === "employer" && (
-        <div className="bg-white rounded-lg p-6 shadow-sm border border-[#ede7f8] text-center">
+        <div
+          className="rounded-lg p-6 shadow-sm border text-center"
+          style={{
+            backgroundColor: isDark ? "#1a1528" : "#fff",
+            borderColor: isDark ? "rgba(45,27,105,0.5)" : "#ede7f8",
+          }}
+        >
           <BriefcaseIcon className="h-10 w-10 text-[#7F56D9] mx-auto mb-2" />
-          <p className="text-sm font-medium text-gray-700">Employer dashboard coming soon</p>
-          <p className="text-xs text-gray-500 mt-1">Check the Jobs section for your postings and applications.</p>
+          <p className="text-sm font-medium" style={{ color: isDark ? "#e2e8f0" : "#374151" }}>Employer dashboard coming soon</p>
+          <p className="text-xs mt-1" style={{ color: isDark ? "#a0aec0" : "#6b7280" }}>Check the Jobs section for your postings and applications.</p>
         </div>
       )}
 
@@ -380,32 +399,40 @@ const Dashboard: React.FC = () => {
       {/* Graph + Quick Stats */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-2.5">
         {/* Graph Section */}
-        <div className="bg-white rounded-lg p-3 shadow-sm lg:col-span-2 border border-gray-100">
-          <h2 className="text-xs font-semibold mb-2 text-gray-800">{chartConfig.title}</h2>
+        <div
+          className="rounded-lg p-3 shadow-sm lg:col-span-2 border"
+          style={{
+            backgroundColor: isDark ? "#1a1528" : "#fff",
+            borderColor: isDark ? "rgba(45,27,105,0.5)" : "#f3f4f6",
+          }}
+        >
+          <h2 className="text-xs font-semibold mb-2" style={{ color: isDark ? "#e2e8f0" : "#1f2937" }}>{chartConfig.title}</h2>
           <div className="h-44">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartConfig.data} barGap={3}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke={isDark ? "rgba(45, 27, 105, 0.3)" : "#f0f0f0"} vertical={false} />
                 <XAxis
                   dataKey="day"
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: "#9ca3af", fontSize: 10 }}
+                  tick={{ fill: isDark ? "#718096" : "#9ca3af", fontSize: 10 }}
                 />
                 <YAxis
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: "#9ca3af", fontSize: 10 }}
+                  tick={{ fill: isDark ? "#718096" : "#9ca3af", fontSize: 10 }}
                   width={25}
                 />
                 <Tooltip
-                  cursor={{ fill: "rgba(127, 86, 217, 0.06)" }}
+                  cursor={{ fill: isDark ? "rgba(45, 27, 105, 0.15)" : "rgba(127, 86, 217, 0.06)" }}
                   contentStyle={{
                     borderRadius: "6px",
-                    border: "none",
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                    border: isDark ? "1px solid rgba(45, 27, 105, 0.5)" : "none",
+                    boxShadow: isDark ? "0 2px 8px rgba(0,0,0,0.3)" : "0 2px 8px rgba(0,0,0,0.08)",
                     padding: "6px 10px",
                     fontSize: "11px",
+                    backgroundColor: isDark ? "#1a1528" : "#fff",
+                    color: isDark ? "#e2e8f0" : undefined,
                   }}
                 />
                 {chartConfig.bars.map((bar) => (
@@ -424,9 +451,15 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Quick Stats */}
-        <div className="bg-white rounded-lg p-3 shadow-sm border border-[#ede7f8]">
-          <h2 className="text-xs font-semibold text-gray-800 mb-2">Quick Stats</h2>
-          <ul className="space-y-1 text-gray-700 text-[11px]">
+        <div
+          className="rounded-lg p-3 shadow-sm border"
+          style={{
+            backgroundColor: isDark ? "#1a1528" : "#fff",
+            borderColor: isDark ? "rgba(45,27,105,0.5)" : "#ede7f8",
+          }}
+        >
+          <h2 className="text-xs font-semibold mb-2" style={{ color: isDark ? "#e2e8f0" : "#1f2937" }}>Quick Stats</h2>
+          <ul className="space-y-1 text-[11px]" style={{ color: isDark ? "#cbd5e0" : "#374151" }}>
             {quickStats.map((stat, index) => (
               <li key={index} className={`flex items-center gap-1.5 p-1.5 rounded ${stat.hoverBg} transition-colors`}>
                 <span className={`${stat.color} font-bold text-xs`}>•</span>
@@ -438,13 +471,24 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Recent Activity */}
-      <div className="bg-white rounded-lg p-3 shadow-sm border border-[#ede7f8]">
-        <h2 className="text-xs font-semibold mb-2 text-gray-800">Recent Activity</h2>
+      <div
+        className="rounded-lg p-3 shadow-sm border"
+        style={{
+          backgroundColor: isDark ? "#1a1528" : "#fff",
+          borderColor: isDark ? "rgba(45,27,105,0.5)" : "#ede7f8",
+        }}
+      >
+        <h2 className="text-xs font-semibold mb-2" style={{ color: isDark ? "#e2e8f0" : "#1f2937" }}>Recent Activity</h2>
         <ul className="space-y-1">
           {recentActivity.map((activity, index) => (
             <li
               key={index}
-              className="pb-1.5 border-b last:border-none text-[11px] text-gray-600 hover:text-purple-600 transition-colors duration-200 flex items-center gap-1.5 group cursor-pointer"
+              className="pb-1.5 last:border-none text-[11px] transition-colors duration-200 flex items-center gap-1.5 group cursor-pointer"
+              style={{
+                borderBottomWidth: "1px",
+                borderColor: isDark ? "rgba(45,27,105,0.3)" : "#f3f4f6",
+                color: isDark ? "#a0aec0" : "#4b5563",
+              }}
             >
               <span className="w-1 h-1 rounded-full bg-purple-400 group-hover:bg-purple-600 transition-colors shrink-0"></span>
               <span>{activity}</span>

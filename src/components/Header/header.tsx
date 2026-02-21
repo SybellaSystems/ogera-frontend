@@ -202,7 +202,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   };
 
   return (
-    <header className="w-full bg-white/70 backdrop-blur-lg h-16 shadow-sm border-b border-[#ddd0ec]/50 flex items-center justify-between px-4 md:px-6 relative z-30">
+    <header className="w-full bg-white/70 dark:bg-[#1a1528]/90 backdrop-blur-lg h-16 shadow-sm border-b border-[#ddd0ec]/50 dark:border-[#2d1b69]/50 flex items-center justify-between px-4 md:px-6 relative z-30 transition-colors duration-300">
       {/* Left side - Mobile menu button */}
       <button
         onClick={onMenuClick}
@@ -214,7 +214,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
       </button>
 
       {/* Center - Role + Dashboard title */}
-      <div className="text-[#2d1b69] font-bold text-lg capitalize hidden sm:block">
+      <div className="text-[#2d1b69] dark:text-white font-bold text-lg capitalize hidden sm:block">
         {role ? `${role} Dashboard` : "Dashboard"}
       </div>
 
@@ -239,9 +239,9 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
 
             {/* Notification Dropdown */}
             {isNotificationDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] sm:w-80 md:w-96 max-w-[calc(100vw-2rem)] sm:max-w-none bg-white/95 backdrop-blur-lg border border-gray-200/50 rounded-xl shadow-2xl z-50 animate-fadeIn overflow-hidden">
-                <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-                  <h3 className="font-semibold text-gray-900">Notifications</h3>
+              <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] sm:w-80 md:w-96 max-w-[calc(100vw-2rem)] sm:max-w-none bg-white/95 dark:bg-[#1a1528]/95 backdrop-blur-lg border border-gray-200/50 dark:border-[#2d1b69]/50 rounded-xl shadow-2xl z-50 animate-fadeIn overflow-hidden">
+                <div className="p-4 border-b border-gray-200 dark:border-[#2d1b69] flex items-center justify-between">
+                  <h3 className="font-semibold text-gray-900 dark:text-white">Notifications</h3>
                   {unreadCount > 0 && (
                     <button
                       onClick={handleMarkAllAsRead}
@@ -253,8 +253,8 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                 </div>
                 <div className="max-h-96 overflow-y-auto">
                   {notifications.length === 0 ? (
-                    <div className="p-8 text-center text-gray-500">
-                      <BellIcon className="h-12 w-12 mx-auto mb-2 text-gray-300" />
+                    <div className="p-8 text-center text-gray-500 dark:text-gray-400">
+                      <BellIcon className="h-12 w-12 mx-auto mb-2 text-gray-300 dark:text-gray-600" />
                       <p>No notifications yet</p>
                     </div>
                   ) : (
@@ -262,8 +262,8 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                       <div
                         key={notification.notification_id}
                         onClick={() => handleNotificationClick(notification)}
-                        className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors ${
-                          !notification.is_read ? "bg-purple-50/50" : ""
+                        className={`p-4 border-b border-gray-100 dark:border-[#2d1b69]/30 cursor-pointer hover:bg-gray-50 dark:hover:bg-[#2d1b69]/20 transition-colors ${
+                          !notification.is_read ? "bg-purple-50/50 dark:bg-[#2d1b69]/15" : ""
                         }`}
                       >
                         <div className="flex items-start gap-3">
@@ -273,10 +273,10 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                             }`}
                           />
                           <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-gray-900 text-sm">
+                            <p className="font-semibold text-gray-900 dark:text-white text-sm">
                               {notification.title}
                             </p>
-                            <p className="text-sm text-gray-600 mt-1">
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                               {notification.message}
                             </p>
                             {notification.application && (
@@ -348,9 +348,9 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
 
           {/* Dropdown menu */}
           {isDropdownOpen && (
-            <div className="absolute right-0 mt-2 w-48 bg-white/95 backdrop-blur-lg border border-gray-200/50 rounded-xl shadow-2xl py-2 z-50 animate-fadeIn overflow-hidden">
+            <div className="absolute right-0 mt-2 w-48 bg-white/95 dark:bg-[#1a1528]/95 backdrop-blur-lg border border-gray-200/50 dark:border-[#2d1b69]/50 rounded-xl shadow-2xl py-2 z-50 animate-fadeIn overflow-hidden">
               <button
-                className="w-full text-left px-4 py-2.5 text-gray-700 hover:bg-linear-to-r hover:from-purple-50 hover:to-indigo-50 transition-all duration-200 flex items-center gap-2 group"
+                className="w-full text-left px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-linear-to-r hover:from-purple-50 hover:to-indigo-50 dark:hover:from-[#2d1b69]/30 dark:hover:to-[#2d1b69]/20 transition-all duration-200 flex items-center gap-2 group"
                 onClick={() => {
                   setIsDropdownOpen(false);
                   navigate("/dashboard/profile");
@@ -359,7 +359,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                 <span className="group-hover:text-purple-600 transition-colors">Profile</span>
               </button>
               <button
-                className="w-full text-left px-4 py-2.5 text-gray-700 hover:bg-linear-to-r hover:from-red-50 hover:to-pink-50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 group"
+                className="w-full text-left px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-linear-to-r hover:from-red-50 hover:to-pink-50 dark:hover:from-red-900/20 dark:hover:to-red-900/10 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 group"
                 onClick={handleLogout}
                 disabled={isLoggingOut}
               >
