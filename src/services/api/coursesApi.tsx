@@ -108,13 +108,14 @@ export interface CourseEnrollment {
   updated_at: string;
 }
 
-/** Course chat message (real-time + history). */
+/** Course chat message (real-time + history). One thread per student (conversation_user_id). */
 export interface CourseChatMessage {
   message_id: string;
   course_id: string;
   user_id: string;
   role: string;
   content: string;
+  conversation_user_id?: string | null;
   created_at: string;
 }
 
@@ -288,7 +289,10 @@ export const coursesApi = apiSlice.injectEndpoints({
     }),
 
     getCourseChatHistory: builder.query<
-      { data: CourseChatMessage[]; message: string },
+      {
+        data: CourseChatMessage[] | { messages: CourseChatMessage[]; participants: { user_id: string; full_name: string }[] };
+        message: string;
+      },
       string
     >({
       query: (courseId) => ({

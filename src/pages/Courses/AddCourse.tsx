@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useFormik } from "formik";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import {
   BookOpenIcon,
@@ -10,9 +10,12 @@ import {
 } from "@heroicons/react/24/outline";
 import { styled } from "@mui/material/styles";
 import Button from "../../components/button";
+import Loader from "../../components/Loader";
 import * as Yup from "yup";
 import {
   useCreateCourseMutation,
+  useUpdateCourseMutation,
+  useGetCourseByIdQuery,
   useUploadCourseVideoMutation,
   type CourseStep,
   type UploadedVideoMeta,
@@ -153,11 +156,22 @@ const VideoStepInput: React.FC<{
 
 const AddCourse: React.FC = () => {
   const navigate = useNavigate();
+  const { id: courseId } = useParams<{ id: string }>();
+  const isEditMode = !!courseId;
+
+  const { data: courseResponse, isLoading: isLoadingCourse } =
+    useGetCourseByIdQuery(courseId!, { skip: !courseId });
+  const course = courseResponse?.data;
+
   const [steps, setSteps] = useState<CourseStep[]>([]);
-  const [createCourse, { isLoading: isSubmitting, isSuccess, data }] =
+  const [createCourse, { isLoading: isCreating, isSuccess: isCreateSuccess, data: createData }] =
     useCreateCourseMutation();
+  const [updateCourse, { isLoading: isUpdating, isSuccess: isUpdateSuccess, data: updateData }] =
+    useUpdateCourseMutation();
   const [uploadVideo, { isLoading: isUploadingVideo }] =
     useUploadCourseVideoMutation();
+
+  const isSubmitting = isCreating || isUpdating;
 
   const initialValues: AddCourseFormValues = {
     course_name: "",
@@ -177,6 +191,7 @@ const AddCourse: React.FC = () => {
   const formik = useFormik<AddCourseFormValues>({
     initialValues,
     validationSchema,
+    enableReinitialize: true,
     onSubmit: async (values) => {
       try {
         const payload = {
@@ -211,26 +226,92 @@ const AddCourse: React.FC = () => {
               : undefined,
         };
 
-        await createCourse(payload).unwrap();
+        if (isEditMode && courseId) {
+          await updateCourse({ id: courseId, data: payload }).unwrap();
+        } else {
+          await createCourse(payload).unwrap();
+        }
       } catch (error: any) {
-        console.error("Create course error:", error);
+        console.error(isEditMode ? "Update course error:" : "Create course error:", error);
         const err = error as FetchBaseQueryError & {
           data?: { message?: string };
         };
-        toast.error(err?.data?.message || "Failed to create course");
+        toast.error(err?.data?.message || (isEditMode ? "Failed to update course" : "Failed to create course"));
       }
     },
   });
 
-  // Handle success/error states
+  // Prefill form when editing and course data is loaded
   useEffect(() => {
-    if (isSuccess && data) {
-      toast.success(data?.message || "Course created successfully!");
+    if (!isEditMode || !course) return;
+    formik.setValues({
+      course_name: course.course_name ?? "",
+      type: course.type ?? "",
+      tag: course.tag ?? "",
+      description: course.description ?? "",
+      estimated_hours: course.estimated_hours != null ? String(course.estimated_hours) : "",
+      category: course.category ?? "",
+      is_free: course.is_free ?? true,
+      price_amount:
+        course.price_amount != null && course.price_amount > 0
+          ? String(course.price_amount)
+          : "",
+      price_currency: course.price_currency ?? "RWF",
+      discount_trust_score_min:
+        course.discount_trust_score_min != null
+          ? String(course.discount_trust_score_min)
+          : "",
+      discount_percent:
+        course.discount_percent != null ? String(course.discount_percent) : "",
+      steps: [],
+    });
+    const sortedSteps = [...(course.steps || [])].sort(
+      (a, b) => (a.step_order ?? 0) - (b.step_order ?? 0)
+    );
+    setSteps(
+      sortedSteps.map((s) => ({
+        step_id: s.step_id,
+        step_type: s.step_type,
+        step_content: s.step_content,
+        step_title: s.step_title,
+        step_order: s.step_order ?? 0,
+      }))
+    );
+  }, [isEditMode, course]);
+
+  // Handle success states
+  useEffect(() => {
+    if (isCreateSuccess && createData) {
+      toast.success(createData?.message || "Course created successfully!");
       formik.resetForm();
       setSteps([]);
-      // Stay on the same page instead of navigating
     }
-  }, [isSuccess, data]);
+  }, [isCreateSuccess, createData]);
+
+  useEffect(() => {
+    if (isUpdateSuccess && updateData) {
+      toast.success(updateData?.message || "Course updated successfully!");
+    }
+  }, [isUpdateSuccess, updateData]);
+
+  if (isEditMode && isLoadingCourse) {
+    return <Loader />;
+  }
+
+  if (isEditMode && !course) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[200px] text-gray-600">
+        <p>Course not found.</p>
+        <button
+          type="button"
+          onClick={() => navigate("/dashboard/courses/view")}
+          className="mt-2 text-purple-600 hover:underline"
+        >
+          Back to courses
+        </button>
+      </div>
+    );
+  }
 
   return (
     <Container>
@@ -239,9 +320,11 @@ const AddCourse: React.FC = () => {
           <IconWrapper>
             <BookOpenIcon className="h-8 w-8 text-purple-600" />
           </IconWrapper>
-          <Title>Add Course</Title>
+          <Title>{isEditMode ? "Edit Course" : "Add Course"}</Title>
           <Subtitle>
-            Create a new course with all the necessary details.
+            {isEditMode
+              ? "Update the course details below."
+              : "Create a new course with all the necessary details."}
           </Subtitle>
         </Header>
 

@@ -6,6 +6,8 @@ import type { CourseChatMessage } from "../services/api/coursesApi";
 interface UseCourseChatSocketOptions {
   courseId: string | null;
   accessToken: string | null;
+  /** For support: which student's thread to join (receives real-time for that thread). */
+  conversationUserId?: string | null;
   onMessage?: (msg: CourseChatMessage) => void;
   onJoinError?: (message: string) => void;
 }
@@ -15,6 +17,7 @@ const CONNECTION_TIMEOUT_MS = 10000;
 export function useCourseChatSocket({
   courseId,
   accessToken,
+  conversationUserId,
   onMessage,
   onJoinError,
 }: UseCourseChatSocketOptions) {
@@ -29,14 +32,23 @@ export function useCourseChatSocket({
   onJoinErrorRef.current = onJoinError;
 
   const sendMessage = useCallback(
-    (content: string, callback?: (ok: boolean, err?: string) => void) => {
+    (
+      content: string,
+      callback?: (ok: boolean, err?: string) => void,
+      replyToUserId?: string | null
+    ) => {
       if (!socketRef.current || !courseId) {
         callback?.(false, "Not connected");
         return;
       }
+      const payload: { courseId: string; content: string; replyToUserId?: string } = {
+        courseId,
+        content,
+      };
+      if (replyToUserId) payload.replyToUserId = replyToUserId;
       socketRef.current.emit(
         "course:message",
-        { courseId, content },
+        payload,
         (res: { ok: boolean; message?: string } | CourseChatMessage) => {
           if (res && typeof (res as { ok?: boolean }).ok === "boolean") {
             const r = res as { ok: boolean; message?: string };
@@ -74,7 +86,11 @@ export function useCourseChatSocket({
       setConnectionFailed(false);
       setConnected(true);
       setJoinOk(null);
-      socket.emit("course:join", { courseId }, (res: { ok: boolean; message?: string }) => {
+      const joinPayload: { courseId: string; conversationUserId?: string } = {
+        courseId,
+      };
+      if (conversationUserId) joinPayload.conversationUserId = conversationUserId;
+      socket.emit("course:join", joinPayload, (res: { ok: boolean; message?: string }) => {
         if (res?.ok) {
           setJoinOk(true);
         } else {
@@ -108,7 +124,7 @@ export function useCourseChatSocket({
       setJoinOk(null);
       setConnectionFailed(false);
     };
-  }, [courseId, accessToken]);
+  }, [courseId, accessToken, conversationUserId]);
 
   return { connected, joinOk, connectionFailed, sendMessage };
 }

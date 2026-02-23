@@ -91,18 +91,46 @@ const ViewCourse: React.FC = () => {
     return `${currency} ${amount.toLocaleString()}`;
   };
 
-  const handleDelete = async (courseId: string, courseName: string) => {
-    if (!window.confirm(`Are you sure you want to delete "${courseName}"?`)) {
-      return;
-    }
-
+  const performDelete = async (courseId: string, toastId: string) => {
     try {
       await deleteCourse(courseId).unwrap();
+      toast.dismiss(toastId);
       toast.success("Course deleted successfully");
       refetch();
     } catch (error: any) {
+      toast.dismiss(toastId);
       toast.error(error?.data?.message || "Failed to delete course");
     }
+  };
+
+  const handleDelete = (courseId: string, courseName: string) => {
+    toast.custom(
+      (t) => (
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-4 flex flex-col gap-3 min-w-[280px]">
+          <p className="text-gray-700 dark:text-gray-200 text-sm">
+            Are you sure you want to delete &quot;{courseName}&quot;?
+          </p>
+          <div className="flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => toast.dismiss(t.id)}
+              className="px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={() => performDelete(courseId, t.id)}
+              disabled={isDeleting}
+              className="px-3 py-1.5 text-sm bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50 transition-colors"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      ),
+      { duration: Infinity }
+    );
   };
 
   const getStepTypeIcon = (stepType: string) => {

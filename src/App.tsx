@@ -372,6 +372,10 @@ function App() {
               Component: ViewCourse,
             },
             {
+              path: "courses/edit/:id",
+              Component: AddCourse,
+            },
+            {
               path: "courses/:id",
               Component: CourseDetail,
             },

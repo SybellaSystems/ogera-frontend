@@ -395,6 +395,7 @@ const CourseDetail: React.FC = () => {
               courseName={course.course_name}
               accessToken={accessToken}
               currentUserId={user?.user_id ?? user?.id ?? null}
+              currentUserRole={role}
               onClose={() => setChatOpen(false)}
             />
           )}
