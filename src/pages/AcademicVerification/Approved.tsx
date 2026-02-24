@@ -4,6 +4,7 @@ import type { AcademicVerification } from "../../services/api/academicVerificati
 import { getAcademicVerificationsByStatus } from "../../services/api/academicVerificationApi";
 import api from "../../services/api/axiosInstance";
 import { useTheme } from "../../context/ThemeContext";
+import AcademicVerificationDetailModal from "../../components/AcademicVerificationDetailModal";
 
 const Approved: React.FC = () => {
   const { resolvedTheme } = useTheme();
@@ -15,6 +16,8 @@ const Approved: React.FC = () => {
   const [viewerUrl, setViewerUrl] = useState<string | null>(null);
   const [viewerBlob, setViewerBlob] = useState<Blob | null>(null);
   const [viewerContentType, setViewerContentType] = useState<string | null>(null);
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [selectedVerification, setSelectedVerification] = useState<AcademicVerification | null>(null);
 
   useEffect(() => {
     const loadApproved = async () => {
@@ -291,7 +294,17 @@ const Approved: React.FC = () => {
                       onClick={() => handleViewDocument(item)}
                       className="flex-1 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-all text-sm flex items-center justify-center gap-1">
                       <EyeIcon className="w-4 h-4" />
-                      <span>View</span>
+                      <span>View Doc</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setSelectedVerification(item);
+                        setDetailModalOpen(true);
+                      }}
+                      className="flex-1 px-3 py-2 text-white rounded-lg font-medium transition-all text-sm flex items-center justify-center gap-1"
+                      style={{ backgroundColor: isDark ? "#7c3aed" : "#7F56D9" }}
+                    >
+                      <span>Details</span>
                     </button>
                   </div>
                 </div>
@@ -337,6 +350,16 @@ const Approved: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Detail Modal */}
+      <AcademicVerificationDetailModal
+        isOpen={detailModalOpen}
+        onClose={() => {
+          setDetailModalOpen(false);
+          setSelectedVerification(null);
+        }}
+        verification={selectedVerification}
+      />
     </div>
   );
 };

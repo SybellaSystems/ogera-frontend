@@ -9,17 +9,29 @@ import {
 } from "../../services/api/academicVerificationApi";
 import api from "../../services/api/axiosInstance";
 import { useTheme } from "../../context/ThemeContext";
+import AcademicVerificationDetailModal from "../../components/AcademicVerificationDetailModal";
+import {
+  logAcademicVerificationEvent,
+  ACADEMIC_ACTIONS,
+} from "../../utils/academicVerificationAudit";
 
 interface RootState {
   auth: {
     role: string;
+    user?: { full_name?: string; email?: string };
   };
 }
 
 const PendingReviews: React.FC = () => {
   const role = useSelector((state: RootState) => state.auth.role);
+  const currentUser = useSelector((state: RootState) => state.auth.user);
+  const adminName = currentUser?.full_name || currentUser?.email || "Admin";
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
+
+  // -------- detail modal state --------
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [selectedVerification, setSelectedVerification] = useState<AcademicVerification | null>(null);
 
   // -------- student state --------
   const [myVerification, setMyVerification] = useState<
@@ -102,6 +114,14 @@ const PendingReviews: React.FC = () => {
           "../../services/api/academicVerificationApi"
         );
         await reuploadAcademicVerification(myVerification.id, file);
+        logAcademicVerificationEvent(
+          ACADEMIC_ACTIONS.DOCUMENT_REUPLOADED,
+          "success",
+          { verificationId: myVerification.id, userName: adminName, userEmail: currentUser?.email || "" },
+          adminName,
+          undefined,
+          { fileName: file.name }
+        );
         setStudentSuccess(
           "Document re-uploaded successfully. It will be reviewed again."
         );
@@ -110,6 +130,14 @@ const PendingReviews: React.FC = () => {
           "../../services/api/academicVerificationApi"
         );
         await uploadAcademicVerification(file);
+        logAcademicVerificationEvent(
+          ACADEMIC_ACTIONS.DOCUMENT_UPLOADED,
+          "success",
+          { verificationId: "new", userName: adminName, userEmail: currentUser?.email || "" },
+          adminName,
+          undefined,
+          { fileName: file.name }
+        );
         setStudentSuccess(
           "Document uploaded successfully. Status is now pending."
         );
@@ -133,6 +161,12 @@ const PendingReviews: React.FC = () => {
     id: string,
     status: "accepted" | "rejected"
   ): Promise<void> => {
+    const item = pending.find((p) => p.id === id);
+    const verInfo = {
+      verificationId: id,
+      userName: item?.user?.full_name || id,
+      userEmail: item?.user?.email || "",
+    };
     try {
       setReviewLoadingId(id);
       setAdminError(null);
@@ -141,8 +175,27 @@ const PendingReviews: React.FC = () => {
         status === "rejected" ? rejectionNotes[id] || "" : undefined;
 
       await reviewAcademicVerification({ id, status, rejection_reason });
+
+      logAcademicVerificationEvent(
+        status === "accepted"
+          ? ACADEMIC_ACTIONS.VERIFICATION_APPROVED
+          : ACADEMIC_ACTIONS.VERIFICATION_REJECTED,
+        "success",
+        verInfo,
+        adminName,
+        rejection_reason
+      );
+
       await loadPendingForAdmin();
     } catch (err: any) {
+      logAcademicVerificationEvent(
+        status === "accepted"
+          ? ACADEMIC_ACTIONS.VERIFICATION_APPROVED
+          : ACADEMIC_ACTIONS.VERIFICATION_REJECTED,
+        "failure",
+        verInfo,
+        adminName
+      );
       const msg =
         err?.response?.data?.message ||
         err?.message ||
@@ -561,7 +614,17 @@ const PendingReviews: React.FC = () => {
                       className="flex-1 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-all text-xs disabled:opacity-50"
                       onClick={() => handleViewDocument(item)}
                     >
-                      View
+                      View Doc
+                    </button>
+                    <button
+                      className="flex-1 px-3 py-2 text-white rounded-lg font-medium transition-all text-xs"
+                      style={{ backgroundColor: isDark ? "#7c3aed" : "#7F56D9" }}
+                      onClick={() => {
+                        setSelectedVerification(item);
+                        setDetailModalOpen(true);
+                      }}
+                    >
+                      Details
                     </button>
                     <button
                       className={`flex-1 px-3 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition-all text-xs disabled:opacity-50 ${
@@ -630,6 +693,16 @@ const PendingReviews: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Detail Modal */}
+      <AcademicVerificationDetailModal
+        isOpen={detailModalOpen}
+        onClose={() => {
+          setDetailModalOpen(false);
+          setSelectedVerification(null);
+        }}
+        verification={selectedVerification}
+      />
     </div>
   );
 };
