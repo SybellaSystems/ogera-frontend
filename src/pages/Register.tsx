@@ -16,6 +16,73 @@ import TermsModal from "../components/TermsModal";
 import PrivacyModal from "../components/PrivacyModal";
 import CountryCodeSelector from "../components/CountryCodeSelector";
 import { getCountryCodeFromDialCode, getExpectedDigitMessage } from "../utils/mobileValidation";
+import FeatureSlider from "../components/Auth/FeatureSlider";
+import type { Slide } from "../components/Auth/FeatureSlider";
+import {
+  UserGroupIcon,
+  BoltIcon,
+  LockClosedIcon,
+  CurrencyDollarIcon,
+  BuildingOfficeIcon,
+  UsersIcon,
+  ChartBarIcon,
+} from "@heroicons/react/24/outline";
+
+const regIconStyle = { width: 28, height: 28, color: "#ffffff", strokeWidth: 1.5 };
+
+const STUDENT_SLIDES: Slide[] = [
+  {
+    icon: <UserGroupIcon style={regIconStyle} />,
+    title: "Join 10,000+ Students",
+    description:
+      "Connect with opportunities across Africa and start your professional journey today.",
+  },
+  {
+    icon: <BoltIcon style={regIconStyle} />,
+    title: "Quick & Easy Setup",
+    description:
+      "Create your profile in under 2 minutes and start applying to jobs right away.",
+  },
+  {
+    icon: <LockClosedIcon style={regIconStyle} />,
+    title: "Verified & Secure",
+    description:
+      "Your data is protected with industry-standard security. We take your privacy seriously.",
+  },
+  {
+    icon: <CurrencyDollarIcon style={regIconStyle} />,
+    title: "Start Earning Today",
+    description:
+      "Apply to flexible jobs and get hired within days. Payments straight to your mobile wallet.",
+  },
+];
+
+const EMPLOYER_SLIDES: Slide[] = [
+  {
+    icon: <BuildingOfficeIcon style={regIconStyle} />,
+    title: "Find Talented Students",
+    description:
+      "Access a pool of motivated, verified students ready to work on your projects.",
+  },
+  {
+    icon: <BoltIcon style={regIconStyle} />,
+    title: "Hire in Minutes",
+    description:
+      "Post jobs, review applications, and hire the right candidates quickly and efficiently.",
+  },
+  {
+    icon: <UsersIcon style={regIconStyle} />,
+    title: "Verified Student Profiles",
+    description:
+      "Every student is academically verified so you can hire with confidence.",
+  },
+  {
+    icon: <ChartBarIcon style={regIconStyle} />,
+    title: "Track & Manage",
+    description:
+      "Monitor job progress, manage payments, and build lasting working relationships.",
+  },
+];
 
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -134,31 +201,15 @@ const Register = () => {
         <LeftOverlay />
         <LeftInner>
           <LeftLogo />
-          <LeftCard>
-            <h2>Your Success Story Starts Here</h2>
-            <p>
-              Connect with trusted employers, earn money instantly via mobile
-              payments, and maintain your academic excellence – all in one
-              platform designed for African students.
-            </p>
-          </LeftCard>
-          <TestimonialCard>
-            <p>
-              "I earned $500 last month while maintaining my 3.8 GPA! Ogera's
-              academic tracking kept me focused."
-            </p>
-            <UserInfo>
-              <img
-                src="https://randomuser.me/api/portraits/women/44.jpg"
-                alt="User testimonial"
-              />
-              <div>
-                <span>Daphne Park</span>
-                <span>Computer Science Student</span>
-              </div>
-            </UserInfo>
-          </TestimonialCard>
-          <LeftFooter>Trusted by students across Africa</LeftFooter>
+          <FeatureSlider
+            key={formik.values.accountType}
+            slides={formik.values.accountType === "employer" ? EMPLOYER_SLIDES : STUDENT_SLIDES}
+          />
+          <LeftFooter>
+            {formik.values.accountType === "employer"
+              ? "Trusted by employers across Africa"
+              : "Trusted by students across Africa"}
+          </LeftFooter>
         </LeftInner>
       </LeftPanel>
 
@@ -461,7 +512,7 @@ const LeftPanel = styled("div")(({ theme }) => ({
 const LeftOverlay = styled("div")({
   position: "absolute",
   inset: 0,
-  background: "linear-gradient(135deg, rgba(91, 59, 165, 0.88) 0%, rgba(91, 59, 165, 0.78) 50%, rgba(127, 86, 217, 0.7) 100%)",
+  background: "linear-gradient(135deg, rgba(91, 59, 165, 0.65) 0%, rgba(107, 70, 193, 0.55) 50%, rgba(127, 86, 217, 0.45) 100%)",
 });
 
 const LeftInner = styled("div")({
@@ -484,71 +535,6 @@ const LeftLogo = styled("div")({
   opacity: 0.9,
 });
 
-const LeftCard = styled("div")({
-  background: "rgba(255, 255, 255, 0.1)",
-  backdropFilter: "blur(10px)",
-  padding: "22px",
-  borderRadius: "14px",
-  maxWidth: "380px",
-  border: "1px solid rgba(255, 255, 255, 0.15)",
-  "& h2": {
-    fontSize: "22px",
-    fontWeight: 800,
-    fontFamily: "'Nunito', sans-serif",
-    marginBottom: "8px",
-    lineHeight: 1.3,
-  },
-  "& p": {
-    fontSize: "13px",
-    fontFamily: "'Nunito', sans-serif",
-    lineHeight: 1.5,
-    opacity: 0.9,
-    fontWeight: 400,
-  },
-});
-
-const TestimonialCard = styled("div")({
-  background: "rgba(255, 255, 255, 0.08)",
-  backdropFilter: "blur(10px)",
-  padding: "16px",
-  borderRadius: "12px",
-  maxWidth: "380px",
-  border: "1px solid rgba(255, 255, 255, 0.1)",
-  "& p": {
-    fontSize: "13px",
-    fontFamily: "'Nunito', sans-serif",
-    fontStyle: "italic",
-    lineHeight: 1.4,
-    opacity: 0.95,
-    marginBottom: "10px",
-  },
-});
-
-const UserInfo = styled("div")({
-  display: "flex",
-  alignItems: "center",
-  gap: "8px",
-  "& img": {
-    width: "34px",
-    height: "34px",
-    borderRadius: "50%",
-    border: "2px solid rgba(255, 255, 255, 0.3)",
-  },
-  "& div": {
-    display: "flex",
-    flexDirection: "column",
-    "& span:first-of-type": {
-      fontWeight: 700,
-      fontSize: "12px",
-      fontFamily: "'Nunito', sans-serif",
-    },
-    "& span:last-of-type": {
-      fontSize: "11px",
-      opacity: 0.8,
-      fontFamily: "'Nunito', sans-serif",
-    },
-  },
-});
 
 const LeftFooter = styled("p")({
   fontSize: "13px",
