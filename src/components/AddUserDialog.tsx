@@ -44,7 +44,6 @@ interface AddUserFormValues {
 
 const AddUserDialog: React.FC<AddUserDialogProps> = ({ open, onClose }) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const fullScreen = useMediaQuery(theme.breakpoints.down("md"));
   
   const [showPassword, setShowPassword] = useState(false);
@@ -152,9 +151,13 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({ open, onClose }) => {
       fullWidth
       PaperProps={{
         sx: {
-          borderRadius: isMobile ? 0 : 2,
-          m: isMobile ? 0 : 2,
-          maxHeight: isMobile ? "100vh" : "90vh",
+          borderRadius: fullScreen ? 0 : 2,
+          m: fullScreen ? 0 : 2,
+          maxHeight: fullScreen ? "100vh" : "90vh",
+          height: fullScreen ? "100vh" : "auto",
+          display: "flex !important",
+          flexDirection: "column !important",
+          overflow: "hidden",
         },
       }}
     >
@@ -165,6 +168,7 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({ open, onClose }) => {
           alignItems: "center",
           pb: 1,
           borderBottom: "1px solid #e5e7eb",
+          flexShrink: 0,
         }}
       >
         <Typography variant="h6" sx={{ fontWeight: 600 }}>
@@ -182,7 +186,7 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({ open, onClose }) => {
         </IconButton>
       </DialogTitle>
 
-      <DialogContent sx={{ pt: 3, px: { xs: 2, sm: 3 } }}>
+      <DialogContent sx={{ pt: 3, px: { xs: 2, sm: 3 }, flex: "1 1 0%", overflowY: "auto", minHeight: 0 }}>
         <Box
           component="form"
           onSubmit={formik.handleSubmit}
@@ -213,7 +217,7 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({ open, onClose }) => {
             >
               <FormControlLabel
                 value="student"
-                control={<Radio size="small" />}
+                control={<Radio size="small" sx={{ color: "#2d1b69", "&.Mui-checked": { color: "#2d1b69" } }} />}
                 label="Student"
                 sx={{
                   border: "1px solid #ddd",
@@ -221,22 +225,22 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({ open, onClose }) => {
                   mr: 1,
                   px: 2,
                   "&:has(input:checked)": {
-                    borderColor: "#7f56d9",
-                    backgroundColor: "#f3ebff",
+                    borderColor: "#2d1b69",
+                    backgroundColor: "rgba(45,27,105,0.06)",
                   },
                 }}
               />
               <FormControlLabel
                 value="employer"
-                control={<Radio size="small" />}
+                control={<Radio size="small" sx={{ color: "#2d1b69", "&.Mui-checked": { color: "#2d1b69" } }} />}
                 label="Employer"
                 sx={{
                   border: "1px solid #ddd",
                   borderRadius: 1,
                   px: 2,
                   "&:has(input:checked)": {
-                    borderColor: "#7f56d9",
-                    backgroundColor: "#f3ebff",
+                    borderColor: "#2d1b69",
+                    backgroundColor: "rgba(45,27,105,0.06)",
                   },
                 }}
               />
@@ -384,17 +388,23 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({ open, onClose }) => {
       <DialogActions
         sx={{
           px: { xs: 2, sm: 3 },
-          pb: { xs: 2, sm: 3 },
+          pb: { xs: 3, sm: 3 },
           pt: 2,
           borderTop: "1px solid #e5e7eb",
           gap: 1,
+          flexShrink: 0,
         }}
       >
         <Button
           onClick={onClose}
           variant="outlined"
           disabled={isLoading}
-          sx={{ minWidth: 100 }}
+          sx={{
+            minWidth: 100,
+            borderColor: "#2d1b69",
+            color: "#2d1b69",
+            "&:hover": { borderColor: "#1a1035", backgroundColor: "rgba(45,27,105,0.04)" },
+          }}
         >
           Cancel
         </Button>
@@ -405,8 +415,8 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({ open, onClose }) => {
           disabled={isLoading}
           sx={{
             minWidth: 100,
-            backgroundColor: "#7f56d9",
-            "&:hover": { backgroundColor: "#6e47c4" },
+            backgroundColor: "#2d1b69",
+            "&:hover": { backgroundColor: "#1a1035" },
           }}
         >
           {isLoading ? "Adding..." : "Add User"}

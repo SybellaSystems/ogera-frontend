@@ -138,7 +138,7 @@ const JobCategories: React.FC = () => {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-purple-600 border-r-transparent"></div>
+          <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-[#6941C6] border-r-transparent"></div>
           <p className="mt-4 text-gray-600 font-medium">Loading categories...</p>
         </div>
       </div>
@@ -151,14 +151,14 @@ const JobCategories: React.FC = () => {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b pb-5">
         <div>
           <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 flex items-center gap-3">
-            <TagIcon className="h-8 w-10 md:h-10 md:w-10 text-purple-600" />
+            <TagIcon className="h-8 w-10 md:h-10 md:w-10 text-[#6941C6]" />
             {showForm ? (editingCategory ? "Edit Category" : "Add New Category") : "Job Categories"}
           </h1>
           <p className="text-gray-500 mt-1">
             {showForm ? "Configure the category details below" : "Organize jobs by category and industry"}
           </p>
         </div>
-        
+
         <div className="flex gap-3 w-full sm:w-auto">
           {showForm ? (
              <button
@@ -172,7 +172,7 @@ const JobCategories: React.FC = () => {
             isSuperAdmin && (
               <button
                 onClick={() => handleOpenForm()}
-                className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md font-medium transition shadow-sm flex items-center gap-2 w-full sm:w-auto justify-center text-sm cursor-pointer"
+                className="bg-[#2d1b69] hover:bg-[#1a1035] text-white px-4 py-2 rounded-md font-medium transition shadow-sm flex items-center gap-2 w-full sm:w-auto justify-center text-sm cursor-pointer"
               >
                 <PlusIcon className="h-4 w-4" />
                 Add Category

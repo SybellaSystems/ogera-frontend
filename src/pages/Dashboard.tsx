@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { useSelector } from "react-redux";
 import {
   UserGroupIcon,
@@ -7,9 +7,9 @@ import {
   ChartBarIcon,
   ArrowTrendingUpIcon,
   ArrowTrendingDownIcon,
-  StarIcon,
+  ArrowPathIcon,
+  ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
-import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
 import {
   BarChart,
   Bar,
@@ -19,13 +19,13 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-
-interface DashboardMetrics {
-  totalUsers: number;
-  totalStudents: number;
-  activeJobs: number;
-  totalEarnings: number;
-}
+import {
+  useGetDashboardMetricsQuery,
+  useGetStudentDashboardQuery,
+} from "../services/api/dashboardApi";
+import { useTheme } from "../context/ThemeContext";
+import { ProfileMilestones, ProfileCompletionWizard } from "../components/ProfileCompletion";
+import { useProfileCompletion } from "../components/ProfileCompletion/useProfileCompletion";
 
 const getGreeting = (): string => {
   const hour = new Date().getHours();
@@ -37,292 +37,132 @@ const getGreeting = (): string => {
 const Dashboard: React.FC = () => {
   const user = useSelector((state: any) => state.auth.user);
   const roleRaw = useSelector((state: any) => state.auth.role);
-  const accessToken = useSelector((state: any) => state.auth.accessToken);
   const role = roleRaw ? String(roleRaw).toLowerCase().trim() : undefined;
   const greeting = getGreeting();
+  const [showWizard, setShowWizard] = React.useState(false);
+  const { profileCompletion, userId } = useProfileCompletion();
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
 
-  // State for dashboard metrics
-  const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
-  const [metricsLoading, setMetricsLoading] = useState(false);
-  const [metricsError, setMetricsError] = useState<string | null>(null);
-  // Student-specific metrics fetched from backend
-  const [studentMetrics, setStudentMetrics] = useState<any | null>(null);
-  const [studentLoading, setStudentLoading] = useState(false);
-  const [studentError, setStudentError] = useState<string | null>(null);
+  const isAdmin = role === "superadmin" || role === "admin" || role === "verifydocadmin";
+  const isStudent = role === "student";
 
-  // Fetch dashboard metrics for superadmin
-  useEffect(() => {
-    // Only superadmin should fetch these metrics
-    if (role === "superadmin") {
-      setMetricsLoading(true);
-      setMetricsError(null);
-      console.log("[Dashboard] Fetching metrics for superadmin...");
-      fetch("/api/dashboard/metrics", {
-        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
-      })
-        .then((res) => {
-          console.log("[Dashboard] Response status:", res.status);
-          return res.json();
-        })
-        .then((data) => {
-          console.log("[Dashboard] Response data:", data);
-          if (data && data.success && data.data) {
-            // Ensure the backend returned numeric values; do not coerce here.
-            const d = data.data as DashboardMetrics;
-            setMetrics(d);
-          } else {
-            console.warn("[Dashboard] Invalid response format:", data);
-            setMetrics(null);
-            setMetricsError("Invalid response format from server");
-          }
-        })
-        .catch((error) => {
-          console.error("[Dashboard] Failed to fetch dashboard metrics:", error);
-          setMetrics(null);
-          setMetricsError(String(error));
-        })
-        .finally(() => {
-          setMetricsLoading(false);
-        });
-    }
-  }, [role]);
+  // Use the correct query based on role
+  const {
+    data: adminData,
+    isLoading: adminLoading,
+    error: adminError,
+    refetch: adminRefetch,
+  } = useGetDashboardMetricsQuery(undefined, { skip: !isAdmin });
 
-  // Fetch student-specific dashboard metrics
-  useEffect(() => {
-    if (role === 'student') {
-      setStudentLoading(true);
-      setStudentError(null);
-      fetch('/api/dashboard/student', {
-        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          if (data && data.success && data.data) {
-            setStudentMetrics(data.data);
-          } else {
-            setStudentMetrics(null);
-            setStudentError('Invalid response from server');
-          }
-        })
-        .catch((err) => {
-          console.error('[Dashboard] Failed to fetch student metrics:', err);
-          setStudentMetrics(null);
-          setStudentError(String(err));
-        })
-        .finally(() => setStudentLoading(false));
-    }
-  }, [role, accessToken]);
+  const {
+    data: studentData,
+    isLoading: studentLoading,
+    error: studentError,
+    refetch: studentRefetch,
+  } = useGetStudentDashboardQuery(undefined, { skip: !isStudent });
+
+  const isLoading = isAdmin ? adminLoading : isStudent ? studentLoading : false;
+  const error = isAdmin ? adminError : isStudent ? studentError : null;
+  const refetch = isAdmin ? adminRefetch : isStudent ? studentRefetch : () => {};
 
   const getStats = () => {
-    if (role === "student") {
-      // Use backend-provided student metrics when available
-      const appsValue = studentMetrics?.applications?.value ?? null;
-      const appsChange = studentMetrics?.applications?.change ?? null;
-      const earningsValue = studentMetrics?.earnings?.value ?? null;
-      const earningsCurrency = studentMetrics?.earnings?.currency ?? null;
-      const jobsCompletedValue = studentMetrics?.jobsCompleted?.value ?? null;
-      const interviewsValue = studentMetrics?.interviews?.value ?? null;
-
-      const formatNumber = (v: any) => {
-        if (v === null || v === undefined) return 'N/A';
-        if (typeof v === 'number') return v.toLocaleString();
-        return String(v);
-      };
-
+    if (isStudent && studentData?.data) {
+      const d = studentData.data;
       return [
         {
-          title: 'Applications Sent',
-          value: studentLoading ? '...' : (appsValue !== null ? formatNumber(appsValue) : (studentError ? 'Error' : (studentMetrics?.applications?.note || 'N/A'))),
-          change: appsChange !== null && appsChange !== undefined ? (appsChange >= 0 ? `+${appsChange}` : String(appsChange)) : undefined,
-          trending: appsChange !== null && appsChange !== undefined ? (appsChange >= 0 ? 'up' as const : 'down' as const) : 'up' as const,
+          title: "Applications Sent",
+          value: d.applications?.value?.toString() || "0",
+          change: d.applications?.change != null ? `${d.applications.change >= 0 ? "+" : ""}${d.applications.change}` : "--",
+          trending: (d.applications?.change ?? 0) >= 0 ? "up" as const : "down" as const,
           icon: <BriefcaseIcon className="h-4 w-4" />,
-          color: 'text-indigo-600',
-          bg: 'bg-indigo-50',
-          changeBg: 'bg-green-50 text-green-700',
-        },
-        {
-          title: 'Jobs Completed',
-          value: studentLoading ? '...' : (jobsCompletedValue !== null && jobsCompletedValue !== undefined ? String(jobsCompletedValue) : (studentMetrics?.jobsCompleted?.note || 'N/A')),
-          change: undefined,
-          trending: 'up' as const,
-          icon: <AcademicCapIcon className="h-4 w-4" />,
-          color: 'text-emerald-600',
-          bg: 'bg-emerald-50',
-          changeBg: 'bg-green-50 text-green-700',
-        },
-        {
-          title: 'Interviews',
-          value: studentLoading ? '...' : (interviewsValue !== null && interviewsValue !== undefined ? String(interviewsValue) : (studentMetrics?.interviews?.note || 'N/A')),
-          change: undefined,
-          trending: 'up' as const,
-          icon: <UserGroupIcon className="h-4 w-4" />,
-          color: 'text-orange-600',
-          bg: 'bg-orange-50',
-          changeBg: 'bg-green-50 text-green-700',
-        },
-        {
-          title: 'Earnings',
-          value: studentLoading ? '...' : (earningsValue !== null ? `${earningsCurrency ?? '$'}${formatNumber(earningsValue)}` : (studentError ? 'Error' : 'N/A')),
-          change: undefined,
-          trending: 'up' as const,
-          icon: <ChartBarIcon className="h-4 w-4" />,
-          color: 'text-[#7F56D9]',
-          bg: 'bg-purple-50',
-          changeBg: 'bg-green-50 text-green-700',
-        },
-      ];
-    }
-    if (role === "employer") {
-      return [
-        {
-          title: "Jobs Posted",
-          value: "18",
-          change: "+3",
-          trending: "up" as const,
-          icon: <BriefcaseIcon className="h-4 w-4" />,
-          color: "text-indigo-600",
-          bg: "bg-indigo-50",
-          changeBg: "bg-green-50 text-green-700",
-        },
-        {
-          title: "Applications Received",
-          value: "245",
-          change: "+12.4%",
-          trending: "up" as const,
-          icon: <UserGroupIcon className="h-4 w-4" />,
-          color: "text-emerald-600",
-          bg: "bg-emerald-50",
-          changeBg: "bg-green-50 text-green-700",
-        },
-        {
-          title: "Active Hires",
-          value: "12",
-          change: "+2",
-          trending: "up" as const,
-          icon: <AcademicCapIcon className="h-4 w-4" />,
-          color: "text-orange-600",
-          bg: "bg-orange-50",
-          changeBg: "bg-green-50 text-green-700",
-        },
-        {
-          title: "Total Spent",
-          value: "$34,500",
-          change: "+8.7%",
-          trending: "up" as const,
-          icon: <ChartBarIcon className="h-4 w-4" />,
           color: "text-[#7F56D9]",
-          bg: "bg-purple-50",
-          changeBg: "bg-green-50 text-green-700",
+          bg: "bg-[#f5f0fc]",
+          changeBg: "bg-[#f5f0fc] text-[#6941C6]",
+        },
+        {
+          title: "Jobs Completed",
+          value: d.jobsCompleted?.value?.toString() || "0",
+          change: d.jobsCompleted?.change != null ? `${d.jobsCompleted.change >= 0 ? "+" : ""}${d.jobsCompleted.change}` : "--",
+          trending: (d.jobsCompleted?.change ?? 0) >= 0 ? "up" as const : "down" as const,
+          icon: <AcademicCapIcon className="h-4 w-4" />,
+          color: "text-[#6941C6]",
+          bg: "bg-[#ede7f8]",
+          changeBg: "bg-[#f5f0fc] text-[#6941C6]",
+        },
+        {
+          title: "Interviews",
+          value: d.interviews?.value?.toString() || "0",
+          change: d.interviews?.growthPercentage != null ? `${d.interviews.growthPercentage >= 0 ? "+" : ""}${d.interviews.growthPercentage}%` : "--",
+          trending: (d.interviews?.growthPercentage ?? 0) >= 0 ? "up" as const : "down" as const,
+          icon: <UserGroupIcon className="h-4 w-4" />,
+          color: "text-[#7F56D9]",
+          bg: "bg-[#f5f0fc]",
+          changeBg: "bg-[#f5f0fc] text-[#6941C6]",
+        },
+        {
+          title: "Earnings",
+          value: d.earnings?.currency
+            ? `${d.earnings.currency} ${d.earnings.value?.toLocaleString() || "0"}`
+            : `$${d.earnings?.value?.toLocaleString() || "0"}`,
+          change: "--",
+          trending: "up" as const,
+          icon: <ChartBarIcon className="h-4 w-4" />,
+          color: "text-[#2d1b69]",
+          bg: "bg-[#ede7f8]",
+          changeBg: "bg-[#f5f0fc] text-[#6941C6]",
         },
       ];
     }
-    // superadmin / default
-    const formatNumber = (v: unknown) => {
-      if (v === null || v === undefined) return "N/A";
-      if (typeof v === "number") return v.toLocaleString();
-      // if value is a numeric string, still show it raw
-      if (!Number.isNaN(Number(v))) return String(v);
-      return String(v);
-    };
 
-    return [
-      {
-        title: "Total Users",
-        // Show loading indicator while loading. When loaded, show exact number returned by API.
-        value: metricsLoading ? "..." : (metrics ? formatNumber(metrics.totalUsers) : (metricsError ? "Error" : "N/A")),
-        change: "+12.5%",
-        trending: "up" as const,
-        icon: <UserGroupIcon className="h-4 w-4" />,
-        color: "text-indigo-600",
-        bg: "bg-indigo-50",
-        changeBg: "bg-green-50 text-green-700",
-      },
-      {
-        title: "Total Students",
-        value: metricsLoading ? "..." : (metrics ? formatNumber(metrics.totalStudents) : (metricsError ? "Error" : "N/A")),
-        change: "+8.2%",
-        trending: "up" as const,
-        icon: <AcademicCapIcon className="h-4 w-4" />,
-        color: "text-emerald-600",
-        bg: "bg-emerald-50",
-        changeBg: "bg-green-50 text-green-700",
-      },
-      {
-        title: "Active Jobs",
-        value: metricsLoading ? "..." : (metrics ? formatNumber(metrics.activeJobs) : (metricsError ? "Error" : "N/A")),
-        change: "-3.1%",
-        trending: "down" as const,
-        icon: <BriefcaseIcon className="h-4 w-4" />,
-        color: "text-orange-600",
-        bg: "bg-orange-50",
-        changeBg: "bg-red-50 text-red-600",
-      },
-      {
-        title: "Total Earnings",
-        value: metricsLoading ? "..." : (metrics ? (`$${formatNumber(metrics.totalEarnings)}`) : (metricsError ? "Error" : "N/A")),
-        change: "+18.7%",
-        trending: "up" as const,
-        icon: <ChartBarIcon className="h-4 w-4" />,
-        color: "text-[#7F56D9]",
-        bg: "bg-purple-50",
-        changeBg: "bg-green-50 text-green-700",
-      },
-    ];
-  };
+    if (isAdmin && adminData?.data) {
+      const d = adminData.data;
+      return [
+        {
+          title: "Total Users",
+          value: d.totalUsers?.toLocaleString() || "0",
+          change: "--",
+          trending: "up" as const,
+          icon: <UserGroupIcon className="h-4 w-4" />,
+          color: "text-[#7F56D9]",
+          bg: "bg-[#f5f0fc]",
+          changeBg: "bg-[#f5f0fc] text-[#6941C6]",
+        },
+        {
+          title: "Total Students",
+          value: d.totalStudents?.toLocaleString() || "0",
+          change: "--",
+          trending: "up" as const,
+          icon: <AcademicCapIcon className="h-4 w-4" />,
+          color: "text-[#6941C6]",
+          bg: "bg-[#ede7f8]",
+          changeBg: "bg-[#f5f0fc] text-[#6941C6]",
+        },
+        {
+          title: "Active Jobs",
+          value: d.activeJobs?.toLocaleString() || "0",
+          change: "--",
+          trending: "up" as const,
+          icon: <BriefcaseIcon className="h-4 w-4" />,
+          color: "text-[#7F56D9]",
+          bg: "bg-[#f5f0fc]",
+          changeBg: "bg-[#f5f0fc] text-[#6941C6]",
+        },
+        {
+          title: "Total Earnings",
+          value: `$${d.totalEarnings?.toLocaleString() || "0"}`,
+          change: "--",
+          trending: "up" as const,
+          icon: <ChartBarIcon className="h-4 w-4" />,
+          color: "text-[#2d1b69]",
+          bg: "bg-[#ede7f8]",
+          changeBg: "bg-[#f5f0fc] text-[#6941C6]",
+        },
+      ];
+    }
 
-  const getQuickStats = () => {
-    if (role === "student") {
-      return [
-        { color: "text-green-600", hoverBg: "hover:bg-green-50", text: "3 applications shortlisted" },
-        { color: "text-blue-600", hoverBg: "hover:bg-blue-50", text: "2 jobs in progress" },
-        { color: "text-orange-600", hoverBg: "hover:bg-orange-50", text: "1 interview scheduled" },
-        { color: "text-purple-600", hoverBg: "hover:bg-purple-50", text: "5 new job matches" },
-      ];
-    }
-    if (role === "employer") {
-      return [
-        { color: "text-green-600", hoverBg: "hover:bg-green-50", text: "32 new applicants this week" },
-        { color: "text-blue-600", hoverBg: "hover:bg-blue-50", text: "5 positions filled this month" },
-        { color: "text-orange-600", hoverBg: "hover:bg-orange-50", text: "8 interviews pending" },
-        { color: "text-red-600", hoverBg: "hover:bg-red-50", text: "3 contracts expiring soon" },
-      ];
-    }
-    // superadmin / default
-    return [
-      { color: "text-green-600", hoverBg: "hover:bg-green-50", text: "540 new students this week" },
-      { color: "text-blue-600", hoverBg: "hover:bg-blue-50", text: "230 jobs posted this week" },
-      { color: "text-orange-600", hoverBg: "hover:bg-orange-50", text: "120 academic verifications pending" },
-      { color: "text-red-600", hoverBg: "hover:bg-red-50", text: "87 disputes resolved" },
-    ];
-  };
-
-  const getRecentActivity = () => {
-    if (role === "student") {
-      return [
-        "You applied for Frontend Developer at TechCorp",
-        "Your application was shortlisted for UI Designer",
-        "Job completed: Logo Design for StartupXYZ",
-        "Interview scheduled for Thursday at 2:00 PM",
-        "Payment of $350 received from employer",
-      ];
-    }
-    if (role === "employer") {
-      return [
-        "New application received for Backend Developer",
-        "Interview completed with John Doe",
-        "Job posting 'Data Analyst' expires in 3 days",
-        "Payment of $500 processed to hired student",
-        "New candidate matched your job requirements",
-      ];
-    }
-    // superadmin / default
-    return [
-      "New student registered",
-      "Employer posted a new job",
-      "Student completed a training module",
-      "Admin approved an academic verification",
-      "Employer paid out $500 to student",
-    ];
+    // Employer or no data
+    return [];
   };
 
   const getSubtitle = () => {
@@ -332,15 +172,15 @@ const Dashboard: React.FC = () => {
   };
 
   const getChartData = () => {
-    if (role === "student") {
+    if (isStudent) {
       return {
         data: [
-          { day: "Mon", applications: 2, completed: 1 },
-          { day: "Tue", applications: 3, completed: 2 },
-          { day: "Wed", applications: 1, completed: 1 },
-          { day: "Thu", applications: 4, completed: 3 },
-          { day: "Fri", applications: 5, completed: 2 },
-          { day: "Sat", applications: 1, completed: 0 },
+          { day: "Mon", applications: 0, completed: 0 },
+          { day: "Tue", applications: 0, completed: 0 },
+          { day: "Wed", applications: 0, completed: 0 },
+          { day: "Thu", applications: 0, completed: 0 },
+          { day: "Fri", applications: 0, completed: 0 },
+          { day: "Sat", applications: 0, completed: 0 },
           { day: "Sun", applications: 0, completed: 0 },
         ],
         bars: [
@@ -353,13 +193,13 @@ const Dashboard: React.FC = () => {
     if (role === "employer") {
       return {
         data: [
-          { day: "Mon", applications: 15, hires: 2 },
-          { day: "Tue", applications: 22, hires: 3 },
-          { day: "Wed", applications: 18, hires: 1 },
-          { day: "Thu", applications: 30, hires: 4 },
-          { day: "Fri", applications: 35, hires: 5 },
-          { day: "Sat", applications: 8, hires: 1 },
-          { day: "Sun", applications: 5, hires: 0 },
+          { day: "Mon", applications: 0, hires: 0 },
+          { day: "Tue", applications: 0, hires: 0 },
+          { day: "Wed", applications: 0, hires: 0 },
+          { day: "Thu", applications: 0, hires: 0 },
+          { day: "Fri", applications: 0, hires: 0 },
+          { day: "Sat", applications: 0, hires: 0 },
+          { day: "Sun", applications: 0, hires: 0 },
         ],
         bars: [
           { key: "applications", name: "Applications", fill: "#7F56D9" },
@@ -370,13 +210,13 @@ const Dashboard: React.FC = () => {
     }
     return {
       data: [
-        { day: "Mon", students: 120, employers: 45 },
-        { day: "Tue", students: 190, employers: 60 },
-        { day: "Wed", students: 150, employers: 38 },
-        { day: "Thu", students: 230, employers: 72 },
-        { day: "Fri", students: 280, employers: 90 },
-        { day: "Sat", students: 95, employers: 25 },
-        { day: "Sun", students: 65, employers: 18 },
+        { day: "Mon", students: 0, employers: 0 },
+        { day: "Tue", students: 0, employers: 0 },
+        { day: "Wed", students: 0, employers: 0 },
+        { day: "Thu", students: 0, employers: 0 },
+        { day: "Fri", students: 0, employers: 0 },
+        { day: "Sat", students: 0, employers: 0 },
+        { day: "Sun", students: 0, employers: 0 },
       ],
       bars: [
         { key: "students", name: "Students", fill: "#7F56D9" },
@@ -387,15 +227,93 @@ const Dashboard: React.FC = () => {
   };
 
   const stats = getStats();
-  const quickStats = getQuickStats();
-  const recentActivity = getRecentActivity();
   const subtitle = getSubtitle();
   const chartConfig = getChartData();
+  const quickStats = [
+    { color: "text-green-600", hoverBg: "hover:bg-green-50", text: "No recent updates" },
+  ];
+  const recentActivity = ["No recent activity"];
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <ArrowPathIcon className="h-8 w-8 text-[#7F56D9] animate-spin" />
+        <span className="ml-2 text-gray-500 dark:text-gray-400">Loading dashboard...</span>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    const isAuthError = 'status' in error && (error.status === 401 || error.status === 'FETCH_ERROR');
+    const errorMessage = 'data' in error && typeof error.data === 'object' && error.data !== null && 'message' in error.data
+      ? (error.data as { message: string }).message
+      : 'status' in error && error.status === 'FETCH_ERROR'
+        ? 'Unable to connect to server. Please check your connection.'
+        : 'Failed to load dashboard data';
+
+    if (isAuthError) {
+      return (
+        <div className="space-y-3 animate-fadeIn max-w-full overflow-x-hidden">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <div className="flex items-center gap-3">
+              <ExclamationTriangleIcon className="h-6 w-6 text-red-500" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-red-800">Session Expired</p>
+                <p className="text-xs text-red-600 mt-1">Your session has expired. Please log in again.</p>
+              </div>
+            </div>
+            <div className="mt-3 flex gap-2">
+              <button
+                onClick={() => window.location.href = '/auth/login'}
+                className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded text-xs font-medium transition"
+              >
+                Go to Login
+              </button>
+              <button
+                onClick={() => refetch()}
+                className="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 rounded text-xs font-medium transition"
+              >
+                Retry
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-3 animate-fadeIn max-w-full overflow-x-hidden">
+        <div className="bg-gradient-to-r from-[#2d1b69] to-[#1a1035] rounded-lg p-3 text-white shadow-sm">
+          <h1 className="text-sm md:text-base font-bold">
+            {greeting}, {user?.full_name || "User"}
+          </h1>
+          <p className="text-[11px] text-purple-200 mt-0.5">
+            {subtitle}
+          </p>
+        </div>
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/50 rounded-lg p-4 flex items-center gap-3">
+          <ExclamationTriangleIcon className="h-6 w-6 text-red-500" />
+          <div>
+            <p className="text-sm font-medium text-red-800 dark:text-red-300">Failed to load dashboard data</p>
+            <p className="text-xs text-red-600 dark:text-red-400 mt-1">{errorMessage}</p>
+          </div>
+          <button
+            onClick={() => refetch()}
+            className="ml-auto px-3 py-1.5 bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 text-red-700 dark:text-red-300 rounded text-xs font-medium transition"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-3 animate-fadeIn max-w-full overflow-x-hidden">
       {/* Welcome Section */}
-      <div className="bg-gradient-to-r from-[#7F56D9] to-[#6941C6] rounded-lg p-3 text-white shadow-sm">
+      <div className="bg-gradient-to-r from-[#2d1b69] to-[#1a1035] rounded-lg p-3 text-white shadow-sm">
         <h1 className="text-sm md:text-base font-bold">
           {greeting}, {user?.full_name || "User"}
         </h1>
@@ -405,60 +323,116 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-2">
-        {stats.map((item, index) => (
-          <div
-            key={index}
-            className="bg-white rounded-lg p-2.5 shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100"
-          >
-            <div className="flex items-center justify-between mb-1.5">
-              <div className={`p-1.5 rounded ${item.bg}`}>
-                <span className={item.color}>{item.icon}</span>
-              </div>
-              <span className={`inline-flex items-center gap-0.5 text-[9px] font-semibold px-1 py-0.5 rounded-full animate-trend ${item.changeBg}`}>
-                {item.trending === "up" ? (
-                  <ArrowTrendingUpIcon className="h-2.5 w-2.5" />
-                ) : (
-                  <ArrowTrendingDownIcon className="h-2.5 w-2.5" />
+      {stats.length > 0 && (
+        <div className="grid grid-cols-2 xl:grid-cols-4 gap-2">
+          {stats.map((item, index) => (
+            <div
+              key={index}
+              className="rounded-lg p-2.5 shadow-sm hover:shadow-md transition-all duration-300 border"
+              style={{
+                backgroundColor: isDark ? "#1a1528" : "#fff",
+                borderColor: isDark ? "rgba(45,27,105,0.5)" : "#ede7f8",
+              }}
+            >
+              <div className="flex items-center justify-between mb-1.5">
+                <div
+                  className={`p-1.5 rounded ${isDark ? "" : item.bg}`}
+                  style={isDark ? { backgroundColor: "rgba(45,27,105,0.25)" } : undefined}
+                >
+                  <span className={item.color}>{item.icon}</span>
+                </div>
+                {item.change !== "--" && (
+                  <span
+                    className={`inline-flex items-center gap-0.5 text-[9px] font-semibold px-1 py-0.5 rounded-full animate-trend ${isDark ? "" : item.changeBg}`}
+                    style={isDark ? { backgroundColor: "rgba(45,27,105,0.3)", color: "#c084fc" } : undefined}
+                  >
+                    {item.trending === "up" ? (
+                      <ArrowTrendingUpIcon className="h-2.5 w-2.5" />
+                    ) : (
+                      <ArrowTrendingDownIcon className="h-2.5 w-2.5" />
+                    )}
+                    {item.change}
+                  </span>
                 )}
-                {item.change}
-              </span>
+              </div>
+              <p className="text-base font-bold" style={{ color: isDark ? "#fff" : "#111827" }}>{item.value}</p>
+              <p className="text-[11px]" style={{ color: isDark ? "#a0aec0" : "#6b7280" }}>{item.title}</p>
             </div>
-            <p className="text-base font-bold text-gray-900">{item.value}</p>
-            <p className="text-[11px] text-gray-500">{item.title}</p>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
+
+      {/* Employer placeholder - no backend endpoint yet */}
+      {role === "employer" && (
+        <div
+          className="rounded-lg p-6 shadow-sm border text-center"
+          style={{
+            backgroundColor: isDark ? "#1a1528" : "#fff",
+            borderColor: isDark ? "rgba(45,27,105,0.5)" : "#ede7f8",
+          }}
+        >
+          <BriefcaseIcon className="h-10 w-10 text-[#7F56D9] mx-auto mb-2" />
+          <p className="text-sm font-medium" style={{ color: isDark ? "#e2e8f0" : "#374151" }}>Employer dashboard coming soon</p>
+          <p className="text-xs mt-1" style={{ color: isDark ? "#a0aec0" : "#6b7280" }}>Check the Jobs section for your postings and applications.</p>
+        </div>
+      )}
+
+      {/* Profile Milestones - Only for students and employers */}
+      {(role === "student" || role === "employer") && (
+        <ProfileMilestones
+          profileCompletion={profileCompletion}
+          userId={userId}
+          onStartWizard={() => setShowWizard(true)}
+        />
+      )}
+
+      {/* Profile Completion Wizard Modal */}
+      <ProfileCompletionWizard
+        isOpen={showWizard}
+        onClose={() => setShowWizard(false)}
+        onComplete={() => {
+          setShowWizard(false);
+          refetch();
+        }}
+      />
 
       {/* Graph + Quick Stats */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-2.5">
         {/* Graph Section */}
-        <div className="bg-white rounded-lg p-3 shadow-sm lg:col-span-2 border border-gray-100">
-          <h2 className="text-xs font-semibold mb-2 text-gray-800">{chartConfig.title}</h2>
+        <div
+          className="rounded-lg p-3 shadow-sm lg:col-span-2 border"
+          style={{
+            backgroundColor: isDark ? "#1a1528" : "#fff",
+            borderColor: isDark ? "rgba(45,27,105,0.5)" : "#f3f4f6",
+          }}
+        >
+          <h2 className="text-xs font-semibold mb-2" style={{ color: isDark ? "#e2e8f0" : "#1f2937" }}>{chartConfig.title}</h2>
           <div className="h-44">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartConfig.data} barGap={3}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke={isDark ? "rgba(45, 27, 105, 0.3)" : "#f0f0f0"} vertical={false} />
                 <XAxis
                   dataKey="day"
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: "#9ca3af", fontSize: 10 }}
+                  tick={{ fill: isDark ? "#718096" : "#9ca3af", fontSize: 10 }}
                 />
                 <YAxis
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: "#9ca3af", fontSize: 10 }}
+                  tick={{ fill: isDark ? "#718096" : "#9ca3af", fontSize: 10 }}
                   width={25}
                 />
                 <Tooltip
-                  cursor={{ fill: "rgba(127, 86, 217, 0.06)" }}
+                  cursor={{ fill: isDark ? "rgba(45, 27, 105, 0.15)" : "rgba(127, 86, 217, 0.06)" }}
                   contentStyle={{
                     borderRadius: "6px",
-                    border: "none",
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                    border: isDark ? "1px solid rgba(45, 27, 105, 0.5)" : "none",
+                    boxShadow: isDark ? "0 2px 8px rgba(0,0,0,0.3)" : "0 2px 8px rgba(0,0,0,0.08)",
                     padding: "6px 10px",
                     fontSize: "11px",
+                    backgroundColor: isDark ? "#1a1528" : "#fff",
+                    color: isDark ? "#e2e8f0" : undefined,
                   }}
                 />
                 {chartConfig.bars.map((bar) => (
@@ -477,30 +451,15 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Quick Stats */}
-        <div className="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
-          <h2 className="text-xs font-semibold text-gray-800 mb-2">Quick Stats</h2>
-
-          {/* Student Rating */}
-          {role === "student" && (
-            <div className="mb-2 p-2 rounded bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-100">
-              <p className="text-[10px] text-gray-500 mb-0.5">Your Rating</p>
-              <div className="flex items-center gap-1.5">
-                <div className="flex items-center gap-px">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    star <= 4 ? (
-                      <StarIconSolid key={star} className="h-3.5 w-3.5 text-yellow-400" />
-                    ) : (
-                      <StarIcon key={star} className="h-3.5 w-3.5 text-gray-300" />
-                    )
-                  ))}
-                </div>
-                <span className="text-xs font-bold text-gray-900">4.0</span>
-                <span className="text-[9px] text-gray-400">(12 reviews)</span>
-              </div>
-            </div>
-          )}
-
-          <ul className="space-y-1 text-gray-700 text-[11px]">
+        <div
+          className="rounded-lg p-3 shadow-sm border"
+          style={{
+            backgroundColor: isDark ? "#1a1528" : "#fff",
+            borderColor: isDark ? "rgba(45,27,105,0.5)" : "#ede7f8",
+          }}
+        >
+          <h2 className="text-xs font-semibold mb-2" style={{ color: isDark ? "#e2e8f0" : "#1f2937" }}>Quick Stats</h2>
+          <ul className="space-y-1 text-[11px]" style={{ color: isDark ? "#cbd5e0" : "#374151" }}>
             {quickStats.map((stat, index) => (
               <li key={index} className={`flex items-center gap-1.5 p-1.5 rounded ${stat.hoverBg} transition-colors`}>
                 <span className={`${stat.color} font-bold text-xs`}>•</span>
@@ -512,13 +471,24 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Recent Activity */}
-      <div className="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
-        <h2 className="text-xs font-semibold mb-2 text-gray-800">Recent Activity</h2>
+      <div
+        className="rounded-lg p-3 shadow-sm border"
+        style={{
+          backgroundColor: isDark ? "#1a1528" : "#fff",
+          borderColor: isDark ? "rgba(45,27,105,0.5)" : "#ede7f8",
+        }}
+      >
+        <h2 className="text-xs font-semibold mb-2" style={{ color: isDark ? "#e2e8f0" : "#1f2937" }}>Recent Activity</h2>
         <ul className="space-y-1">
           {recentActivity.map((activity, index) => (
             <li
               key={index}
-              className="pb-1.5 border-b last:border-none text-[11px] text-gray-600 hover:text-purple-600 transition-colors duration-200 flex items-center gap-1.5 group cursor-pointer"
+              className="pb-1.5 last:border-none text-[11px] transition-colors duration-200 flex items-center gap-1.5 group cursor-pointer"
+              style={{
+                borderBottomWidth: "1px",
+                borderColor: isDark ? "rgba(45,27,105,0.3)" : "#f3f4f6",
+                color: isDark ? "#a0aec0" : "#4b5563",
+              }}
             >
               <span className="w-1 h-1 rounded-full bg-purple-400 group-hover:bg-purple-600 transition-colors shrink-0"></span>
               <span>{activity}</span>
@@ -526,59 +496,6 @@ const Dashboard: React.FC = () => {
           ))}
         </ul>
       </div>
-
-      {/* Student KPIs */}
-      {role === "student" && (
-        <div className="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
-          <h2 className="text-xs font-semibold mb-2.5 text-gray-800">Your Progress</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {/* Profile Completion */}
-            <div className="space-y-1">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] text-gray-600">Profile Completion</span>
-                <span className="text-[11px] font-bold text-[#7F56D9]">75%</span>
-              </div>
-              <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-[#7F56D9] to-[#9E77ED] rounded-full transition-all duration-500"
-                  style={{ width: "75%" }}
-                />
-              </div>
-              <p className="text-[9px] text-gray-400">Add skills & bio to reach 100%</p>
-            </div>
-
-            {/* Job Completion Rate */}
-            <div className="space-y-1">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] text-gray-600">Job Completion</span>
-                <span className="text-[11px] font-bold text-emerald-600">85%</span>
-              </div>
-              <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full transition-all duration-500"
-                  style={{ width: "85%" }}
-                />
-              </div>
-              <p className="text-[9px] text-gray-400">11 of 13 jobs completed on time</p>
-            </div>
-
-            {/* Application Success Rate */}
-            <div className="space-y-1">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] text-gray-600">Application Success</span>
-                <span className="text-[11px] font-bold text-orange-600">42%</span>
-              </div>
-              <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-orange-500 to-orange-400 rounded-full transition-all duration-500"
-                  style={{ width: "42%" }}
-                />
-              </div>
-              <p className="text-[9px] text-gray-400">10 of 24 applications accepted</p>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

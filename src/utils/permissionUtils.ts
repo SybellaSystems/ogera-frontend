@@ -16,6 +16,7 @@ export type Role =
  */
 const routeMapping: Record<string, string[]> = {
   "/academic-verifications": ["/dashboard/academic"],
+  "/identity-verifications": ["/dashboard/identity"],
   "/jobs": ["/dashboard/jobs"],
   "/users": ["/dashboard/users"],
 };
@@ -79,23 +80,23 @@ export const hasPermission = (
     return true;
   }
   
-  // For student role, allow view access to academic verifications and jobs
+  // For student role, allow view access to academic verifications, jobs, disputes, and identity verifications
   if (normalizedRole === 'student') {
-    if ((route === '/academic-verifications' || route === '/jobs' || route === '/disputes') && action === 'view') {
+    if ((route === '/academic-verifications' || route === '/jobs' || route === '/disputes' || route === '/identity-verifications') && action === 'view') {
       return true;
     }
   }
 
-  // For employer role, allow access to jobs
+  // For employer role, allow access to jobs and identity verifications
   if (normalizedRole === 'employer') {
-    if (route === '/jobs') {
+    if (route === '/jobs' || route === '/identity-verifications') {
       return true;
     }
   }
 
-  // For verifyDocAdmin role, allow access to academic verifications
+  // For verifyDocAdmin role, allow access to academic verifications and identity verifications
   if (normalizedRole === 'verifydocadmin') {
-    if (route === '/academic-verifications') {
+    if (route === '/academic-verifications' || route === '/identity-verifications') {
       return true;
     }
   }
@@ -144,26 +145,26 @@ export const hasAnyPermission = (
     return true;
   }
   
-  // For student role, allow access to academic verifications and jobs by default
+  // For student role, allow access to academic verifications, jobs, disputes, and identity verifications by default
   if (normalizedRole === 'student') {
-    if (route === '/academic-verifications' || route === '/jobs' || route === '/disputes') {
+    if (route === '/academic-verifications' || route === '/jobs' || route === '/disputes' || route === '/identity-verifications') {
       console.log('✅ [PERMISSION CHECK] Student role accessing allowed route');
       return true;
     }
   }
-  
-  // For employer role, allow access to jobs by default
+
+  // For employer role, allow access to jobs and identity verifications by default
   if (normalizedRole === 'employer') {
-    if (route === '/jobs') {
-      console.log('✅ [PERMISSION CHECK] Employer role accessing jobs');
+    if (route === '/jobs' || route === '/identity-verifications') {
+      console.log('✅ [PERMISSION CHECK] Employer role accessing allowed route');
       return true;
     }
   }
-  
-  // For verifyDocAdmin role, allow access to academic verifications
+
+  // For verifyDocAdmin role, allow access to academic verifications and identity verifications
   if (normalizedRole === 'verifydocadmin') {
-    if (route === '/academic-verifications') {
-      console.log('✅ [PERMISSION CHECK] VerifyDocAdmin role accessing academic verifications');
+    if (route === '/academic-verifications' || route === '/identity-verifications') {
+      console.log('✅ [PERMISSION CHECK] VerifyDocAdmin role accessing allowed route');
       return true;
     }
   }

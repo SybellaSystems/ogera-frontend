@@ -81,6 +81,36 @@ export const authApi = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ["User"],
     }),
+
+    // Delete my account
+    deleteMyAccount: builder.mutation<
+      { success: boolean; status: number; data: { message: string }; message: string },
+      { password: string }
+    >({
+      query: ({ password }) => ({
+        url: "/auth/delete-account",
+        method: "DELETE",
+        body: { password },
+      }),
+    }),
+
+    // Send email verification OTP
+    sendEmailVerificationOTP: builder.mutation({
+      query: () => ({
+        url: "/auth/send-email-otp",
+        method: "POST",
+      }),
+    }),
+
+    // Verify email OTP
+    verifyEmailOTP: builder.mutation({
+      query: (otp: string) => ({
+        url: "/auth/verify-email-otp",
+        method: "POST",
+        body: { otp },
+      }),
+      invalidatesTags: ["User", "TrustScore", "FullProfile"],
+    }),
   }),
 });
 
@@ -95,4 +125,7 @@ export const {
   useSendPhoneVerificationOTPMutation,
   useVerifyPhoneMutation,
   useLogoutMutation,
+  useDeleteMyAccountMutation,
+  useSendEmailVerificationOTPMutation,
+  useVerifyEmailOTPMutation,
 } = authApi;

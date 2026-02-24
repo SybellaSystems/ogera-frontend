@@ -8,7 +8,6 @@ import CustomTable, {
 import { Chip, Typography } from "@mui/material";
 import {
   Visibility as ViewIcon,
-  MessageOutlined as MessageIcon,
 } from "@mui/icons-material";
 import { getUserDisputes, type Dispute } from "../../services/api/disputesApi";
 import Loader from "../../components/Loader";

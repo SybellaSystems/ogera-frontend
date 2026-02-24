@@ -6,7 +6,7 @@
  */
 
 import React, { useState } from 'react';
-import { validateMobileNumber, getCountriesList, getCountryMobileConfig } from '../utils/mobileValidation';
+import { validateMobileNumber, getCountriesList } from '../utils/mobileValidation';
 import { useMobileValidation } from '../hooks/useMobileValidation';
 import toast from 'react-hot-toast';
 
@@ -27,7 +27,7 @@ export const Example1_SimpleForm: React.FC = () => {
     
     if (!validation.isValid) {
       setError(validation.message || 'Invalid mobile number');
-      toast.error(validation.message);
+      toast.error(validation.message || 'Invalid mobile number');
       return;
     }
     

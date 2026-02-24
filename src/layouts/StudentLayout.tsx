@@ -2,12 +2,18 @@ import { useState } from "react";
 import Sidebar from "../components/Sidebar/sidebar";
 import Header from "../components/Header/header";
 import { Outlet } from "react-router-dom";
+import { useTheme } from "../context/ThemeContext";
 
 const StudentLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-// bg-gradient-to-br
+  const { resolvedTheme } = useTheme();
+
+  const bgStyle = resolvedTheme === "dark"
+    ? { background: "linear-gradient(180deg, #0f0a1a 0%, #1a1528 50%, #130e20 100%)" }
+    : { background: "linear-gradient(180deg, #e4daf5 0%, #ede7f8 50%, #f5f0fc 100%)" };
+
   return (
-    <div className="flex min-h-screen  from-gray-50 via-white to-gray-50 overflow-hidden">
+    <div className="flex min-h-screen overflow-hidden transition-colors duration-300" style={bgStyle}>
       <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
       <div className="flex-1 flex flex-col w-full lg:ml-64 transition-all duration-300 h-screen overflow-hidden">

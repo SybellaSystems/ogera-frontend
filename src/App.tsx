@@ -33,7 +33,13 @@ import SuspendedUsers from "./pages/Users/Suspended";
 import PendingReviews from "./pages/AcademicVerification/PendingReviews";
 import Approved from "./pages/AcademicVerification/Approved";
 import Rejected from "./pages/AcademicVerification/Rejected";
+
+// Identity Verification Pages
+import IdentityPendingReviews from "./pages/IdentityVerification/PendingReviews";
+import IdentityApproved from "./pages/IdentityVerification/Approved";
+import IdentityRejected from "./pages/IdentityVerification/Rejected";
 import PerformanceTrack from "./pages/AcademicVerification/PerformanceTrack";
+import StudentPerformanceReport from "./pages/AcademicVerification/StudentPerformanceReport";
 import AccountLocks from "./pages/AcademicVerification/AccountLocks";
 
 // Jobs Pages
@@ -64,6 +70,7 @@ import MyDisputes from "./pages/Disputes/MyDisputes";
 // Other Pages
 import Analytics from "./pages/Analytics";
 import Transactions from "./pages/Transactions";
+import Notifications from "./pages/Notifications/Notifications";
 import Pay from "./pages/Transactions/Pay";
 import PaymentCallback from "./pages/PaymentCallback";
 import PaymentCancelled from "./pages/PaymentCancelled";
@@ -255,13 +262,34 @@ function App() {
               Component: PerformanceTrack,
             },
             {
+              path: "academic/performance/:studentId/report",
+              Component: StudentPerformanceReport,
+            },
+            {
               path: "academic/locks",
               Component: AccountLocks,
             },
+            // Identity Verification Routes
+            {
+              path: "identity/pending",
+              Component: IdentityPendingReviews,
+            },
+            {
+              path: "identity/approved",
+              Component: IdentityApproved,
+            },
+            {
+              path: "identity/rejected",
+              Component: IdentityRejected,
+            },
             // Jobs Routes - Order matters: specific routes first, then dynamic routes
             {
+              path: "jobs",
+              element: <Navigate to="/dashboard/jobs/all" replace />,
+            },
+            {
               path: "jobs/create",
-              element: <ProtectedRoute allowedRoles={["employer", "superadmin"]} />,
+              element: <ProtectedRoute allowedRoles={["employer", "admin", "superadmin"]} />,
               children: [
                 {
                   index: true,
@@ -328,7 +356,7 @@ function App() {
             },
             {
               path: "jobs/:id/edit",
-              element: <ProtectedRoute allowedRoles={["employer", "superadmin"]} />,
+              element: <ProtectedRoute allowedRoles={["employer", "admin", "superadmin"]} />,
               children: [
                 {
                   index: true,
@@ -338,7 +366,7 @@ function App() {
             },
             {
               path: "jobs/:id/applications",
-              element: <ProtectedRoute allowedRoles={["employer", "superadmin"]} />,
+              element: <ProtectedRoute allowedRoles={["employer", "admin", "superadmin"]} />,
               children: [
                 {
                   index: true,
@@ -387,6 +415,10 @@ function App() {
             {
               path: "transactions",
               Component: Transactions,
+            },
+            {
+              path: "notifications",
+              Component: Notifications,
             },
             {
               path: "transactions/pay",
@@ -448,7 +480,7 @@ const NotFound = () => (
       justifyContent: "center",
       height: "100vh",
       color: "#7F56D9",
-      fontFamily: "Inter, sans-serif",
+      fontFamily: "'Nunito', sans-serif",
     }}
   >
     <h1 style={{ fontSize: "50px", marginBottom: "20px" }}>404</h1>

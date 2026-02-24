@@ -154,7 +154,7 @@ const JobApplications: React.FC = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-4xl font-extrabold text-gray-900 flex items-center gap-3">
-            <BriefcaseIcon className="h-10 w-10 text-purple-600" />
+            <BriefcaseIcon className="h-10 w-10 text-[#6941C6]" />
             Job Applications
           </h1>
           <p className="text-gray-500 mt-2">
@@ -163,41 +163,36 @@ const JobApplications: React.FC = () => {
         </div>
         <button
           onClick={() => navigate("/dashboard/jobs/all")}
-          className=" text-sm font-medium bg-purple-600 hover:bg-purple-700 text-white px-4 py-1.5 rounded-lg font-semibold transition shadow-sm cursor-pointer"
+          className="bg-[#2d1b69] hover:bg-[#1a1035] text-white px-6 py-2.5 rounded-lg font-semibold transition shadow-md cursor-pointer"
         >
           View All Jobs
         </button>
       </div>
 
       {/* Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-2"> 
-  
-  <div className="bg-purple-50 rounded-xl p-4 border border-purple-200 hover:shadow-sm transition-shadow">
-    <p className="text-xs uppercase tracking-wider text-purple-700 font-semibold">Total Applications</p>
-    <p className="text-2xl font-bold text-purple-900 mt-1">
-      {applications.length}
-    </p>
-  </div>
-
-  <div className="bg-orange-50 rounded-xl p-4 border border-orange-200 hover:shadow-sm transition-shadow">
-    <p className="text-xs uppercase tracking-wider text-orange-700 font-semibold">Pending Review</p>
-    <p className="text-2xl font-bold text-orange-900 mt-1">{pendingCount}</p>
-  </div>
-
-  <div className="bg-green-50 rounded-xl p-4 border border-green-200 hover:shadow-sm transition-shadow">
-    <p className="text-xs uppercase tracking-wider text-green-700 font-semibold">Accepted</p>
-    <p className="text-2xl font-bold text-green-900 mt-1">{acceptedCount}</p>
-  </div>
-
-  <div className="bg-red-50 rounded-xl p-4 border border-red-200 hover:shadow-sm transition-shadow">
-    <p className="text-xs uppercase tracking-wider text-red-700 font-semibold">Rejected</p>
-    <p className="text-2xl font-bold text-red-900 mt-1">{rejectedCount}</p>
-  </div>
-
-</div>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="bg-[#f5f0fc] rounded-xl p-6 border border-[#ddd0ec]">
+          <p className="text-sm text-[#6941C6] font-medium">Total Applications</p>
+          <p className="text-3xl font-bold text-[#2d1b69] mt-2">
+            {applications.length}
+          </p>
+        </div>
+        <div className="bg-orange-50 rounded-xl p-6 border border-orange-200">
+          <p className="text-sm text-orange-700 font-medium">Pending Review</p>
+          <p className="text-3xl font-bold text-orange-900 mt-2">{pendingCount}</p>
+        </div>
+        <div className="bg-green-50 rounded-xl p-6 border border-green-200">
+          <p className="text-sm text-green-700 font-medium">Accepted</p>
+          <p className="text-3xl font-bold text-green-900 mt-2">{acceptedCount}</p>
+        </div>
+        <div className="bg-red-50 rounded-xl p-6 border border-red-200">
+          <p className="text-sm text-red-700 font-medium">Rejected</p>
+          <p className="text-3xl font-bold text-red-900 mt-2">{rejectedCount}</p>
+        </div>
+      </div>
 
       {applications.length === 0 ? (
-        <div className="bg-white rounded-xl p-12 shadow-md border border-gray-100 text-center">
+        <div className="bg-white rounded-xl p-12 shadow-md border border-[#ede7f8] text-center">
           <BriefcaseIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
           <h3 className="text-xl font-semibold text-gray-900 mb-2">
             No applications yet
@@ -211,12 +206,12 @@ const JobApplications: React.FC = () => {
           {applications.map((application) => (
             <div
               key={application.application_id}
-              className="bg-white rounded-xl p-6 shadow-md border border-gray-100 hover:shadow-lg transition-shadow"
+              className="bg-white rounded-xl p-6 shadow-md border border-[#ede7f8] hover:shadow-lg transition-shadow"
             >
                <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="h-12 w-12 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg">
+                    <div className="h-12 w-12 rounded-full bg-gradient-to-br from-[#6941C6] to-[#2d1b69] flex items-center justify-center text-white font-bold text-lg">
                       {application.student?.full_name?.charAt(0) || "S"}
                     </div>
                     <div>

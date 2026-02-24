@@ -8,6 +8,7 @@ import {
   reviewAcademicVerification,
 } from "../../services/api/academicVerificationApi";
 import api from "../../services/api/axiosInstance";
+import { useTheme } from "../../context/ThemeContext";
 
 interface RootState {
   auth: {
@@ -17,6 +18,8 @@ interface RootState {
 
 const PendingReviews: React.FC = () => {
   const role = useSelector((state: RootState) => state.auth.role);
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
 
   // -------- student state --------
   const [myVerification, setMyVerification] = useState<
@@ -156,7 +159,7 @@ const PendingReviews: React.FC = () => {
 
       if (item.storage_type === 's3') {
         const res = await api.get(`/academic-verifications/${item.id}/document`);
-        const url = res?.data?.url;
+        const url = (res?.data as any)?.url;
         if (url) {
           setViewerUrl(url);
           setViewerBlob(null);
@@ -227,70 +230,143 @@ const PendingReviews: React.FC = () => {
     }
   };
 
+  // Theme-aware styles (inline to bypass Tailwind v4 gradient issues)
+  const pageBg = isDark
+    ? { background: "linear-gradient(to bottom right, #0f0a1a, #1a1528)" }
+    : { background: "linear-gradient(to bottom right, #faf5ff, #eef2ff)" };
+
+  const cardBg = isDark
+    ? { backgroundColor: "#1e1833", borderColor: "rgba(45, 27, 105, 0.5)" }
+    : { backgroundColor: "rgba(255,255,255,0.8)", borderColor: "rgba(255,255,255,0.2)" };
+
+  const headingGradient = isDark
+    ? { backgroundImage: "linear-gradient(to right, #c084fc, #818cf8)" }
+    : { backgroundImage: "linear-gradient(to right, #9333ea, #4f46e5)" };
+
   // ===================== STUDENT VIEW =====================
   if (role === "student") {
     return (
-      <div className="bg-gradient-to-br from-purple-50 to-indigo-50 p-3">
+      <div className="p-3 min-h-full" style={pageBg}>
         <div className="max-w-3xl mx-auto space-y-3">
           {/* Header */}
           <div className="text-center space-y-1">
             <div className="inline-flex items-center justify-center w-10 h-10 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-full shadow-lg">
               <DocumentCheckIcon className="h-5 w-5 text-white" />
             </div>
-            <h1 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+            <h1
+              className="text-xl font-bold bg-clip-text text-transparent"
+              style={headingGradient}
+            >
               Academic Verification
             </h1>
-            <p className="text-gray-600 text-xs">Upload and track verification status</p>
+            <p style={{ color: isDark ? "#a0aec0" : "#4b5563" }} className="text-xs">
+              Upload and track verification status
+            </p>
           </div>
 
           {/* Status Card */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-3">
-            <h2 className="text-base font-bold text-gray-800 mb-2">Status</h2>
+          <div
+            className="backdrop-blur-sm rounded-xl shadow-lg border p-3"
+            style={cardBg}
+          >
+            <h2
+              className="text-base font-bold mb-2"
+              style={{ color: isDark ? "#fff" : "#1f2937" }}
+            >
+              Status
+            </h2>
             {myVerification ? (
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <span className="text-gray-700 text-sm">Current:</span>
-                  <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${
-                    myVerification.status === "accepted"
-                      ? "bg-green-100 text-green-700"
-                      : myVerification.status === "rejected"
-                      ? "bg-red-100 text-red-700"
-                      : "bg-yellow-100 text-yellow-700"
-                  }`}>
+                  <span style={{ color: isDark ? "#cbd5e0" : "#374151" }} className="text-sm">
+                    Current:
+                  </span>
+                  <span
+                    className="px-3 py-1 rounded-full text-xs font-bold uppercase"
+                    style={
+                      myVerification.status === "accepted"
+                        ? { backgroundColor: isDark ? "rgba(16,185,129,0.2)" : "#dcfce7", color: isDark ? "#34d399" : "#15803d" }
+                        : myVerification.status === "rejected"
+                        ? { backgroundColor: isDark ? "rgba(239,68,68,0.2)" : "#fee2e2", color: isDark ? "#f87171" : "#b91c1c" }
+                        : { backgroundColor: isDark ? "rgba(234,179,8,0.2)" : "#fef9c3", color: isDark ? "#fbbf24" : "#a16207" }
+                    }
+                  >
                     {myVerification.status}
                   </span>
                 </div>
                 {myVerification.rejection_reason && (
-                  <div className="bg-red-50 border-l-4 border-red-400 p-2 rounded-r">
-                    <p className="text-red-700 text-xs font-medium">Reason:</p>
-                    <p className="text-red-600 text-xs">{myVerification.rejection_reason}</p>
+                  <div
+                    className="border-l-4 p-2 rounded-r"
+                    style={{
+                      backgroundColor: isDark ? "rgba(239,68,68,0.1)" : "#fef2f2",
+                      borderColor: isDark ? "#dc2626" : "#f87171",
+                    }}
+                  >
+                    <p style={{ color: isDark ? "#fca5a5" : "#b91c1c" }} className="text-xs font-medium">
+                      Reason:
+                    </p>
+                    <p style={{ color: isDark ? "#f87171" : "#dc2626" }} className="text-xs">
+                      {myVerification.rejection_reason}
+                    </p>
                   </div>
                 )}
               </div>
             ) : (
-              <p className="text-gray-500 text-sm">No document uploaded</p>
+              <p style={{ color: isDark ? "#a0aec0" : "#6b7280" }} className="text-sm">
+                No document uploaded
+              </p>
             )}
           </div>
 
           {/* Upload Card */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-3">
-            <h2 className="text-base font-bold text-gray-800 mb-2">
+          <div
+            className="backdrop-blur-sm rounded-xl shadow-lg border p-3"
+            style={cardBg}
+          >
+            <h2
+              className="text-base font-bold mb-2"
+              style={{ color: isDark ? "#fff" : "#1f2937" }}
+            >
               {myVerification?.status === "rejected" ? "Re-upload" : "Upload"}
             </h2>
 
-            <div className="bg-purple-50 border border-purple-200 rounded-lg p-2 mb-2">
-              <p className="text-purple-600 text-xs">PDF, JPG, PNG, DOC, DOCX • Max 10MB</p>
+            <div
+              className="rounded-lg p-2 mb-2 border"
+              style={{
+                backgroundColor: isDark ? "rgba(139,92,246,0.1)" : "#faf5ff",
+                borderColor: isDark ? "rgba(139,92,246,0.3)" : "#e9d5ff",
+              }}
+            >
+              <p style={{ color: isDark ? "#c084fc" : "#7c3aed" }} className="text-xs">
+                PDF, JPG, PNG, DOC, DOCX &bull; Max 10MB
+              </p>
             </div>
 
             {studentError && (
-              <div className="bg-red-50 border-l-4 border-red-400 p-2 rounded-r mb-2">
-                <p className="text-red-600 text-xs">{studentError}</p>
+              <div
+                className="border-l-4 p-2 rounded-r mb-2"
+                style={{
+                  backgroundColor: isDark ? "rgba(239,68,68,0.1)" : "#fef2f2",
+                  borderColor: isDark ? "#dc2626" : "#f87171",
+                }}
+              >
+                <p style={{ color: isDark ? "#f87171" : "#dc2626" }} className="text-xs">
+                  {studentError}
+                </p>
               </div>
             )}
 
             {studentSuccess && (
-              <div className="bg-green-50 border-l-4 border-green-400 p-2 rounded-r mb-2">
-                <p className="text-green-600 text-xs">{studentSuccess}</p>
+              <div
+                className="border-l-4 p-2 rounded-r mb-2"
+                style={{
+                  backgroundColor: isDark ? "rgba(16,185,129,0.1)" : "#f0fdf4",
+                  borderColor: isDark ? "#059669" : "#4ade80",
+                }}
+              >
+                <p style={{ color: isDark ? "#34d399" : "#16a34a" }} className="text-xs">
+                  {studentSuccess}
+                </p>
               </div>
             )}
 
@@ -309,8 +385,16 @@ const PendingReviews: React.FC = () => {
             </label>
 
             {myVerification?.status === "pending" && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-2 mt-3 text-center">
-                <p className="text-yellow-600 text-xs">Under review by verification team</p>
+              <div
+                className="rounded-lg p-2 mt-3 text-center border"
+                style={{
+                  backgroundColor: isDark ? "rgba(234,179,8,0.1)" : "#fefce8",
+                  borderColor: isDark ? "rgba(234,179,8,0.3)" : "#fde68a",
+                }}
+              >
+                <p style={{ color: isDark ? "#fbbf24" : "#ca8a04" }} className="text-xs">
+                  Under review by verification team
+                </p>
               </div>
             )}
           </div>
@@ -321,81 +405,143 @@ const PendingReviews: React.FC = () => {
 
   // ===================== ADMIN/VERIFYDOCADMIN VIEW =====================
   return (
-    <div className="bg-gradient-to-br from-purple-50 to-indigo-50 p-3">
+    <div className="p-3 min-h-full" style={pageBg}>
       <div className="max-w-6xl mx-auto space-y-3">
         {/* Header */}
         <div className="text-center space-y-1">
           <div className="inline-flex items-center justify-center w-10 h-10 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-full shadow-lg">
             <DocumentCheckIcon className="h-5 w-5 text-white" />
           </div>
-          <h1 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+          <h1
+            className="text-xl font-bold bg-clip-text text-transparent"
+            style={headingGradient}
+          >
             Pending Reviews
           </h1>
-          <p className="text-gray-600 text-xs">Academic verifications awaiting review</p>
+          <p style={{ color: isDark ? "#a0aec0" : "#4b5563" }} className="text-xs">
+            Academic verifications awaiting review
+          </p>
         </div>
 
         {/* Stats */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-3 max-w-xs mx-auto">
+        <div
+          className="backdrop-blur-sm rounded-xl shadow-lg border p-3 max-w-xs mx-auto"
+          style={cardBg}
+        >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-purple-600 font-bold text-xs uppercase">Pending</p>
-              <p className="text-xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+              <p style={{ color: isDark ? "#c084fc" : "#7c3aed" }} className="font-bold text-xs uppercase">
+                Pending
+              </p>
+              <p
+                className="text-xl font-bold bg-clip-text text-transparent"
+                style={headingGradient}
+              >
                 {pending.length}
               </p>
             </div>
-            <DocumentCheckIcon className="h-5 w-5 text-purple-600" />
+            <DocumentCheckIcon className="h-5 w-5" style={{ color: isDark ? "#c084fc" : "#7c3aed" }} />
           </div>
         </div>
 
         {adminError && (
-          <div className="bg-red-50 border-l-4 border-red-400 p-2 rounded-r">
-            <p className="text-red-600 text-xs">{adminError}</p>
+          <div
+            className="border-l-4 p-2 rounded-r"
+            style={{
+              backgroundColor: isDark ? "rgba(239,68,68,0.1)" : "#fef2f2",
+              borderColor: isDark ? "#dc2626" : "#f87171",
+            }}
+          >
+            <p style={{ color: isDark ? "#f87171" : "#dc2626" }} className="text-xs">
+              {adminError}
+            </p>
           </div>
         )}
 
         {loadingAdmin ? (
           <div className="flex items-center justify-center py-8">
             <div className="flex items-center gap-2">
-              <div className="w-5 h-5 border-2 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
-              <p className="text-gray-600 text-sm">Loading...</p>
+              <div
+                className="w-5 h-5 rounded-full animate-spin"
+                style={{
+                  border: "2px solid",
+                  borderColor: isDark ? "rgba(139,92,246,0.3)" : "#e9d5ff",
+                  borderTopColor: isDark ? "#c084fc" : "#7c3aed",
+                }}
+              />
+              <p style={{ color: isDark ? "#a0aec0" : "#4b5563" }} className="text-sm">
+                Loading...
+              </p>
             </div>
           </div>
         ) : pending.length === 0 ? (
           <div className="text-center py-6">
-            <DocumentCheckIcon className="h-10 w-10 text-gray-400 mx-auto mb-2" />
-            <p className="text-gray-500 text-sm">No pending verifications</p>
+            <DocumentCheckIcon className="h-10 w-10 mx-auto mb-2" style={{ color: isDark ? "#4a5568" : "#9ca3af" }} />
+            <p style={{ color: isDark ? "#a0aec0" : "#6b7280" }} className="text-sm">
+              No pending verifications
+            </p>
           </div>
         ) : (
           <div className="space-y-2">
             {pending.map((item) => (
-              <div key={item.id} className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-3">
+              <div
+                key={item.id}
+                className="backdrop-blur-sm rounded-xl shadow-lg border p-3"
+                style={cardBg}
+              >
                 <div className="flex flex-col lg:flex-row gap-3">
                   <div className="flex-1 space-y-2">
                     {/* User Info */}
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-100 to-indigo-100 flex items-center justify-center flex-shrink-0">
-                        <span className="text-purple-600 font-bold text-xs">
+                      <div
+                        className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                        style={{
+                          background: isDark
+                            ? "linear-gradient(to right, rgba(139,92,246,0.2), rgba(99,102,241,0.2))"
+                            : "linear-gradient(to right, #f3e8ff, #e0e7ff)",
+                        }}
+                      >
+                        <span style={{ color: isDark ? "#c084fc" : "#7c3aed" }} className="font-bold text-xs">
                           {item.user_id.charAt(0).toUpperCase()}
                         </span>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-bold text-gray-800 text-sm truncate">ID: {item.user_id}</h3>
-                        <p className="text-gray-500 text-xs">
+                        <h3
+                          className="font-bold text-sm truncate"
+                          style={{ color: isDark ? "#fff" : "#1f2937" }}
+                        >
+                          ID: {item.user_id}
+                        </h3>
+                        <p style={{ color: isDark ? "#a0aec0" : "#6b7280" }} className="text-xs">
                           {new Date(item.created_at).toLocaleDateString()}
                         </p>
                       </div>
-                      <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs font-bold flex-shrink-0">
+                      <span
+                        className="px-2 py-1 rounded text-xs font-bold flex-shrink-0"
+                        style={{
+                          backgroundColor: isDark ? "rgba(139,92,246,0.2)" : "#f3e8ff",
+                          color: isDark ? "#c4b5fd" : "#6b21a8",
+                        }}
+                      >
                         {item.storage_type.toUpperCase()}
                       </span>
                     </div>
 
                     {/* Rejection Reason */}
                     <div>
-                      <label className="block text-gray-700 font-medium text-xs mb-1">
+                      <label
+                        className="block font-medium text-xs mb-1"
+                        style={{ color: isDark ? "#cbd5e0" : "#374151" }}
+                      >
                         Rejection Reason <span className="text-red-500">*</span>
                       </label>
                       <textarea
-                        className="w-full rounded-lg border border-gray-200 px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-purple-500 resize-none"
+                        className="w-full rounded-lg border px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-purple-500 resize-none"
+                        style={{
+                          backgroundColor: isDark ? "#0f0a1a" : "#fff",
+                          borderColor: isDark ? "rgba(45,27,105,0.5)" : "#e5e7eb",
+                          color: isDark ? "#e2e8f0" : "#111827",
+                        }}
                         rows={2}
                         placeholder="Required for rejection..."
                         value={rejectionNotes[item.id] || ""}
@@ -412,7 +558,7 @@ const PendingReviews: React.FC = () => {
                   {/* Actions */}
                   <div className="flex lg:flex-col gap-2 lg:min-w-[130px] flex-shrink-0">
                     <button
-                      className={`flex-1 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-all text-xs disabled:opacity-50`}
+                      className="flex-1 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-all text-xs disabled:opacity-50"
                       onClick={() => handleViewDocument(item)}
                     >
                       View
@@ -426,7 +572,7 @@ const PendingReviews: React.FC = () => {
                     >
                       {reviewLoadingId === item.id ? "Approving..." : "Approve"}
                     </button>
-                    
+
                     <button
                       className={`flex-1 px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-all text-xs disabled:opacity-50 ${
                         reviewLoadingId === item.id ? 'animate-pulse' : ''
@@ -444,13 +590,25 @@ const PendingReviews: React.FC = () => {
         )}
         {showViewer && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 backdrop-blur-sm">
-            <div className="fixed inset-0 bg-black/40" onClick={closeViewer} />
-            <div className="relative bg-white rounded-lg shadow-lg max-w-4xl w-full max-h-[85vh] sm:max-h-[90vh] z-60 flex flex-col overflow-hidden">
-              <div className="flex items-center justify-between p-3 sm:p-4 border-b flex-shrink-0">
-                <h3 className="text-lg font-bold">Document Viewer</h3>
+            <div
+              className="fixed inset-0"
+              style={{ backgroundColor: isDark ? "rgba(0,0,0,0.6)" : "rgba(0,0,0,0.4)" }}
+              onClick={closeViewer}
+            />
+            <div
+              className="relative rounded-lg shadow-lg max-w-4xl w-full max-h-[85vh] sm:max-h-[90vh] z-60 flex flex-col overflow-hidden"
+              style={{ backgroundColor: isDark ? "#1a1528" : "#fff" }}
+            >
+              <div
+                className="flex items-center justify-between p-3 sm:p-4 border-b flex-shrink-0"
+                style={{ borderColor: isDark ? "rgba(45,27,105,0.5)" : "#e5e7eb" }}
+              >
+                <h3 className="text-lg font-bold" style={{ color: isDark ? "#fff" : "#111827" }}>
+                  Document Viewer
+                </h3>
                 <div className="flex items-center gap-2">
-                  <button className="px-3 py-1 text-sm bg-green-500 rounded" onClick={downloadViewer}>Download</button>
-                  <button className="px-3 py-1 text-sm bg-red-400 rounded" onClick={closeViewer}>Close</button>
+                  <button className="px-3 py-1 text-sm bg-green-500 text-white rounded" onClick={downloadViewer}>Download</button>
+                  <button className="px-3 py-1 text-sm bg-red-400 text-white rounded" onClick={closeViewer}>Close</button>
                 </div>
               </div>
               <div className="flex-1 overflow-y-auto p-2 sm:p-4">
@@ -463,7 +621,9 @@ const PendingReviews: React.FC = () => {
                     <iframe src={viewerUrl} className="w-full h-full border-0 min-h-[500px] sm:min-h-[600px]" title="Document" />
                   )
                 ) : (
-                  <div className="text-center p-8">No document to display</div>
+                  <div className="text-center p-8" style={{ color: isDark ? "#a0aec0" : "#6b7280" }}>
+                    No document to display
+                  </div>
                 )}
               </div>
             </div>

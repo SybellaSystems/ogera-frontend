@@ -120,7 +120,7 @@ export const HelperFunctionsDemonstration = () => {
 
   formatTestCases.forEach(({ number, country }) => {
     const formatted = formatMobileNumber(number, country);
-    const config = getCountryMobileConfig(country);
+    getCountryMobileConfig(country);
     console.log(`${number} (${country}) → ${formatted}`);
   });
   console.groupEnd();

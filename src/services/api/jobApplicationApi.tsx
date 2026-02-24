@@ -169,6 +169,18 @@ export const jobApplicationApi = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ["Job"],
     }),
+
+    // Withdraw application (student only)
+    withdrawApplication: builder.mutation<
+      { success: boolean; status: number; data: { message: string }; message: string },
+      string
+    >({
+      query: (application_id) => ({
+        url: `/applications/${application_id}/withdraw`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Job", "JobApplication"],
+    }),
   }),
 });
 
@@ -180,6 +192,7 @@ export const {
   useGetApplicationByIdQuery,
   useUpdateApplicationStatusMutation,
   useCheckStudentApplicationQuery,
+  useWithdrawApplicationMutation,
 } = jobApplicationApi;
 
 
