@@ -47,6 +47,11 @@ import type { UserProfile } from "../../services/api/profileApi";
 import { useTheme } from "../../context/ThemeContext";
 import SuspendUserModal from "../../components/SuspendUserModal";
 import EscalateUserModal from "../../components/EscalateUserModal";
+import {
+  logUserManagementEvent,
+  USER_ACTIONS,
+} from "../../utils/userManagementAudit";
+import { useSelector } from "react-redux";
 import toast from "react-hot-toast";
 
 interface PendingUser {
@@ -69,6 +74,9 @@ const PendingApproval: React.FC = () => {
 
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
+  const currentUser = useSelector((state: any) => state.auth.user);
+  const adminName =
+    currentUser?.full_name || currentUser?.email || "Admin";
 
   // State
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
@@ -172,13 +180,16 @@ const PendingApproval: React.FC = () => {
   // ── Actions ──────────────────────────────────
 
   const handleApprove = async (row: PendingUser) => {
+    const userInfo = { userId: row.userId, userName: row.name, userEmail: row.email };
     try {
       await updateUser({
         id: row.userId,
         data: { email_verified: true } as any,
       }).unwrap();
+      logUserManagementEvent(USER_ACTIONS.USER_APPROVED, "success", userInfo, adminName);
       toast.success(`${row.name} has been approved`);
     } catch (error: any) {
+      logUserManagementEvent(USER_ACTIONS.USER_APPROVED, "failure", userInfo, adminName);
       toast.error(error?.data?.message || "Failed to approve user");
     }
   };
@@ -186,29 +197,35 @@ const PendingApproval: React.FC = () => {
   const handleRejectConfirm = async () => {
     if (!userToReject) return;
     const reason = rejectReason.trim() || "Registration rejected by admin";
+    const userInfo = { userId: userToReject.userId, userName: userToReject.name, userEmail: userToReject.email };
     try {
       await lockUser({
         userId: userToReject.userId,
         reason,
         duration: "permanent",
       }).unwrap();
+      logUserManagementEvent(USER_ACTIONS.USER_REJECTED, "success", userInfo, adminName, reason);
       toast.success(`${userToReject.name} has been rejected`);
       setRejectDialogOpen(false);
       setUserToReject(null);
       setRejectReason("");
     } catch (error: any) {
+      logUserManagementEvent(USER_ACTIONS.USER_REJECTED, "failure", userInfo, adminName, reason);
       toast.error(error?.data?.message || "Failed to reject user");
     }
   };
 
   const handleDeleteConfirm = async () => {
     if (!userToDelete) return;
+    const userInfo = { userId: userToDelete.userId, userName: userToDelete.name, userEmail: userToDelete.email };
     try {
       await deleteUserMutation(userToDelete.userId).unwrap();
+      logUserManagementEvent(USER_ACTIONS.USER_DELETED, "success", userInfo, adminName);
       toast.success(`${userToDelete.name} has been permanently deleted`);
       setDeleteDialogOpen(false);
       setUserToDelete(null);
     } catch (error: any) {
+      logUserManagementEvent(USER_ACTIONS.USER_DELETED, "failure", userInfo, adminName);
       toast.error(error?.data?.message || "Failed to delete user");
     }
   };
@@ -218,13 +235,16 @@ const PendingApproval: React.FC = () => {
     let successCount = 0;
     let failCount = 0;
     for (const user of selectedUsers) {
+      const userInfo = { userId: user.userId, userName: user.name, userEmail: user.email };
       try {
         await updateUser({
           id: user.userId,
           data: { email_verified: true } as any,
         }).unwrap();
+        logUserManagementEvent(USER_ACTIONS.BULK_APPROVE, "success", userInfo, adminName);
         successCount++;
       } catch {
+        logUserManagementEvent(USER_ACTIONS.BULK_APPROVE, "failure", userInfo, adminName);
         failCount++;
       }
     }
@@ -239,14 +259,17 @@ const PendingApproval: React.FC = () => {
     let successCount = 0;
     let failCount = 0;
     for (const user of selectedUsers) {
+      const userInfo = { userId: user.userId, userName: user.name, userEmail: user.email };
       try {
         await lockUser({
           userId: user.userId,
           reason: "Bulk rejection by admin",
           duration: "permanent",
         }).unwrap();
+        logUserManagementEvent(USER_ACTIONS.BULK_REJECT, "success", userInfo, adminName);
         successCount++;
       } catch {
+        logUserManagementEvent(USER_ACTIONS.BULK_REJECT, "failure", userInfo, adminName);
         failCount++;
       }
     }
