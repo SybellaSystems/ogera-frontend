@@ -8,6 +8,14 @@ import { useFormik } from "formik";
 import { useEffect, useState, useRef } from "react";
 import { loginValidationSchema } from "../validation/Index";
 import type { LoginFormValues } from "../type/Index";
+import FeatureSlider from "../components/Auth/FeatureSlider";
+import type { Slide } from "../components/Auth/FeatureSlider";
+import {
+  BriefcaseIcon,
+  CreditCardIcon,
+  ShieldCheckIcon,
+  RocketLaunchIcon,
+} from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useDispatch } from "react-redux";
@@ -19,6 +27,35 @@ import axios from "axios";
 import LostAuthenticatorModal from "../components/LostAuthenticatorModal";
 
 const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
+
+const iconStyle = { width: 28, height: 28, color: "#ffffff", strokeWidth: 1.5 };
+
+const LOGIN_SLIDES: Slide[] = [
+  {
+    icon: <BriefcaseIcon style={iconStyle} />,
+    title: "Flexible Job Opportunities",
+    description:
+      "Find part-time jobs that fit your student schedule and build real-world experience.",
+  },
+  {
+    icon: <CreditCardIcon style={iconStyle} />,
+    title: "Instant Mobile Payments",
+    description:
+      "Get paid directly to your mobile money account \u2013 fast, secure, and hassle-free.",
+  },
+  {
+    icon: <ShieldCheckIcon style={iconStyle} />,
+    title: "Verified Employers",
+    description:
+      "Work with trusted, verified employers across Africa and feel confident in every opportunity.",
+  },
+  {
+    icon: <RocketLaunchIcon style={iconStyle} />,
+    title: "Career Growth",
+    description:
+      "Build your professional profile, gain real work experience, and unlock your potential.",
+  },
+];
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -376,13 +413,7 @@ const Login = () => {
         <RightOverlay />
         <RightInner>
           <RightLogo />
-          <RightCard>
-            <h2>Empowering Africa’s Students</h2>
-            <p>
-              Ogera connects ambitious students with flexible job opportunities
-              and instant mobile money payments.
-            </p>
-          </RightCard>
+          <FeatureSlider slides={LOGIN_SLIDES} />
           <RightFooter>Trusted by students across Africa</RightFooter>
         </RightInner>
       </RightPanel>
@@ -652,7 +683,7 @@ const RightPanel = styled("div")(({ theme }) => ({
 const RightOverlay = styled("div")({
   position: "absolute",
   inset: 0,
-  background: "linear-gradient(135deg, rgba(91, 59, 165, 0.88) 0%, rgba(91, 59, 165, 0.78) 50%, rgba(127, 86, 217, 0.7) 100%)",
+  background: "linear-gradient(135deg, rgba(91, 59, 165, 0.65) 0%, rgba(107, 70, 193, 0.55) 50%, rgba(127, 86, 217, 0.45) 100%)",
 });
 
 const RightInner = styled("div")({
@@ -675,28 +706,6 @@ const RightLogo = styled("div")({
   opacity: 0.9,
 });
 
-const RightCard = styled("div")({
-  background: "rgba(255, 255, 255, 0.1)",
-  backdropFilter: "blur(10px)",
-  padding: "30px",
-  borderRadius: "16px",
-  maxWidth: "420px",
-  border: "1px solid rgba(255, 255, 255, 0.15)",
-  "& h2": {
-    fontSize: "28px",
-    fontWeight: 800,
-    fontFamily: "'Nunito', sans-serif",
-    marginBottom: "12px",
-    lineHeight: 1.3,
-  },
-  "& p": {
-    fontSize: "15px",
-    fontFamily: "'Nunito', sans-serif",
-    lineHeight: 1.6,
-    opacity: 0.9,
-    fontWeight: 400,
-  },
-});
 
 const LostAuthenticatorLink = styled("button")({
   fontSize: "12px",
