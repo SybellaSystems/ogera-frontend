@@ -89,6 +89,32 @@ export interface LockAccountParams {
   duration: string;
 }
 
+// Student Performance Detail Types
+export interface StudentPerformanceDetailResponse {
+  success: boolean;
+  status: number;
+  message: string;
+  data: {
+    student: StudentPerformance;
+    jobHistory: Array<{
+      id: string;
+      title: string;
+      company: string;
+      amount: string;
+      rating: number;
+      date: string;
+      status: string;
+    }>;
+    monthlyEarnings: Array<{ month: string; amount: number }>;
+    metrics: {
+      profileCompletion: number;
+      responseTime: string;
+      acceptanceRate: number;
+      repeatClients: number;
+    };
+  };
+}
+
 export interface UsersListResponse {
   success: boolean;
   status: number;
@@ -229,6 +255,15 @@ export const usersApi = apiSlice.injectEndpoints({
       providesTags: ["User"],
     }),
 
+    // Get individual student performance detail
+    getStudentPerformanceDetail: builder.query<StudentPerformanceDetailResponse, string>({
+      query: (studentId) => ({
+        url: `/users/students/${studentId}/performance`,
+        method: "GET",
+      }),
+      providesTags: (_result, _error, id) => [{ type: "User", id }],
+    }),
+
     // Get locked accounts
     getLockedAccounts: builder.query<LockedAccountsResponse, PaginationParams | void>({
       query: (params = {}) => {
@@ -278,6 +313,7 @@ export const {
   useDeleteUserMutation,
   useAddUserMutation,
   useGetStudentPerformanceQuery,
+  useGetStudentPerformanceDetailQuery,
   useGetLockedAccountsQuery,
   useLockUserAccountMutation,
   useUnlockUserAccountMutation,
