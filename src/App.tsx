@@ -28,6 +28,7 @@ import Students from "./pages/Users/Students";
 import Employers from "./pages/Users/Employers";
 import PendingApprovalUsers from "./pages/Users/PendingApproval";
 import SuspendedUsers from "./pages/Users/Suspended";
+import EscalatedUsers from "./pages/Users/Escalated";
 
 // Academic Verification Pages
 import PendingReviews from "./pages/AcademicVerification/PendingReviews";
@@ -200,6 +201,10 @@ function App() {
                 {
                   path: "suspended",
                   Component: SuspendedUsers,
+                },
+                {
+                  path: "escalated",
+                  Component: EscalatedUsers,
                 },
               ],
             },

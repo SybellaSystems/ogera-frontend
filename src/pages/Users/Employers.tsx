@@ -18,15 +18,17 @@ import {
   TextField,
   Grid,
   useMediaQuery,
-  useTheme,
+  useTheme as useMuiTheme,
   IconButton,
 } from "@mui/material";
 import {
   Visibility as ViewIcon,
   Edit as EditIcon,
   Close as CloseIcon,
+  Lock as LockIcon,
+  Flag as FlagIcon,
 } from "@mui/icons-material";
-import { 
+import {
   // useGetAllEmployersQuery,
   useGetUserByIdQuery,
   useUpdateUserByIdMutation,
@@ -34,6 +36,9 @@ import {
 } from "../../services/api/usersApi";
 import type { UserProfile } from "../../services/api/profileApi";
 import toast from "react-hot-toast";
+import SuspendUserModal from "../../components/SuspendUserModal";
+import EscalateUserModal from "../../components/EscalateUserModal";
+import { useTheme } from "../../context/ThemeContext";
 
 interface Employer {
   index: number;
@@ -47,16 +52,23 @@ interface Employer {
 }
 
 const Employers: React.FC = () => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const isSmallMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  
+  const muiTheme = useMuiTheme();
+  const isMobile = useMediaQuery(muiTheme.breakpoints.down('md'));
+  const isSmallMobile = useMediaQuery(muiTheme.breakpoints.down('sm'));
+
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
+
   const [page, setPage] = useState(0);
   const [limit, setLimit] = useState(10);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [suspendModalOpen, setSuspendModalOpen] = useState(false);
+  const [escalateModalOpen, setEscalateModalOpen] = useState(false);
   const [employerToView, setEmployerToView] = useState<Employer | null>(null);
   const [employerToEdit, setEmployerToEdit] = useState<Employer | null>(null);
+  const [suspendEmployer, setSuspendEmployer] = useState<Employer | null>(null);
+  const [escalateEmployer, setEscalateEmployer] = useState<Employer | null>(null);
   const [editFormData, setEditFormData] = useState<Partial<UserProfile>>({});
   
   const [updateUser, { isLoading: isUpdating }] = useUpdateUserByIdMutation();
@@ -258,17 +270,54 @@ const Employers: React.FC = () => {
       },
       color: "primary",
     },
+    {
+      label: "Suspend",
+      icon: <LockIcon fontSize="small" />,
+      onClick: (row) => {
+        setSuspendEmployer(row);
+        setSuspendModalOpen(true);
+      },
+      color: "warning",
+    },
+    {
+      label: "Escalate",
+      icon: <FlagIcon fontSize="small" />,
+      onClick: (row) => {
+        setEscalateEmployer(row);
+        setEscalateModalOpen(true);
+      },
+      color: "error",
+    },
   ];
 
   return (
-    <div className="space-y-6 animate-fadeIn">
+    <div
+      className="space-y-6 animate-fadeIn"
+      style={{
+        background: isDark
+          ? "linear-gradient(135deg, #0f0a1a 0%, #1a1528 100%)"
+          : "linear-gradient(135deg, #faf5ff 0%, #eef2ff 100%)",
+        minHeight: "100%",
+        padding: "1rem",
+        borderRadius: "0.5rem",
+      }}
+    >
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl md:text-4xl font-extrabold text-gray-900 flex items-center gap-2 md:gap-3">
-            <BriefcaseIcon className="h-8 w-8 md:h-10 md:w-10 text-green-600" />
+          <h1
+            className="text-2xl md:text-4xl font-extrabold flex items-center gap-2 md:gap-3"
+            style={{ color: isDark ? "#f3f4f6" : "#1f2937" }}
+          >
+            <BriefcaseIcon
+              className="h-8 w-8 md:h-10 md:w-10"
+              style={{ color: isDark ? "#4ade80" : "#16a34a" }}
+            />
             Employers
           </h1>
-          <p className="text-sm md:text-base text-gray-500 mt-2">
+          <p
+            className="text-sm md:text-base mt-2"
+            style={{ color: isDark ? "#9ca3af" : "#6b7280" }}
+          >
             Manage employer accounts and their job postings
           </p>
         </div>
@@ -276,23 +325,51 @@ const Employers: React.FC = () => {
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 shadow-md border border-green-200">
-          <p className="text-sm text-green-700 font-medium">Total Employers</p>
-          <p className="text-3xl font-bold text-green-900 mt-2">
+        <div
+          style={{
+            backgroundColor: isDark ? "rgba(22,163,74,0.1)" : undefined,
+            border: `1px solid ${isDark ? "rgba(22,163,74,0.25)" : "#bbf7d0"}`,
+            borderRadius: "12px",
+            padding: "24px",
+          }}
+          className={!isDark ? "bg-gradient-to-br from-green-50 to-green-100 shadow-md" : ""}
+        >
+          <p style={{ fontSize: "14px", fontWeight: 600, color: isDark ? "#4ade80" : "#166534", margin: 0 }}>Total Employers</p>
+          <p style={{ fontSize: "30px", fontWeight: 800, color: isDark ? "#86efac" : "#14532d", margin: "8px 0 0" }}>
             {isLoading ? "…" : totalCount}
           </p>
         </div>
-        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 shadow-md border border-blue-200">
-          <p className="text-sm text-blue-700 font-medium">
-            Active Jobs Posted
+        <div
+          style={{
+            backgroundColor: isDark ? "rgba(59,130,246,0.1)" : undefined,
+            border: `1px solid ${isDark ? "rgba(59,130,246,0.25)" : "#bfdbfe"}`,
+            borderRadius: "12px",
+            padding: "24px",
+          }}
+          className={!isDark ? "bg-gradient-to-br from-blue-50 to-blue-100 shadow-md" : ""}
+        >
+          <p style={{ fontSize: "14px", fontWeight: 600, color: isDark ? "#60a5fa" : "#1d4ed8", margin: 0 }}>
+            On This Page
           </p>
-          <p className="text-3xl font-bold text-blue-900 mt-2">1,480</p>
+          <p style={{ fontSize: "30px", fontWeight: 800, color: isDark ? "#93bbfd" : "#1e3a5f", margin: "8px 0 0" }}>
+            {isLoading ? "…" : employers.length}
+          </p>
         </div>
-        <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-6 shadow-md border border-purple-200">
-          <p className="text-sm text-purple-700 font-medium">
-            Verified Employers
+        <div
+          style={{
+            backgroundColor: isDark ? "rgba(147,51,234,0.1)" : undefined,
+            border: `1px solid ${isDark ? "rgba(147,51,234,0.25)" : "#e9d5ff"}`,
+            borderRadius: "12px",
+            padding: "24px",
+          }}
+          className={!isDark ? "bg-gradient-to-br from-purple-50 to-purple-100 shadow-md" : ""}
+        >
+          <p style={{ fontSize: "14px", fontWeight: 600, color: isDark ? "#c084fc" : "#7c3aed", margin: 0 }}>
+            Total Pages
           </p>
-          <p className="text-3xl font-bold text-purple-900 mt-2">1,120</p>
+          <p style={{ fontSize: "30px", fontWeight: 800, color: isDark ? "#d8b4fe" : "#581c87", margin: "8px 0 0" }}>
+            {isLoading ? "…" : data?.pagination?.totalPages || 1}
+          </p>
         </div>
       </div>
 
@@ -1195,6 +1272,42 @@ const Employers: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Suspend Employer Modal */}
+      <SuspendUserModal
+        isOpen={suspendModalOpen}
+        onClose={() => {
+          setSuspendModalOpen(false);
+          setSuspendEmployer(null);
+        }}
+        user={
+          suspendEmployer
+            ? { userId: suspendEmployer.userId, name: suspendEmployer.name, email: suspendEmployer.contact }
+            : null
+        }
+        onSuccess={() => {
+          setSuspendModalOpen(false);
+          setSuspendEmployer(null);
+        }}
+      />
+
+      {/* Escalate Employer Modal */}
+      <EscalateUserModal
+        isOpen={escalateModalOpen}
+        onClose={() => {
+          setEscalateModalOpen(false);
+          setEscalateEmployer(null);
+        }}
+        user={
+          escalateEmployer
+            ? { userId: escalateEmployer.userId, name: escalateEmployer.name, email: escalateEmployer.contact, role: "Employer" }
+            : null
+        }
+        onSuccess={() => {
+          setEscalateModalOpen(false);
+          setEscalateEmployer(null);
+        }}
+      />
     </div>
   );
 };

@@ -31,6 +31,8 @@ import {
   ListBulletIcon,
   LockClosedIcon,
   ChartBarSquareIcon,
+  NoSymbolIcon,
+  FlagIcon,
 } from "@heroicons/react/24/outline";
 
 interface SidebarProps {
@@ -333,8 +335,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         {location.pathname === "/dashboard/users/all" && "All Users"}
                         {location.pathname === "/dashboard/users/students" && "Students"}
                         {location.pathname === "/dashboard/users/employers" && "Employers"}
-                        {/* {location.pathname === "/dashboard/users/pending" && "Pending Approval"} */}
-                        {/* {location.pathname === "/dashboard/users/suspended" && "Suspended"} */}
+                        {location.pathname === "/dashboard/users/pending" && "Pending Approval"}
+                        {location.pathname === "/dashboard/users/suspended" && "Suspended"}
+                        {location.pathname === "/dashboard/users/escalated" && "Escalated"}
                       </span>
                     )}
                   </div>
@@ -415,7 +418,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                       Employers
                     </span>
                   </li>
-                  {/* <li
+                  <li
                     className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
                       isActive("/dashboard/users/pending")
                         ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
@@ -435,8 +438,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     }`}>
                       Pending Approval
                     </span>
-                  </li> */}
-                  {/* <li
+                  </li>
+                  <li
                     className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
                       isActive("/dashboard/users/suspended")
                         ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
@@ -458,7 +461,30 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     }`}>
                       Suspended
                     </span>
-                  </li> */}
+                  </li>
+                  <li
+                    className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
+                      isActive("/dashboard/users/escalated")
+                        ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
+                        : "hover:text-purple-300 hover:bg-[#9F7AEA]/10 text-white/60"
+                    }`}
+                    onClick={() =>
+                      handleNavigation("/dashboard/users/escalated")
+                    }
+                  >
+                    <FlagIcon className={`h-4 w-4 transition-colors ${
+                      isActive("/dashboard/users/escalated")
+                        ? "text-[#9F7AEA]"
+                        : "text-white/40 group-hover/item:text-[#9F7AEA]"
+                    }`} />
+                    <span className={`transition-colors ${
+                      isActive("/dashboard/users/escalated")
+                        ? "text-white font-medium"
+                        : "group-hover/item:text-white"
+                    }`}>
+                      Escalated
+                    </span>
+                  </li>
                 </ul>
               )}
             </div>

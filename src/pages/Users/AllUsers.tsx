@@ -18,7 +18,7 @@ import {
   TextField,
   Grid,
   useMediaQuery,
-  useTheme,
+  useTheme as useMuiTheme,
   IconButton,
 } from "@mui/material";
 import {
@@ -26,11 +26,16 @@ import {
   Edit as EditIcon,
   Delete as DeleteIcon,
   Close as CloseIcon,
+  Lock as LockIcon,
+  Flag as FlagIcon,
 } from "@mui/icons-material";
 import { useGetAllUsersQuery, useGetUserByIdQuery, useUpdateUserByIdMutation, useDeleteUserMutation } from "../../services/api/usersApi";
 import type { UserProfile } from "../../services/api/profileApi";
 import toast from "react-hot-toast";
 import AddUserDialog from "../../components/AddUserDialog";
+import SuspendUserModal from "../../components/SuspendUserModal";
+import EscalateUserModal from "../../components/EscalateUserModal";
+import { useTheme } from "../../context/ThemeContext";
 
 interface User {
   index: number;
@@ -45,20 +50,27 @@ interface User {
 }
 
 const AllUsers: React.FC = () => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
+  const muiTheme = useMuiTheme();
+  const isMobile = useMediaQuery(muiTheme.breakpoints.down('sm'));
+  const fullScreen = useMediaQuery(muiTheme.breakpoints.down('md'));
   const isSmallMobile = isMobile; // Alias for consistency with existing code
-  
+
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
+
   const [page, setPage] = useState(0);
   const [limit, setLimit] = useState(10);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [addUserDialogOpen, setAddUserDialogOpen] = useState(false);
+  const [suspendModalOpen, setSuspendModalOpen] = useState(false);
+  const [escalateModalOpen, setEscalateModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [userToView, setUserToView] = useState<User | null>(null);
   const [userToEdit, setUserToEdit] = useState<User | null>(null);
+  const [suspendUser, setSuspendUser] = useState<User | null>(null);
+  const [escalateUser, setEscalateUser] = useState<User | null>(null);
   const [editFormData, setEditFormData] = useState<Partial<UserProfile>>({});
   const [countdown, setCountdown] = useState(3);
   const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -126,7 +138,7 @@ const AllUsers: React.FC = () => {
       name: user.full_name,
       email: user.email,
       role: uiRole,
-      status: "Active",
+      status: user.email_verified === false ? "Pending" : "Active",
       joinDate: user.created_at
         ? new Date(user.created_at).toLocaleDateString("en-US", {
             year: "numeric",
@@ -386,18 +398,55 @@ const AllUsers: React.FC = () => {
       },
       color: "error",
     },
+    {
+      label: "Suspend",
+      icon: <LockIcon fontSize="small" />,
+      onClick: (row) => {
+        setSuspendUser(row);
+        setSuspendModalOpen(true);
+      },
+      color: "warning",
+    },
+    {
+      label: "Escalate",
+      icon: <FlagIcon fontSize="small" />,
+      onClick: (row) => {
+        setEscalateUser(row);
+        setEscalateModalOpen(true);
+      },
+      color: "error",
+    },
   ];
 
   return (
-    <div className="space-y-3 animate-fadeIn max-w-full overflow-x-hidden">
+    <div
+      className="space-y-3 animate-fadeIn max-w-full overflow-x-hidden"
+      style={{
+        background: isDark
+          ? "linear-gradient(135deg, #0f0a1a 0%, #1a1528 100%)"
+          : "linear-gradient(135deg, #faf5ff 0%, #eef2ff 100%)",
+        minHeight: "100%",
+        padding: "1rem",
+        borderRadius: "0.5rem",
+      }}
+    >
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="min-w-0 flex-1">
-          <h1 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 flex items-center gap-1.5 sm:gap-2">
-            <UsersIcon className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-purple-600 flex-shrink-0" />
+          <h1
+            className="text-base sm:text-lg md:text-xl font-bold flex items-center gap-1.5 sm:gap-2"
+            style={{ color: isDark ? "#f3f4f6" : "#1f2937" }}
+          >
+            <UsersIcon
+              className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 flex-shrink-0"
+              style={{ color: isDark ? "#c084fc" : "#9333ea" }}
+            />
             <span>All Users</span>
           </h1>
-          <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5">
+          <p
+            className="text-[10px] sm:text-xs mt-0.5"
+            style={{ color: isDark ? "#9ca3af" : "#6b7280" }}
+          >
             Manage all students and employers
           </p>
         </div>
@@ -411,35 +460,63 @@ const AllUsers: React.FC = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-1.5 sm:gap-2">
-        <div className="bg-white rounded-lg p-2 sm:p-3 shadow-sm border border-gray-100">
-          <p className="text-[10px] sm:text-[11px] text-gray-500 font-medium">Total Users</p>
-          <p className="text-lg sm:text-xl font-bold text-gray-900 mt-0.5 sm:mt-1">
+        <div
+          style={{
+            backgroundColor: isDark ? "rgba(45,27,105,0.2)" : "#ffffff",
+            border: `1px solid ${isDark ? "rgba(45,27,105,0.4)" : "#e5e7eb"}`,
+            borderRadius: "10px",
+            padding: isMobile ? "8px 10px" : "12px 16px",
+          }}
+        >
+          <p style={{ fontSize: isMobile ? "10px" : "11px", fontWeight: 600, color: isDark ? "#9ca3af" : "#6b7280", margin: 0 }}>Total Users</p>
+          <p style={{ fontSize: isMobile ? "18px" : "22px", fontWeight: 800, color: isDark ? "#f3f4f6" : "#1f2937", margin: "4px 0 0" }}>
             {isLoading ? "…" : totalCount}
           </p>
-          <p className="text-[9px] sm:text-[10px] text-green-600 mt-0.5 truncate">
+          <p style={{ fontSize: isMobile ? "9px" : "10px", color: isDark ? "#4ade80" : "#16a34a", margin: "2px 0 0" }}>
             Students & Employers
           </p>
         </div>
-        <div className="bg-white rounded-lg p-2 sm:p-3 shadow-sm border border-gray-100">
-          <p className="text-[10px] sm:text-[11px] text-gray-500 font-medium">Students</p>
-          <p className="text-lg sm:text-xl font-bold text-gray-900 mt-0.5 sm:mt-1">
+        <div
+          style={{
+            backgroundColor: isDark ? "rgba(59,130,246,0.1)" : "#ffffff",
+            border: `1px solid ${isDark ? "rgba(59,130,246,0.25)" : "#e5e7eb"}`,
+            borderRadius: "10px",
+            padding: isMobile ? "8px 10px" : "12px 16px",
+          }}
+        >
+          <p style={{ fontSize: isMobile ? "10px" : "11px", fontWeight: 600, color: isDark ? "#60a5fa" : "#6b7280", margin: 0 }}>Students</p>
+          <p style={{ fontSize: isMobile ? "18px" : "22px", fontWeight: 800, color: isDark ? "#f3f4f6" : "#1f2937", margin: "4px 0 0" }}>
             {isLoading ? "…" : studentCount}
           </p>
-          <p className="text-[9px] sm:text-[10px] text-blue-600 mt-0.5">Student accounts</p>
+          <p style={{ fontSize: isMobile ? "9px" : "10px", color: isDark ? "#60a5fa" : "#2563eb", margin: "2px 0 0" }}>Student accounts</p>
         </div>
-        <div className="bg-white rounded-lg p-2 sm:p-3 shadow-sm border border-gray-100">
-          <p className="text-[10px] sm:text-[11px] text-gray-500 font-medium">Employers</p>
-          <p className="text-lg sm:text-xl font-bold text-gray-900 mt-0.5 sm:mt-1">
+        <div
+          style={{
+            backgroundColor: isDark ? "rgba(147,51,234,0.1)" : "#ffffff",
+            border: `1px solid ${isDark ? "rgba(147,51,234,0.25)" : "#e5e7eb"}`,
+            borderRadius: "10px",
+            padding: isMobile ? "8px 10px" : "12px 16px",
+          }}
+        >
+          <p style={{ fontSize: isMobile ? "10px" : "11px", fontWeight: 600, color: isDark ? "#c084fc" : "#6b7280", margin: 0 }}>Employers</p>
+          <p style={{ fontSize: isMobile ? "18px" : "22px", fontWeight: 800, color: isDark ? "#f3f4f6" : "#1f2937", margin: "4px 0 0" }}>
             {isLoading ? "…" : employerCount}
           </p>
-          <p className="text-[9px] sm:text-[10px] text-purple-600 mt-0.5">Employer accounts</p>
+          <p style={{ fontSize: isMobile ? "9px" : "10px", color: isDark ? "#c084fc" : "#7c3aed", margin: "2px 0 0" }}>Employer accounts</p>
         </div>
-        <div className="bg-white rounded-lg p-2 sm:p-3 shadow-sm border border-gray-100">
-          <p className="text-[10px] sm:text-[11px] text-gray-500 font-medium">On This Page</p>
-          <p className="text-lg sm:text-xl font-bold text-gray-900 mt-0.5 sm:mt-1">
+        <div
+          style={{
+            backgroundColor: isDark ? "rgba(45,27,105,0.15)" : "#ffffff",
+            border: `1px solid ${isDark ? "rgba(45,27,105,0.3)" : "#e5e7eb"}`,
+            borderRadius: "10px",
+            padding: isMobile ? "8px 10px" : "12px 16px",
+          }}
+        >
+          <p style={{ fontSize: isMobile ? "10px" : "11px", fontWeight: 600, color: isDark ? "#9ca3af" : "#6b7280", margin: 0 }}>On This Page</p>
+          <p style={{ fontSize: isMobile ? "18px" : "22px", fontWeight: 800, color: isDark ? "#f3f4f6" : "#1f2937", margin: "4px 0 0" }}>
             {isLoading ? "…" : users.length}
           </p>
-          <p className="text-[9px] sm:text-[10px] text-gray-600 mt-0.5">Currently displayed</p>
+          <p style={{ fontSize: isMobile ? "9px" : "10px", color: isDark ? "#9ca3af" : "#6b7280", margin: "2px 0 0" }}>Currently displayed</p>
         </div>
       </div>
 
@@ -1551,6 +1628,42 @@ const AllUsers: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Suspend User Modal */}
+      <SuspendUserModal
+        isOpen={suspendModalOpen}
+        onClose={() => {
+          setSuspendModalOpen(false);
+          setSuspendUser(null);
+        }}
+        user={
+          suspendUser
+            ? { userId: suspendUser.userId, name: suspendUser.name, email: suspendUser.email }
+            : null
+        }
+        onSuccess={() => {
+          setSuspendModalOpen(false);
+          setSuspendUser(null);
+        }}
+      />
+
+      {/* Escalate User Modal */}
+      <EscalateUserModal
+        isOpen={escalateModalOpen}
+        onClose={() => {
+          setEscalateModalOpen(false);
+          setEscalateUser(null);
+        }}
+        user={
+          escalateUser
+            ? { userId: escalateUser.userId, name: escalateUser.name, email: escalateUser.email, role: escalateUser.role }
+            : null
+        }
+        onSuccess={() => {
+          setEscalateModalOpen(false);
+          setEscalateUser(null);
+        }}
+      />
     </div>
   );
 };

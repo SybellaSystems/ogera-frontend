@@ -26,7 +26,6 @@ const VerifyPhone: React.FC = () => {
   const isDark = resolvedTheme === "dark";
 
   const user = useSelector((state: any) => state.auth.user);
-  const role = useSelector((state: any) => state.auth.role);
   const phoneNumber = user?.mobile_number || user?.phone || "";
 
   const [step, setStep] = useState<"request" | "verify">("request");
@@ -192,12 +191,6 @@ const VerifyPhone: React.FC = () => {
   };
 
   if (!user) return null;
-
-  const isAnyLocked = sendLimiter.isLocked || verifyLimiter.isLocked;
-  const activeLockSeconds = Math.max(
-    sendLimiter.lockRemainingSeconds,
-    verifyLimiter.lockRemainingSeconds
-  );
 
   return (
     <PageContainer
