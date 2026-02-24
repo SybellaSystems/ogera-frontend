@@ -29,6 +29,8 @@ import {
   DocumentTextIcon,
   BanknotesIcon,
   ListBulletIcon,
+  LockClosedIcon,
+  ChartBarSquareIcon,
 } from "@heroicons/react/24/outline";
 
 interface SidebarProps {
@@ -725,7 +727,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         {location.pathname === "/dashboard/academic/approved" && "Approved"}
                         {location.pathname === "/dashboard/academic/rejected" && "Rejected"}
                         {location.pathname === "/dashboard/academic/performance" && "Performance Track"}
-                        {/* {location.pathname === "/dashboard/academic/locks" && "Account Locks"} */}
+                        {location.pathname === "/dashboard/academic/locks" && "Account Locks"}
                       </span>
                     )}
                   </div>
@@ -808,7 +810,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                       Rejected
                     </span>
                   </li>
-                  {/* <li
+                  <li
                     className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
                       isActive("/dashboard/academic/performance")
                         ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
@@ -830,8 +832,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     }`}>
                       Performance Track
                     </span>
-                  </li> */}
-                  {/* <li
+                  </li>
+                  <li
                     className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
                       isActive("/dashboard/academic/locks")
                         ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
@@ -853,7 +855,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     }`}>
                       Account Locks
                     </span>
-                  </li> */}
+                  </li>
                 </ul>
               )}
             </div>

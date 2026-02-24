@@ -9,299 +9,474 @@ import {
   CheckCircleIcon,
   ArrowDownTrayIcon,
   EnvelopeIcon,
+  ArrowPathIcon,
+  ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
+import {
+  useGetStudentPerformanceDetailQuery,
+  useGetStudentPerformanceQuery,
+} from "../../services/api/usersApi";
+import { useTheme } from "../../context/ThemeContext";
 
 const StudentPerformanceReport: React.FC = () => {
   const { studentId } = useParams<{ studentId: string }>();
   const navigate = useNavigate();
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
   const [activeTab, setActiveTab] = useState<"overview" | "jobs" | "earnings">(
     "overview"
   );
 
-  // Mock student data - replace with API call
-  const studentData = {
-    id: studentId || "1",
-    name: "John Doe",
-    email: "john.doe@example.com",
-    university: "MIT",
-    gpa: "3.8",
-    joinedDate: "2023-09-15",
-    status: "Active",
-    profileCompletion: 95,
-    rating: 4.8,
-    jobsCompleted: 12,
-    totalEarnings: "$2,450",
-    monthlyEarnings: "$450",
-    engagement: "High",
-    completionRate: 94,
-    trend: "+12%",
-    responseTime: "2 hours",
-    acceptanceRate: 87,
-    repeatClientRate: 65,
-    jobsInProgress: 1,
-    nextMilestone: "Top Performer Badge",
-    previousRating: 4.7,
-    previousEarnings: "$2,180",
+  // Try the detail endpoint first
+  const {
+    data: detailData,
+    isLoading: detailLoading,
+    error: detailError,
+  } = useGetStudentPerformanceDetailQuery(studentId || "", {
+    skip: !studentId,
+  });
+
+  // Fallback: fetch from the list endpoint and filter
+  const {
+    data: listData,
+    isLoading: listLoading,
+  } = useGetStudentPerformanceQuery({ page: 1, limit: 100 }, {
+    skip: !detailError || !studentId,
+  });
+
+  const isLoading = detailLoading || (detailError && listLoading);
+
+  // Derive student data from detail endpoint or fallback to list
+  const detailStudent = detailData?.data?.student;
+  const fallbackStudent = detailError
+    ? listData?.data?.find((s) => s.id === studentId)
+    : undefined;
+  const student = detailStudent || fallbackStudent;
+
+  const jobHistory = detailData?.data?.jobHistory || [];
+  const monthlyEarnings = detailData?.data?.monthlyEarnings || [];
+  const metrics = detailData?.data?.metrics;
+
+  // Download report as CSV
+  const handleDownload = () => {
+    if (!student) return;
+    const lines = [
+      "Performance Report",
+      `Student: ${student.name}`,
+      `Email: ${student.email}`,
+      `University: ${student.university}`,
+      `GPA: ${student.gpa}`,
+      `Rating: ${student.rating}`,
+      `Jobs Completed: ${student.jobsCompleted}`,
+      `Total Earnings: ${student.earnings}`,
+      `Engagement: ${student.engagement}`,
+      `Trend: ${student.trend}`,
+      "",
+      "Job History",
+      "Title,Company,Amount,Rating,Date,Status",
+      ...jobHistory.map(
+        (j) => `${j.title},${j.company},${j.amount},${j.rating},${j.date},${j.status}`
+      ),
+      "",
+      "Monthly Earnings",
+      "Month,Amount",
+      ...monthlyEarnings.map((e) => `${e.month},${e.amount}`),
+    ];
+    const blob = new Blob([lines.join("\n")], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `performance-report-${student.name.replace(/\s+/g, "-").toLowerCase()}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
-  const jobHistory = [
-    {
-      id: 1,
-      title: "Data Analysis Project",
-      company: "TechCorp",
-      amount: "$450",
-      status: "Completed",
-      rating: 5,
-      date: "Jan 20, 2026",
-    },
-    {
-      id: 2,
-      title: "Web Development Task",
-      company: "StartupXYZ",
-      amount: "$350",
-      status: "Completed",
-      rating: 4.8,
-      date: "Jan 15, 2026",
-    },
-    {
-      id: 3,
-      title: "Content Writing",
-      company: "MediaHub",
-      amount: "$200",
-      status: "Completed",
-      rating: 4.5,
-      date: "Jan 10, 2026",
-    },
-  ];
+  // Styles
+  const pageBg = isDark
+    ? { background: "linear-gradient(to bottom right, #0f0a1a, #1a1528)" }
+    : { background: "linear-gradient(to bottom right, #faf5ff, #eef2ff)" };
 
-  const monthlyEarningsData = [
-    { month: "Nov", earnings: "$1,800" },
-    { month: "Dec", earnings: "$2,100" },
-    { month: "Jan", earnings: "$2,450" },
+  const cardBg = isDark
+    ? { backgroundColor: "#1e1833", borderColor: "rgba(45,27,105,0.5)" }
+    : { backgroundColor: "#fff", borderColor: "#e5e7eb" };
+
+  const headingColor = isDark ? "#f3f4f6" : "#1f2937";
+  const bodyColor = isDark ? "#d1d5db" : "#4b5563";
+  const mutedColor = isDark ? "#9ca3af" : "#6b7280";
+  const purpleAccent = isDark ? "#c084fc" : "#7c3aed";
+
+  if (isLoading) {
+    return (
+      <div
+        className="space-y-6 animate-fadeIn"
+        style={{ ...pageBg, minHeight: "100%", padding: 24, borderRadius: 12 }}
+      >
+        <div className="flex items-center justify-center py-16">
+          <ArrowPathIcon className="h-6 w-6 animate-spin" style={{ color: purpleAccent }} />
+          <span className="ml-2 text-sm" style={{ color: mutedColor }}>
+            Loading performance report...
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!student) {
+    return (
+      <div
+        className="space-y-6 animate-fadeIn"
+        style={{ ...pageBg, minHeight: "100%", padding: 24, borderRadius: 12 }}
+      >
+        <div className="flex items-center gap-4 mb-6">
+          <button
+            onClick={() => navigate("/dashboard/academic/performance")}
+            className="p-2 rounded-lg transition cursor-pointer"
+            style={{ backgroundColor: isDark ? "rgba(45,27,105,0.5)" : "#f3f4f6" }}
+          >
+            <ArrowLeftIcon className="h-5 w-5" style={{ color: bodyColor }} />
+          </button>
+          <h1 className="text-2xl font-bold" style={{ color: headingColor }}>
+            Performance Report
+          </h1>
+        </div>
+        <div
+          className="rounded-xl p-8 text-center border"
+          style={cardBg}
+        >
+          <ExclamationTriangleIcon className="h-12 w-12 mx-auto mb-4" style={{ color: mutedColor }} />
+          <p className="font-semibold" style={{ color: headingColor }}>
+            Student not found
+          </p>
+          <p className="text-sm mt-2" style={{ color: mutedColor }}>
+            Could not load performance data for this student
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Compute derived values
+  const completionRate =
+    student.totalApplications > 0
+      ? Math.round((student.jobsCompleted / student.totalApplications) * 100)
+      : 0;
+  const profileCompletion = metrics?.profileCompletion ?? 0;
+  const responseTime = metrics?.responseTime ?? "N/A";
+  const acceptanceRate = metrics?.acceptanceRate ?? 0;
+  const repeatClients = metrics?.repeatClients ?? 0;
+  const hasDetailData = !!detailData;
+
+  // Chart data for rating comparison
+  const ratingChartData = [
+    { name: "Current", rating: student.rating },
   ];
 
   return (
-    <div className="space-y-6 animate-fadeIn">
+    <div
+      className="space-y-6 animate-fadeIn"
+      style={{ ...pageBg, minHeight: "100%", padding: 24, borderRadius: 12 }}
+    >
       {/* Header with Back Button */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <button
             onClick={() => navigate("/dashboard/academic/performance")}
-            className="p-2 hover:bg-gray-200 rounded-lg transition cursor-pointer"
-            title="Go back"
+            className="p-2 rounded-lg transition cursor-pointer"
+            style={{ backgroundColor: isDark ? "rgba(45,27,105,0.5)" : "#f3f4f6" }}
           >
-            <ArrowLeftIcon className="h-6 w-6 text-gray-600" />
+            <ArrowLeftIcon className="h-5 w-5" style={{ color: bodyColor }} />
           </button>
           <div>
-            <h1 className="text-4xl font-extrabold text-gray-900">
+            <h1 className="text-3xl font-extrabold" style={{ color: headingColor }}>
               Performance Report
             </h1>
-            <p className="text-gray-500 mt-1">
-              Detailed analytics for {studentData.name}
+            <p className="mt-1 text-sm" style={{ color: mutedColor }}>
+              Detailed analytics for {student.name}
             </p>
           </div>
         </div>
-        <button className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition flex items-center gap-2 cursor-pointer">
+        <button
+          onClick={handleDownload}
+          className="px-5 py-2.5 rounded-lg font-semibold transition flex items-center gap-2 cursor-pointer text-white"
+          style={{ backgroundColor: isDark ? "#2563eb" : "#2563eb" }}
+        >
           <ArrowDownTrayIcon className="h-5 w-5" />
           Download Report
         </button>
       </div>
 
       {/* Student Card */}
-      <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl p-8 text-white">
-        <div className="flex items-center justify-between">
+      <div
+        className="rounded-xl p-8 text-white"
+        style={{
+          background: isDark
+            ? "linear-gradient(to right, #6d28d9, #2563eb)"
+            : "linear-gradient(to right, #7c3aed, #2563eb)",
+        }}
+      >
+        <div className="flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center gap-6">
-            <div className="h-20 w-20 rounded-full bg-white/20 flex items-center justify-center text-white font-bold text-3xl">
-              {studentData.name.charAt(0)}
+            <div className="h-16 w-16 rounded-full bg-white/20 flex items-center justify-center text-white font-bold text-2xl">
+              {student.name?.charAt(0) || "?"}
             </div>
             <div>
-              <h2 className="text-3xl font-bold">{studentData.name}</h2>
-              <p className="text-white/80 mt-1">{studentData.email}</p>
-              <div className="flex items-center gap-4 mt-3">
-                <span className="px-3 py-1 bg-white/20 rounded-full text-sm font-medium">
-                  {studentData.university}
+              <h2 className="text-2xl font-bold">{student.name}</h2>
+              <p className="text-white/80 mt-1 text-sm">{student.email}</p>
+              <div className="flex items-center gap-3 mt-2 flex-wrap">
+                <span className="px-3 py-1 bg-white/20 rounded-full text-xs font-medium">
+                  {student.university}
                 </span>
-                <span className="px-3 py-1 bg-green-400/30 rounded-full text-sm font-medium">
-                  {studentData.status}
+                <span className="px-3 py-1 bg-green-400/30 rounded-full text-xs font-medium">
+                  {student.status}
+                </span>
+                <span className="px-3 py-1 bg-white/15 rounded-full text-xs font-medium">
+                  {student.degree} — {student.fieldOfStudy}
                 </span>
               </div>
             </div>
           </div>
           <div className="text-right">
-            <div className="flex items-center gap-2 justify-end mb-2">
+            <div className="flex items-center gap-2 justify-end mb-1">
               <StarIcon className="h-6 w-6 fill-yellow-300 text-yellow-300" />
-              <span className="text-3xl font-bold">{studentData.rating}</span>
+              <span className="text-3xl font-bold">{student.rating.toFixed(1)}</span>
             </div>
-            <p className="text-white/80 text-sm">Overall Rating</p>
+            <p className="text-white/80 text-xs">Overall Rating</p>
           </div>
         </div>
       </div>
 
       {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition">
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-sm text-gray-600 font-medium">Profile Completion</p>
-            <CheckCircleIcon className="h-5 w-5 text-blue-600" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+        {[
+          {
+            label: "Profile Completion",
+            value: hasDetailData ? `${profileCompletion}%` : "N/A",
+            icon: <CheckCircleIcon className="h-5 w-5" style={{ color: isDark ? "#60a5fa" : "#2563eb" }} />,
+            accent: isDark ? "#60a5fa" : "#2563eb",
+            showBar: hasDetailData,
+            barPercent: profileCompletion,
+          },
+          {
+            label: "Total Earnings",
+            value: student.earnings,
+            icon: <CurrencyDollarIcon className="h-5 w-5" style={{ color: isDark ? "#4ade80" : "#16a34a" }} />,
+            accent: isDark ? "#4ade80" : "#16a34a",
+            sub: `${student.trend} from last period`,
+          },
+          {
+            label: "Jobs Completed",
+            value: String(student.jobsCompleted),
+            icon: <BriefcaseIcon className="h-5 w-5" style={{ color: purpleAccent }} />,
+            accent: purpleAccent,
+            sub: `${student.jobsPending} pending`,
+          },
+          {
+            label: "Completion Rate",
+            value: `${completionRate}%`,
+            icon: <CheckCircleIcon className="h-5 w-5" style={{ color: isDark ? "#34d399" : "#059669" }} />,
+            accent: isDark ? "#34d399" : "#059669",
+            sub: completionRate >= 80 ? "Excellent performance" : "Room to improve",
+          },
+        ].map((card, i) => (
+          <div
+            key={i}
+            className="rounded-xl p-5 border transition hover:shadow-md"
+            style={cardBg}
+          >
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-xs font-medium" style={{ color: mutedColor }}>
+                {card.label}
+              </p>
+              {card.icon}
+            </div>
+            <p className="text-2xl font-bold" style={{ color: headingColor }}>
+              {card.value}
+            </p>
+            {card.showBar && (
+              <div
+                className="w-full rounded-full h-2 mt-3"
+                style={{ backgroundColor: isDark ? "rgba(45,27,105,0.5)" : "#e5e7eb" }}
+              >
+                <div
+                  className="h-2 rounded-full"
+                  style={{
+                    width: `${card.barPercent}%`,
+                    backgroundColor: card.accent,
+                  }}
+                />
+              </div>
+            )}
+            {card.sub && (
+              <p className="text-xs mt-2" style={{ color: card.accent }}>
+                {card.sub}
+              </p>
+            )}
           </div>
-          <p className="text-3xl font-bold text-gray-900">{studentData.profileCompletion}%</p>
-          <div className="w-full bg-gray-200 rounded-full h-2 mt-3">
-            <div
-              className="bg-blue-600 h-2 rounded-full"
-              style={{ width: `${studentData.profileCompletion}%` }}
-            ></div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition">
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-sm text-gray-600 font-medium">Total Earnings</p>
-            <CurrencyDollarIcon className="h-5 w-5 text-green-600" />
-          </div>
-          <p className="text-3xl font-bold text-gray-900">{studentData.totalEarnings}</p>
-          <p className="text-xs text-green-600 mt-2">
-            {studentData.trend} from last month
-          </p>
-        </div>
-
-        <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition">
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-sm text-gray-600 font-medium">Jobs Completed</p>
-            <BriefcaseIcon className="h-5 w-5 text-purple-600" />
-          </div>
-          <p className="text-3xl font-bold text-gray-900">{studentData.jobsCompleted}</p>
-          <p className="text-xs text-gray-600 mt-2">
-            {studentData.jobsInProgress} in progress
-          </p>
-        </div>
-
-        <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition">
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-sm text-gray-600 font-medium">Completion Rate</p>
-            <CheckCircleIcon className="h-5 w-5 text-emerald-600" />
-          </div>
-          <p className="text-3xl font-bold text-gray-900">{studentData.completionRate}%</p>
-          <p className="text-xs text-emerald-600 mt-2">Excellent performance</p>
-        </div>
+        ))}
       </div>
 
       {/* Detailed Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white rounded-xl p-6 border border-gray-200">
-          <p className="text-sm text-gray-600 font-medium mb-4">Response Time</p>
-          <p className="text-2xl font-bold text-gray-900">{studentData.responseTime}</p>
-          <p className="text-xs text-gray-500 mt-2">Average response to job offers</p>
-        </div>
-        <div className="bg-white rounded-xl p-6 border border-gray-200">
-          <p className="text-sm text-gray-600 font-medium mb-4">Acceptance Rate</p>
-          <p className="text-2xl font-bold text-gray-900">{studentData.acceptanceRate}%</p>
-          <p className="text-xs text-gray-500 mt-2">Job offer acceptance</p>
-        </div>
-        <div className="bg-white rounded-xl p-6 border border-gray-200">
-          <p className="text-sm text-gray-600 font-medium mb-4">Repeat Clients</p>
-          <p className="text-2xl font-bold text-gray-900">{studentData.repeatClientRate}%</p>
-          <p className="text-xs text-gray-500 mt-2">Return client rate</p>
-        </div>
+        {[
+          { label: "Response Time", value: responseTime, sub: "Average response to job offers" },
+          { label: "Acceptance Rate", value: hasDetailData ? `${acceptanceRate}%` : "N/A", sub: "Job offer acceptance" },
+          { label: "Repeat Clients", value: hasDetailData ? `${repeatClients}%` : "N/A", sub: "Return client rate" },
+        ].map((stat, i) => (
+          <div key={i} className="rounded-xl p-5 border" style={cardBg}>
+            <p className="text-xs font-medium mb-3" style={{ color: mutedColor }}>
+              {stat.label}
+            </p>
+            <p className="text-xl font-bold" style={{ color: headingColor }}>
+              {stat.value}
+            </p>
+            <p className="text-xs mt-2" style={{ color: mutedColor }}>
+              {stat.sub}
+            </p>
+          </div>
+        ))}
       </div>
 
       {/* Tabs */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className="flex border-b border-gray-200">
-          <button
-            onClick={() => setActiveTab("overview")}
-            className={`flex-1 px-6 py-4 font-semibold transition ${
-              activeTab === "overview"
-                ? "text-purple-600 border-b-2 border-purple-600 bg-purple-50"
-                : "text-gray-600 hover:text-gray-900"
-            }`}
-          >
-            Overview
-          </button>
-          <button
-            onClick={() => setActiveTab("jobs")}
-            className={`flex-1 px-6 py-4 font-semibold transition ${
-              activeTab === "jobs"
-                ? "text-purple-600 border-b-2 border-purple-600 bg-purple-50"
-                : "text-gray-600 hover:text-gray-900"
-            }`}
-          >
-            Job History
-          </button>
-          <button
-            onClick={() => setActiveTab("earnings")}
-            className={`flex-1 px-6 py-4 font-semibold transition ${
-              activeTab === "earnings"
-                ? "text-purple-600 border-b-2 border-purple-600 bg-purple-50"
-                : "text-gray-600 hover:text-gray-900"
-            }`}
-          >
-            Earnings
-          </button>
+      <div className="rounded-xl border overflow-hidden" style={cardBg}>
+        <div className="flex" style={{ borderBottom: `1px solid ${isDark ? "rgba(45,27,105,0.5)" : "#e5e7eb"}` }}>
+          {(["overview", "jobs", "earnings"] as const).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className="flex-1 px-6 py-3 font-semibold text-sm transition"
+              style={{
+                color:
+                  activeTab === tab ? purpleAccent : mutedColor,
+                borderBottom:
+                  activeTab === tab ? `2px solid ${purpleAccent}` : "2px solid transparent",
+                backgroundColor:
+                  activeTab === tab
+                    ? isDark
+                      ? "rgba(139,92,246,0.1)"
+                      : "#faf5ff"
+                    : "transparent",
+              }}
+            >
+              {tab === "overview" ? "Overview" : tab === "jobs" ? "Job History" : "Earnings"}
+            </button>
+          ))}
         </div>
 
         {/* Tab Content */}
         <div className="p-6">
           {activeTab === "overview" && (
             <div className="space-y-6">
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
-                <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <ArrowTrendingUpIcon className="h-5 w-5 text-blue-600" />
+              {/* Performance Highlights */}
+              <div
+                className="rounded-lg p-6 border"
+                style={{
+                  background: isDark
+                    ? "linear-gradient(to right, rgba(37,99,235,0.1), rgba(99,102,241,0.1))"
+                    : "linear-gradient(to right, #eff6ff, #eef2ff)",
+                  borderColor: isDark ? "rgba(37,99,235,0.3)" : "#bfdbfe",
+                }}
+              >
+                <h3 className="font-semibold mb-4 flex items-center gap-2" style={{ color: headingColor }}>
+                  <ArrowTrendingUpIcon className="h-5 w-5" style={{ color: isDark ? "#60a5fa" : "#2563eb" }} />
                   Performance Highlights
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-gray-600">GPA</p>
-                    <p className="text-lg font-bold text-gray-900 mt-1">
-                      {studentData.gpa}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Engagement Level</p>
-                    <p className="text-lg font-bold text-purple-600 mt-1">
-                      {studentData.engagement}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Member Since</p>
-                    <p className="text-lg font-bold text-gray-900 mt-1">
-                      {new Date(studentData.joinedDate).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Next Milestone</p>
-                    <p className="text-lg font-bold text-green-600 mt-1">
-                      {studentData.nextMilestone}
-                    </p>
-                  </div>
+                  {[
+                    { label: "GPA", value: student.gpa, color: headingColor },
+                    { label: "Engagement Level", value: student.engagement, color: purpleAccent },
+                    {
+                      label: "Member Since",
+                      value: new Date(student.createdAt).toLocaleDateString(),
+                      color: headingColor,
+                    },
+                    {
+                      label: "Total Applications",
+                      value: String(student.totalApplications),
+                      color: isDark ? "#4ade80" : "#16a34a",
+                    },
+                  ].map((item, i) => (
+                    <div key={i}>
+                      <p className="text-xs" style={{ color: mutedColor }}>
+                        {item.label}
+                      </p>
+                      <p className="text-lg font-bold mt-1" style={{ color: item.color }}>
+                        {item.value}
+                      </p>
+                    </div>
+                  ))}
                 </div>
               </div>
 
-              <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-6">
-                <h3 className="font-semibold text-gray-900 mb-4">Rating Comparison</h3>
-                <div className="flex items-end gap-6">
-                  <div>
-                    <p className="text-sm text-gray-600 text-center">Current Rating</p>
-                    <p className="text-4xl font-bold text-green-600 mt-2">
-                      {studentData.rating}
+              {/* Rating Chart */}
+              <div
+                className="rounded-lg p-6 border"
+                style={{
+                  background: isDark
+                    ? "linear-gradient(to right, rgba(16,185,129,0.08), rgba(52,211,153,0.08))"
+                    : "linear-gradient(to right, #f0fdf4, #ecfdf5)",
+                  borderColor: isDark ? "rgba(16,185,129,0.3)" : "#bbf7d0",
+                }}
+              >
+                <h3 className="font-semibold mb-4" style={{ color: headingColor }}>
+                  Rating Overview
+                </h3>
+                <div className="flex items-center gap-6">
+                  <div className="text-center">
+                    <p className="text-xs" style={{ color: mutedColor }}>
+                      Current Rating
+                    </p>
+                    <p
+                      className="text-4xl font-bold mt-2"
+                      style={{ color: isDark ? "#4ade80" : "#16a34a" }}
+                    >
+                      {student.rating.toFixed(1)}
+                    </p>
+                    <p className="text-xs mt-1" style={{ color: mutedColor }}>
+                      out of 5.0
                     </p>
                   </div>
-                  <div className="flex-1 h-32 bg-white rounded-lg p-4 flex items-end justify-around border border-gray-200">
-                    <div className="text-center">
-                      <div
-                        className="w-12 bg-gray-300 rounded-lg mx-auto"
-                        style={{ height: `${(4.5 / 5) * 100}px` }}
-                      ></div>
-                      <p className="text-xs text-gray-600 mt-2">Previous</p>
-                      <p className="font-bold">{studentData.previousRating}</p>
-                    </div>
-                    <div className="text-center">
-                      <div
-                        className="w-12 bg-green-500 rounded-lg mx-auto"
-                        style={{ height: `${(studentData.rating / 5) * 100}px` }}
-                      ></div>
-                      <p className="text-xs text-gray-600 mt-2">Current</p>
-                      <p className="font-bold">{studentData.rating}</p>
-                    </div>
+                  <div className="flex-1 h-40">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={ratingChartData}>
+                        <CartesianGrid
+                          strokeDasharray="3 3"
+                          stroke={isDark ? "rgba(45,27,105,0.3)" : "#e5e7eb"}
+                        />
+                        <XAxis
+                          dataKey="name"
+                          tick={{ fill: mutedColor, fontSize: 12 }}
+                          axisLine={{ stroke: isDark ? "rgba(45,27,105,0.3)" : "#e5e7eb" }}
+                        />
+                        <YAxis
+                          domain={[0, 5]}
+                          tick={{ fill: mutedColor, fontSize: 12 }}
+                          axisLine={{ stroke: isDark ? "rgba(45,27,105,0.3)" : "#e5e7eb" }}
+                        />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: isDark ? "#1e1833" : "#fff",
+                            borderColor: isDark ? "rgba(45,27,105,0.5)" : "#e5e7eb",
+                            color: headingColor,
+                            borderRadius: 8,
+                          }}
+                        />
+                        <Bar
+                          dataKey="rating"
+                          fill={isDark ? "#4ade80" : "#16a34a"}
+                          radius={[6, 6, 0, 0]}
+                          maxBarSize={60}
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
                   </div>
                 </div>
               </div>
@@ -310,68 +485,159 @@ const StudentPerformanceReport: React.FC = () => {
 
           {activeTab === "jobs" && (
             <div className="space-y-4">
-              {jobHistory.map((job) => (
-                <div
-                  key={job.id}
-                  className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <h4 className="font-semibold text-gray-900">{job.title}</h4>
-                      <p className="text-sm text-gray-600 mt-1">{job.company}</p>
-                      <p className="text-xs text-gray-500 mt-2">{job.date}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-gray-900">{job.amount}</p>
-                      <div className="flex items-center gap-1 justify-end mt-2">
-                        <StarIcon className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-                        <span className="text-sm font-semibold">{job.rating}</span>
+              {!hasDetailData ? (
+                <div className="text-center py-8">
+                  <BriefcaseIcon className="h-10 w-10 mx-auto mb-3" style={{ color: mutedColor }} />
+                  <p className="text-sm font-medium" style={{ color: headingColor }}>
+                    Job history not available
+                  </p>
+                  <p className="text-xs mt-1" style={{ color: mutedColor }}>
+                    Detailed job history requires the performance detail API
+                  </p>
+                </div>
+              ) : jobHistory.length === 0 ? (
+                <div className="text-center py-8">
+                  <BriefcaseIcon className="h-10 w-10 mx-auto mb-3" style={{ color: mutedColor }} />
+                  <p className="text-sm" style={{ color: mutedColor }}>
+                    No job history available
+                  </p>
+                </div>
+              ) : (
+                jobHistory.map((job) => (
+                  <div
+                    key={job.id}
+                    className="rounded-lg p-5 border transition hover:shadow-md"
+                    style={cardBg}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <h4 className="font-semibold" style={{ color: headingColor }}>
+                          {job.title}
+                        </h4>
+                        <p className="text-sm mt-1" style={{ color: mutedColor }}>
+                          {job.company}
+                        </p>
+                        <p className="text-xs mt-2" style={{ color: mutedColor }}>
+                          {job.date}
+                        </p>
                       </div>
-                      <span className="inline-block px-3 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full mt-2">
-                        {job.status}
-                      </span>
+                      <div className="text-right">
+                        <p className="font-bold" style={{ color: headingColor }}>
+                          {job.amount}
+                        </p>
+                        <div className="flex items-center gap-1 justify-end mt-2">
+                          <StarIcon className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+                          <span className="text-sm font-semibold" style={{ color: headingColor }}>
+                            {job.rating}
+                          </span>
+                        </div>
+                        <span
+                          className="inline-block px-3 py-1 text-xs font-medium rounded-full mt-2"
+                          style={{
+                            backgroundColor: isDark ? "rgba(16,185,129,0.2)" : "#dcfce7",
+                            color: isDark ? "#4ade80" : "#16a34a",
+                          }}
+                        >
+                          {job.status}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           )}
 
           {activeTab === "earnings" && (
             <div className="space-y-6">
-              <div className="bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-lg p-6">
-                <h3 className="font-semibold text-gray-900 mb-4">Monthly Earnings Trend</h3>
-                <div className="flex items-end justify-around h-48 gap-4">
-                  {monthlyEarningsData.map((data, index) => (
-                    <div key={index} className="flex-1 text-center">
-                      <div className="bg-gradient-to-t from-orange-500 to-amber-400 rounded-lg mx-auto mb-2 transition hover:shadow-lg"
-                        style={{
-                          height: `${(parseInt(data.earnings.replace(/[\$,]/g, "")) / 2500) * 150}px`,
-                        }}
-                      ></div>
-                      <p className="font-bold text-gray-900">{data.earnings}</p>
-                      <p className="text-sm text-gray-600 mt-1">{data.month}</p>
-                    </div>
-                  ))}
-                </div>
+              {/* Monthly Earnings Chart */}
+              <div
+                className="rounded-lg p-6 border"
+                style={{
+                  background: isDark
+                    ? "linear-gradient(to right, rgba(234,179,8,0.08), rgba(245,158,11,0.08))"
+                    : "linear-gradient(to right, #fffbeb, #fef3c7)",
+                  borderColor: isDark ? "rgba(234,179,8,0.3)" : "#fde68a",
+                }}
+              >
+                <h3 className="font-semibold mb-4" style={{ color: headingColor }}>
+                  Monthly Earnings Trend
+                </h3>
+                {!hasDetailData || monthlyEarnings.length === 0 ? (
+                  <div className="text-center py-8">
+                    <CurrencyDollarIcon className="h-10 w-10 mx-auto mb-3" style={{ color: mutedColor }} />
+                    <p className="text-sm" style={{ color: mutedColor }}>
+                      {!hasDetailData
+                        ? "Earnings chart requires the performance detail API"
+                        : "No earnings data available"}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="h-56">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={monthlyEarnings}>
+                        <CartesianGrid
+                          strokeDasharray="3 3"
+                          stroke={isDark ? "rgba(45,27,105,0.3)" : "#e5e7eb"}
+                        />
+                        <XAxis
+                          dataKey="month"
+                          tick={{ fill: mutedColor, fontSize: 12 }}
+                          axisLine={{ stroke: isDark ? "rgba(45,27,105,0.3)" : "#e5e7eb" }}
+                        />
+                        <YAxis
+                          tick={{ fill: mutedColor, fontSize: 12 }}
+                          axisLine={{ stroke: isDark ? "rgba(45,27,105,0.3)" : "#e5e7eb" }}
+                        />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: isDark ? "#1e1833" : "#fff",
+                            borderColor: isDark ? "rgba(45,27,105,0.5)" : "#e5e7eb",
+                            color: headingColor,
+                            borderRadius: 8,
+                          }}
+                          formatter={(value) => [`$${value}`, "Earnings"]}
+                        />
+                        <Bar
+                          dataKey="amount"
+                          fill={isDark ? "#f59e0b" : "#d97706"}
+                          radius={[6, 6, 0, 0]}
+                          maxBarSize={50}
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
               </div>
 
+              {/* Earnings Summary */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-white border border-gray-200 rounded-lg p-6">
-                  <p className="text-sm text-gray-600 font-medium">This Month</p>
-                  <p className="text-3xl font-bold text-gray-900 mt-2">
-                    {studentData.monthlyEarnings}
+                <div className="rounded-lg p-5 border" style={cardBg}>
+                  <p className="text-xs font-medium" style={{ color: mutedColor }}>
+                    Total Earnings
                   </p>
-                  <p className="text-xs text-green-600 mt-2">
-                    +21% vs last month
+                  <p className="text-2xl font-bold mt-2" style={{ color: headingColor }}>
+                    {student.earnings}
+                  </p>
+                  <p className="text-xs mt-2" style={{ color: isDark ? "#4ade80" : "#16a34a" }}>
+                    {student.trend} trend
                   </p>
                 </div>
-                <div className="bg-white border border-gray-200 rounded-lg p-6">
-                  <p className="text-sm text-gray-600 font-medium">Average Per Job</p>
-                  <p className="text-3xl font-bold text-gray-900 mt-2">
-                    ${(2450 / 12).toFixed(0)}
+                <div className="rounded-lg p-5 border" style={cardBg}>
+                  <p className="text-xs font-medium" style={{ color: mutedColor }}>
+                    Average Per Job
                   </p>
-                  <p className="text-xs text-gray-600 mt-2">Across 12 completed jobs</p>
+                  <p className="text-2xl font-bold mt-2" style={{ color: headingColor }}>
+                    {student.jobsCompleted > 0
+                      ? `$${(
+                          parseFloat(student.earnings.replace(/[^0-9.]/g, "")) /
+                          student.jobsCompleted
+                        ).toFixed(0)}`
+                      : "N/A"}
+                  </p>
+                  <p className="text-xs mt-2" style={{ color: mutedColor }}>
+                    Across {student.jobsCompleted} completed jobs
+                  </p>
                 </div>
               </div>
             </div>
@@ -380,14 +646,31 @@ const StudentPerformanceReport: React.FC = () => {
       </div>
 
       {/* Contact Section */}
-      <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-xl p-6">
-        <h3 className="font-semibold text-gray-900 mb-4">Contact Student</h3>
+      <div
+        className="rounded-xl p-6 border"
+        style={{
+          background: isDark
+            ? "linear-gradient(to right, rgba(139,92,246,0.1), rgba(37,99,235,0.1))"
+            : "linear-gradient(to right, #faf5ff, #eff6ff)",
+          borderColor: isDark ? "rgba(45,27,105,0.5)" : "#e9d5ff",
+        }}
+      >
+        <h3 className="font-semibold mb-4" style={{ color: headingColor }}>
+          Contact Student
+        </h3>
         <div className="flex flex-col md:flex-row gap-4">
-          <button className="flex-1 px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition flex items-center justify-center gap-2 cursor-pointer">
+          <a
+            href={`mailto:${student.email}`}
+            className="flex-1 px-5 py-3 text-white rounded-lg font-semibold transition flex items-center justify-center gap-2 cursor-pointer"
+            style={{ backgroundColor: isDark ? "#7c3aed" : "#7c3aed" }}
+          >
             <EnvelopeIcon className="h-5 w-5" />
             Send Email
-          </button>
-          <button className="flex-1 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition flex items-center justify-center gap-2 cursor-pointer">
+          </a>
+          <button
+            className="flex-1 px-5 py-3 text-white rounded-lg font-semibold transition flex items-center justify-center gap-2 cursor-pointer"
+            style={{ backgroundColor: isDark ? "#2563eb" : "#2563eb" }}
+          >
             <BriefcaseIcon className="h-5 w-5" />
             Send Job Offer
           </button>

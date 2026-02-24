@@ -9,10 +9,14 @@ import {
   useGetLockedAccountsQuery,
   useUnlockUserAccountMutation,
 } from "../../services/api/usersApi";
+import { useTheme } from "../../context/ThemeContext";
 
 const AccountLocks: React.FC = () => {
   const [page, setPage] = useState(1);
   const limit = 10;
+
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
 
   const { data, isLoading, error, refetch } = useGetLockedAccountsQuery({
     page,
@@ -45,21 +49,53 @@ const AccountLocks: React.FC = () => {
   };
 
   return (
-    <div className="space-y-4 animate-fadeIn">
+    <div
+      className="space-y-4 animate-fadeIn"
+      style={{
+        background: isDark
+          ? "linear-gradient(135deg, #0f0a1a 0%, #1a1528 100%)"
+          : "linear-gradient(135deg, #faf5ff 0%, #eef2ff 100%)",
+        minHeight: "100%",
+        padding: "1rem",
+        borderRadius: "0.5rem",
+      }}
+    >
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <LockClosedIcon className="h-6 w-6 text-red-600" />
-          <h1 className="text-xl font-bold text-gray-900">Account Locks</h1>
+          <LockClosedIcon
+            className="h-6 w-6"
+            style={{ color: isDark ? "#f87171" : "#dc2626" }}
+          />
+          <h1
+            className="text-xl font-bold"
+            style={{ color: isDark ? "#f3f4f6" : "#1f2937" }}
+          >
+            Account Locks
+          </h1>
         </div>
-        <p className="text-xs text-gray-500">
+        <p
+          className="text-xs"
+          style={{ color: isDark ? "#9ca3af" : "#6b7280" }}
+        >
           {pagination?.total || 0} locked accounts
         </p>
       </div>
 
       {/* Summary Card */}
-      <div className="bg-red-50 rounded-lg p-3 border border-red-100">
-        <p className="text-sm text-red-800 font-medium flex items-center gap-2">
+      <div
+        className="rounded-lg p-3"
+        style={{
+          backgroundColor: isDark ? "rgba(127, 29, 29, 0.25)" : "#fef2f2",
+          border: isDark
+            ? "1px solid rgba(127, 29, 29, 0.5)"
+            : "1px solid #fecaca",
+        }}
+      >
+        <p
+          className="text-sm font-medium flex items-center gap-2"
+          style={{ color: isDark ? "#fca5a5" : "#991b1b" }}
+        >
           <LockClosedIcon className="h-4 w-4" />
           {lockedAccounts.length} accounts currently locked
         </p>
@@ -67,7 +103,16 @@ const AccountLocks: React.FC = () => {
 
       {/* Error */}
       {error && (
-        <div className="text-xs text-red-600 bg-red-50 border border-red-200 rounded px-3 py-2 flex items-center gap-2">
+        <div
+          className="text-xs rounded px-3 py-2 flex items-center gap-2"
+          style={{
+            backgroundColor: isDark ? "rgba(127, 29, 29, 0.2)" : "#fef2f2",
+            border: isDark
+              ? "1px solid rgba(127, 29, 29, 0.4)"
+              : "1px solid #fecaca",
+            color: isDark ? "#fca5a5" : "#dc2626",
+          }}
+        >
           <ExclamationTriangleIcon className="h-4 w-4" />
           <span>
             {"status" in error && (error as any).status === 403
@@ -75,7 +120,11 @@ const AccountLocks: React.FC = () => {
               : "Failed to load locked accounts"}
           </span>
           {"status" in error && (error as any).status !== 403 && (
-            <button onClick={() => refetch()} className="ml-auto text-red-700 underline">
+            <button
+              onClick={() => refetch()}
+              className="ml-auto underline"
+              style={{ color: isDark ? "#fca5a5" : "#b91c1c" }}
+            >
               Retry
             </button>
           )}
@@ -85,14 +134,44 @@ const AccountLocks: React.FC = () => {
       {/* Loading */}
       {isLoading ? (
         <div className="flex items-center justify-center py-8">
-          <ArrowPathIcon className="h-5 w-5 text-gray-400 animate-spin" />
-          <span className="text-xs text-gray-500 ml-2">Loading...</span>
+          <ArrowPathIcon
+            className="h-5 w-5 animate-spin"
+            style={{ color: isDark ? "#9ca3af" : "#9ca3af" }}
+          />
+          <span
+            className="text-xs ml-2"
+            style={{ color: isDark ? "#d1d5db" : "#6b7280" }}
+          >
+            Loading...
+          </span>
         </div>
       ) : lockedAccounts.length === 0 ? (
-        <div className="text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-200">
-          <LockOpenIcon className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-          <p className="text-sm text-gray-500">No locked accounts</p>
-          <p className="text-xs text-gray-400 mt-1">All accounts are active</p>
+        /* Empty State */
+        <div
+          className="text-center py-8 rounded-lg"
+          style={{
+            backgroundColor: isDark ? "#1e1833" : "#f9fafb",
+            border: isDark
+              ? "1px dashed rgba(45, 27, 105, 0.5)"
+              : "1px dashed #e5e7eb",
+          }}
+        >
+          <LockOpenIcon
+            className="h-8 w-8 mx-auto mb-2"
+            style={{ color: isDark ? "#4b5563" : "#d1d5db" }}
+          />
+          <p
+            className="text-sm"
+            style={{ color: isDark ? "#d1d5db" : "#6b7280" }}
+          >
+            No locked accounts
+          </p>
+          <p
+            className="text-xs mt-1"
+            style={{ color: isDark ? "#9ca3af" : "#9ca3af" }}
+          >
+            All accounts are active
+          </p>
         </div>
       ) : (
         <>
@@ -101,26 +180,56 @@ const AccountLocks: React.FC = () => {
             {lockedAccounts.map((account) => (
               <div
                 key={account.id}
-                className="bg-white rounded-lg p-4 shadow-sm border border-red-100 hover:border-red-200 transition-all"
+                className="rounded-lg p-4 shadow-sm transition-all"
+                style={{
+                  backgroundColor: isDark ? "#1e1833" : "#ffffff",
+                  border: isDark
+                    ? "1px solid rgba(45, 27, 105, 0.5)"
+                    : "1px solid #fecaca",
+                }}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     {/* Avatar */}
-                    <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center text-red-600 flex-shrink-0">
+                    <div
+                      className="h-10 w-10 rounded-full flex items-center justify-center flex-shrink-0"
+                      style={{
+                        backgroundColor: isDark
+                          ? "rgba(127, 29, 29, 0.3)"
+                          : "#fee2e2",
+                        color: isDark ? "#f87171" : "#dc2626",
+                      }}
+                    >
                       <LockClosedIcon className="h-5 w-5" />
                     </div>
 
                     {/* Info */}
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
-                        <h3 className="text-sm font-semibold text-gray-900 truncate">
+                        <h3
+                          className="text-sm font-semibold truncate"
+                          style={{ color: isDark ? "#f3f4f6" : "#1f2937" }}
+                        >
                           {account.name}
                         </h3>
-                        <span className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-gray-100 text-gray-600">
+                        <span
+                          className="px-1.5 py-0.5 text-[10px] font-medium rounded"
+                          style={{
+                            backgroundColor: isDark
+                              ? "rgba(45, 27, 105, 0.5)"
+                              : "#f3f4f6",
+                            color: isDark ? "#c084fc" : "#4b5563",
+                          }}
+                        >
                           {account.role}
                         </span>
                       </div>
-                      <p className="text-xs text-gray-500 truncate">{account.email}</p>
+                      <p
+                        className="text-xs truncate"
+                        style={{ color: isDark ? "#9ca3af" : "#6b7280" }}
+                      >
+                        {account.email}
+                      </p>
                     </div>
                   </div>
 
@@ -129,7 +238,11 @@ const AccountLocks: React.FC = () => {
                     <button
                       onClick={() => handleUnlock(account.id, account.name)}
                       disabled={isUnlocking}
-                      className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded text-xs font-medium transition disabled:opacity-50 flex items-center gap-1"
+                      className="px-3 py-1.5 rounded text-xs font-medium transition disabled:opacity-50 flex items-center gap-1"
+                      style={{
+                        backgroundColor: isDark ? "#16a34a" : "#16a34a",
+                        color: "#ffffff",
+                      }}
                     >
                       <LockOpenIcon className="h-3 w-3" />
                       Unlock
@@ -139,21 +252,92 @@ const AccountLocks: React.FC = () => {
 
                 {/* Details */}
                 <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-                  <div className="bg-gray-50 p-2 rounded">
-                    <p className="text-gray-500">Reason</p>
-                    <p className="font-medium text-gray-900 truncate">{account.reason}</p>
+                  {/* Reason - prominently styled */}
+                  <div
+                    className="p-2 rounded"
+                    style={{
+                      backgroundColor: isDark
+                        ? "rgba(194, 65, 12, 0.2)"
+                        : "#fff7ed",
+                      border: isDark
+                        ? "1px solid rgba(194, 65, 12, 0.4)"
+                        : "1px solid #fed7aa",
+                    }}
+                  >
+                    <p
+                      style={{
+                        color: isDark ? "#fdba74" : "#c2410c",
+                        fontWeight: 600,
+                        fontSize: "10px",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.05em",
+                      }}
+                    >
+                      Reason
+                    </p>
+                    <p
+                      className="truncate"
+                      style={{
+                        color: isDark ? "#fed7aa" : "#9a3412",
+                        fontWeight: 700,
+                      }}
+                    >
+                      {account.reason}
+                    </p>
                   </div>
-                  <div className="bg-gray-50 p-2 rounded">
-                    <p className="text-gray-500">Locked On</p>
-                    <p className="font-medium text-gray-900">{formatDate(account.lockedDate)}</p>
+                  <div
+                    className="p-2 rounded"
+                    style={{
+                      backgroundColor: isDark
+                        ? "rgba(45, 27, 105, 0.25)"
+                        : "#f9fafb",
+                    }}
+                  >
+                    <p style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
+                      Locked On
+                    </p>
+                    <p
+                      className="font-medium"
+                      style={{ color: isDark ? "#f3f4f6" : "#1f2937" }}
+                    >
+                      {formatDate(account.lockedDate)}
+                    </p>
                   </div>
-                  <div className="bg-gray-50 p-2 rounded">
-                    <p className="text-gray-500">Duration</p>
-                    <p className="font-medium text-gray-900">{account.duration}</p>
+                  <div
+                    className="p-2 rounded"
+                    style={{
+                      backgroundColor: isDark
+                        ? "rgba(45, 27, 105, 0.25)"
+                        : "#f9fafb",
+                    }}
+                  >
+                    <p style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
+                      Duration
+                    </p>
+                    <p
+                      className="font-medium"
+                      style={{ color: isDark ? "#f3f4f6" : "#1f2937" }}
+                    >
+                      {account.duration}
+                    </p>
                   </div>
-                  <div className="bg-gray-50 p-2 rounded">
-                    <p className="text-gray-500">Locked By</p>
-                    <p className="font-medium text-gray-900 truncate">{account.lockedBy}</p>
+                  <div
+                    className="p-2 rounded"
+                    style={{
+                      backgroundColor: isDark
+                        ? "rgba(45, 27, 105, 0.25)"
+                        : "#f9fafb",
+                    }}
+                  >
+                    <p style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
+                      Locked By
+                    </p>
+                    <p
+                      className="font-medium truncate"
+                      style={{ color: isDark ? "#f3f4f6" : "#1f2937" }}
+                    >
+                      {account.lockedBy}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -166,17 +350,29 @@ const AccountLocks: React.FC = () => {
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="px-2 py-1 rounded bg-gray-100 text-gray-600 hover:bg-gray-200 disabled:opacity-50"
+                className="px-2 py-1 rounded disabled:opacity-50"
+                style={{
+                  backgroundColor: isDark
+                    ? "rgba(45, 27, 105, 0.4)"
+                    : "#f3f4f6",
+                  color: isDark ? "#d1d5db" : "#4b5563",
+                }}
               >
                 Prev
               </button>
-              <span className="text-gray-500">
+              <span style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
                 {page} / {pagination.totalPages}
               </span>
               <button
                 onClick={() => setPage((p) => Math.min(pagination.totalPages, p + 1))}
                 disabled={page === pagination.totalPages}
-                className="px-2 py-1 rounded bg-gray-100 text-gray-600 hover:bg-gray-200 disabled:opacity-50"
+                className="px-2 py-1 rounded disabled:opacity-50"
+                style={{
+                  backgroundColor: isDark
+                    ? "rgba(45, 27, 105, 0.4)"
+                    : "#f3f4f6",
+                  color: isDark ? "#d1d5db" : "#4b5563",
+                }}
               >
                 Next
               </button>
