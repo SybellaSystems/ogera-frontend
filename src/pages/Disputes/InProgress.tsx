@@ -11,6 +11,7 @@ import {
 } from "@mui/icons-material";
 import { useGetDisputesQuery, type Dispute as ApiDispute } from "../../services/api/disputeApi";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "../../context/ThemeContext";
 
 interface DisputeRow {
   id: string;
@@ -26,6 +27,9 @@ interface DisputeRow {
 const InProgress: React.FC = () => {
   const { data: disputesData, isLoading, error, refetch } = useGetDisputesQuery({ status: "In Progress" });
   const navigate = useNavigate();
+
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
 
   // Transform API data to table format
   const disputes: DisputeRow[] = (disputesData?.data || []).map((dispute: ApiDispute) => ({
@@ -49,8 +53,8 @@ const InProgress: React.FC = () => {
           label={value}
           size="small"
           sx={{
-            bgcolor: "#fef3c7",
-            color: "#92400e",
+            bgcolor: isDark ? "rgba(234,88,12,0.15)" : "#fef3c7",
+            color: isDark ? "#fbbf24" : "#92400e",
             fontWeight: 600,
           }}
         />
@@ -61,7 +65,7 @@ const InProgress: React.FC = () => {
       label: "Description",
       minWidth: 250,
       format: (value) => (
-        <Typography sx={{ fontSize: "0.875rem", color: "#374151", fontWeight: 600 }}>
+        <Typography sx={{ fontSize: "0.875rem", color: isDark ? "#f3f4f6" : "#374151", fontWeight: 600 }}>
           {value}
         </Typography>
       ),
@@ -71,7 +75,6 @@ const InProgress: React.FC = () => {
       label: "Student",
       minWidth: 150,
        format: (value: any, row: any) => {
-        // If dispute was created by student, show name, otherwise show "-"
         return row.reported_by === 'student' ? (value?.full_name || "N/A") : "-";
       },
     },
@@ -80,7 +83,6 @@ const InProgress: React.FC = () => {
       label: "Employer",
       minWidth: 150,
       format: (value: any, row: any) => {
-        // If dispute was created by employer, show name, otherwise show "-"
         return row.reported_by === 'employer' ? (value?.full_name || "N/A") : "-";
       },
     },
@@ -91,10 +93,10 @@ const InProgress: React.FC = () => {
       format: (value: any) => (
         <Chip
           label={value?.full_name || "Unassigned"}
-                   size="small"
+          size="small"
           sx={{
-            bgcolor: "#dbeafe",
-            color: "#1e40af",
+            bgcolor: isDark ? "rgba(59,130,246,0.15)" : "#dbeafe",
+            color: isDark ? "#93c5fd" : "#1e40af",
             fontWeight: 600,
           }}
         />
@@ -104,7 +106,11 @@ const InProgress: React.FC = () => {
       id: "created_at",
       label: "Started",
       minWidth: 120,
-            format: (value) => new Date(value).toLocaleDateString(),
+      format: (value) => (
+        <span style={{ color: isDark ? "#d1d5db" : "#374151" }}>
+          {new Date(value).toLocaleDateString()}
+        </span>
+      ),
     },
   ];
 
@@ -114,14 +120,14 @@ const InProgress: React.FC = () => {
       icon: <ViewIcon fontSize="small" />,
       onClick: (row) => {
         navigate(`/dashboard/disputes/${row.dispute_id}`);
-            },
+      },
       color: "primary",
     },
     {
       label: "Message",
       icon: <MessageIcon fontSize="small" />,
       onClick: (row) => {
-                navigate(`/dashboard/disputes/${row.dispute_id}`);
+        navigate(`/dashboard/disputes/${row.dispute_id}`);
       },
       color: "primary",
     },
@@ -129,25 +135,43 @@ const InProgress: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <ArrowPathIcon className="h-8 w-8 text-[#7F56D9] animate-spin" />
-        <span className="ml-2 text-gray-500">Loading in-progress disputes...</span>
+      <div
+        aria-busy="true"
+        aria-label="Loading in-progress disputes"
+        className="flex items-center justify-center h-64"
+      >
+        <ArrowPathIcon className="h-8 w-8 animate-spin" style={{ color: "#7F56D9" }} />
+        <span className="ml-2 text-sm" style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>Loading in-progress disputes...</span>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="space-y-6 animate-fadeIn">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3">
-          <ExclamationCircleIcon className="h-6 w-6 text-red-500" />
+      <div
+        className="space-y-4 animate-fadeIn"
+        style={{
+          background: isDark ? "linear-gradient(135deg, #0f0a1a 0%, #1a1528 100%)" : "linear-gradient(135deg, #faf5ff 0%, #eef2ff 100%)",
+          minHeight: "100%", padding: "1rem", borderRadius: "0.5rem",
+        }}
+      >
+        <div
+          role="alert"
+          className="rounded-lg p-4 flex items-center gap-3"
+          style={{
+            backgroundColor: isDark ? "rgba(220,38,38,0.15)" : "#fef2f2",
+            border: isDark ? "1px solid rgba(220,38,38,0.3)" : "1px solid #fecaca",
+          }}
+        >
+          <ExclamationCircleIcon className="h-6 w-6" style={{ color: isDark ? "#f87171" : "#ef4444" }} />
           <div>
-            <p className="text-sm font-medium text-red-800">Failed to load in-progress disputes</p>
-            <p className="text-xs text-red-600 mt-1">Please try again later</p>
+            <p className="text-sm font-medium" style={{ color: isDark ? "#fca5a5" : "#991b1b" }}>Failed to load in-progress disputes</p>
+            <p className="text-xs mt-1" style={{ color: isDark ? "#fca5a5" : "#b91c1c" }}>Please try again later</p>
           </div>
           <button
             onClick={() => refetch()}
-            className="ml-auto px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 rounded text-xs font-medium transition"
+            className="ml-auto px-3 py-1.5 rounded text-xs font-medium transition"
+            style={{ backgroundColor: isDark ? "rgba(220,38,38,0.25)" : "#fee2e2", color: isDark ? "#fca5a5" : "#b91c1c" }}
           >
             Retry
           </button>
@@ -157,28 +181,44 @@ const InProgress: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6 animate-fadeIn">
+    <div
+      className="space-y-4 animate-fadeIn"
+      style={{
+        background: isDark ? "linear-gradient(135deg, #0f0a1a 0%, #1a1528 100%)" : "linear-gradient(135deg, #faf5ff 0%, #eef2ff 100%)",
+        minHeight: "100%",
+        padding: "1rem",
+        borderRadius: "0.5rem",
+      }}
+    >
       <div>
-        <h1 className="text-2xl md:text-4xl font-extrabold text-gray-900 flex items-center gap-2 md:gap-3">
-          <ClockIcon className="h-8 w-8 md:h-10 md:w-10 text-orange-600" />
+        <h1 className="text-xl font-bold flex items-center gap-2" style={{ color: isDark ? "#f3f4f6" : "#1f2937" }}>
+          <ClockIcon className="h-6 w-6" style={{ color: isDark ? "#fbbf24" : "#ea580c" }} />
           In Progress Disputes
         </h1>
-        <p className="text-sm md:text-base text-gray-500 mt-2">
+        <p className="text-xs mt-1" style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
           Disputes currently being reviewed and resolved
         </p>
       </div>
 
-      <div className="bg-orange-50 border-l-4 border-orange-500 p-4 rounded-lg">
-        <p className="text-orange-800 font-medium text-sm md:text-base flex items-center gap-2">
+      <div
+        className="rounded-lg p-3"
+        role="status"
+        aria-label={`${disputes.length} disputes under review`}
+        style={{
+          backgroundColor: isDark ? "rgba(234,88,12,0.15)" : "#fff7ed",
+          borderLeft: `4px solid ${isDark ? "#fbbf24" : "#ea580c"}`,
+        }}
+      >
+        <p className="text-xs font-medium flex items-center gap-2" style={{ color: isDark ? "#fbbf24" : "#c2410c" }}>
           {disputes.length > 0 ? (
             <>
-              <ArrowPathIcon className="h-5 w-5 text-orange-600 flex-shrink-0" />
+              <ArrowPathIcon className="h-4 w-4 flex-shrink-0" style={{ color: isDark ? "#fbbf24" : "#ea580c" }} />
               <span>{disputes.length} dispute{disputes.length > 1 ? 's' : ''} under review</span>
             </>
           ) : (
             <>
-              <CheckCircleIcon className="h-5 w-5 text-green-600 flex-shrink-0" />
-              <span>No disputes currently under review</span>
+              <CheckCircleIcon className="h-4 w-4 flex-shrink-0" style={{ color: isDark ? "#34d399" : "#16a34a" }} />
+              <span style={{ color: isDark ? "#34d399" : "#16a34a" }}>No disputes currently under review</span>
             </>
           )}
         </p>

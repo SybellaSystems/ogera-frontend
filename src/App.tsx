@@ -389,15 +389,18 @@ function App() {
             },
             {
               path: "disputes/open",
-              Component: OpenDisputes,
+              element: <ProtectedRoute allowedRoles={["admin", "superadmin"]} />,
+              children: [{ index: true, Component: OpenDisputes }],
             },
             {
               path: "disputes/in-progress",
-              Component: InProgress,
+              element: <ProtectedRoute allowedRoles={["admin", "superadmin"]} />,
+              children: [{ index: true, Component: InProgress }],
             },
             {
               path: "disputes/resolved",
-              Component: ResolvedDisputes,
+              element: <ProtectedRoute allowedRoles={["admin", "superadmin"]} />,
+              children: [{ index: true, Component: ResolvedDisputes }],
             },
             {
               path: "disputes/my-disputes",

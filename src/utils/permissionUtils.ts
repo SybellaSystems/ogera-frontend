@@ -87,9 +87,9 @@ export const hasPermission = (
     }
   }
 
-  // For employer role, allow access to jobs and identity verifications
+  // For employer role, allow access to jobs, identity verifications, and disputes
   if (normalizedRole === 'employer') {
-    if (route === '/jobs' || route === '/identity-verifications') {
+    if (route === '/jobs' || route === '/identity-verifications' || route === '/disputes') {
       return true;
     }
   }
@@ -153,9 +153,9 @@ export const hasAnyPermission = (
     }
   }
 
-  // For employer role, allow access to jobs and identity verifications by default
+  // For employer role, allow access to jobs, identity verifications, and disputes by default
   if (normalizedRole === 'employer') {
-    if (route === '/jobs' || route === '/identity-verifications') {
+    if (route === '/jobs' || route === '/identity-verifications' || route === '/disputes') {
       console.log('✅ [PERMISSION CHECK] Employer role accessing allowed route');
       return true;
     }

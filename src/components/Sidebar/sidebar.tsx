@@ -1238,46 +1238,62 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     {(role !== "student" && role !== "employer") && (
                       <>
                         <li
-                          className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
+                          className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
+                            isActive("/dashboard/disputes/open")
+                              ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
+                              : "hover:text-purple-300 hover:bg-[#9F7AEA]/10"
+                          }`}
                           onClick={() =>
                             handleNavigation("/dashboard/disputes/open")
                           }
                         >
-                          <ExclamationTriangleIcon className="h-4 w-4 text-white/40 group-hover/item:text-yellow-400 transition-colors" />
-                          <span className="text-white/60 group-hover/item:text-white transition-colors">
+                          <ExclamationTriangleIcon className={`h-4 w-4 transition-colors ${isActive("/dashboard/disputes/open") ? "text-yellow-400" : "text-white/40 group-hover/item:text-yellow-400"}`} />
+                          <span className={`transition-colors ${isActive("/dashboard/disputes/open") ? "text-[#9F7AEA] font-medium" : "text-white/60 group-hover/item:text-white"}`}>
                             Open Disputes
                           </span>
                         </li>
                         <li
-                          className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
+                          className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
+                            isActive("/dashboard/disputes/in-progress")
+                              ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
+                              : "hover:text-purple-300 hover:bg-[#9F7AEA]/10"
+                          }`}
                           onClick={() =>
                             handleNavigation("/dashboard/disputes/in-progress")
                           }
                         >
-                          <ArrowPathIcon className="h-4 w-4 text-white/40 group-hover/item:text-blue-400 transition-colors" />
-                          <span className="text-white/60 group-hover/item:text-white transition-colors">
+                          <ArrowPathIcon className={`h-4 w-4 transition-colors ${isActive("/dashboard/disputes/in-progress") ? "text-blue-400" : "text-white/40 group-hover/item:text-blue-400"}`} />
+                          <span className={`transition-colors ${isActive("/dashboard/disputes/in-progress") ? "text-[#9F7AEA] font-medium" : "text-white/60 group-hover/item:text-white"}`}>
                             In Progress
                           </span>
                         </li>
                         <li
-                          className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
+                          className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
+                            isActive("/dashboard/disputes/resolved")
+                              ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
+                              : "hover:text-purple-300 hover:bg-[#9F7AEA]/10"
+                          }`}
                           onClick={() =>
                             handleNavigation("/dashboard/disputes/resolved")
                           }
                         >
-                          <CheckCircleIcon className="h-4 w-4 text-white/40 group-hover/item:text-green-400 transition-colors" />
-                          <span className="text-white/60 group-hover/item:text-white transition-colors">
+                          <CheckCircleIcon className={`h-4 w-4 transition-colors ${isActive("/dashboard/disputes/resolved") ? "text-green-400" : "text-white/40 group-hover/item:text-green-400"}`} />
+                          <span className={`transition-colors ${isActive("/dashboard/disputes/resolved") ? "text-[#9F7AEA] font-medium" : "text-white/60 group-hover/item:text-white"}`}>
                             Resolved
                           </span>
                         </li>
                         <li
-                        className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
-                        onClick={() => handleNavigation("/dashboard/disputes")}
+                          className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
+                            isActive("/dashboard/disputes")
+                              ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
+                              : "hover:text-purple-300 hover:bg-[#9F7AEA]/10"
+                          }`}
+                          onClick={() => handleNavigation("/dashboard/disputes")}
                         >
-                          <ListBulletIcon className="h-4 w-4 text-white/40 group-hover/item:text-purple-400 transition-colors" />
-                          <span className="text-white/60 group-hover/item:text-white transition-colors">
-                         All Disputes
-                         </span>
+                          <ListBulletIcon className={`h-4 w-4 transition-colors ${isActive("/dashboard/disputes") ? "text-purple-400" : "text-white/40 group-hover/item:text-purple-400"}`} />
+                          <span className={`transition-colors ${isActive("/dashboard/disputes") ? "text-[#9F7AEA] font-medium" : "text-white/60 group-hover/item:text-white"}`}>
+                            All Disputes
+                          </span>
                         </li>
                       </>
                     )}
@@ -1286,23 +1302,31 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                    {(role === "student" || role === "employer") && (
                      <>
                        <li
-                        className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
-                       onClick={() => handleNavigation("/dashboard/disputes/create")}
+                         className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
+                           isActive("/dashboard/disputes/create")
+                             ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
+                             : "hover:text-purple-300 hover:bg-[#9F7AEA]/10"
+                         }`}
+                         onClick={() => handleNavigation("/dashboard/disputes/create")}
                        >
-                         <PlusIcon className="h-4 w-4 text-white/40 group-hover/item:text-purple-400 transition-colors" />
-                          <span className="text-white/60 group-hover/item:text-white transition-colors">
-                         Create Dispute
+                         <PlusIcon className={`h-4 w-4 transition-colors ${isActive("/dashboard/disputes/create") ? "text-purple-400" : "text-white/40 group-hover/item:text-purple-400"}`} />
+                         <span className={`transition-colors ${isActive("/dashboard/disputes/create") ? "text-[#9F7AEA] font-medium" : "text-white/60 group-hover/item:text-white"}`}>
+                           Create Dispute
                          </span>
                        </li>
 
                       <li
-                       className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
-                      onClick={() => handleNavigation("/dashboard/disputes/my-disputes")}
+                         className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
+                           isActive("/dashboard/disputes/my-disputes")
+                             ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
+                             : "hover:text-purple-300 hover:bg-[#9F7AEA]/10"
+                         }`}
+                         onClick={() => handleNavigation("/dashboard/disputes/my-disputes")}
                       >
-                        <UsersIcon className="h-4 w-4 text-white/40 group-hover/item:text-purple-400 transition-colors" />
-                          <span className="text-white/60 group-hover/item:text-white transition-colors">
-                       My Disputes
-                       </span>
+                        <UsersIcon className={`h-4 w-4 transition-colors ${isActive("/dashboard/disputes/my-disputes") ? "text-purple-400" : "text-white/40 group-hover/item:text-purple-400"}`} />
+                        <span className={`transition-colors ${isActive("/dashboard/disputes/my-disputes") ? "text-[#9F7AEA] font-medium" : "text-white/60 group-hover/item:text-white"}`}>
+                          My Disputes
+                        </span>
                       </li>
                      </>
                    )}

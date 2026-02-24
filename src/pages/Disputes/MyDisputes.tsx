@@ -12,11 +12,15 @@ import {
 import { getUserDisputes, type Dispute } from "../../services/api/disputesApi";
 import Loader from "../../components/Loader";
 import toast from "react-hot-toast";
+import { useTheme } from "../../context/ThemeContext";
 
 const MyDisputes: React.FC = () => {
   const [disputes, setDisputes] = useState<Dispute[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
 
   useEffect(() => {
     fetchDisputes();
@@ -46,8 +50,8 @@ const MyDisputes: React.FC = () => {
           label={value}
           size="small"
           sx={{
-            bgcolor: "#dbeafe",
-            color: "#1e40af",
+            bgcolor: isDark ? "rgba(45,27,105,0.25)" : "#f3e8ff",
+            color: isDark ? "#c084fc" : "#7c3aed",
             fontWeight: 600,
           }}
         />
@@ -58,7 +62,7 @@ const MyDisputes: React.FC = () => {
       label: "Title",
       minWidth: 250,
       format: (value) => (
-        <Typography sx={{ fontSize: "0.875rem", color: "#374151", fontWeight: 600 }}>
+        <Typography sx={{ fontSize: "0.875rem", color: isDark ? "#f3f4f6" : "#374151", fontWeight: 600 }}>
           {value}
         </Typography>
       ),
@@ -74,16 +78,16 @@ const MyDisputes: React.FC = () => {
           sx={{
             bgcolor:
               value === "Open"
-                ? "#fee2e2"
+                ? (isDark ? "rgba(220,38,38,0.15)" : "#fee2e2")
                 : value === "Under Review" || value === "Mediation"
-                ? "#fef3c7"
-                : "#d1fae5",
+                ? (isDark ? "rgba(234,88,12,0.15)" : "#fef3c7")
+                : (isDark ? "rgba(22,163,74,0.15)" : "#d1fae5"),
             color:
               value === "Open"
-                ? "#991b1b"
+                ? (isDark ? "#f87171" : "#991b1b")
                 : value === "Under Review" || value === "Mediation"
-                ? "#92400e"
-                : "#065f46",
+                ? (isDark ? "#fbbf24" : "#92400e")
+                : (isDark ? "#34d399" : "#065f46"),
             fontWeight: 600,
           }}
         />
@@ -100,16 +104,16 @@ const MyDisputes: React.FC = () => {
           sx={{
             bgcolor:
               value === "High"
-                ? "#fee2e2"
+                ? (isDark ? "rgba(220,38,38,0.15)" : "#fee2e2")
                 : value === "Medium"
-                ? "#fef3c7"
-                : "#dbeafe",
+                ? (isDark ? "rgba(234,88,12,0.15)" : "#fef3c7")
+                : (isDark ? "rgba(59,130,246,0.15)" : "#dbeafe"),
             color:
               value === "High"
-                ? "#991b1b"
+                ? (isDark ? "#f87171" : "#991b1b")
                 : value === "Medium"
-                ? "#92400e"
-                : "#1e40af",
+                ? (isDark ? "#fbbf24" : "#92400e")
+                : (isDark ? "#93c5fd" : "#1e40af"),
             fontWeight: 600,
           }}
         />
@@ -119,7 +123,11 @@ const MyDisputes: React.FC = () => {
       id: "created_at",
       label: "Created",
       minWidth: 120,
-      format: (value) => new Date(value).toLocaleDateString(),
+      format: (value) => (
+        <span style={{ color: isDark ? "#d1d5db" : "#374151" }}>
+          {new Date(value).toLocaleDateString()}
+        </span>
+      ),
     },
   ];
 
@@ -135,40 +143,65 @@ const MyDisputes: React.FC = () => {
   ];
 
   if (loading) {
-    return <Loader />;
+    return (
+      <div aria-busy="true" aria-label="Loading your disputes">
+        <Loader />
+      </div>
+    );
   }
 
   return (
-    <div className="space-y-6 animate-fadeIn">
+    <div
+      className="space-y-4 animate-fadeIn"
+      style={{
+        background: isDark ? "linear-gradient(135deg, #0f0a1a 0%, #1a1528 100%)" : "linear-gradient(135deg, #faf5ff 0%, #eef2ff 100%)",
+        minHeight: "100%",
+        padding: "1rem",
+        borderRadius: "0.5rem",
+      }}
+    >
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl md:text-4xl font-extrabold text-gray-900 flex items-center gap-2 md:gap-3">
-            <ExclamationTriangleIcon className="h-8 w-8 md:h-10 md:w-10 text-red-600" />
+          <h1
+            className="text-xl font-bold flex items-center gap-2"
+            style={{ color: isDark ? "#f3f4f6" : "#1f2937" }}
+          >
+            <ExclamationTriangleIcon className="h-6 w-6" style={{ color: isDark ? "#f87171" : "#dc2626" }} />
             My Disputes
           </h1>
-          <p className="text-sm md:text-base text-gray-500 mt-2">
+          <p className="text-xs mt-1" style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
             View and manage your dispute tickets
           </p>
         </div>
         <button
           onClick={() => navigate("/dashboard/disputes/create")}
-          className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition shadow-md flex items-center gap-2"
+          aria-label="File a new dispute"
+          className="px-4 py-1.5 rounded-lg text-xs font-semibold transition shadow-sm flex items-center gap-1.5"
+          style={{ backgroundColor: isDark ? "#7F56D9" : "#2d1b69", color: "#ffffff" }}
         >
-          <PlusIcon className="h-5 w-5" />
+          <PlusIcon className="h-4 w-4" />
           File New Dispute
         </button>
       </div>
 
       {disputes.length === 0 ? (
-        <div className="bg-white rounded-xl shadow-md border border-gray-100 p-12 text-center">
-          <ExclamationTriangleIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">No Disputes Yet</h3>
-          <p className="text-gray-500 mb-6">
+        <div
+          role="status"
+          className="text-center py-8 rounded-lg"
+          style={{
+            backgroundColor: isDark ? "#1e1833" : "#ffffff",
+            border: isDark ? "1px dashed rgba(45,27,105,0.5)" : "1px dashed #e5e7eb",
+          }}
+        >
+          <ExclamationTriangleIcon className="h-10 w-10 mx-auto mb-2" style={{ color: isDark ? "#4b5563" : "#d1d5db" }} />
+          <p className="text-sm font-medium" style={{ color: isDark ? "#d1d5db" : "#1f2937" }}>No Disputes Yet</p>
+          <p className="text-xs mt-1" style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
             You haven't filed any disputes. Click the button above to create one.
           </p>
           <button
             onClick={() => navigate("/dashboard/disputes/create")}
-            className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition shadow-md"
+            className="mt-3 px-4 py-2 rounded-lg text-xs font-semibold transition"
+            style={{ backgroundColor: isDark ? "#7F56D9" : "#2d1b69", color: "#ffffff" }}
           >
             File Your First Dispute
           </button>

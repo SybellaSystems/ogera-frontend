@@ -10,6 +10,7 @@ import toast from "react-hot-toast";
 import Loader from "../../components/Loader";
 import * as Yup from "yup";
 import { useSelector } from "react-redux";
+import { useTheme } from "../../context/ThemeContext";
 
 const validationSchema = Yup.object({
   job_id: Yup.string().required("Job is required"),
@@ -33,6 +34,9 @@ const CreateDispute: React.FC = () => {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
+
   // Fetch user's jobs (for students: jobs they applied to, for employers: jobs they posted)
   const { data: jobsData, isLoading: isLoadingJobs } = useGetAllJobsQuery();
   const { data: profileData } = useGetUserProfileQuery(undefined);
@@ -41,30 +45,22 @@ const CreateDispute: React.FC = () => {
   });
 
   const allJobs = jobsData?.data || [];
-  // Get user_id from multiple sources - profileData is most reliable, then user object from Redux
   const currentUserId = profileData?.data?.user_id || user?.user_id;
 
-  // Filter jobs based on role - use useMemo to recalculate when dependencies change
+  // Filter jobs based on role
   const jobs = React.useMemo(() => {
     if (role === "student") {
-      // For students: show jobs they've applied to
       const appliedJobIds = new Set(
         (studentApplications?.data || []).map((app: any) => app.job_id)
       );
       return allJobs.filter((job: any) => appliedJobIds.has(job.job_id));
     } else if (role === "employer") {
-      // For employers: show jobs they posted
       if (currentUserId) {
-        return allJobs.filter((job: any) => {
-          // employer_id should be directly on the job object
-          return job.employer_id === currentUserId;
-        });
+        return allJobs.filter((job: any) => job.employer_id === currentUserId);
       } else {
-        // If user_id is not available yet, show empty array
         return [];
       }
     } else {
-      // For admins: show all jobs
       return allJobs;
     }
   }, [role, allJobs, currentUserId, studentApplications?.data]);
@@ -123,55 +119,82 @@ const CreateDispute: React.FC = () => {
     }
   }, [formik.values.type]);
 
-
-  // Show loader while jobs or profile data is loading (for employers, we need profileData to filter jobs)
   if (isLoadingJobs || (role === "employer" && !profileData && !user)) {
-    return <Loader />;
+    return (
+      <div aria-busy="true" aria-label="Loading dispute form">
+        <Loader />
+      </div>
+    );
   }
 
+  const inputStyle = {
+    backgroundColor: isDark ? "rgba(45,27,105,0.2)" : "#ffffff",
+    border: isDark ? "1px solid rgba(45,27,105,0.4)" : "1px solid #d1d5db",
+    color: isDark ? "#f3f4f6" : "#1f2937",
+  };
+
+  const inputErrorStyle = {
+    ...inputStyle,
+    border: isDark ? "1px solid rgba(220,38,38,0.5)" : "1px solid #ef4444",
+  };
+
   return (
-    <div className="max-w-4xl mx-auto space-y-6 animate-fadeIn">
+    <div
+      className="max-w-4xl mx-auto space-y-4 animate-fadeIn"
+      style={{
+        background: isDark ? "linear-gradient(135deg, #0f0a1a 0%, #1a1528 100%)" : "linear-gradient(135deg, #faf5ff 0%, #eef2ff 100%)",
+        minHeight: "100%",
+        padding: "1rem",
+        borderRadius: "0.5rem",
+      }}
+    >
       <div>
-        <h1 className="text-3xl font-extrabold text-gray-900 flex items-center gap-3">
-          <ExclamationTriangleIcon className="h-8 w-8 text-red-600" />
+        <h1
+          className="text-xl font-bold flex items-center gap-2"
+          style={{ color: isDark ? "#f3f4f6" : "#1f2937" }}
+        >
+          <ExclamationTriangleIcon className="h-6 w-6" style={{ color: isDark ? "#f87171" : "#dc2626" }} />
           File a Dispute
         </h1>
-        <p className="text-gray-500 mt-2">
+        <p className="text-xs mt-1" style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
           Submit a formal complaint about a job issue. A moderator will review your case.
         </p>
       </div>
 
-      <div className="bg-white rounded-xl shadow-md border border-gray-100 p-6 md:p-8">
-        <form onSubmit={formik.handleSubmit} className="space-y-6">
+      <div
+        className="rounded-lg p-4 md:p-6"
+        style={{
+          backgroundColor: isDark ? "#1e1833" : "#ffffff",
+          border: isDark ? "1px solid rgba(45,27,105,0.5)" : "1px solid #ede7f8",
+        }}
+      >
+        <form onSubmit={formik.handleSubmit} className="space-y-4">
           {/* Job Selection */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Select Job <span className="text-red-500">*</span>
+            <label className="block text-xs font-semibold mb-1.5" style={{ color: isDark ? "#d1d5db" : "#374151" }}>
+              Select Job <span style={{ color: isDark ? "#f87171" : "#dc2626" }}>*</span>
             </label>
             <select
               name="job_id"
               value={formik.values.job_id}
               onChange={(e) => {
                 formik.handleChange(e);
-                // Reset job_application_id when job changes (for employers)
                 if (role === "employer") {
                   formik.setFieldValue("job_application_id", "");
                 }
               }}
               onBlur={formik.handleBlur}
-              className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
-                formik.touched.job_id && formik.errors.job_id
-                  ? "border-red-500"
-                  : "border-gray-300"
-              }`}
+              aria-required="true"
+              className="w-full px-3 py-2 rounded-lg text-xs"
+              style={formik.touched.job_id && formik.errors.job_id ? inputErrorStyle : inputStyle}
             >
               <option value="">-- Select a job --</option>
               {isLoadingJobs ? (
                 <option value="" disabled>Loading jobs...</option>
               ) : jobs.length === 0 && role === "employer" ? (
                 <option value="" disabled>
-                  {currentUserId 
-                    ? "No jobs found. Please create a job first." 
+                  {currentUserId
+                    ? "No jobs found. Please create a job first."
                     : "Loading user information..."}
                 </option>
               ) : jobs.length === 0 && role === "student" ? (
@@ -185,14 +208,14 @@ const CreateDispute: React.FC = () => {
               )}
             </select>
             {formik.touched.job_id && formik.errors.job_id && (
-              <p className="mt-1 text-sm text-red-600">{formik.errors.job_id}</p>
+              <p className="mt-1 text-xs" style={{ color: isDark ? "#f87171" : "#dc2626" }}>{formik.errors.job_id}</p>
             )}
           </div>
 
           {/* Job Application Selection (for employers only, optional) */}
           {role === "employer" && formik.values.job_id && (
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-xs font-semibold mb-1.5" style={{ color: isDark ? "#d1d5db" : "#374151" }}>
                 Select Student Application (Optional)
               </label>
               <select
@@ -200,7 +223,8 @@ const CreateDispute: React.FC = () => {
                 value={formik.values.job_application_id || ""}
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full px-3 py-2 rounded-lg text-xs"
+                style={inputStyle}
               >
                 <option value="">-- Auto-select first accepted/hired student --</option>
                 {(jobApplicationsData?.data || [])
@@ -211,7 +235,7 @@ const CreateDispute: React.FC = () => {
                     </option>
                   ))}
               </select>
-              <p className="mt-1 text-xs text-gray-500">
+              <p className="mt-1 text-[10px]" style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
                 If not specified, the system will automatically select the first accepted or hired student for this job.
               </p>
             </div>
@@ -219,19 +243,17 @@ const CreateDispute: React.FC = () => {
 
           {/* Dispute Type */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Dispute Type <span className="text-red-500">*</span>
+            <label className="block text-xs font-semibold mb-1.5" style={{ color: isDark ? "#d1d5db" : "#374151" }}>
+              Dispute Type <span style={{ color: isDark ? "#f87171" : "#dc2626" }}>*</span>
             </label>
             <select
               name="type"
               value={formik.values.type}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
-              className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
-                formik.touched.type && formik.errors.type
-                  ? "border-red-500"
-                  : "border-gray-300"
-              }`}
+              aria-required="true"
+              className="w-full px-3 py-2 rounded-lg text-xs"
+              style={formik.touched.type && formik.errors.type ? inputErrorStyle : inputStyle}
             >
               <option value="Payment">Payment Issue</option>
               <option value="Contract Violation">Contract Violation</option>
@@ -239,28 +261,26 @@ const CreateDispute: React.FC = () => {
               <option value="Timeline">Timeline Issue</option>
             </select>
             {formik.touched.type && formik.errors.type && (
-              <p className="mt-1 text-sm text-red-600">{formik.errors.type}</p>
+              <p className="mt-1 text-xs" style={{ color: isDark ? "#f87171" : "#dc2626" }}>{formik.errors.type}</p>
             )}
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="mt-1 text-[10px]" style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
               {formik.values.type === "Payment" && "Payment disputes are automatically set to High priority"}
             </p>
           </div>
 
           {/* Priority */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Priority <span className="text-red-500">*</span>
+            <label className="block text-xs font-semibold mb-1.5" style={{ color: isDark ? "#d1d5db" : "#374151" }}>
+              Priority <span style={{ color: isDark ? "#f87171" : "#dc2626" }}>*</span>
             </label>
             <select
               name="priority"
               value={formik.values.priority || ""}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
-              className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
-                formik.touched.priority && formik.errors.priority
-                  ? "border-red-500"
-                  : "border-gray-300"
-              }`}
+              aria-required="true"
+              className="w-full px-3 py-2 rounded-lg text-xs"
+              style={formik.touched.priority && formik.errors.priority ? inputErrorStyle : inputStyle}
             >
               <option value="">-- Select priority --</option>
               <option value="High">High</option>
@@ -268,14 +288,14 @@ const CreateDispute: React.FC = () => {
               <option value="Low">Low</option>
             </select>
             {formik.touched.priority && formik.errors.priority && (
-              <p className="mt-1 text-sm text-red-600">{formik.errors.priority}</p>
+              <p className="mt-1 text-xs" style={{ color: isDark ? "#f87171" : "#dc2626" }}>{formik.errors.priority}</p>
             )}
           </div>
 
           {/* Title */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Dispute Title <span className="text-red-500">*</span>
+            <label className="block text-xs font-semibold mb-1.5" style={{ color: isDark ? "#d1d5db" : "#374151" }}>
+              Dispute Title <span style={{ color: isDark ? "#f87171" : "#dc2626" }}>*</span>
             </label>
             <input
               type="text"
@@ -284,21 +304,19 @@ const CreateDispute: React.FC = () => {
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
               placeholder="e.g., Payment not received for completed work"
-              className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
-                formik.touched.title && formik.errors.title
-                  ? "border-red-500"
-                  : "border-gray-300"
-              }`}
+              aria-required="true"
+              className="w-full px-3 py-2 rounded-lg text-xs"
+              style={formik.touched.title && formik.errors.title ? inputErrorStyle : inputStyle}
             />
             {formik.touched.title && formik.errors.title && (
-              <p className="mt-1 text-sm text-red-600">{formik.errors.title}</p>
+              <p className="mt-1 text-xs" style={{ color: isDark ? "#f87171" : "#dc2626" }}>{formik.errors.title}</p>
             )}
           </div>
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Description <span className="text-red-500">*</span>
+            <label className="block text-xs font-semibold mb-1.5" style={{ color: isDark ? "#d1d5db" : "#374151" }}>
+              Description <span style={{ color: isDark ? "#f87171" : "#dc2626" }}>*</span>
             </label>
             <textarea
               name="description"
@@ -307,26 +325,29 @@ const CreateDispute: React.FC = () => {
               onBlur={formik.handleBlur}
               rows={6}
               placeholder="Provide detailed information about the dispute..."
-              className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none ${
-                formik.touched.description && formik.errors.description
-                  ? "border-red-500"
-                  : "border-gray-300"
-              }`}
+              aria-required="true"
+              className="w-full px-3 py-2 rounded-lg text-xs resize-none"
+              style={formik.touched.description && formik.errors.description ? inputErrorStyle : inputStyle}
             />
             {formik.touched.description && formik.errors.description && (
-              <p className="mt-1 text-sm text-red-600">{formik.errors.description}</p>
+              <p className="mt-1 text-xs" style={{ color: isDark ? "#f87171" : "#dc2626" }}>{formik.errors.description}</p>
             )}
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="mt-1 text-[10px]" style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
               Minimum 20 characters. Be as detailed as possible.
             </p>
           </div>
 
           {/* Evidence Upload */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <label className="block text-xs font-semibold mb-1.5" style={{ color: isDark ? "#d1d5db" : "#374151" }}>
               Upload Evidence (Optional)
             </label>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-purple-500 transition">
+            <div
+              className="rounded-lg p-4 text-center transition"
+              style={{
+                border: isDark ? "2px dashed rgba(45,27,105,0.5)" : "2px dashed #d1d5db",
+              }}
+            >
               <input
                 type="file"
                 id="evidence-upload"
@@ -334,37 +355,40 @@ const CreateDispute: React.FC = () => {
                 accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt"
                 onChange={handleFileChange}
                 className="hidden"
+                aria-label="Upload evidence files"
               />
               <label
                 htmlFor="evidence-upload"
                 className="cursor-pointer flex flex-col items-center"
               >
-                <PaperClipIcon className="h-10 w-10 text-gray-400 mb-2" />
-                <span className="text-sm text-gray-600">
+                <PaperClipIcon className="h-8 w-8 mb-1" style={{ color: isDark ? "#6b7280" : "#9ca3af" }} />
+                <span className="text-xs" style={{ color: isDark ? "#d1d5db" : "#374151" }}>
                   Click to upload files or drag and drop
                 </span>
-                <span className="text-xs text-gray-500 mt-1">
+                <span className="text-[10px] mt-0.5" style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
                   PDF, DOC, DOCX, JPG, PNG, TXT (Max 10MB per file)
                 </span>
               </label>
             </div>
 
             {selectedFiles.length > 0 && (
-              <div className="mt-4 space-y-2">
+              <div className="mt-3 space-y-2">
                 {selectedFiles.map((file, index) => (
                   <div
                     key={index}
-                    className="flex items-center justify-between bg-gray-50 p-3 rounded-lg"
+                    className="flex items-center justify-between p-2 rounded-lg"
+                    style={{ backgroundColor: isDark ? "rgba(45,27,105,0.2)" : "#f9fafb" }}
                   >
-                    <span className="text-sm text-gray-700 truncate flex-1">
+                    <span className="text-xs truncate flex-1" style={{ color: isDark ? "#d1d5db" : "#374151" }}>
                       {file.name} ({(file.size / 1024).toFixed(2)} KB)
                     </span>
                     <button
                       type="button"
                       onClick={() => removeFile(index)}
-                      className="ml-2 text-red-600 hover:text-red-800"
+                      aria-label={`Remove file ${file.name}`}
+                      className="ml-2"
                     >
-                      <XMarkIcon className="h-5 w-5" />
+                      <XMarkIcon className="h-4 w-4" style={{ color: isDark ? "#f87171" : "#dc2626" }} />
                     </button>
                   </div>
                 ))}
@@ -372,10 +396,16 @@ const CreateDispute: React.FC = () => {
             )}
           </div>
 
-          {/* Priority (auto-set, but can be overridden) */}
+          {/* Priority info banner */}
           {formik.values.priority && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <p className="text-sm text-blue-800">
+            <div
+              className="rounded-lg p-3"
+              style={{
+                backgroundColor: isDark ? "rgba(59,130,246,0.15)" : "#eff6ff",
+                border: isDark ? "1px solid rgba(59,130,246,0.3)" : "1px solid #bfdbfe",
+              }}
+            >
+              <p className="text-xs" style={{ color: isDark ? "#93c5fd" : "#1e40af" }}>
                 <strong>Priority:</strong> {formik.values.priority}
                 {formik.values.type === "Payment" && " (Auto-set for payment disputes)"}
               </p>
@@ -383,18 +413,25 @@ const CreateDispute: React.FC = () => {
           )}
 
           {/* Submit Buttons */}
-          <div className="flex gap-4 pt-4">
+          <div className="flex gap-3 pt-2">
             <button
               type="button"
               onClick={() => navigate(-1)}
-              className="px-6 py-2.5 border border-gray-300 rounded-lg font-semibold text-gray-700 hover:bg-gray-50 transition"
+              className="px-4 py-2 rounded-lg text-xs font-semibold transition"
+              style={{
+                backgroundColor: isDark ? "rgba(45,27,105,0.2)" : "#f3f4f6",
+                color: isDark ? "#d1d5db" : "#374151",
+                border: isDark ? "1px solid rgba(45,27,105,0.4)" : "1px solid #d1d5db",
+              }}
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label="Submit dispute"
+              className="px-4 py-2 rounded-lg text-xs font-semibold transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ backgroundColor: isDark ? "#7F56D9" : "#2d1b69", color: "#ffffff" }}
             >
               {isSubmitting ? "Submitting..." : "Submit Dispute"}
             </button>

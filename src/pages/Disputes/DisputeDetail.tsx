@@ -22,7 +22,102 @@ import { useSelector } from "react-redux";
 import toast from "react-hot-toast";
 import Loader from "../../components/Loader";
 import { hasPermission } from "../../utils/permissionUtils";
+import { useTheme } from "../../context/ThemeContext";
 import { getSocket, joinDisputeRoom, leaveDisputeRoom } from "../../utils/socket";
+
+const WORKFLOW_STEPS = ["Open", "Under Review", "Mediation", "Resolved"] as const;
+
+const WorkflowStepper: React.FC<{ currentStatus: string; isDark: boolean }> = ({ currentStatus, isDark }) => {
+  const currentIndex = WORKFLOW_STEPS.indexOf(currentStatus as typeof WORKFLOW_STEPS[number]);
+  const activeIndex = currentIndex >= 0 ? currentIndex : 0;
+
+  return (
+    <div
+      aria-label="Dispute workflow progress"
+      role="navigation"
+      className="rounded-lg p-4"
+      style={{
+        backgroundColor: isDark ? "#1e1833" : "#ffffff",
+        border: isDark ? "1px solid rgba(45,27,105,0.5)" : "1px solid #ede7f8",
+      }}
+    >
+      <div className="flex items-center justify-between">
+        {WORKFLOW_STEPS.map((step, index) => {
+          const isCompleted = index < activeIndex;
+          const isActive = index === activeIndex;
+          const isPending = index > activeIndex;
+
+          return (
+            <React.Fragment key={step}>
+              <div className="flex flex-col items-center gap-1.5 relative">
+                {/* Circle */}
+                <div
+                  aria-label={`${step}: ${isCompleted ? "completed" : isActive ? "current step" : "pending"}`}
+                  className="relative flex items-center justify-center rounded-full"
+                  style={{
+                    width: 32,
+                    height: 32,
+                    backgroundColor: isCompleted
+                      ? (isDark ? "#7F56D9" : "#2d1b69")
+                      : isActive
+                      ? (isDark ? "#7F56D9" : "#2d1b69")
+                      : (isDark ? "rgba(45,27,105,0.3)" : "#e5e7eb"),
+                    border: isPending ? `2px solid ${isDark ? "rgba(45,27,105,0.5)" : "#d1d5db"}` : "none",
+                  }}
+                >
+                  {isCompleted ? (
+                    <CheckCircleIcon className="h-5 w-5 text-white" />
+                  ) : isActive ? (
+                    <>
+                      <div
+                        className="absolute inset-0 rounded-full animate-ping"
+                        style={{
+                          backgroundColor: isDark ? "rgba(127,86,217,0.3)" : "rgba(45,27,105,0.2)",
+                        }}
+                      />
+                      <div
+                        className="h-3 w-3 rounded-full bg-white"
+                      />
+                    </>
+                  ) : (
+                    <div
+                      className="h-3 w-3 rounded-full"
+                      style={{ backgroundColor: isDark ? "rgba(255,255,255,0.2)" : "#9ca3af" }}
+                    />
+                  )}
+                </div>
+                {/* Label */}
+                <span
+                  className="text-[10px] font-semibold text-center"
+                  style={{
+                    color: isCompleted || isActive
+                      ? (isDark ? "#c084fc" : "#2d1b69")
+                      : (isDark ? "#6b7280" : "#9ca3af"),
+                  }}
+                >
+                  {step}
+                </span>
+              </div>
+              {/* Connecting line */}
+              {index < WORKFLOW_STEPS.length - 1 && (
+                <div
+                  className="flex-1 mx-2"
+                  style={{
+                    height: 2,
+                    marginBottom: 20,
+                    backgroundColor: index < activeIndex
+                      ? (isDark ? "#7F56D9" : "#2d1b69")
+                      : (isDark ? "rgba(45,27,105,0.3)" : "#e5e7eb"),
+                  }}
+                />
+              )}
+            </React.Fragment>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
 
 const DisputeDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -31,6 +126,9 @@ const DisputeDetail: React.FC = () => {
   const user_id = useSelector((state: any) => state.auth.user_id);
   const permissions = useSelector((state: any) => state.auth.permissions);
   const accessToken = useSelector((state: any) => state.auth.accessToken);
+
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
 
   const [dispute, setDispute] = useState<Dispute | null>(null);
   const [evidence, setEvidence] = useState<DisputeEvidence[]>([]);
@@ -67,7 +165,7 @@ const DisputeDetail: React.FC = () => {
 
     const getToken = () => accessToken;
     const socket = getSocket(getToken);
-    
+
     if (!socket) return;
 
     // Join dispute room
@@ -181,135 +279,212 @@ const DisputeDetail: React.FC = () => {
   };
 
   if (loading) {
-    return <Loader />;
+    return (
+      <div aria-busy="true" aria-label="Loading dispute details">
+        <Loader />
+      </div>
+    );
   }
 
   if (!dispute) {
     return (
-      <div className="text-center py-12">
-        <p className="text-gray-500">Dispute not found</p>
+      <div
+        role="status"
+        className="text-center py-12 rounded-lg"
+        style={{
+          backgroundColor: isDark ? "#1e1833" : "#ffffff",
+          border: isDark ? "1px dashed rgba(45,27,105,0.5)" : "1px dashed #e5e7eb",
+        }}
+      >
+        <p className="text-sm" style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>Dispute not found</p>
       </div>
     );
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 animate-fadeIn">
+    <div
+      className="max-w-6xl mx-auto space-y-4 animate-fadeIn"
+      style={{
+        background: isDark ? "linear-gradient(135deg, #0f0a1a 0%, #1a1528 100%)" : "linear-gradient(135deg, #faf5ff 0%, #eef2ff 100%)",
+        minHeight: "100%",
+        padding: "1rem",
+        borderRadius: "0.5rem",
+      }}
+    >
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <button
             onClick={() => navigate(-1)}
-            className="p-2 hover:bg-gray-100 rounded-lg transition"
+            aria-label="Go back"
+            className="p-2 rounded-lg transition"
+            style={{
+              backgroundColor: isDark ? "rgba(45,27,105,0.25)" : "#f3f4f6",
+            }}
           >
-            <ArrowLeftIcon className="h-6 w-6 text-gray-600" />
+            <ArrowLeftIcon className="h-5 w-5" style={{ color: isDark ? "#d1d5db" : "#6b7280" }} />
           </button>
           <div>
-            <h1 className="text-3xl font-extrabold text-gray-900 flex items-center gap-3">
-              <ExclamationTriangleIcon className="h-8 w-8 text-red-600" />
+            <h1
+              className="text-xl font-bold flex items-center gap-2"
+              style={{ color: isDark ? "#f3f4f6" : "#1f2937" }}
+            >
+              <ExclamationTriangleIcon className="h-6 w-6" style={{ color: isDark ? "#f87171" : "#dc2626" }} />
               {dispute.title}
             </h1>
-            <p className="text-gray-500 mt-1">Dispute ID: {dispute.dispute_id.slice(0, 8)}...</p>
+            <p className="text-xs mt-0.5" style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
+              Dispute ID: {dispute.dispute_id.slice(0, 8)}...
+            </p>
           </div>
         </div>
         {canResolve && (
           <button
             onClick={() => setShowResolveModal(true)}
-            className="px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition shadow-md"
+            aria-label="Resolve this dispute"
+            className="px-4 py-2 rounded-lg text-xs font-semibold transition shadow-sm"
+            style={{ backgroundColor: isDark ? "rgba(22,163,74,0.2)" : "#f0fdf4", color: isDark ? "#34d399" : "#16a34a", border: isDark ? "1px solid rgba(22,163,74,0.3)" : "1px solid #bbf7d0" }}
           >
             Resolve Dispute
           </button>
         )}
       </div>
 
+      {/* Workflow Stepper */}
+      <WorkflowStepper currentStatus={dispute.status} isDark={isDark} />
+
       {/* Status and Info Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl p-4 shadow-md border border-gray-100">
-          <p className="text-xs text-gray-500 font-medium">Status</p>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div
+          className="rounded-lg p-3"
+          style={{
+            backgroundColor: isDark ? "#1e1833" : "#ffffff",
+            border: isDark ? "1px solid rgba(45,27,105,0.5)" : "1px solid #ede7f8",
+          }}
+          aria-label={`Status: ${dispute.status}`}
+        >
+          <p className="text-[10px] font-medium" style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>Status</p>
           <p
-            className={`text-lg font-bold mt-1 ${
-              dispute.status === "Open"
-                ? "text-red-600"
+            className="text-sm font-bold mt-0.5"
+            style={{
+              color: dispute.status === "Open"
+                ? (isDark ? "#f87171" : "#dc2626")
                 : dispute.status === "Under Review" || dispute.status === "Mediation"
-                ? "text-orange-600"
-                : "text-green-600"
-            }`}
+                ? (isDark ? "#fbbf24" : "#ea580c")
+                : (isDark ? "#34d399" : "#16a34a"),
+            }}
           >
             {dispute.status}
           </p>
         </div>
-        <div className="bg-white rounded-xl p-4 shadow-md border border-gray-100">
-          <p className="text-xs text-gray-500 font-medium">Priority</p>
+        <div
+          className="rounded-lg p-3"
+          style={{
+            backgroundColor: isDark ? "#1e1833" : "#ffffff",
+            border: isDark ? "1px solid rgba(45,27,105,0.5)" : "1px solid #ede7f8",
+          }}
+          aria-label={`Priority: ${dispute.priority}`}
+        >
+          <p className="text-[10px] font-medium" style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>Priority</p>
           <p
-            className={`text-lg font-bold mt-1 ${
-              dispute.priority === "High"
-                ? "text-red-600"
+            className="text-sm font-bold mt-0.5"
+            style={{
+              color: dispute.priority === "High"
+                ? (isDark ? "#f87171" : "#dc2626")
                 : dispute.priority === "Medium"
-                ? "text-orange-600"
-                : "text-blue-600"
-            }`}
+                ? (isDark ? "#fbbf24" : "#ea580c")
+                : (isDark ? "#93c5fd" : "#2563eb"),
+            }}
           >
             {dispute.priority}
           </p>
         </div>
-        <div className="bg-white rounded-xl p-4 shadow-md border border-gray-100">
-          <p className="text-xs text-gray-500 font-medium">Type</p>
-          <p className="text-lg font-bold mt-1 text-purple-600">{dispute.type}</p>
+        <div
+          className="rounded-lg p-3"
+          style={{
+            backgroundColor: isDark ? "#1e1833" : "#ffffff",
+            border: isDark ? "1px solid rgba(45,27,105,0.5)" : "1px solid #ede7f8",
+          }}
+        >
+          <p className="text-[10px] font-medium" style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>Type</p>
+          <p className="text-sm font-bold mt-0.5" style={{ color: isDark ? "#c084fc" : "#7c3aed" }}>{dispute.type}</p>
         </div>
-        <div className="bg-white rounded-xl p-4 shadow-md border border-gray-100">
-          <p className="text-xs text-gray-500 font-medium">Reported By</p>
-          <p className="text-lg font-bold mt-1">
-            {dispute.reported_by === 'student' 
+        <div
+          className="rounded-lg p-3"
+          style={{
+            backgroundColor: isDark ? "#1e1833" : "#ffffff",
+            border: isDark ? "1px solid rgba(45,27,105,0.5)" : "1px solid #ede7f8",
+          }}
+        >
+          <p className="text-[10px] font-medium" style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>Reported By</p>
+          <p className="text-sm font-bold mt-0.5" style={{ color: isDark ? "#f3f4f6" : "#1f2937" }}>
+            {dispute.reported_by === 'student'
               ? dispute.student?.full_name || 'Student'
               : dispute.employer?.full_name || 'Employer'}
-            <span className="text-sm font-normal text-gray-500 ml-2 capitalize">
+            <span className="text-[10px] font-normal ml-1 capitalize" style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
               ({dispute.reported_by})
             </span>
           </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Main Content */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-4">
           {/* Description */}
-          <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Description</h2>
-            <p className="text-gray-700 whitespace-pre-wrap">{dispute.description}</p>
+          <div
+            className="rounded-lg p-4"
+            style={{
+              backgroundColor: isDark ? "#1e1833" : "#ffffff",
+              border: isDark ? "1px solid rgba(45,27,105,0.5)" : "1px solid #ede7f8",
+            }}
+          >
+            <h2 className="text-sm font-semibold mb-2" style={{ color: isDark ? "#f3f4f6" : "#1f2937" }}>Description</h2>
+            <p className="text-xs whitespace-pre-wrap" style={{ color: isDark ? "#d1d5db" : "#374151" }}>{dispute.description}</p>
           </div>
 
           {/* Evidence */}
-          <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-gray-900">Evidence</h2>
+          <div
+            className="rounded-lg p-4"
+            style={{
+              backgroundColor: isDark ? "#1e1833" : "#ffffff",
+              border: isDark ? "1px solid rgba(45,27,105,0.5)" : "1px solid #ede7f8",
+            }}
+          >
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-sm font-semibold" style={{ color: isDark ? "#f3f4f6" : "#1f2937" }}>Evidence</h2>
               {dispute.status !== "Resolved" && (
-                <label className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold cursor-pointer transition">
+                <label
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition"
+                  style={{ backgroundColor: isDark ? "#7F56D9" : "#2d1b69", color: "#ffffff" }}
+                >
                   <input
                     type="file"
                     className="hidden"
                     onChange={handleFileUpload}
                     disabled={uploadingFile}
                     accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt"
+                    aria-label="Upload evidence files"
                   />
                   {uploadingFile ? "Uploading..." : "Upload Evidence"}
                 </label>
               )}
             </div>
             {evidence.length === 0 ? (
-              <p className="text-gray-500 text-center py-8">No evidence uploaded yet</p>
+              <p className="text-center py-6 text-xs" style={{ color: isDark ? "#6b7280" : "#9ca3af" }}>No evidence uploaded yet</p>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {evidence.map((ev) => (
                   <div
                     key={ev.evidence_id}
-                    className="flex items-center justify-between bg-gray-50 p-4 rounded-lg"
+                    className="flex items-center justify-between p-3 rounded-lg"
+                    style={{ backgroundColor: isDark ? "rgba(45,27,105,0.2)" : "#f9fafb" }}
                   >
-                    <div className="flex items-center gap-3">
-                      <PaperClipIcon className="h-5 w-5 text-gray-400" />
-                      <div>
-                        <p className="font-medium text-gray-900">{ev.file_name}</p>
-                        <p className="text-xs text-gray-500">
-                          Uploaded by {ev.uploader?.full_name || "Unknown"} •{" "}
-                          {new Date(ev.created_at).toLocaleDateString()}
+                    <div className="flex items-center gap-2 min-w-0">
+                      <PaperClipIcon className="h-4 w-4 flex-shrink-0" style={{ color: isDark ? "#9ca3af" : "#6b7280" }} />
+                      <div className="min-w-0">
+                        <p className="text-xs font-medium truncate" style={{ color: isDark ? "#f3f4f6" : "#1f2937" }}>{ev.file_name}</p>
+                        <p className="text-[10px]" style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
+                          Uploaded by {ev.uploader?.full_name || "Unknown"} • {new Date(ev.created_at).toLocaleDateString()}
                         </p>
                       </div>
                     </div>
@@ -317,7 +492,9 @@ const DisputeDetail: React.FC = () => {
                       href={ev.file_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition"
+                      aria-label={`View evidence: ${ev.file_name}`}
+                      className="px-3 py-1.5 rounded-lg text-xs font-semibold transition flex-shrink-0"
+                      style={{ backgroundColor: isDark ? "rgba(59,130,246,0.15)" : "#eff6ff", color: isDark ? "#93c5fd" : "#1d4ed8" }}
                     >
                       View
                     </a>
@@ -328,52 +505,77 @@ const DisputeDetail: React.FC = () => {
           </div>
 
           {/* Messages/Chat Thread */}
-          <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <ChatBubbleLeftRightIcon className="h-6 w-6" />
+          <div
+            className="rounded-lg p-4"
+            style={{
+              backgroundColor: isDark ? "#1e1833" : "#ffffff",
+              border: isDark ? "1px solid rgba(45,27,105,0.5)" : "1px solid #ede7f8",
+            }}
+          >
+            <h2
+              className="text-sm font-semibold mb-3 flex items-center gap-2"
+              style={{ color: isDark ? "#f3f4f6" : "#1f2937" }}
+            >
+              <ChatBubbleLeftRightIcon className="h-5 w-5" style={{ color: isDark ? "#c084fc" : "#7c3aed" }} />
               Discussion Thread
             </h2>
-            <div className="space-y-4 mb-6 max-h-96 overflow-y-auto">
+            <div className="space-y-3 mb-4 max-h-96 overflow-y-auto">
               {messages.length === 0 ? (
-                <p className="text-gray-500 text-center py-8">No messages yet</p>
+                <p className="text-center py-6 text-xs" style={{ color: isDark ? "#6b7280" : "#9ca3af" }}>No messages yet</p>
               ) : (
                 messages.map((msg) => (
                   <div
                     key={msg.message_id}
-                    className={`p-4 rounded-lg ${
-                      msg.sender_type === "moderator"
-                        ? "bg-purple-50 border-l-4 border-purple-500"
+                    className="p-3 rounded-lg"
+                    style={{
+                      backgroundColor: msg.sender_type === "moderator"
+                        ? (isDark ? "rgba(45,27,105,0.25)" : "#f5f0fc")
                         : msg.sender_id === user_id
-                        ? "bg-blue-50 border-l-4 border-blue-500"
-                        : "bg-gray-50 border-l-4 border-gray-300"
-                    }`}
+                        ? (isDark ? "rgba(59,130,246,0.15)" : "#eff6ff")
+                        : (isDark ? "rgba(45,27,105,0.1)" : "#f9fafb"),
+                      borderLeft: `3px solid ${
+                        msg.sender_type === "moderator"
+                          ? (isDark ? "#c084fc" : "#7c3aed")
+                          : msg.sender_id === user_id
+                          ? (isDark ? "#93c5fd" : "#3b82f6")
+                          : (isDark ? "rgba(45,27,105,0.3)" : "#d1d5db")
+                      }`,
+                    }}
                   >
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="font-semibold text-gray-900 capitalize">
+                    <div className="flex items-center justify-between mb-1">
+                      <p className="text-xs font-semibold capitalize" style={{ color: isDark ? "#f3f4f6" : "#1f2937" }}>
                         {msg.sender?.full_name || msg.sender_type}
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-[10px]" style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
                         {new Date(msg.created_at).toLocaleString()}
                       </p>
                     </div>
-                    <p className="text-gray-700 whitespace-pre-wrap">{msg.message}</p>
+                    <p className="text-xs whitespace-pre-wrap" style={{ color: isDark ? "#d1d5db" : "#374151" }}>{msg.message}</p>
                   </div>
                 ))
               )}
             </div>
             {dispute.status !== "Resolved" && (
-              <div className="border-t pt-4">
+              <div style={{ borderTop: `1px solid ${isDark ? "rgba(45,27,105,0.3)" : "#e5e7eb"}` }} className="pt-3">
                 <textarea
                   value={messageText}
                   onChange={(e) => setMessageText(e.target.value)}
                   placeholder="Type your message..."
+                  aria-label="Type your message"
                   rows={3}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+                  className="w-full px-3 py-2 rounded-lg text-xs resize-none"
+                  style={{
+                    backgroundColor: isDark ? "rgba(45,27,105,0.2)" : "#f9fafb",
+                    border: isDark ? "1px solid rgba(45,27,105,0.4)" : "1px solid #d1d5db",
+                    color: isDark ? "#f3f4f6" : "#1f2937",
+                  }}
                 />
                 <button
                   onClick={handleSendMessage}
                   disabled={!messageText.trim() || sendingMessage}
-                  className="mt-2 px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  aria-label="Send message"
+                  className="mt-2 px-4 py-1.5 rounded-lg text-xs font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{ backgroundColor: isDark ? "#7F56D9" : "#2d1b69", color: "#ffffff" }}
                 >
                   {sendingMessage ? "Sending..." : "Send Message"}
                 </button>
@@ -383,34 +585,40 @@ const DisputeDetail: React.FC = () => {
         </div>
 
         {/* Sidebar */}
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* Parties Info */}
-          <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Parties Involved</h3>
-            <div className="space-y-4">
+          <div
+            className="rounded-lg p-4"
+            style={{
+              backgroundColor: isDark ? "#1e1833" : "#ffffff",
+              border: isDark ? "1px solid rgba(45,27,105,0.5)" : "1px solid #ede7f8",
+            }}
+          >
+            <h3 className="text-sm font-semibold mb-3" style={{ color: isDark ? "#f3f4f6" : "#1f2937" }}>Parties Involved</h3>
+            <div className="space-y-3">
               <div>
-                <p className="text-xs text-gray-500 font-medium">Student</p>
-                <p className="font-semibold text-gray-900">{dispute.student?.full_name || "N/A"}</p>
-                <p className="text-sm text-gray-600">
+                <p className="text-[10px] font-medium" style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>Student</p>
+                <p className="text-xs font-semibold" style={{ color: isDark ? "#f3f4f6" : "#1f2937" }}>{dispute.student?.full_name || "N/A"}</p>
+                <p className="text-[10px]" style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
                   {dispute.reported_by === 'student' ? (dispute.student?.email || "-") : "-"}
                 </p>
               </div>
               <div>
-                <p className="text-xs text-gray-500 font-medium">Employer</p>
-                <p className="font-semibold text-gray-900">{dispute.employer?.full_name || "N/A"}</p>
-                <p className="text-sm text-gray-600">
+                <p className="text-[10px] font-medium" style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>Employer</p>
+                <p className="text-xs font-semibold" style={{ color: isDark ? "#f3f4f6" : "#1f2937" }}>{dispute.employer?.full_name || "N/A"}</p>
+                <p className="text-[10px]" style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
                   {dispute.reported_by === 'employer' ? (dispute.employer?.email || "-") : "-"}
                 </p>
               </div>
               {dispute.moderator && (
                 <div>
-                  <p className="text-xs text-gray-500 font-medium">Moderator</p>
-                  <p className="font-semibold text-gray-900">
+                  <p className="text-[10px] font-medium" style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>Moderator</p>
+                  <p className="text-xs font-semibold" style={{ color: isDark ? "#f3f4f6" : "#1f2937" }}>
                     {dispute.moderator.full_name}
                   </p>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-[10px]" style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
                     {dispute.moderator.email}
-                    <span className="text-xs font-normal text-gray-500 ml-2">
+                    <span className="ml-1 capitalize">
                       ({dispute.moderator.role?.roleType === 'superAdmin' ? 'superadmin' : 'Admin'})
                     </span>
                   </p>
@@ -420,52 +628,66 @@ const DisputeDetail: React.FC = () => {
           </div>
 
           {/* Timeline */}
-          <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <ClockIcon className="h-5 w-5" />
+          <div
+            className="rounded-lg p-4"
+            style={{
+              backgroundColor: isDark ? "#1e1833" : "#ffffff",
+              border: isDark ? "1px solid rgba(45,27,105,0.5)" : "1px solid #ede7f8",
+            }}
+          >
+            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2" style={{ color: isDark ? "#f3f4f6" : "#1f2937" }}>
+              <ClockIcon className="h-4 w-4" style={{ color: isDark ? "#c084fc" : "#7c3aed" }} />
               Timeline
             </h3>
-            <div className="space-y-4">
+            <div className="space-y-3">
               {timeline.length === 0 ? (
-                <p className="text-gray-500 text-sm">No timeline events</p>
+                <p className="text-xs" style={{ color: isDark ? "#6b7280" : "#9ca3af" }}>No timeline events</p>
               ) : (
                 timeline.map((event) => {
-                  // Determine display name and role
                   let displayName = event.performer?.full_name || event.performed_by_type;
                   let displayRole: string = event.performed_by_type;
-                  
-                  // If performer is admin, show "Admin" instead of roleName
+
                   if (event.performer?.role?.roleType === 'admin' || event.performer?.role?.roleType === 'superAdmin') {
                     displayRole = event.performer.role.roleType === 'superAdmin' ? 'superadmin' : 'Admin';
-                    // Update details to show "Admin" instead of roleName
                     let details = event.details || '';
                     if (details.includes('admin')) {
-                      // Replace roleName with "Admin" or "superadmin"
                       const roleName = event.performer.role.roleName;
                       details = details.replace(new RegExp(roleName, 'gi'), displayRole);
                     }
-                    
+
                     return (
-                      <div key={event.timeline_id} className="border-l-2 border-purple-500 pl-4">
-                        <p className="font-semibold text-gray-900 capitalize">{event.action.replace(/_/g, " ")}</p>
-                        <p className="text-xs text-gray-500">
+                      <div
+                        key={event.timeline_id}
+                        className="pl-3"
+                        style={{ borderLeft: `2px solid ${isDark ? "#c084fc" : "#7c3aed"}` }}
+                      >
+                        <p className="text-xs font-semibold capitalize" style={{ color: isDark ? "#f3f4f6" : "#1f2937" }}>
+                          {event.action.replace(/_/g, " ")}
+                        </p>
+                        <p className="text-[10px]" style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
                           {displayName} ({displayRole}) • {new Date(event.created_at).toLocaleString()}
                         </p>
                         {details && (
-                          <p className="text-sm text-gray-600 mt-1">{details}</p>
+                          <p className="text-[10px] mt-0.5" style={{ color: isDark ? "#d1d5db" : "#374151" }}>{details}</p>
                         )}
                       </div>
                     );
                   }
-                  
+
                   return (
-                    <div key={event.timeline_id} className="border-l-2 border-purple-500 pl-4">
-                      <p className="font-semibold text-gray-900 capitalize">{event.action.replace(/_/g, " ")}</p>
-                      <p className="text-xs text-gray-500">
+                    <div
+                      key={event.timeline_id}
+                      className="pl-3"
+                      style={{ borderLeft: `2px solid ${isDark ? "#c084fc" : "#7c3aed"}` }}
+                    >
+                      <p className="text-xs font-semibold capitalize" style={{ color: isDark ? "#f3f4f6" : "#1f2937" }}>
+                        {event.action.replace(/_/g, " ")}
+                      </p>
+                      <p className="text-[10px]" style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
                         {displayName} • {new Date(event.created_at).toLocaleString()}
                       </p>
                       {event.details && (
-                        <p className="text-sm text-gray-600 mt-1">{event.details}</p>
+                        <p className="text-[10px] mt-0.5" style={{ color: isDark ? "#d1d5db" : "#374151" }}>{event.details}</p>
                       )}
                     </div>
                   );
@@ -476,32 +698,38 @@ const DisputeDetail: React.FC = () => {
 
           {/* Resolution Info */}
           {dispute.status === "Resolved" && dispute.resolution && (
-            <div className="bg-green-50 rounded-xl p-6 shadow-md border border-green-200">
-              <h3 className="text-lg font-semibold text-green-900 mb-4 flex items-center gap-2">
-                <CheckCircleIcon className="h-5 w-5" />
+            <div
+              className="rounded-lg p-4"
+              style={{
+                backgroundColor: isDark ? "rgba(22,163,74,0.15)" : "#f0fdf4",
+                border: isDark ? "1px solid rgba(22,163,74,0.3)" : "1px solid #bbf7d0",
+              }}
+            >
+              <h3 className="text-sm font-semibold mb-3 flex items-center gap-2" style={{ color: isDark ? "#34d399" : "#15803d" }}>
+                <CheckCircleIcon className="h-4 w-4" />
                 Resolution
               </h3>
               <div className="space-y-2">
                 <div>
-                  <p className="text-xs text-green-700 font-medium">Outcome</p>
-                  <p className="font-semibold text-green-900">{dispute.resolution}</p>
+                  <p className="text-[10px] font-medium" style={{ color: isDark ? "#34d399" : "#15803d" }}>Outcome</p>
+                  <p className="text-xs font-semibold" style={{ color: isDark ? "#f3f4f6" : "#166534" }}>{dispute.resolution}</p>
                 </div>
                 {dispute.resolution_notes && (
                   <div>
-                    <p className="text-xs text-green-700 font-medium">Notes</p>
-                    <p className="text-sm text-green-800">{dispute.resolution_notes}</p>
+                    <p className="text-[10px] font-medium" style={{ color: isDark ? "#34d399" : "#15803d" }}>Notes</p>
+                    <p className="text-xs" style={{ color: isDark ? "#d1d5db" : "#374151" }}>{dispute.resolution_notes}</p>
                   </div>
                 )}
                 {dispute.refund_amount && (
                   <div>
-                    <p className="text-xs text-green-700 font-medium">Refund Amount</p>
-                    <p className="font-semibold text-green-900">${dispute.refund_amount}</p>
+                    <p className="text-[10px] font-medium" style={{ color: isDark ? "#34d399" : "#15803d" }}>Refund Amount</p>
+                    <p className="text-xs font-semibold" style={{ color: isDark ? "#f3f4f6" : "#166534" }}>${dispute.refund_amount}</p>
                   </div>
                 )}
                 {dispute.resolved_at && (
                   <div>
-                    <p className="text-xs text-green-700 font-medium">Resolved Date</p>
-                    <p className="text-sm text-green-800">
+                    <p className="text-[10px] font-medium" style={{ color: isDark ? "#34d399" : "#15803d" }}>Resolved Date</p>
+                    <p className="text-xs" style={{ color: isDark ? "#d1d5db" : "#374151" }}>
                       {new Date(dispute.resolved_at).toLocaleString()}
                     </p>
                   </div>
@@ -514,13 +742,27 @@ const DisputeDetail: React.FC = () => {
 
       {/* Resolve Modal */}
       {showResolveModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-2xl w-full p-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Resolve Dispute</h2>
+        <div
+          className="fixed inset-0 flex items-center justify-center z-50 p-4"
+          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="resolve-dialog-title"
+        >
+          <div
+            className="rounded-xl max-w-2xl w-full p-6"
+            style={{
+              backgroundColor: isDark ? "#1e1833" : "#ffffff",
+              border: isDark ? "1px solid rgba(45,27,105,0.5)" : "1px solid #ede7f8",
+            }}
+          >
+            <h2 id="resolve-dialog-title" className="text-lg font-bold mb-4" style={{ color: isDark ? "#f3f4f6" : "#1f2937" }}>
+              Resolve Dispute
+            </h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Resolution Type *
+                <label className="block text-xs font-semibold mb-1.5" style={{ color: isDark ? "#d1d5db" : "#374151" }}>
+                  Resolution Type <span style={{ color: isDark ? "#f87171" : "#dc2626" }}>*</span>
                 </label>
                 <select
                   value={resolutionData.resolution}
@@ -530,7 +772,13 @@ const DisputeDetail: React.FC = () => {
                       resolution: e.target.value as any,
                     })
                   }
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                  aria-required="true"
+                  className="w-full px-3 py-2 rounded-lg text-xs"
+                  style={{
+                    backgroundColor: isDark ? "rgba(45,27,105,0.2)" : "#f9fafb",
+                    border: isDark ? "1px solid rgba(45,27,105,0.4)" : "1px solid #d1d5db",
+                    color: isDark ? "#f3f4f6" : "#1f2937",
+                  }}
                 >
                   <option value="Refunded">Refunded</option>
                   <option value="Settled">Settled</option>
@@ -539,8 +787,8 @@ const DisputeDetail: React.FC = () => {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Resolution Notes *
+                <label className="block text-xs font-semibold mb-1.5" style={{ color: isDark ? "#d1d5db" : "#374151" }}>
+                  Resolution Notes <span style={{ color: isDark ? "#f87171" : "#dc2626" }}>*</span>
                 </label>
                 <textarea
                   value={resolutionData.resolution_notes}
@@ -552,12 +800,19 @@ const DisputeDetail: React.FC = () => {
                   }
                   rows={4}
                   placeholder="Explain the resolution..."
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 resize-none"
+                  aria-required="true"
+                  aria-label="Resolution notes"
+                  className="w-full px-3 py-2 rounded-lg text-xs resize-none"
+                  style={{
+                    backgroundColor: isDark ? "rgba(45,27,105,0.2)" : "#f9fafb",
+                    border: isDark ? "1px solid rgba(45,27,105,0.4)" : "1px solid #d1d5db",
+                    color: isDark ? "#f3f4f6" : "#1f2937",
+                  }}
                 />
               </div>
               {resolutionData.resolution === "Refunded" && (
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block text-xs font-semibold mb-1.5" style={{ color: isDark ? "#d1d5db" : "#374151" }}>
                     Refund Amount (Optional)
                   </label>
                   <input
@@ -570,25 +825,38 @@ const DisputeDetail: React.FC = () => {
                       })
                     }
                     placeholder="0.00"
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                    aria-label="Refund amount"
+                    className="w-full px-3 py-2 rounded-lg text-xs"
+                    style={{
+                      backgroundColor: isDark ? "rgba(45,27,105,0.2)" : "#f9fafb",
+                      border: isDark ? "1px solid rgba(45,27,105,0.4)" : "1px solid #d1d5db",
+                      color: isDark ? "#f3f4f6" : "#1f2937",
+                    }}
                   />
                 </div>
               )}
-              <div className="flex gap-4 pt-4">
+              <div className="flex gap-3 pt-2">
                 <button
                   onClick={() => setShowResolveModal(false)}
-                  className="px-6 py-2.5 border border-gray-300 rounded-lg font-semibold text-gray-700 hover:bg-gray-50 transition"
+                  className="px-4 py-2 rounded-lg text-xs font-semibold transition"
+                  style={{
+                    backgroundColor: isDark ? "rgba(45,27,105,0.2)" : "#f3f4f6",
+                    color: isDark ? "#d1d5db" : "#374151",
+                    border: isDark ? "1px solid rgba(45,27,105,0.4)" : "1px solid #d1d5db",
+                  }}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleResolve}
                   disabled={resolvingDispute}
-                  className="px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  aria-label="Confirm resolution"
+                  className="px-4 py-2 rounded-lg text-xs font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  style={{ backgroundColor: isDark ? "rgba(22,163,74,0.2)" : "#f0fdf4", color: isDark ? "#34d399" : "#16a34a", border: isDark ? "1px solid rgba(22,163,74,0.3)" : "1px solid #bbf7d0" }}
                 >
                   {resolvingDispute ? (
                     <>
-                      <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
