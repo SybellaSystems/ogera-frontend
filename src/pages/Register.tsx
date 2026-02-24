@@ -181,14 +181,16 @@ const Register = () => {
     }
 
     if (data && isSuccess) {
+      // Capture email before resetForm() clears it
+      const registeredEmail = formik.values.email;
       toast.success(
         "Registration successful! Please check your email to verify your account.",
         { duration: 5000 }
       );
       resetForm();
       setTimeout(() => {
-        navigate("/auth/login", {
-          state: { showVerificationMessage: true, email: formik.values.email },
+        navigate("/auth/verify-email", {
+          state: { email: registeredEmail, fromRegistration: true },
         });
       }, 2000);
     }

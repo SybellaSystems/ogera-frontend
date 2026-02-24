@@ -99,13 +99,14 @@ const Login = () => {
 
     // Fetch user data including permissions immediately after login
     const BASE_URL = import.meta.env.VITE_API_URL;
+    let userData: any = null;
     try {
       const userRes = await axios.get(`${BASE_URL}/auth/me`, {
         headers: { Authorization: `Bearer ${accessToken}` },
         withCredentials: true,
       });
 
-      const userData = (userRes.data as any).user;
+      userData = (userRes.data as any).user;
 
       // Update Redux with complete user data including permissions
       dispatch(
@@ -136,8 +137,18 @@ const Login = () => {
       (window as any).grecaptcha.reset();
     }
 
-    // Allow navigation for all roles (including custom admin roles)
-    navigate("/dashboard");
+    // Check if phone verification is needed before navigating
+    const userRoleType = userData?.role?.toLowerCase() || userData?.roleType?.toLowerCase() || "";
+    const needsPhoneVerification =
+      userData?.phone_verified === false &&
+      userRoleType !== "superadmin" &&
+      !userRoleType.includes("admin");
+
+    if (needsPhoneVerification) {
+      navigate("/auth/verify-phone");
+    } else {
+      navigate("/dashboard");
+    }
   };
 
   const formik = useFormik<LoginFormValues>({

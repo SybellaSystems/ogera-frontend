@@ -67,6 +67,9 @@ import CreateDispute from "./pages/Disputes/CreateDispute";
 import DisputeDetail from "./pages/Disputes/DisputeDetail";
 import MyDisputes from "./pages/Disputes/MyDisputes";
 
+// Verification Pages
+import VerifyPhone from "./pages/VerifyPhone";
+
 // Other Pages
 import Analytics from "./pages/Analytics";
 import Transactions from "./pages/Transactions";
@@ -144,6 +147,7 @@ function App() {
     { path: "/auth/reset-password", Component: ResetPassword },
     { path: "/auth/verify-otp", Component: VerifyOtp },
     { path: "/auth/verify-email", Component: VerifyEmail },
+    { path: "/auth/verify-phone", Component: VerifyPhone },
     { path: "/auth/change-password", Component: ChangePassword },
     { path: "/auth/me", Component: TestRefresh },
 

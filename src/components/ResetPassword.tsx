@@ -1,5 +1,6 @@
 import React from "react";
 import { styled } from "@mui/material/styles";
+import { useTheme } from "../context/ThemeContext";
 
 type InputField = {
   label?: string;
@@ -34,18 +35,44 @@ const RestPasswordTemplate: React.FC<RestPasswordTemplateProps> = ({
   showResend = false,
   disabled = false,
 }) => {
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
+
   return (
-    <PassMainContainer>
-      <BoxContainer>
+    <PassMainContainer
+      style={{
+        background: isDark
+          ? "linear-gradient(180deg, #0f0a1a 0%, #1a1528 50%, #0f0a1a 100%)"
+          : "linear-gradient(180deg, #e4daf5 0%, #ede7f8 50%, #f5f0fc 100%)",
+      }}
+      role="main"
+    >
+      <BoxContainer
+        style={{
+          backgroundColor: isDark ? "#1e1833" : "#ffffff",
+          border: isDark ? "1px solid rgba(45,27,105,0.5)" : "none",
+          boxShadow: isDark
+            ? "0 8px 30px rgba(0,0,0,0.3)"
+            : "0 8px 30px rgba(91, 59, 165, 0.1)",
+        }}
+      >
         <Logo />
         <div>
-          <Heading>{heading}</Heading>
-          <SubHeading>{subHeading}</SubHeading>
+          <Heading style={{ color: isDark ? "#f3f4f6" : "#2d2252" }}>
+            {heading}
+          </Heading>
+          <SubHeading style={{ color: isDark ? "#d1d5db" : "#6b6580" }}>
+            {subHeading}
+          </SubHeading>
         </div>
 
         {fields.map((field, index) => (
           <FieldGroup key={field.name || field.type || index}>
-            {field.type !== "otp" && field.label && <Label>{field.label}</Label>}
+            {field.type !== "otp" && field.label && (
+              <Label style={{ color: isDark ? "#d1d5db" : "#2d2252" }}>
+                {field.label}
+              </Label>
+            )}
 
             {field.type === "otp" ? (
               <>
@@ -63,6 +90,12 @@ const RestPasswordTemplate: React.FC<RestPasswordTemplateProps> = ({
                       maxLength={1}
                       inputMode="numeric"
                       autoComplete="off"
+                      aria-label={`Digit ${i + 1} of ${field.names?.length || 4}`}
+                      style={{
+                        backgroundColor: isDark ? "rgba(45,27,105,0.2)" : "#ffffff",
+                        borderColor: isDark ? "rgba(45,27,105,0.5)" : "#ddd0ec",
+                        color: isDark ? "#e2e8f0" : "#2d2252",
+                      }}
                     />
                   ))}
                 </OtpContainer>
@@ -77,6 +110,11 @@ const RestPasswordTemplate: React.FC<RestPasswordTemplateProps> = ({
                   value={field.value}
                   onChange={field.onChange as React.ChangeEventHandler<HTMLInputElement>}
                   onBlur={field.onBlur}
+                  style={{
+                    backgroundColor: isDark ? "rgba(45,27,105,0.2)" : "#ffffff",
+                    borderColor: isDark ? "rgba(45,27,105,0.5)" : "#ddd0ec",
+                    color: isDark ? "#e2e8f0" : "#2d2252",
+                  }}
                 />
                 {!!field.error && <ErrorText>{String(field.error)}</ErrorText>}
               </>
@@ -96,12 +134,15 @@ const RestPasswordTemplate: React.FC<RestPasswordTemplateProps> = ({
         </SubmitButton>
 
         {showResend && (
-          <ResendClick>
+          <ResendClick style={{ color: isDark ? "#d1d5db" : "#6b6580" }}>
             If you don't receive a code! <span>Resend</span>
           </ResendClick>
         )}
 
-        <BackLink href="/auth/login">
+        <BackLink
+          href="/auth/login"
+          style={{ color: isDark ? "#c084fc" : "#7F56D9" }}
+        >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M19 12H5M12 19l-7-7 7-7" />
           </svg>

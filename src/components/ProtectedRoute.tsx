@@ -16,6 +16,13 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles }) => {
 
   // ⭐ Superadmin has access to all routes - bypass role checks
   const isSuperadmin = role?.toLowerCase() === 'superadmin';
+  const isAdmin = role?.toLowerCase().includes('admin');
+
+  // Check phone verification status (skip for admin roles)
+  if (!isSuperadmin && !isAdmin && user.phone_verified === false) {
+    return <Navigate to="/auth/verify-phone" replace />;
+  }
+
   if (isSuperadmin) {
     return <Outlet />;
   }
