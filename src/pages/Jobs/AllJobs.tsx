@@ -182,39 +182,36 @@ const AllJobs: React.FC = () => {
         </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-        <div className="bg-[#f5f0fc] rounded-xl p-4 md:p-6 border border-[#ddd0ec]">
+        <div className="bg-[#f5f0fc] rounded-xl p-4 md:p-6 border border-[#ddd0ec] hover:shadow-sm transition-shadow">
           <p className="text-xs md:text-sm text-[#6941C6] font-medium">Total Jobs</p>
           <p className="text-2xl md:text-3xl font-bold text-[#2d1b69] mt-2">{totalJobs}</p>
         </div>
-        <div className="bg-green-50 rounded-xl p-4 md:p-6 border border-green-200">
-          <p className="text-xs md:text-sm text-green-700 font-medium">Active Jobs</p>
-          <p className="text-2xl md:text-3xl font-bold text-green-900 mt-2">{activeJobs}</p>
+        <div className="bg-orange-50 rounded-xl p-4 md:p-6 border border-orange-200 hover:shadow-sm transition-shadow">
+          <p className="text-xs md:text-sm text-orange-700 font-medium">Active Jobs</p>
+          <p className="text-2xl md:text-3xl font-bold text-orange-900 mt-2">{activeJobs}</p>
         </div>
-        <div className="bg-blue-50 rounded-xl p-4 md:p-6 border border-blue-200">
-          <p className="text-xs md:text-sm text-blue-700 font-medium">Total Applicants</p>
-          <p className="text-2xl md:text-3xl font-bold text-blue-900 mt-2">
-            {totalApplicants}
-          </p>
+        <div className="bg-green-50 rounded-xl p-4 md:p-6 border border-green-200 hover:shadow-sm transition-shadow">
+          <p className="text-xs md:text-sm text-green-700 font-medium">Total Applicants</p>
+          <p className="text-2xl md:text-3xl font-bold text-green-900 mt-2">{totalApplicants}</p>
         </div>
-        <div className="bg-orange-50 rounded-xl p-4 md:p-6 border border-orange-200">
-          <p className="text-xs md:text-sm text-orange-700 font-medium">Pending Review</p>
-          <p className="text-2xl md:text-3xl font-bold text-orange-900 mt-2">{pendingJobs}</p>
+        <div className="bg-red-50 rounded-xl p-4 md:p-6 border border-red-200 hover:shadow-sm transition-shadow">
+          <p className="text-xs md:text-sm text-red-700 font-medium">Pending Review</p>
+          <p className="text-2xl md:text-3xl font-bold text-red-900 mt-2">{pendingJobs}</p>
         </div>
       </div>
 
       {/* Search and Filter Bar */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 md:p-4">
-        <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-2 md:p-3">
+        <div className="flex flex-col sm:flex-row gap-2 md:gap-3">
           {/* Search Input */}
           <div className="flex-1 relative">
-            <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 md:h-5 md:w-5 text-gray-400" />
+            <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4  text-gray-400" />
             <input
               type="text"
               placeholder="Search jobs..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 md:pl-10 pr-4 py-2 md:py-2.5 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
+className="w-full pl-9 pr-4 py-1.5 md:py-2 text-xs md:text-sm border border-gray-200 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all outline-none"            />
           </div>
 
           {/* Location Filter */}
@@ -223,8 +220,7 @@ const AllJobs: React.FC = () => {
             <select
               value={selectedLocation}
               onChange={(e) => setSelectedLocation(e.target.value)}
-              className="w-full pl-9 md:pl-10 pr-4 py-2 md:py-2.5 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white"
-            >
+className="w-full pl-9 pr-8 py-1.5 md:py-2 text-xs md:text-sm border border-gray-200 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent appearance-none bg-white cursor-pointer transition-all outline-none"            >
               <option value="">All Locations</option>
               {locations.map((location: string) => (
                 <option key={location} value={location}>
@@ -239,8 +235,7 @@ const AllJobs: React.FC = () => {
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
-              className="w-full px-4 py-2 md:py-2.5 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white"
-            >
+className="w-full pl-9 pr-8 py-1.5 md:py-2 text-xs md:text-sm border border-gray-200 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent appearance-none bg-white cursor-pointer transition-all outline-none"            >
               <option value="">All Status</option>
               {statuses.map((status: string) => (
                 <option key={status} value={status}>
@@ -267,7 +262,7 @@ const AllJobs: React.FC = () => {
           </p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {filteredJobs.map((job: any) => {
             const employerName = job.employer?.full_name || "Unknown Employer";
             const companyInitial = employerName.charAt(0).toUpperCase();
@@ -383,7 +378,7 @@ const AllJobs: React.FC = () => {
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex flex-wrap gap-1.5 md:ml-4 md:flex-shrink-0 items-start">
+                  <div className="flex flex-col sm:flex-row md:flex-col gap-1.5 md:ml-4 md:flex-shrink-0 items-start">
                     {role === "student" ? (
                       <button
                         onClick={() => !appliedJobIds.has(job.job_id) && handleApply(job)}

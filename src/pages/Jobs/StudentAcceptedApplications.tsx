@@ -9,12 +9,13 @@ import Loader from "../../components/Loader";
 
 const StudentAcceptedApplications: React.FC = () => {
   const navigate = useNavigate();
-  const { data, isLoading, error } = useGetStudentApplicationsQuery();
+  const { data, isLoading, error } = useGetStudentApplicationsQuery(
+    { status: "Accepted" },
+    { refetchOnMountOrArgChange: true }
+  );
 
   const applications = data?.data || [];
-  const acceptedApplications = applications.filter(
-    (app) => app.status === "Accepted"
-  );
+  const acceptedApplications = applications;
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -88,7 +89,7 @@ const StudentAcceptedApplications: React.FC = () => {
           </button>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {acceptedApplications.map((application) => (
             <div
               key={application.application_id}

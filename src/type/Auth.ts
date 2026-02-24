@@ -6,6 +6,7 @@ export interface RegisterFormValues {
   national_id_number: string;
   businessId: string;
   mobile_number: string;
+  countryCode: string;
   terms: boolean;
   privacy: boolean;
 }
@@ -14,6 +15,7 @@ export interface RegisterFormValues {
 export interface LoginFormValues {
   email: string;
   password: string;
+  captchaToken?: string;
 }
 
 export interface ResetPasswordFormValues {

@@ -5,87 +5,212 @@ import IconButton from "@mui/material/IconButton";
 import InputAdornment from "@mui/material/InputAdornment";
 import TextField from "@mui/material/TextField";
 import { useFormik } from "formik";
-import { useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { loginValidationSchema } from "../validation/Index";
 import type { LoginFormValues } from "../type/Index";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useDispatch } from "react-redux";
 import { loginApi } from "../services/api/loginApi";
+import { verifyLogin2FA } from "../services/api/twoFactorApi";
 import { jwtDecode } from "jwt-decode";
 import { setCredentials } from "../features/auth/authSlice";
 import axios from "axios";
+import LostAuthenticatorModal from "../components/LostAuthenticatorModal";
+
+const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const reCaptchaRef = useRef<any>(null);
+  const [twoFactorRequired, setTwoFactorRequired] = useState(false);
+  const [twoFactorToken, setTwoFactorToken] = useState("");
+  const [twoFactorCode, setTwoFactorCode] = useState("");
+  const [verifying2FA, setVerifying2FA] = useState(false);
+  const [showLostAuthenticatorModal, setShowLostAuthenticatorModal] = useState(false);
+  const [isLostAuthenticatorClicked, setIsLostAuthenticatorClicked] = useState(false);
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
+  // Load reCAPTCHA script only if a valid site key is provided
+  useEffect(() => {
+    if (!RECAPTCHA_SITE_KEY) {
+      return; // Don't load reCAPTCHA if no key is configured
+    }
+
+    const script = document.createElement('script');
+    script.src = 'https://www.google.com/recaptcha/api.js';
+    script.async = true;
+    script.defer = true;
+    document.head.appendChild(script);
+
+    return () => {
+      if (document.head.contains(script)) {
+        document.head.removeChild(script);
+      }
+    };
+  }, []);
+
   const handleClickShowPassword = () => setShowPassword((prev) => !prev);
+
+  const finishLogin = async (accessToken: string) => {
+    const decoded: any = jwtDecode(accessToken);
+    const role = decoded.role;
+    const user = { id: decoded.user_id };
+
+    // Fetch user data including permissions immediately after login
+    const BASE_URL = import.meta.env.VITE_API_URL;
+    try {
+      const userRes = await axios.get(`${BASE_URL}/auth/me`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+        withCredentials: true,
+      });
+
+      const userData = (userRes.data as any).user;
+
+      // Update Redux with complete user data including permissions
+      dispatch(
+        setCredentials({
+          user: userData,
+          accessToken,
+          role: userData.role,
+          permissions: userData.permissions || null,
+        })
+      );
+    } catch (error: any) {
+      console.error("⚠️ [LOGIN] Failed to fetch user data, using basic info:", error);
+      // Fallback: store basic info without permissions (will be fetched on page load)
+      dispatch(
+        setCredentials({
+          user,
+          accessToken,
+          role,
+        })
+      );
+    }
+
+    toast.success("You're logged in!");
+    formik.resetForm();
+
+    // Reset reCAPTCHA widget after successful login
+    if (RECAPTCHA_SITE_KEY && (window as any).grecaptcha && reCaptchaRef.current) {
+      (window as any).grecaptcha.reset();
+    }
+
+    // Allow navigation for all roles (including custom admin roles)
+    navigate("/dashboard");
+  };
 
   const formik = useFormik<LoginFormValues>({
     initialValues: {
       email: "",
       password: "",
+      captchaToken: "",
     },
     validationSchema: loginValidationSchema,
     onSubmit: async (values) => {
       try {
         setLoading(true);
 
-        const result: any = await dispatch<any>(loginApi(values));
-
-        const accessToken = result.data.accessToken;
-        const decoded: any = jwtDecode(accessToken);
-
-        const role = decoded.role;
-        const user = { id: decoded.user_id };
-
-        // Fetch user data including permissions immediately after login
-        const BASE_URL = import.meta.env.VITE_API_URL;
-        try {
-          const userRes = await axios.get(`${BASE_URL}/auth/me`, {
-            headers: { Authorization: `Bearer ${accessToken}` },
-            withCredentials: true,
-          });
-
-          const userData = (userRes.data as any).user;
-          console.log('🔍 [LOGIN] User data fetched:', {
-            role: userData.role,
-            permissions: userData.permissions,
-          });
-
-          dispatch(
-            setCredentials({
-              user: userData,
-              accessToken,
-              role: userData.role,
-              permissions: userData.permissions || null,
-            })
-          );
-        } catch (error: any) {
-          console.error('⚠️ [LOGIN] Failed to fetch user data, using basic info:', error);
-          dispatch(
-            setCredentials({
-              user,
-              accessToken,
-              role,
-            })
-          );
+        // Get CAPTCHA token from the checkbox widget (only if reCAPTCHA is enabled)
+        if (RECAPTCHA_SITE_KEY && !twoFactorRequired) {
+          if ((window as any).grecaptcha) {
+            const token = (window as any).grecaptcha.getResponse();
+            if (!token) {
+              toast.error('Please complete the reCAPTCHA verification');
+              setLoading(false);
+              return;
+            }
+            values.captchaToken = token;
+          } else {
+            console.warn('reCAPTCHA not loaded');
+          }
         }
 
-        toast.success("You're logged in!");
-        formik.resetForm();
-        navigate("/dashboard");
+        const result: any = await dispatch<any>(loginApi(values));
+
+        if (result?.data?.requires2FA) {
+          setTwoFactorRequired(true);
+          setTwoFactorToken(result.data.twoFactorToken || "");
+          if (!isLostAuthenticatorClicked) {
+            toast("Enter the 6-digit code from Google Authenticator to complete login.");
+          }
+          setIsLostAuthenticatorClicked(false); // Reset after use
+          return;
+        }
+
+        const accessToken = result?.data?.accessToken;
+        if (!accessToken) {
+          throw new Error("Login failed: access token missing");
+        }
+
+        await finishLogin(accessToken);
       } catch (error: any) {
-        toast.error(error?.response?.data?.message || "Login failed");
+        // Log error details for debugging
+        console.log("🔍 Login error:", error);
+        console.log("🔍 Error response:", error?.response);
+        console.log("🔍 Error status:", error?.response?.status);
+        console.log("🔍 Error message:", error?.response?.data?.message);
+        console.log("🔍 Error payload:", error?.payload);
+        console.log("🔍 Error type:", error?.type);
+        
+        const errorMessage = error?.response?.data?.message || error?.payload?.message || error?.message || "";
+
+        // Suppress reCAPTCHA client error when 2FA step is active
+        const isNoRecaptchaClientsError =
+          typeof errorMessage === "string" &&
+          errorMessage.toLowerCase().includes("no recaptcha clients exist");
+
+        if (!(twoFactorRequired && isNoRecaptchaClientsError)) {
+          toast.error(errorMessage || "Login failed");
+        }
+        // Reset CAPTCHA on error
+        if (RECAPTCHA_SITE_KEY && (window as any).grecaptcha) {
+          (window as any).grecaptcha.reset();
+        }
       } finally {
         setLoading(false);
       }
     },
   });
+
+  const handleVerify2FALogin = async () => {
+    try {
+      if (!twoFactorToken) {
+        toast.error("2FA session expired. Please login again.");
+        setTwoFactorRequired(false);
+        return;
+      }
+      if (!twoFactorCode.trim()) {
+        toast.error("Please enter the 6-digit code");
+        return;
+      }
+      setVerifying2FA(true);
+      const res = await verifyLogin2FA(twoFactorToken, twoFactorCode.trim());
+      const accessToken = res.data.accessToken;
+      setTwoFactorRequired(false);
+      setTwoFactorToken("");
+      setTwoFactorCode("");
+      await finishLogin(accessToken);
+    } catch (error: any) {
+      const msg =
+        error?.response?.data?.message ||
+        error?.message ||
+        "2FA verification failed";
+
+      const isNoRecaptchaClientsError =
+        typeof msg === "string" &&
+        msg.toLowerCase().includes("no recaptcha clients exist");
+
+      if (!isNoRecaptchaClientsError) {
+        toast.error(msg);
+      }
+    } finally {
+      setVerifying2FA(false);
+    }
+  };
 
   return (
     <PageWrapper>
@@ -141,7 +266,7 @@ const Login = () => {
                 sx={{
                   "& .MuiOutlinedInput-root": {
                     borderRadius: "10px",
-                    fontFamily: "'Nunito', sans-serif",
+                    fontFamily: "’Nunito’, sans-serif",
                     fontSize: "14px",
                     backgroundColor: "#ffffff",
                     color: "#2d2252",
@@ -179,20 +304,69 @@ const Login = () => {
 
             <ForgotLink href="/auth/forgot-password">Forgot password?</ForgotLink>
 
-            <SubmitButton type="submit" disabled={loading}>
-              {loading ? (
-                <>
-                  <Spinner />
-                  Signing in...
-                </>
-              ) : (
-                "Sign In"
-              )}
-            </SubmitButton>
+            {/* 2FA Step (only when required) */}
+            {twoFactorRequired && (
+              <FieldGroup>
+                <FieldLabel htmlFor="twoFactorCode">2FA Code</FieldLabel>
+                <StyledInput
+                  id="twoFactorCode"
+                  name="twoFactorCode"
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="Enter 6-digit code"
+                  value={twoFactorCode}
+                  onChange={(e: any) => setTwoFactorCode(e.target.value)}
+                />
+                <LostAuthenticatorLink
+                  onClick={() => {
+                    setIsLostAuthenticatorClicked(true);
+                    setShowLostAuthenticatorModal(true);
+                  }}
+                >
+                  Lost Authenticator?
+                </LostAuthenticatorLink>
+                <SubmitButton type="button" onClick={handleVerify2FALogin as any} disabled={verifying2FA}>
+                  {verifying2FA ? (
+                    <>
+                      <Spinner />
+                      Verifying...
+                    </>
+                  ) : (
+                    "Verify & Continue"
+                  )}
+                </SubmitButton>
+              </FieldGroup>
+            )}
 
-            <BottomLink>
-              Don't have an account? <a href="/auth/register">Create one</a>
-            </BottomLink>
+            {/* reCAPTCHA */}
+            {!twoFactorRequired && RECAPTCHA_SITE_KEY && (
+              <RecaptchaContainer>
+                <div
+                  ref={reCaptchaRef}
+                  className="g-recaptcha"
+                  data-sitekey={RECAPTCHA_SITE_KEY}
+                ></div>
+              </RecaptchaContainer>
+            )}
+
+            {!twoFactorRequired && (
+              <>
+                <SubmitButton type="submit" disabled={loading}>
+                  {loading ? (
+                    <>
+                      <Spinner />
+                      Signing in...
+                    </>
+                  ) : (
+                    "Sign In"
+                  )}
+                </SubmitButton>
+
+                <BottomLink>
+                  Don’t have an account? <a href="/auth/register">Create one</a>
+                </BottomLink>
+              </>
+            )}
           </Form>
         </FormWrapper>
       </LeftPanel>
@@ -203,7 +377,7 @@ const Login = () => {
         <RightInner>
           <RightLogo />
           <RightCard>
-            <h2>Empowering Africa's Students</h2>
+            <h2>Empowering Africa’s Students</h2>
             <p>
               Ogera connects ambitious students with flexible job opportunities
               and instant mobile money payments.
@@ -212,6 +386,14 @@ const Login = () => {
           <RightFooter>Trusted by students across Africa</RightFooter>
         </RightInner>
       </RightPanel>
+
+      {/* Lost Authenticator Modal */}
+      <LostAuthenticatorModal
+        isOpen={showLostAuthenticatorModal}
+        onClose={() => setShowLostAuthenticatorModal(false)}
+        userEmail={formik.values.email}
+        userPassword={formik.values.password}
+      />
     </PageWrapper>
   );
 };
@@ -337,6 +519,16 @@ const StyledInput = styled("input")<{ $hasError?: boolean }>(({ $hasError }) => 
     color: "#7a7290",
   },
 }));
+
+const RecaptchaContainer = styled("div")({
+  display: "flex",
+  justifyContent: "center",
+  margin: "10px 0",
+  "& .g-recaptcha": {
+    transform: "scale(0.9)",
+    transformOrigin: "0 0",
+  },
+});
 
 const ErrorMsg = styled("span")({
   fontSize: "12px",
@@ -504,6 +696,20 @@ const RightCard = styled("div")({
     opacity: 0.9,
     fontWeight: 400,
   },
+});
+
+const LostAuthenticatorLink = styled("button")({
+  fontSize: "12px",
+  color: "#7F56D9",
+  cursor: "pointer",
+  alignSelf: "flex-start",
+  textDecoration: "none",
+  marginBottom: "8px",
+  background: "none",
+  border: "none",
+  padding: 0,
+  fontFamily: "'Nunito', sans-serif",
+  "&:hover": { textDecoration: "underline", color: "#6941C6" },
 });
 
 const RightFooter = styled("p")({

@@ -9,7 +9,6 @@ import {
   UsersIcon,
   BriefcaseIcon,
   ChartBarIcon,
-  NoSymbolIcon,
   ExclamationTriangleIcon,
   ChevronDownIcon,
   AcademicCapIcon,
@@ -20,8 +19,6 @@ import {
   ClockIcon,
   CheckCircleIcon,
   XCircleIcon,
-  ChartBarSquareIcon,
-  LockClosedIcon,
   FolderIcon,
   FireIcon,
   ArrowPathIcon,
@@ -29,6 +26,8 @@ import {
   ShieldCheckIcon,
   PlusIcon,
   EyeIcon,
+  DocumentTextIcon,
+  BanknotesIcon,
   ListBulletIcon,
 } from "@heroicons/react/24/outline";
 
@@ -179,8 +178,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         {location.pathname === "/dashboard/academic/pending" && "Pending Reviews"}
                         {location.pathname === "/dashboard/academic/approved" && "Approved"}
                         {location.pathname === "/dashboard/academic/rejected" && "Rejected"}
-                        {location.pathname === "/dashboard/academic/performance" && "Performance Track"}
-                        {location.pathname === "/dashboard/academic/locks" && "Account Locks"}
+                        {/* {location.pathname === "/dashboard/academic/performance" && "Performance Track"} */}
+                        {/* {location.pathname === "/dashboard/academic/locks" && "Account Locks"} */}
                       </span>
                     )}
                   </div>
@@ -263,7 +262,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                       Rejected
                     </span>
                   </li>
-                  <li
+                  {/* <li
                     className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
                       isActive("/dashboard/academic/performance")
                         ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
@@ -285,33 +284,30 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     }`}>
                       Performance Track
                     </span>
-                  </li>
-                  {/* Account Locks - Admin only */}
-                  {isBuiltInAdmin && (
-                    <li
-                      className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
-                        isActive("/dashboard/academic/locks")
-                          ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
-                          : "hover:text-purple-300 hover:bg-[#9F7AEA]/10 text-white/60"
-                      }`}
-                      onClick={() =>
-                        handleNavigation("/dashboard/academic/locks")
-                      }
-                    >
-                      <LockClosedIcon className={`h-4 w-4 transition-colors ${
-                        isActive("/dashboard/academic/locks")
-                          ? "text-[#9F7AEA]"
-                          : "text-white/40 group-hover/item:text-[#9F7AEA]"
-                      }`} />
-                      <span className={`transition-colors ${
-                        isActive("/dashboard/academic/locks")
-                          ? "text-white font-medium"
-                          : "group-hover/item:text-white"
-                      }`}>
-                        Account Locks
-                      </span>
-                    </li>
-                  )}
+                  </li> */}
+                  {/* <li
+                    className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
+                      isActive("/dashboard/academic/locks")
+                        ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
+                        : "hover:text-purple-300 hover:bg-[#9F7AEA]/10 text-white/60"
+                    }`}
+                    onClick={() =>
+                      handleNavigation("/dashboard/academic/locks")
+                    }
+                  >
+                    <LockClosedIcon className={`h-4 w-4 transition-colors ${
+                      isActive("/dashboard/academic/locks")
+                        ? "text-[#9F7AEA]"
+                        : "text-white/40 group-hover/item:text-[#9F7AEA]"
+                    }`} />
+                    <span className={`transition-colors ${
+                      isActive("/dashboard/academic/locks")
+                        ? "text-white font-medium"
+                        : "group-hover/item:text-white"
+                    }`}>
+                      Account Locks
+                    </span>
+                  </li> */}
                 </ul>
               )}
             </div>
@@ -335,8 +331,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         {location.pathname === "/dashboard/users/all" && "All Users"}
                         {location.pathname === "/dashboard/users/students" && "Students"}
                         {location.pathname === "/dashboard/users/employers" && "Employers"}
-                        {location.pathname === "/dashboard/users/pending" && "Pending Approval"}
-                        {location.pathname === "/dashboard/users/suspended" && "Suspended"}
+                        {/* {location.pathname === "/dashboard/users/pending" && "Pending Approval"} */}
+                        {/* {location.pathname === "/dashboard/users/suspended" && "Suspended"} */}
                       </span>
                     )}
                   </div>
@@ -417,7 +413,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                       Employers
                     </span>
                   </li>
-                  <li
+                  {/* <li
                     className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
                       isActive("/dashboard/users/pending")
                         ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
@@ -437,8 +433,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     }`}>
                       Pending Approval
                     </span>
-                  </li>
-                  <li
+                  </li> */}
+                  {/* <li
                     className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
                       isActive("/dashboard/users/suspended")
                         ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
@@ -460,7 +456,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     }`}>
                       Suspended
                     </span>
-                  </li>
+                  </li> */}
                 </ul>
               )}
             </div>
@@ -729,7 +725,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         {location.pathname === "/dashboard/academic/approved" && "Approved"}
                         {location.pathname === "/dashboard/academic/rejected" && "Rejected"}
                         {location.pathname === "/dashboard/academic/performance" && "Performance Track"}
-                        {location.pathname === "/dashboard/academic/locks" && "Account Locks"}
+                        {/* {location.pathname === "/dashboard/academic/locks" && "Account Locks"} */}
                       </span>
                     )}
                   </div>
@@ -812,7 +808,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                       Rejected
                     </span>
                   </li>
-                  <li
+                  {/* <li
                     className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
                       isActive("/dashboard/academic/performance")
                         ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
@@ -834,33 +830,30 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     }`}>
                       Performance Track
                     </span>
-                  </li>
-                  {/* Account Locks - Admin only */}
-                  {isBuiltInAdmin && (
-                    <li
-                      className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
-                        isActive("/dashboard/academic/locks")
-                          ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
-                          : "hover:text-purple-300 hover:bg-[#9F7AEA]/10 text-white/60"
-                      }`}
-                      onClick={() =>
-                        handleNavigation("/dashboard/academic/locks")
-                      }
-                    >
-                      <LockClosedIcon className={`h-4 w-4 transition-colors ${
-                        isActive("/dashboard/academic/locks")
-                          ? "text-[#9F7AEA]"
-                          : "text-white/40 group-hover/item:text-[#9F7AEA]"
-                      }`} />
-                      <span className={`transition-colors ${
-                        isActive("/dashboard/academic/locks")
-                          ? "text-white font-medium"
-                          : "group-hover/item:text-white"
-                      }`}>
-                        Account Locks
-                      </span>
-                    </li>
-                  )}
+                  </li> */}
+                  {/* <li
+                    className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
+                      isActive("/dashboard/academic/locks")
+                        ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
+                        : "hover:text-purple-300 hover:bg-[#9F7AEA]/10 text-white/60"
+                    }`}
+                    onClick={() =>
+                      handleNavigation("/dashboard/academic/locks")
+                    }
+                  >
+                    <LockClosedIcon className={`h-4 w-4 transition-colors ${
+                      isActive("/dashboard/academic/locks")
+                        ? "text-[#9F7AEA]"
+                        : "text-white/40 group-hover/item:text-[#9F7AEA]"
+                    }`} />
+                    <span className={`transition-colors ${
+                      isActive("/dashboard/academic/locks")
+                        ? "text-white font-medium"
+                        : "group-hover/item:text-white"
+                    }`}>
+                      Account Locks
+                    </span>
+                  </li> */}
                 </ul>
               )}
             </div>
@@ -1139,7 +1132,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         Completed
                       </span>
                     </li>
-                    {isBuiltInAdmin && (
+                    {/* {isBuiltInAdmin && (
                       <li
                         className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
                           isActive("/dashboard/jobs/pending")
@@ -1163,7 +1156,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                           Pending Approval
                         </span>
                       </li>
-                    )}
+                    )} */}
                     {isBuiltInAdmin && (
                       <li
                         className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
@@ -1333,14 +1326,78 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           {/* Transaction - All roles with permission check (not verifyDocAdmin) */}
           {role !== "verifyDocAdmin" &&
             (isBuiltInAdmin || hasAnyPermission(permissions, "/transactions", role)) && (
-              <div
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 group ${isActive("/dashboard/transactions") ? "bg-[#9F7AEA]/15 text-white border-l-2 border-[#9F7AEA]" : "hover:bg-[#9F7AEA]/10"}`}
-                onClick={() => handleNavigation("/dashboard/transactions")}
-              >
-                <CreditCardIcon className="h-5 w-5 text-white/70 group-hover:text-white transition-colors" />
-                <span className="font-medium group-hover:text-white transition-colors">
-                  Transaction
-                </span>
+              <div>
+                <div
+                  className={`flex items-center justify-between px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 group ${isActiveGroup("/dashboard/transactions") ? "bg-[#9F7AEA]/15 border-l-2 border-[#9F7AEA]" : "hover:bg-[#9F7AEA]/10"}`}
+                  onClick={() => toggleMenu("transactions")}
+                >
+                  <div className="flex items-center gap-3">
+                    <CreditCardIcon className="h-5 w-5 text-white/70 group-hover:text-white transition-colors" />
+                    <div className="flex flex-col">
+                      <span className="font-medium group-hover:text-white transition-colors">
+                        Transaction
+                      </span>
+                      {isActiveGroup("/dashboard/transactions") && openMenu !== "transactions" && (
+                        <span className="text-xs text-[#9F7AEA] font-medium">
+                          {location.pathname === "/dashboard/transactions" && "Transactions"}
+                          {location.pathname === "/dashboard/transactions/pay" && "Pay"}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <ChevronDownIcon
+                    className={`h-4 w-4 transition-transform duration-200 text-white/50 group-hover:text-white ${
+                      openMenu === "transactions" ? "rotate-180 text-white" : ""
+                    }`}
+                  />
+                </div>
+
+                {openMenu === "transactions" && (
+                  <ul className="pl-11 space-y-1 text-sm mt-2 animate-fadeIn">
+                    <li
+                      className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
+                        isActive("/dashboard/transactions")
+                          ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
+                          : "hover:text-purple-300 hover:bg-[#9F7AEA]/10 text-white/60"
+                      }`}
+                      onClick={() => handleNavigation("/dashboard/transactions")}
+                    >
+                      <DocumentTextIcon className={`h-4 w-4 transition-colors ${
+                        isActive("/dashboard/transactions")
+                          ? "text-[#9F7AEA]"
+                          : "text-white/40 group-hover/item:text-[#9F7AEA]"
+                      }`} />
+                      <span className={`transition-colors ${
+                        isActive("/dashboard/transactions")
+                          ? "text-white font-medium"
+                          : "group-hover/item:text-white"
+                      }`}>
+                        Transactions
+                      </span>
+                    </li>
+                    <li
+                      className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
+                        isActive("/dashboard/transactions/pay")
+                          ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
+                          : "hover:text-purple-300 hover:bg-[#9F7AEA]/10 text-white/60"
+                      }`}
+                      onClick={() => handleNavigation("/dashboard/transactions/pay")}
+                    >
+                      <BanknotesIcon className={`h-4 w-4 transition-colors ${
+                        isActive("/dashboard/transactions/pay")
+                          ? "text-[#9F7AEA]"
+                          : "text-white/40 group-hover/item:text-[#9F7AEA]"
+                      }`} />
+                      <span className={`transition-colors ${
+                        isActive("/dashboard/transactions/pay")
+                          ? "text-white font-medium"
+                          : "group-hover/item:text-white"
+                      }`}>
+                        Pay
+                      </span>
+                    </li>
+                  </ul>
+                )}
               </div>
             )}
 

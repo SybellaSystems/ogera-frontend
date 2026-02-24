@@ -120,8 +120,12 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   const handleNotificationClick = async (notification: any) => {
     if (!notification.is_read) {
       try {
-        await markAsRead(notification.notification_id);
-        refetchUnreadCount();
+        await markAsRead(notification.notification_id).unwrap();
+        // Force refetch both queries to update the UI
+        await Promise.all([
+          refetchUnreadCount(),
+          refetchNotifications(),
+        ]);
       } catch (error) {
         console.error("Failed to mark notification as read:", error);
         // Optionally show user-friendly error message
@@ -151,9 +155,12 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
 
   const handleMarkAllAsRead = async () => {
     try {
-      await markAllAsRead();
-      refetchUnreadCount();
-      refetchNotifications();
+      await markAllAsRead().unwrap();
+      // Force refetch both queries to update the UI
+      await Promise.all([
+        refetchUnreadCount(),
+        refetchNotifications(),
+      ]);
     } catch (error) {
       console.error("Failed to mark all notifications as read:", error);
     }

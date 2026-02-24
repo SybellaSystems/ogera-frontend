@@ -22,6 +22,7 @@ import { useSelector } from "react-redux";
 import toast from "react-hot-toast";
 import Loader from "../../components/Loader";
 import { hasPermission } from "../../utils/permissionUtils";
+import { getSocket, joinDisputeRoom, leaveDisputeRoom } from "../../utils/socket";
 
 const DisputeDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -29,6 +30,7 @@ const DisputeDetail: React.FC = () => {
   const role = useSelector((state: any) => state.auth.role);
   const user_id = useSelector((state: any) => state.auth.user_id);
   const permissions = useSelector((state: any) => state.auth.permissions);
+  const accessToken = useSelector((state: any) => state.auth.accessToken);
 
   const [dispute, setDispute] = useState<Dispute | null>(null);
   const [evidence, setEvidence] = useState<DisputeEvidence[]>([]);
@@ -58,6 +60,45 @@ const DisputeDetail: React.FC = () => {
       fetchDisputeDetails();
     }
   }, [id]);
+
+  // Socket.IO setup for real-time messaging
+  useEffect(() => {
+    if (!id || !accessToken) return;
+
+    const getToken = () => accessToken;
+    const socket = getSocket(getToken);
+    
+    if (!socket) return;
+
+    // Join dispute room
+    joinDisputeRoom(id, getToken);
+
+    // Listen for new messages
+    const handleNewMessage = (data: { message: DisputeMessage }) => {
+      setMessages((prev) => {
+        // Check if message already exists to avoid duplicates
+        const exists = prev.some((msg) => msg.message_id === data.message.message_id);
+        if (exists) return prev;
+        return [...prev, data.message];
+      });
+    };
+
+    socket.on('new_message', handleNewMessage);
+    socket.on('joined_dispute', () => {
+      console.log('Joined dispute room:', id);
+    });
+    socket.on('error', (error: any) => {
+      console.error('Socket error:', error);
+    });
+
+    // Cleanup on unmount
+    return () => {
+      leaveDisputeRoom(id, getToken);
+      socket.off('new_message', handleNewMessage);
+      socket.off('joined_dispute');
+      socket.off('error');
+    };
+  }, [id, accessToken]);
 
   const fetchDisputeDetails = async () => {
     try {

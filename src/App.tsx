@@ -71,6 +71,9 @@ import MyDisputes from "./pages/Disputes/MyDisputes";
 import Analytics from "./pages/Analytics";
 import Transactions from "./pages/Transactions";
 import Notifications from "./pages/Notifications/Notifications";
+import Pay from "./pages/Transactions/Pay";
+import PaymentCallback from "./pages/PaymentCallback";
+import PaymentCancelled from "./pages/PaymentCancelled";
 
 // Admin Pages
 import CreateAdmin from "./pages/Admin/CreateAdmin";
@@ -143,6 +146,10 @@ function App() {
     { path: "/auth/verify-email", Component: VerifyEmail },
     { path: "/auth/change-password", Component: ChangePassword },
     { path: "/auth/me", Component: TestRefresh },
+
+    /** ---------------- PAYMENT CALLBACK (Public - Pesapal redirect) ---------------- **/
+    { path: "/payment/callback", Component: PaymentCallback },
+    { path: "/payment/cancelled", Component: PaymentCancelled },
 
     /** ---------------- PROTECTED DASHBOARD ROUTES ---------------- **/
     {
@@ -312,7 +319,8 @@ function App() {
             },
             {
               path: "jobs/applications",
-              element: <ProtectedRoute allowedRoles={["employer", "admin", "superadmin"]} />,
+              // Employer/superadmin manage incoming applications. Students should use "My Applications".
+              element: <ProtectedRoute allowedRoles={["employer", "superadmin"]} />,
               children: [
                 {
                   index: true,
@@ -411,6 +419,10 @@ function App() {
             {
               path: "notifications",
               Component: Notifications,
+            },
+            {
+              path: "transactions/pay",
+              Component: Pay,
             },
             {
               path: "courses/add",

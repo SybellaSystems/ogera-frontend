@@ -29,6 +29,7 @@ const validationSchema = Yup.object({
 const CreateDispute: React.FC = () => {
   const navigate = useNavigate();
   const role = useSelector((state: any) => state.auth.role);
+  const user = useSelector((state: any) => state.auth.user);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -40,23 +41,33 @@ const CreateDispute: React.FC = () => {
   });
 
   const allJobs = jobsData?.data || [];
-  const currentUserId = profileData?.data?.user_id;
+  // Get user_id from multiple sources - profileData is most reliable, then user object from Redux
+  const currentUserId = profileData?.data?.user_id || user?.user_id;
 
-  // Filter jobs based on role
-  let jobs: any[] = [];
-  if (role === "student") {
-    // For students: show jobs they've applied to
-    const appliedJobIds = new Set(
-      (studentApplications?.data || []).map((app: any) => app.job_id)
-    );
-    jobs = allJobs.filter((job: any) => appliedJobIds.has(job.job_id));
-  } else if (role === "employer") {
-    // For employers: show jobs they posted
-    jobs = allJobs.filter((job: any) => job.employer_id === currentUserId);
-  } else {
-    // For admins: show all jobs
-    jobs = allJobs;
-  }
+  // Filter jobs based on role - use useMemo to recalculate when dependencies change
+  const jobs = React.useMemo(() => {
+    if (role === "student") {
+      // For students: show jobs they've applied to
+      const appliedJobIds = new Set(
+        (studentApplications?.data || []).map((app: any) => app.job_id)
+      );
+      return allJobs.filter((job: any) => appliedJobIds.has(job.job_id));
+    } else if (role === "employer") {
+      // For employers: show jobs they posted
+      if (currentUserId) {
+        return allJobs.filter((job: any) => {
+          // employer_id should be directly on the job object
+          return job.employer_id === currentUserId;
+        });
+      } else {
+        // If user_id is not available yet, show empty array
+        return [];
+      }
+    } else {
+      // For admins: show all jobs
+      return allJobs;
+    }
+  }, [role, allJobs, currentUserId, studentApplications?.data]);
 
   const formik = useFormik<CreateDisputeRequest>({
     initialValues: {
@@ -113,7 +124,8 @@ const CreateDispute: React.FC = () => {
   }, [formik.values.type]);
 
 
-  if (isLoadingJobs) {
+  // Show loader while jobs or profile data is loading (for employers, we need profileData to filter jobs)
+  if (isLoadingJobs || (role === "employer" && !profileData && !user)) {
     return <Loader />;
   }
 
@@ -154,11 +166,23 @@ const CreateDispute: React.FC = () => {
               }`}
             >
               <option value="">-- Select a job --</option>
-              {jobs.map((job: any) => (
-                <option key={job.job_id} value={job.job_id}>
-                  {job.job_title} - {job.location} (${job.budget})
+              {isLoadingJobs ? (
+                <option value="" disabled>Loading jobs...</option>
+              ) : jobs.length === 0 && role === "employer" ? (
+                <option value="" disabled>
+                  {currentUserId 
+                    ? "No jobs found. Please create a job first." 
+                    : "Loading user information..."}
                 </option>
-              ))}
+              ) : jobs.length === 0 && role === "student" ? (
+                <option value="" disabled>No jobs found. Please apply to a job first.</option>
+              ) : (
+                jobs.map((job: any) => (
+                  <option key={job.job_id} value={job.job_id}>
+                    {job.job_title} - {job.location} (${job.budget})
+                  </option>
+                ))
+              )}
             </select>
             {formik.touched.job_id && formik.errors.job_id && (
               <p className="mt-1 text-sm text-red-600">{formik.errors.job_id}</p>

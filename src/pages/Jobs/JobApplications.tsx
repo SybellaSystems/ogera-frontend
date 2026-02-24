@@ -202,13 +202,13 @@ const JobApplications: React.FC = () => {
           </p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {applications.map((application) => (
             <div
               key={application.application_id}
               className="bg-white rounded-xl p-6 shadow-md border border-[#ede7f8] hover:shadow-lg transition-shadow"
             >
-              <div className="flex items-start justify-between">
+               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-3">
                     <div className="h-12 w-12 rounded-full bg-gradient-to-br from-[#6941C6] to-[#2d1b69] flex items-center justify-center text-white font-bold text-lg">
@@ -289,7 +289,7 @@ const JobApplications: React.FC = () => {
                         disabled={
                           isUpdating && updatingId === application.application_id
                         }
-                        className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white rounded-lg font-semibold transition text-sm whitespace-nowrap"
+                        className="px-3 py-1.5 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white rounded-lg font-semibold transition text-sm whitespace-nowrap cursor-pointer"
                       >
                         {isUpdating && updatingId === application.application_id
                           ? "Updating..."
@@ -302,7 +302,7 @@ const JobApplications: React.FC = () => {
                         disabled={
                           isUpdating && updatingId === application.application_id
                         }
-                        className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white rounded-lg font-semibold transition text-sm whitespace-nowrap"
+                        className="px-3 py-1.5 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white rounded-lg font-semibold transition text-sm whitespace-nowrap cursor-pointer"
                       >
                         {isUpdating && updatingId === application.application_id
                           ? "Updating..."

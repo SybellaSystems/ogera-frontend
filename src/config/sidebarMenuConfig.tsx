@@ -121,8 +121,11 @@ export const SIDEBAR_MENU_CONFIG: MenuItemConfig[] = [
     icon: CreditCardIcon,
     menuKey: "transactions",
     basePath: "/dashboard/transactions",
-    hasSubmenu: false,
-    directPath: "/dashboard/transactions",
+    hasSubmenu: true,
+    submenuItems: [
+      { label: "Transactions", path: "/dashboard/transactions" },
+      { label: "Pay", path: "/dashboard/transactions/pay" },
+    ],
   },
   {
     permissionRoute: "/disputes",

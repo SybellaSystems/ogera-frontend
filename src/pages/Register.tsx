@@ -15,6 +15,7 @@ import type { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import TermsModal from "../components/TermsModal";
 import PrivacyModal from "../components/PrivacyModal";
 import CountryCodeSelector from "../components/CountryCodeSelector";
+import { getCountryCodeFromDialCode, getExpectedDigitMessage } from "../utils/mobileValidation";
 
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -29,6 +30,21 @@ const Register = () => {
 
   const handleClickShowPassword = () => setShowPassword((prev) => !prev);
 
+  const [expectedDigitMessage, setExpectedDigitMessage] = useState<string>("Enter phone number");
+  const [hasStartedTyping, setHasStartedTyping] = useState(false);
+
+  // Update expected digit message when country changes
+  const handleCountryCodeChange = (newDialCode: string) => {
+    setCountryCode(newDialCode);
+    setHasStartedTyping(false);
+    const countryISOCode = getCountryCodeFromDialCode(newDialCode);
+    if (countryISOCode) {
+      const message = getExpectedDigitMessage(countryISOCode);
+      setExpectedDigitMessage(message);
+    }
+  };
+
+  const defaultCountryISO = getCountryCodeFromDialCode(countryCode) || "";
   const initialValues: RegisterFormValues = {
     accountType: "student",
     full_name: "",
@@ -37,6 +53,7 @@ const Register = () => {
     national_id_number: "",
     businessId: "",
     mobile_number: "",
+    countryCode: defaultCountryISO,
     terms: false,
     privacy: false,
   };
@@ -69,7 +86,24 @@ const Register = () => {
     },
   });
 
+  // Keep formik.countryCode in sync with selected dial code (countryCode state)
+  useEffect(() => {
+    const iso = getCountryCodeFromDialCode(countryCode);
+    if (iso) {
+      formik.setFieldValue("countryCode", iso);
+    }
+  }, [countryCode]);
+
   const { resetForm } = formik;
+
+  // Initialize expected digit message based on default country code
+  useEffect(() => {
+    const countryISOCode = getCountryCodeFromDialCode(countryCode);
+    if (countryISOCode) {
+      const message = getExpectedDigitMessage(countryISOCode);
+      setExpectedDigitMessage(message);
+    }
+  }, []);
 
   useEffect(() => {
     if (isError && error) {
@@ -300,7 +334,7 @@ const Register = () => {
               <PhoneInputContainer>
                 <CountryCodeSelector
                   value={countryCode}
-                  onChange={setCountryCode}
+                  onChange={handleCountryCodeChange}
                 />
                 <PhoneInput
                   id="mobile_number"
@@ -312,9 +346,15 @@ const Register = () => {
                   onChange={(e) => {
                     const cleaned = e.target.value.replace(/[^0-9]/g, "");
                     formik.setFieldValue("mobile_number", cleaned);
+                    if (cleaned) {
+                      setHasStartedTyping(true);
+                    }
                   }}
                 />
               </PhoneInputContainer>
+              {!hasStartedTyping && !formik.errors.mobile_number && (
+                <InfoText>{expectedDigitMessage}</InfoText>
+              )}
               {formik.touched.mobile_number && formik.errors.mobile_number && (
                 <ErrorMsg>{formik.errors.mobile_number}</ErrorMsg>
               )}
@@ -629,6 +669,14 @@ const FieldLabel = styled("label")({
   fontSize: "13px",
   fontWeight: 600,
   color: "#2d2252",
+  fontFamily: "'Nunito', sans-serif",
+});
+
+const InfoText = styled("div")({
+  fontSize: "12px",
+  color: "#0066cc",
+  marginTop: "4px",
+  fontWeight: 500,
   fontFamily: "'Nunito', sans-serif",
 });
 

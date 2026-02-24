@@ -12,12 +12,13 @@ import toast from "react-hot-toast";
 
 const EmployerRejectedApplications: React.FC = () => {
   const navigate = useNavigate();
-  const { data, isLoading, error } = useGetEmployerApplicationsQuery();
+  const { data, isLoading, error } = useGetEmployerApplicationsQuery(
+    { status: "Rejected" },
+    { refetchOnMountOrArgChange: true }
+  );
 
   const applications = data?.data || [];
-  const rejectedApplications = applications.filter(
-    (app) => app.status === "Rejected"
-  );
+  const rejectedApplications = applications;
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -101,7 +102,7 @@ const EmployerRejectedApplications: React.FC = () => {
       </div>
 
       {/* Statistics */}
-      <div className="bg-red-50 rounded-xl p-6 border border-red-200">
+      <div className="bg-red-50 rounded-xl p-4 border border-red-200">
         <p className="text-sm text-red-700 font-medium">Total Rejected</p>
         <p className="text-3xl font-bold text-red-900 mt-2">
           {rejectedApplications.length}
@@ -119,7 +120,7 @@ const EmployerRejectedApplications: React.FC = () => {
           </p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {rejectedApplications.map((application) => (
             <div
               key={application.application_id}
