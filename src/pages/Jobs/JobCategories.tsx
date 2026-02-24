@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { TagIcon, PlusIcon, PencilIcon, TrashIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { TagIcon, PlusIcon, PencilIcon, TrashIcon, ChevronLeftIcon } from "@heroicons/react/24/outline";
 import { useSelector } from "react-redux";
 import { useGetAllCategoriesQuery, useCreateCategoryMutation, useUpdateCategoryMutation, useDeleteCategoryMutation } from "../../services/api/jobCategoriesApi";
 import toast from "react-hot-toast";
@@ -15,13 +15,13 @@ interface CategoryFormData {
 const JobCategories: React.FC = () => {
   const role = useSelector((state: any) => state.auth.role);
   const isSuperAdmin = role === "superadmin";
-  
+
   const { data: categoriesResponse, isLoading, refetch } = useGetAllCategoriesQuery();
   const [createCategory, { isLoading: isCreating }] = useCreateCategoryMutation();
   const [updateCategory, { isLoading: isUpdating }] = useUpdateCategoryMutation();
   const [deleteCategory, { isLoading: isDeleting }] = useDeleteCategoryMutation();
 
-  const [showModal, setShowModal] = useState(false);
+  const [showForm, setShowForm] = useState(false); // Changed from showModal
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState<{ id: string; name: string } | null>(null);
   const [editingCategory, setEditingCategory] = useState<any>(null);
@@ -48,7 +48,7 @@ const JobCategories: React.FC = () => {
 
   const iconOptions = ["💻", "📊", "🎨", "📢", "💰", "⚙️", "🤝", "👥", "💼", "🔧", "📱", "🎯"];
 
-  const handleOpenModal = (category?: any) => {
+  const handleOpenForm = (category?: any) => {
     if (category) {
       setEditingCategory(category);
       setFormData({
@@ -56,7 +56,7 @@ const JobCategories: React.FC = () => {
         description: category.description || "",
         icon: category.icon || "💼",
         color: category.color || "bg-purple-100 text-purple-700 border-purple-200",
-        job_count: category.job_count || category.jobCount || 0,
+        job_count: category.jobCount || category.job_count || 0,
       });
     } else {
       setEditingCategory(null);
@@ -68,11 +68,12 @@ const JobCategories: React.FC = () => {
         job_count: 0,
       });
     }
-    setShowModal(true);
+    setShowForm(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleCloseModal = () => {
-    setShowModal(false);
+  const handleCloseForm = () => {
+    setShowForm(false);
     setEditingCategory(null);
     setFormData({
       name: "",
@@ -85,7 +86,6 @@ const JobCategories: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!formData.name.trim()) {
       toast.error("Category name is required");
       return;
@@ -95,26 +95,14 @@ const JobCategories: React.FC = () => {
       if (editingCategory) {
         await updateCategory({
           id: editingCategory.category_id,
-          data: {
-            name: formData.name.trim(),
-            description: formData.description.trim(),
-            icon: formData.icon,
-            color: formData.color,
-            job_count: Number(formData.job_count) || 0,
-          },
+          data: { ...formData, name: formData.name.trim(), description: formData.description.trim() },
         }).unwrap();
         toast.success("Category updated successfully!");
       } else {
-        await createCategory({
-          name: formData.name.trim(),
-          description: formData.description.trim(),
-          icon: formData.icon,
-          color: formData.color,
-          job_count: Number(formData.job_count) || 0,
-        }).unwrap();
+        await createCategory({ ...formData, name: formData.name.trim(), description: formData.description.trim() }).unwrap();
         toast.success("Category created successfully!");
       }
-      handleCloseModal();
+      handleCloseForm();
       refetch();
     } catch (error: any) {
       toast.error(error?.data?.message || error?.message || "Failed to save category");
@@ -128,7 +116,6 @@ const JobCategories: React.FC = () => {
 
   const handleDeleteConfirm = async () => {
     if (!categoryToDelete) return;
-
     try {
       await deleteCategory(categoryToDelete.id).unwrap();
       toast.success("Category deleted successfully!");
@@ -138,11 +125,6 @@ const JobCategories: React.FC = () => {
     } catch (error: any) {
       toast.error(error?.data?.message || error?.message || "Failed to delete category");
     }
-  };
-
-  const handleDeleteCancel = () => {
-    setShowDeleteModal(false);
-    setCategoryToDelete(null);
   };
 
   const totalJobs = categories.reduce((sum: number, cat: any) => sum + (cat.jobCount || cat.job_count || 0), 0);
@@ -156,7 +138,7 @@ const JobCategories: React.FC = () => {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-purple-600 border-r-transparent"></div>
+          <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-[#6941C6] border-r-transparent"></div>
           <p className="mt-4 text-gray-600 font-medium">Loading categories...</p>
         </div>
       </div>
@@ -165,279 +147,251 @@ const JobCategories: React.FC = () => {
 
   return (
     <div className="space-y-6 animate-fadeIn p-4 md:p-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      {/* Header Section */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b pb-5">
         <div>
           <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 flex items-center gap-3">
-            <TagIcon className="h-8 w-10 md:h-10 md:w-10 text-purple-600" />
-            Job Categories
+            <TagIcon className="h-8 w-10 md:h-10 md:w-10 text-[#6941C6]" />
+            {showForm ? (editingCategory ? "Edit Category" : "Add New Category") : "Job Categories"}
           </h1>
-          <p className="text-gray-500 mt-2">Organize jobs by category and industry</p>
+          <p className="text-gray-500 mt-1">
+            {showForm ? "Configure the category details below" : "Organize jobs by category and industry"}
+          </p>
         </div>
-        {isSuperAdmin && (
-          <button
-            onClick={() => handleOpenModal()}
-            className="bg-purple-600 hover:bg-purple-700 text-white px-4 md:px-6 py-2.5 rounded-lg font-semibold transition shadow-md flex items-center gap-2 w-full sm:w-auto justify-center"
-          >
-            <PlusIcon className="h-5 w-5" />
-            Add Category
-          </button>
-        )}
-      </div>
 
-      <div className="bg-purple-50 rounded-xl p-4 md:p-6 border border-purple-200">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-          <div>
-            <p className="text-sm text-purple-700 font-medium">Total Categories</p>
-            <p className="text-2xl md:text-3xl font-bold text-purple-900 mt-1">{categories.length}</p>
-          </div>
-          <div>
-            <p className="text-sm text-purple-700 font-medium">Total Jobs</p>
-            <p className="text-2xl md:text-3xl font-bold text-purple-900 mt-1">{totalJobs}</p>
-          </div>
-          <div>
-            <p className="text-sm text-purple-700 font-medium">Most Popular</p>
-            <p className="text-lg md:text-xl font-bold text-purple-900 mt-1">
-              {mostPopularCategory?.name || "N/A"}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {categories.length === 0 ? (
-        <div className="bg-white rounded-xl p-12 text-center border-2 border-dashed border-gray-300">
-          <TagIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-gray-700 mb-2">No Categories Yet</h3>
-          <p className="text-gray-500 mb-6">Get started by creating your first job category</p>
-          {isSuperAdmin && (
-            <button
-              onClick={() => handleOpenModal()}
-              className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2.5 rounded-lg font-semibold transition shadow-md inline-flex items-center gap-2"
-            >
-              <PlusIcon className="h-5 w-5" />
-              Create First Category
-            </button>
+        <div className="flex gap-3 w-full sm:w-auto">
+          {showForm ? (
+             <button
+             onClick={handleCloseForm}
+             className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-md font-medium transition hover:bg-gray-50 flex items-center gap-2 w-full sm:w-auto justify-center text-sm"
+           >
+             <ChevronLeftIcon className="h-4 w-4" />
+             Back to List
+           </button>
+          ) : (
+            isSuperAdmin && (
+              <button
+                onClick={() => handleOpenForm()}
+                className="bg-[#2d1b69] hover:bg-[#1a1035] text-white px-4 py-2 rounded-md font-medium transition shadow-sm flex items-center gap-2 w-full sm:w-auto justify-center text-sm cursor-pointer"
+              >
+                <PlusIcon className="h-4 w-4" />
+                Add Category
+              </button>
+            )
           )}
         </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-          {categories.map((category: any) => (
-            <div
-              key={category.category_id}
-              className={`rounded-xl p-4 md:p-6 border-2 ${category.color || "bg-purple-100 text-purple-700 border-purple-200"} hover:scale-105 transition-transform cursor-pointer shadow-md relative`}
-            >
-              {isSuperAdmin && (
-                <div className="absolute top-2 right-2 flex gap-2">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleOpenModal(category);
-                    }}
-                    className="p-1.5 bg-white/80 hover:bg-white rounded-md transition"
-                    title="Edit"
-                  >
-                    <PencilIcon className="h-4 w-4 text-blue-600" />
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteClick(category.category_id, category.name);
-                    }}
-                    disabled={isDeleting}
-                    className="p-1.5 bg-white/80 hover:bg-white rounded-md transition"
-                    title="Delete"
-                  >
-                    <TrashIcon className="h-4 w-4 text-red-600" />
-                  </button>
-                </div>
-              )}
-              <div className="text-4xl mb-3">{category.icon || "💼"}</div>
-              <h3 className="text-lg font-semibold mb-2">{category.name}</h3>
-              {category.description && (
-                <p className="text-sm opacity-75 mb-2 line-clamp-2">{category.description}</p>
-              )}
-              <p className="text-2xl font-bold">{category.jobCount !== undefined ? category.jobCount : (category.job_count !== undefined ? category.job_count : 0)} jobs</p>
-              <button className="mt-4 w-full px-4 py-2 bg-white hover:bg-gray-50 rounded-lg font-medium text-sm transition border">
-                View Jobs
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
+      </div>
 
-      {/* Modal */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-start justify-center z-50 pt-20 pb-4 overflow-y-auto">
-          <div className="bg-white rounded-xl max-w-4xl mx-auto w-full shadow-2xl border-2 border-gray-200 my-4">
-            <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-gray-900">
-                {editingCategory ? "Edit Category" : "Create New Category"}
-              </h2>
+      {showForm ? (
+        /* --- FULL PAGE FORM SECTION --- */
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 animate-slideUp">
+          <form onSubmit={handleSubmit} className="p-6 md:p-10 space-y-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+              
+              {/* Left Column: Basics */}
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Category Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all outline-none"
+                    placeholder="e.g. Software Engineering"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Description</label>
+                  <textarea
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all outline-none h-32 resize-none"
+                    placeholder="Describe the roles within this category..."
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Manual Job Count</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={formData.job_count === 0 ? "" : formData.job_count}
+                    onChange={(e) => setFormData({ ...formData, job_count: parseInt(e.target.value) || 0 })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Right Column: Visuals */}
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">Select Visual Icon</label>
+                  <div className="grid grid-cols-4 sm:grid-cols-6 gap-3 bg-gray-50 p-4 rounded-xl border border-gray-200">
+                    {iconOptions.map((icon) => (
+                      <button
+                        key={icon}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, icon })}
+                        className={`text-3xl p-3 rounded-lg transition-all border-2 ${
+                          formData.icon === icon 
+                            ? "bg-purple-600 border-purple-600 text-white scale-110 shadow-md" 
+                            : "bg-white border-transparent hover:border-gray-300"
+                        }`}
+                      >
+                        {icon}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Theme Color</label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {colorOptions.map((option) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, color: option.value })}
+                        className={`flex items-center gap-3 px-4 py-2.5 rounded-lg border-2 transition-all ${
+                          formData.color === option.value 
+                            ? "border-purple-600 ring-2 ring-purple-100" 
+                            : "border-gray-100 hover:border-gray-200"
+                        }`}
+                      >
+                        <div className={`w-6 h-6 rounded-full border shadow-sm ${option.value.split(' ')[0]}`}></div>
+                        <span className="text-sm font-medium">{option.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-4 pt-8 border-t border-gray-100">
               <button
-                onClick={handleCloseModal}
-                className="text-gray-400 hover:text-gray-600 transition"
+                type="submit"
+                disabled={isCreating || isUpdating}
+                className="flex-1 sm:flex-none px-7 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-bold transition shadow-lg disabled:opacity-50 cursor-pointer"
               >
-                <XMarkIcon className="h-6 w-6" />
+                {isCreating || isUpdating ? "Saving..." : (editingCategory ? "Update Category" : "Create Category")}
+              </button>
+              <button
+                type="button"
+                onClick={handleCloseForm}
+                className="flex-1 sm:flex-none px-7 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-semibold transition cursor-pointer"
+              >
+                Cancel
               </button>
             </div>
-
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Category Name *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  placeholder="e.g., Software Development"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Description
-                </label>
-                <textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  placeholder="Brief description of this category"
-                  rows={3}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Icon
-                </label>
-                <div className="grid grid-cols-6 gap-2">
-                  {iconOptions.map((icon) => (
-                    <button
-                      key={icon}
-                      type="button"
-                      onClick={() => setFormData({ ...formData, icon })}
-                      className={`p-3 text-2xl rounded-lg border-2 transition ${
-                        formData.icon === icon
-                          ? "border-purple-600 bg-purple-50"
-                          : "border-gray-200 hover:border-gray-300"
-                      }`}
-                    >
-                      {icon}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Color Theme
-                </label>
-                <select
-                  value={formData.color}
-                  onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                >
-                  {colorOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Number of Jobs
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  step="1"
-                  value={formData.job_count === 0 ? "" : formData.job_count}
-                  onChange={(e) => {
-                    const value = e.target.value === "" ? 0 : parseInt(e.target.value, 10);
-                    setFormData({ ...formData, job_count: isNaN(value) ? 0 : value });
-                  }}
-                  onBlur={(e) => {
-                    const value = e.target.value === "" ? 0 : parseInt(e.target.value, 10);
-                    setFormData({ ...formData, job_count: isNaN(value) ? 0 : Math.max(0, value) });
-                  }}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  placeholder="Enter number of jobs (e.g., 1, 2, 10)"
-                />
-                <p className="text-xs text-gray-500 mt-1">Set the number of jobs for this category</p>
-              </div>
-
-              <div className="flex gap-3 pt-4">
-                <button
-                  type="button"
-                  onClick={handleCloseModal}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition font-medium"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isCreating || isUpdating}
-                  className="flex-1 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition font-medium disabled:opacity-50"
-                >
-                  {isCreating || isUpdating
-                    ? editingCategory
-                      ? "Updating..."
-                      : "Creating..."
-                    : editingCategory
-                    ? "Update Category"
-                    : "Create Category"}
-                </button>
-              </div>
-            </form>
-          </div>
+          </form>
         </div>
+      ) : (
+        /* --- DASHBOARD VIEW (Original Content) --- */
+        <>
+          <div className="bg-purple-50 rounded-xl p-2 md:p-4 border border-purple-200 shadow-sm">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+              <div>
+                <p className="text-sm text-purple-700 font-medium">Total Categories</p>
+                <p className="text-1xl md:text-2xl font-bold text-purple-900 mt-1">{categories.length}</p>
+              </div>
+              <div>
+                <p className="text-sm text-purple-700 font-medium">Total Jobs</p>
+                <p className="text-1xl md:text-2xl font-bold text-purple-900 mt-1">{totalJobs}</p>
+              </div>
+              <div>
+                <p className="text-sm text-purple-700 font-medium">Most Popular</p>
+                <p className="text-1xl md:text-2xl font-bold text-purple-900 mt-1">
+                  {mostPopularCategory?.name || "N/A"}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {categories.length === 0 ? (
+            <div className="bg-white rounded-xl p-12 text-center border-2 border-dashed border-gray-300">
+              <TagIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-700 mb-2">No Categories Yet</h3>
+              <p className="text-gray-500 mb-6">Get started by creating your first job category</p>
+              {isSuperAdmin && (
+                <button
+                  onClick={() => handleOpenForm()}
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2.5 rounded-lg font-semibold transition shadow-md inline-flex items-center gap-2"
+                >
+                  <PlusIcon className="h-5 w-5" />
+                  Create First Category
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+              {categories.map((category: any) => (
+                <div
+                  key={category.category_id}
+                  className={`rounded-xl p-4 md:p-6 border-2 ${category.color || "bg-purple-100 text-purple-700 border-purple-200"} hover:shadow-lg transition-all relative group`}
+                >
+                  {isSuperAdmin && (
+                    <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={() => handleOpenForm(category)}
+                        className="p-1.5 bg-white/90 hover:bg-white rounded-md text-blue-600 shadow-sm transition cursor-pointer"
+                        title="Edit"
+                      >
+                        <PencilIcon className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteClick(category.category_id, category.name)}
+                        className="p-1.5 bg-white/90 hover:bg-white rounded-md text-red-600 shadow-sm transition cursor-pointer"
+                        title="Delete"
+                      >
+                        <TrashIcon className="h-4 w-4" />
+                      </button>
+                    </div>
+                  )}
+                  <div className="text-4xl mb-4">{category.icon || "💼"}</div>
+                  <h3 className="text-xl font-bold mb-2">{category.name}</h3>
+                  {category.description && (
+                    <p className="text-sm opacity-80 mb-4 line-clamp-2 leading-relaxed">{category.description}</p>
+                  )}
+                  <div className="flex items-center justify-between mt-auto">
+                    <p className="text-2xl font-black">{category.jobCount || category.job_count || 0} <span className="text-xs font-normal uppercase tracking-wider">Jobs</span></p>
+                    <button className="p-2 bg-white/50 hover:bg-white rounded-full transition border border-transparent hover:border-current">
+                       <PlusIcon className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
       )}
 
-      {/* Delete Confirmation Modal */}
+      {/* Keep Delete Modal as a small overlay for safety */}
       {showDeleteModal && categoryToDelete && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-md w-full shadow-2xl border-2 border-red-200">
-            <div className="p-6">
-              <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full mb-4">
-                <TrashIcon className="h-6 w-6 text-red-600" />
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden border">
+            <div className="p-8 text-center">
+              <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <TrashIcon className="h-8 w-8" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 text-center mb-2">
-                Delete Category?
-              </h3>
-              <p className="text-gray-600 text-center mb-6">
-                Are you sure you want to delete <span className="font-semibold text-gray-900">"{categoryToDelete.name}"</span>? 
-                <br />
-                <span className="text-red-600 font-medium">This action cannot be undone.</span>
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">Delete Category?</h3>
+              <p className="text-gray-500 mb-8 leading-relaxed">
+                Are you sure you want to delete <span className="font-bold text-gray-900">"{categoryToDelete.name}"</span>? This will permanently remove the category.
               </p>
               <div className="flex gap-3">
                 <button
-                  type="button"
-                  onClick={handleDeleteCancel}
-                  className="flex-1 px-4 py-2.5 border-2 border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition font-medium"
+                  onClick={() => setShowDeleteModal(false)}
+                  className="flex-1 py-3 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-semibold transition"
                 >
-                  Cancel
+                  No, Keep it
                 </button>
                 <button
-                  type="button"
                   onClick={handleDeleteConfirm}
                   disabled={isDeleting}
-                  className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg transition font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="flex-1 py-3 px-4 bg-red-600 hover:bg-red-700 text-white rounded-xl font-semibold transition flex items-center justify-center gap-2"
                 >
-                  {isDeleting ? (
-                    <>
-                      <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      Deleting...
-                    </>
-                  ) : (
-                    <>
-                      <TrashIcon className="h-5 w-5" />
-                      Delete
-                    </>
-                  )}
+                  {isDeleting ? "Deleting..." : "Yes, Delete"}
                 </button>
               </div>
             </div>

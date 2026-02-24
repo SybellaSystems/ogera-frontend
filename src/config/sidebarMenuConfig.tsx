@@ -7,6 +7,7 @@ import {
   ShieldCheckIcon,
   BellIcon,
   BookOpenIcon,
+  IdentificationIcon,
 } from "@heroicons/react/24/outline";
 import type { ComponentType } from "react";
 
@@ -63,6 +64,19 @@ export const SIDEBAR_MENU_CONFIG: MenuItemConfig[] = [
     ],
   },
   {
+    permissionRoute: "/identity-verifications",
+    label: "Identity Verification",
+    icon: IdentificationIcon,
+    menuKey: "identity",
+    basePath: "/dashboard/identity",
+    hasSubmenu: true,
+    submenuItems: [
+      { label: "Pending Reviews", path: "/dashboard/identity/pending" },
+      { label: "Approved", path: "/dashboard/identity/approved" },
+      { label: "Rejected", path: "/dashboard/identity/rejected" },
+    ],
+  },
+  {
     permissionRoute: "/job-applications",
     label: "Job Applications",
     icon: BriefcaseIcon,
@@ -107,8 +121,11 @@ export const SIDEBAR_MENU_CONFIG: MenuItemConfig[] = [
     icon: CreditCardIcon,
     menuKey: "transactions",
     basePath: "/dashboard/transactions",
-    hasSubmenu: false,
-    directPath: "/dashboard/transactions",
+    hasSubmenu: true,
+    submenuItems: [
+      { label: "Transactions", path: "/dashboard/transactions" },
+      { label: "Pay", path: "/dashboard/transactions/pay" },
+    ],
   },
   {
     permissionRoute: "/disputes",
@@ -133,6 +150,7 @@ export const SIDEBAR_MENU_CONFIG: MenuItemConfig[] = [
     submenuItems: [
       { label: "Add Courses", path: "/dashboard/courses/add" },
       { label: "View Courses", path: "/dashboard/courses/view" },
+      { label: "Course Analytics", path: "/dashboard/courses/analytics" },
     ],
   },
 ];

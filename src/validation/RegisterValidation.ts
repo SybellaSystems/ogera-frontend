@@ -1,4 +1,5 @@
 import * as Yup from "yup";
+import { getCountryMobileConfig } from "../utils/mobileValidation";
 
 export const registerValidationSchema = Yup.object({
   full_name: Yup.string().required("Full name is required"),
@@ -20,9 +21,39 @@ export const registerValidationSchema = Yup.object({
     is: "employer",
     then: (schema) => schema.required("Business ID is required"),
   }),
+  countryCode: Yup.string().required("Country is required"),
   mobile_number: Yup.string()
-    .matches(/^\d{7,15}$/, "Phone number must be between 7 and 15 digits")
-    .required("Phone number is required"),
+    .required("Phone number is required")
+    .test("mobile-digits", function (value) {
+      const { parent } = this as any;
+      const countryCode = parent?.countryCode;
+
+      if (!value) return this.createError({ message: "Phone number is required" });
+
+      const config = getCountryMobileConfig(countryCode);
+      if (!config) {
+        return this.createError({ message: "Invalid country selected" });
+      }
+
+      const digitCount = String(value).replace(/\D/g, "").length;
+
+      if (config.digitCountRange) {
+        const { min, max } = config.digitCountRange;
+        if (digitCount < min || digitCount > max) {
+          return this.createError({
+            message: `Phone number must be between ${min} and ${max} digits for ${config.country}`,
+          });
+        }
+      } else {
+        if (digitCount !== config.digitCount) {
+          return this.createError({
+            message: `Phone number must be exactly ${config.digitCount} digits for ${config.country}`,
+          });
+        }
+      }
+
+      return true;
+    }),
   terms: Yup.bool().oneOf([true], "You must accept the terms"),
   privacy: Yup.bool().oneOf([true], "You must accept the privacy policy"),
 });

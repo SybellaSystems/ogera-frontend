@@ -33,7 +33,13 @@ import SuspendedUsers from "./pages/Users/Suspended";
 import PendingReviews from "./pages/AcademicVerification/PendingReviews";
 import Approved from "./pages/AcademicVerification/Approved";
 import Rejected from "./pages/AcademicVerification/Rejected";
+
+// Identity Verification Pages
+import IdentityPendingReviews from "./pages/IdentityVerification/PendingReviews";
+import IdentityApproved from "./pages/IdentityVerification/Approved";
+import IdentityRejected from "./pages/IdentityVerification/Rejected";
 import PerformanceTrack from "./pages/AcademicVerification/PerformanceTrack";
+import StudentPerformanceReport from "./pages/AcademicVerification/StudentPerformanceReport";
 import AccountLocks from "./pages/AcademicVerification/AccountLocks";
 
 // Jobs Pages
@@ -64,6 +70,10 @@ import MyDisputes from "./pages/Disputes/MyDisputes";
 // Other Pages
 import Analytics from "./pages/Analytics";
 import Transactions from "./pages/Transactions";
+import Notifications from "./pages/Notifications/Notifications";
+import Pay from "./pages/Transactions/Pay";
+import PaymentCallback from "./pages/PaymentCallback";
+import PaymentCancelled from "./pages/PaymentCancelled";
 
 // Admin Pages
 import CreateAdmin from "./pages/Admin/CreateAdmin";
@@ -81,10 +91,12 @@ import useRefreshOnLoad from "./hooks/useRefreshOnLoad";
 import AddCourse from "./pages/Courses/AddCourse";
 import ViewCourse from "./pages/Courses/ViewCourse";
 import CourseDetail from "./pages/Courses/CourseDetail";
+import CourseAnalytics from "./pages/Courses/CourseAnalytics";
 
 function App() {
   const isLoading = useRefreshOnLoad();
-  const role = useSelector((state: any) => state.auth.role);
+  const roleRaw = useSelector((state: any) => state.auth.role);
+  const role = roleRaw ? String(roleRaw).toLowerCase().trim() : undefined;
 
   // Show loading spinner while checking authentication
   if (isLoading) {
@@ -100,7 +112,7 @@ function App() {
 
   // Decide layout based on role
   const DashboardLayout =
-    role === "admin" || role === "superadmin" || role === "verifyDocAdmin"
+    role === "admin" || role === "superadmin" || role === "verifydocadmin"
       ? AdminLayout
       : role === "student"
       ? StudentLayout
@@ -134,6 +146,10 @@ function App() {
     { path: "/auth/verify-email", Component: VerifyEmail },
     { path: "/auth/change-password", Component: ChangePassword },
     { path: "/auth/me", Component: TestRefresh },
+
+    /** ---------------- PAYMENT CALLBACK (Public - Pesapal redirect) ---------------- **/
+    { path: "/payment/callback", Component: PaymentCallback },
+    { path: "/payment/cancelled", Component: PaymentCancelled },
 
     /** ---------------- PROTECTED DASHBOARD ROUTES ---------------- **/
     {
@@ -246,13 +262,34 @@ function App() {
               Component: PerformanceTrack,
             },
             {
+              path: "academic/performance/:studentId/report",
+              Component: StudentPerformanceReport,
+            },
+            {
               path: "academic/locks",
               Component: AccountLocks,
             },
+            // Identity Verification Routes
+            {
+              path: "identity/pending",
+              Component: IdentityPendingReviews,
+            },
+            {
+              path: "identity/approved",
+              Component: IdentityApproved,
+            },
+            {
+              path: "identity/rejected",
+              Component: IdentityRejected,
+            },
             // Jobs Routes - Order matters: specific routes first, then dynamic routes
             {
+              path: "jobs",
+              element: <Navigate to="/dashboard/jobs/all" replace />,
+            },
+            {
               path: "jobs/create",
-              element: <ProtectedRoute allowedRoles={["employer", "superadmin"]} />,
+              element: <ProtectedRoute allowedRoles={["employer", "admin", "superadmin"]} />,
               children: [
                 {
                   index: true,
@@ -282,6 +319,7 @@ function App() {
             },
             {
               path: "jobs/applications",
+              // Employer/superadmin manage incoming applications. Students should use "My Applications".
               element: <ProtectedRoute allowedRoles={["employer", "superadmin"]} />,
               children: [
                 {
@@ -318,7 +356,7 @@ function App() {
             },
             {
               path: "jobs/:id/edit",
-              element: <ProtectedRoute allowedRoles={["employer", "superadmin"]} />,
+              element: <ProtectedRoute allowedRoles={["employer", "admin", "superadmin"]} />,
               children: [
                 {
                   index: true,
@@ -328,7 +366,7 @@ function App() {
             },
             {
               path: "jobs/:id/applications",
-              element: <ProtectedRoute allowedRoles={["employer", "superadmin"]} />,
+              element: <ProtectedRoute allowedRoles={["employer", "admin", "superadmin"]} />,
               children: [
                 {
                   index: true,
@@ -344,6 +382,10 @@ function App() {
             {
               path: "disputes",
               Component: Disputes,
+            },
+             {
+              path: "disputes/create",
+              Component: CreateDispute,
             },
             {
               path: "disputes/create",
@@ -372,6 +414,14 @@ function App() {
               path: "disputes/:id",
               Component: DisputeDetail,
             },
+            {
+              path: "disputes/my-disputes",
+              Component: MyDisputes,
+            },
+            {
+              path: "disputes/:id",
+              Component: DisputeDetail,
+            },
             // Other Routes
             {
               path: "analytics",
@@ -382,12 +432,40 @@ function App() {
               Component: Transactions,
             },
             {
+              path: "notifications",
+              Component: Notifications,
+            },
+            {
+              path: "transactions/pay",
+              Component: Pay,
+            },
+            {
               path: "courses/add",
               Component: AddCourse,
             },
             {
               path: "courses/view",
               Component: ViewCourse,
+            },
+            {
+              path: "courses/analytics",
+              element: <ProtectedRoute allowedRoles={["employer", "superadmin", "superAdmin", "admin", "courseAdmin", "CourseAdmin"]} />,
+              children: [
+                {
+                  index: true,
+                  Component: CourseAnalytics,
+                },
+              ],
+            },
+            {
+              path: "courses/analytics/:courseId",
+              element: <ProtectedRoute allowedRoles={["employer", "superadmin", "superAdmin", "admin", "courseAdmin", "CourseAdmin"]} />,
+              children: [
+                {
+                  index: true,
+                  Component: CourseAnalytics,
+                },
+              ],
             },
             {
               path: "courses/:id",
@@ -417,7 +495,7 @@ const NotFound = () => (
       justifyContent: "center",
       height: "100vh",
       color: "#7F56D9",
-      fontFamily: "Inter, sans-serif",
+      fontFamily: "'Nunito', sans-serif",
     }}
   >
     <h1 style={{ fontSize: "50px", marginBottom: "20px" }}>404</h1>

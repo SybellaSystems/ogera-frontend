@@ -41,6 +41,7 @@ interface User {
   role: "Student" | "Employer" | "Admin";
   status: "Active" | "Pending" | "Suspended";
   joinDate: string;
+  profileImage?: string;
 }
 
 const AllUsers: React.FC = () => {
@@ -133,6 +134,7 @@ const AllUsers: React.FC = () => {
             day: "2-digit",
           })
         : "-",
+      profileImage: user.profile_image_url,
     };
   };
 
@@ -257,11 +259,11 @@ const AllUsers: React.FC = () => {
     {
       id: "index",
       label: "#",
-      minWidth: 60,
+      minWidth: isMobile ? 32 : 40,
       align: "center",
       sortable: false,
       format: (value) => (
-        <Typography sx={{ fontWeight: 500, color: "#6b7280" }}>
+        <Typography sx={{ fontWeight: 500, color: "#6b7280", fontSize: isMobile ? "0.7rem" : "0.75rem" }}>
           {value}
         </Typography>
       ),
@@ -269,35 +271,45 @@ const AllUsers: React.FC = () => {
     {
       id: "name",
       label: "User",
-      minWidth: 200,
+      minWidth: isMobile ? 120 : 160,
       format: (value, row) => (
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: isMobile ? 0.75 : 1 }}>
           <Avatar
+            src={row.profileImage || undefined}
             sx={{
               bgcolor: "#9333ea",
-              width: 40,
-              height: 40,
-              fontSize: "1rem",
+              width: isMobile ? 24 : 28,
+              height: isMobile ? 24 : 28,
+              fontSize: isMobile ? "0.65rem" : "0.75rem",
               fontWeight: 600,
             }}
           >
             {row.name.charAt(0)}
           </Avatar>
-          <Typography sx={{ fontWeight: 500, color: "#111827" }}>
-            {value}
-          </Typography>
+          <Box>
+            <Typography sx={{ fontWeight: 500, color: "#111827", fontSize: isMobile ? "0.75rem" : "0.8125rem", lineHeight: 1.3 }}>
+              {value}
+            </Typography>
+            {/* Show email below name on mobile since email column is hidden */}
+            {isMobile && (
+              <Typography sx={{ fontSize: "0.65rem", color: "#6b7280", lineHeight: 1.2 }}>
+                {row.email}
+              </Typography>
+            )}
+          </Box>
         </Box>
       ),
     },
-    {
-      id: "email",
+    // Hide email column on mobile - shown inline with name instead
+    ...(!isMobile ? [{
+      id: "email" as keyof User,
       label: "Email",
-      minWidth: 200,
-    },
+      minWidth: 170,
+    }] : []),
     {
       id: "role",
       label: "Role",
-      minWidth: 120,
+      minWidth: isMobile ? 70 : 90,
       format: (value) => (
         <Chip
           label={value}
@@ -306,15 +318,18 @@ const AllUsers: React.FC = () => {
             bgcolor: value === "Student" ? "#dbeafe" : "#d1fae5",
             color: value === "Student" ? "#1e40af" : "#065f46",
             fontWeight: 600,
+            fontSize: isMobile ? "0.625rem" : "0.7rem",
+            height: isMobile ? 20 : 22,
           }}
         />
       ),
     },
-    {
-      id: "status",
+    // Hide status column on mobile
+    ...(!isMobile ? [{
+      id: "status" as keyof User,
       label: "Status",
-      minWidth: 120,
-      format: (value) => (
+      minWidth: 90,
+      format: (value: any) => (
         <Chip
           label={value}
           size="small"
@@ -332,15 +347,18 @@ const AllUsers: React.FC = () => {
                 ? "#9a3412"
                 : "#991b1b",
             fontWeight: 600,
+            fontSize: "0.7rem",
+            height: 22,
           }}
         />
       ),
-    },
-    {
-      id: "joinDate",
-      label: "Join Date",
-      minWidth: 120,
-    },
+    }] : []),
+    // Hide joined date column on mobile
+    ...(!isMobile ? [{
+      id: "joinDate" as keyof User,
+      label: "Joined",
+      minWidth: 90,
+    }] : []),
   ];
 
   const actions: TableAction<User>[] = [
@@ -371,57 +389,57 @@ const AllUsers: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6 animate-fadeIn">
+    <div className="space-y-3 animate-fadeIn max-w-full overflow-x-hidden">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl md:text-4xl font-extrabold text-gray-900 flex items-center gap-2 md:gap-3">
-            <UsersIcon className="h-8 w-8 md:h-10 md:w-10 text-purple-600" />
-            All Users
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 flex items-center gap-1.5 sm:gap-2">
+            <UsersIcon className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-purple-600 flex-shrink-0" />
+            <span>All Users</span>
           </h1>
-          <p className="text-sm md:text-base text-gray-500 mt-2">
-            View and manage all students and employers in the platform
+          <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5">
+            Manage all students and employers
           </p>
         </div>
         <button
           onClick={() => setAddUserDialogOpen(true)}
-          className="bg-purple-600 hover:bg-purple-700 text-white px-4 md:px-6 py-2.5 rounded-lg font-semibold transition shadow-md hover:shadow-lg whitespace-nowrap self-start md:self-auto"
+          className="bg-[#2d1b69] hover:bg-[#1a1035] text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition shadow-sm hover:shadow-md whitespace-nowrap cursor-pointer"
         >
           + Add User
         </button>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-        <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
-          <p className="text-sm text-gray-500 font-medium">Total Users</p>
-          <p className="text-3xl font-bold text-gray-900 mt-2">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-1.5 sm:gap-2">
+        <div className="bg-white rounded-lg p-2 sm:p-3 shadow-sm border border-gray-100">
+          <p className="text-[10px] sm:text-[11px] text-gray-500 font-medium">Total Users</p>
+          <p className="text-lg sm:text-xl font-bold text-gray-900 mt-0.5 sm:mt-1">
             {isLoading ? "…" : totalCount}
           </p>
-          <p className="text-sm text-green-600 mt-2">
-            Students & Employers only
+          <p className="text-[9px] sm:text-[10px] text-green-600 mt-0.5 truncate">
+            Students & Employers
           </p>
         </div>
-        <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
-          <p className="text-sm text-gray-500 font-medium">Students</p>
-          <p className="text-3xl font-bold text-gray-900 mt-2">
+        <div className="bg-white rounded-lg p-2 sm:p-3 shadow-sm border border-gray-100">
+          <p className="text-[10px] sm:text-[11px] text-gray-500 font-medium">Students</p>
+          <p className="text-lg sm:text-xl font-bold text-gray-900 mt-0.5 sm:mt-1">
             {isLoading ? "…" : studentCount}
           </p>
-          <p className="text-sm text-blue-600 mt-2">Student accounts</p>
+          <p className="text-[9px] sm:text-[10px] text-blue-600 mt-0.5">Student accounts</p>
         </div>
-        <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
-          <p className="text-sm text-gray-500 font-medium">Employers</p>
-          <p className="text-3xl font-bold text-gray-900 mt-2">
+        <div className="bg-white rounded-lg p-2 sm:p-3 shadow-sm border border-gray-100">
+          <p className="text-[10px] sm:text-[11px] text-gray-500 font-medium">Employers</p>
+          <p className="text-lg sm:text-xl font-bold text-gray-900 mt-0.5 sm:mt-1">
             {isLoading ? "…" : employerCount}
           </p>
-          <p className="text-sm text-purple-600 mt-2">Employer accounts</p>
+          <p className="text-[9px] sm:text-[10px] text-purple-600 mt-0.5">Employer accounts</p>
         </div>
-        <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
-          <p className="text-sm text-gray-500 font-medium">On This Page</p>
-          <p className="text-3xl font-bold text-gray-900 mt-2">
+        <div className="bg-white rounded-lg p-2 sm:p-3 shadow-sm border border-gray-100">
+          <p className="text-[10px] sm:text-[11px] text-gray-500 font-medium">On This Page</p>
+          <p className="text-lg sm:text-xl font-bold text-gray-900 mt-0.5 sm:mt-1">
             {isLoading ? "…" : users.length}
           </p>
-          <p className="text-sm text-gray-600 mt-2">Currently displayed</p>
+          <p className="text-[9px] sm:text-[10px] text-gray-600 mt-0.5">Currently displayed</p>
         </div>
       </div>
 

@@ -8,9 +8,16 @@ import {
   CurrencyDollarIcon,
   ClockIcon,
   BookmarkIcon,
+  TrashIcon,
+  EyeIcon,
+  PencilSquareIcon,
+  UsersIcon,
+  PlayIcon,
+  PauseIcon,
 } from "@heroicons/react/24/outline";
 import { BookmarkIcon as BookmarkSolidIcon } from "@heroicons/react/24/solid";
-import { useGetAllJobsQuery, useToggleJobStatusMutation } from "../../services/api/jobsApi";
+import { useGetAllJobsQuery, useToggleJobStatusMutation, useDeleteJobMutation } from "../../services/api/jobsApi";
+import toast from "react-hot-toast";
 import { useGetUserProfileQuery } from "../../services/api/authApi";
 import { useGetStudentApplicationsQuery } from "../../services/api/jobApplicationApi";
 import ApplyJobModal from "../../components/ApplyJobModal";
@@ -28,6 +35,7 @@ const AllJobs: React.FC = () => {
   const [selectedJob, setSelectedJob] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [toggleStatus, { isLoading: isToggling }] = useToggleJobStatusMutation();
+  const [deleteJob, { isLoading: isDeleting }] = useDeleteJobMutation();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLocation, setSelectedLocation] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
@@ -128,6 +136,19 @@ const AllJobs: React.FC = () => {
     }
   };
 
+  const handleDeleteJob = async (jobId: string, jobTitle: string) => {
+    if (window.confirm(`Are you sure you want to delete "${jobTitle}"? This action cannot be undone.`)) {
+      try {
+        await deleteJob(jobId).unwrap();
+        toast.success("Job deleted successfully");
+        refetch();
+      } catch (error: any) {
+        console.error("Failed to delete job:", error);
+        toast.error(error?.data?.message || "Failed to delete job");
+      }
+    }
+  };
+
   if (isLoading) {
     return <Loader />;
   }
@@ -148,7 +169,7 @@ const AllJobs: React.FC = () => {
     <div className="space-y-6 animate-fadeIn">
         <div>
           <h1 className="text-2xl md:text-4xl font-extrabold text-gray-900 flex items-center gap-2 md:gap-3">
-            <BriefcaseIcon className="h-6 w-6 md:h-10 md:w-10 text-purple-600" />
+            <BriefcaseIcon className="h-6 w-6 md:h-10 md:w-10 text-[#6941C6]" />
             All Jobs
           </h1>
           <p className="text-sm md:text-base text-gray-500 mt-2">
@@ -161,39 +182,36 @@ const AllJobs: React.FC = () => {
         </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-        <div className="bg-purple-50 rounded-xl p-4 md:p-6 border border-purple-200">
-          <p className="text-xs md:text-sm text-purple-700 font-medium">Total Jobs</p>
-          <p className="text-2xl md:text-3xl font-bold text-purple-900 mt-2">{totalJobs}</p>
+        <div className="bg-[#f5f0fc] rounded-xl p-4 md:p-6 border border-[#ddd0ec] hover:shadow-sm transition-shadow">
+          <p className="text-xs md:text-sm text-[#6941C6] font-medium">Total Jobs</p>
+          <p className="text-2xl md:text-3xl font-bold text-[#2d1b69] mt-2">{totalJobs}</p>
         </div>
-        <div className="bg-green-50 rounded-xl p-4 md:p-6 border border-green-200">
-          <p className="text-xs md:text-sm text-green-700 font-medium">Active Jobs</p>
-          <p className="text-2xl md:text-3xl font-bold text-green-900 mt-2">{activeJobs}</p>
+        <div className="bg-orange-50 rounded-xl p-4 md:p-6 border border-orange-200 hover:shadow-sm transition-shadow">
+          <p className="text-xs md:text-sm text-orange-700 font-medium">Active Jobs</p>
+          <p className="text-2xl md:text-3xl font-bold text-orange-900 mt-2">{activeJobs}</p>
         </div>
-        <div className="bg-blue-50 rounded-xl p-4 md:p-6 border border-blue-200">
-          <p className="text-xs md:text-sm text-blue-700 font-medium">Total Applicants</p>
-          <p className="text-2xl md:text-3xl font-bold text-blue-900 mt-2">
-            {totalApplicants}
-          </p>
+        <div className="bg-green-50 rounded-xl p-4 md:p-6 border border-green-200 hover:shadow-sm transition-shadow">
+          <p className="text-xs md:text-sm text-green-700 font-medium">Total Applicants</p>
+          <p className="text-2xl md:text-3xl font-bold text-green-900 mt-2">{totalApplicants}</p>
         </div>
-        <div className="bg-orange-50 rounded-xl p-4 md:p-6 border border-orange-200">
-          <p className="text-xs md:text-sm text-orange-700 font-medium">Pending Review</p>
-          <p className="text-2xl md:text-3xl font-bold text-orange-900 mt-2">{pendingJobs}</p>
+        <div className="bg-red-50 rounded-xl p-4 md:p-6 border border-red-200 hover:shadow-sm transition-shadow">
+          <p className="text-xs md:text-sm text-red-700 font-medium">Pending Review</p>
+          <p className="text-2xl md:text-3xl font-bold text-red-900 mt-2">{pendingJobs}</p>
         </div>
       </div>
 
       {/* Search and Filter Bar */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 md:p-4">
-        <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-2 md:p-3">
+        <div className="flex flex-col sm:flex-row gap-2 md:gap-3">
           {/* Search Input */}
           <div className="flex-1 relative">
-            <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 md:h-5 md:w-5 text-gray-400" />
+            <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4  text-gray-400" />
             <input
               type="text"
               placeholder="Search jobs..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 md:pl-10 pr-4 py-2 md:py-2.5 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
+className="w-full pl-9 pr-4 py-1.5 md:py-2 text-xs md:text-sm border border-gray-200 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all outline-none"            />
           </div>
 
           {/* Location Filter */}
@@ -202,8 +220,7 @@ const AllJobs: React.FC = () => {
             <select
               value={selectedLocation}
               onChange={(e) => setSelectedLocation(e.target.value)}
-              className="w-full pl-9 md:pl-10 pr-4 py-2 md:py-2.5 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white"
-            >
+className="w-full pl-9 pr-8 py-1.5 md:py-2 text-xs md:text-sm border border-gray-200 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent appearance-none bg-white cursor-pointer transition-all outline-none"            >
               <option value="">All Locations</option>
               {locations.map((location: string) => (
                 <option key={location} value={location}>
@@ -218,8 +235,7 @@ const AllJobs: React.FC = () => {
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
-              className="w-full px-4 py-2 md:py-2.5 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white"
-            >
+className="w-full pl-9 pr-8 py-1.5 md:py-2 text-xs md:text-sm border border-gray-200 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent appearance-none bg-white cursor-pointer transition-all outline-none"            >
               <option value="">All Status</option>
               {statuses.map((status: string) => (
                 <option key={status} value={status}>
@@ -232,7 +248,7 @@ const AllJobs: React.FC = () => {
       </div>
 
       {filteredJobs.length === 0 ? (
-        <div className="bg-white rounded-xl p-12 shadow-md border border-gray-100 text-center">
+        <div className="bg-white rounded-xl p-12 shadow-md border border-[#ede7f8] text-center">
           <BriefcaseIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
           <h3 className="text-xl font-semibold text-gray-900 mb-2">
             {searchQuery || selectedLocation || selectedStatus
@@ -246,7 +262,7 @@ const AllJobs: React.FC = () => {
           </p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {filteredJobs.map((job: any) => {
             const employerName = job.employer?.full_name || "Unknown Employer";
             const companyInitial = employerName.charAt(0).toUpperCase();
@@ -262,7 +278,7 @@ const AllJobs: React.FC = () => {
                   <div className="flex gap-3 md:gap-4 flex-1 min-w-0">
                     {/* Company Logo */}
                     <div className="flex-shrink-0">
-                      <div className="h-12 w-12 md:h-16 md:w-16 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg md:text-xl shadow-md">
+                      <div className="h-12 w-12 md:h-16 md:w-16 rounded-lg bg-gradient-to-br from-[#6941C6] to-[#2d1b69] flex items-center justify-center text-white font-bold text-lg md:text-xl shadow-md">
                         {companyInitial}
                       </div>
                     </div>
@@ -350,7 +366,7 @@ const AllJobs: React.FC = () => {
                           </span>
                         )}
                         {job.experience_level && (
-                          <span className="px-2 md:px-3 py-1 bg-purple-50 text-purple-700 rounded-full text-xs font-medium">
+                          <span className="px-2 md:px-3 py-1 bg-[#f5f0fc] text-[#6941C6] rounded-full text-xs font-medium">
                             {job.experience_level}
                           </span>
                         )}
@@ -362,15 +378,15 @@ const AllJobs: React.FC = () => {
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex flex-col sm:flex-row md:flex-col gap-2 md:ml-4 md:flex-shrink-0">
+                  <div className="flex flex-col sm:flex-row md:flex-col gap-1.5 md:ml-4 md:flex-shrink-0 items-start">
                     {role === "student" ? (
                       <button
                         onClick={() => !appliedJobIds.has(job.job_id) && handleApply(job)}
                         disabled={appliedJobIds.has(job.job_id)}
-                        className={`px-4 md:px-6 py-2 md:py-2.5 rounded-lg font-semibold transition shadow-sm whitespace-nowrap text-sm md:text-base flex-1 sm:flex-none ${
+                        className={`px-3 py-1.5 rounded-lg font-medium transition text-xs cursor-pointer ${
                           appliedJobIds.has(job.job_id)
-                            ? "bg-gray-400 text-white cursor-not-allowed"
-                            : "bg-blue-600 hover:bg-blue-700 text-white"
+                            ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                            : "bg-[#2d1b69] hover:bg-[#1a1035] text-white"
                         }`}
                       >
                         {appliedJobIds.has(job.job_id) ? "Applied" : "Apply Now"}
@@ -379,9 +395,10 @@ const AllJobs: React.FC = () => {
                       <>
                         <button
                           onClick={() => navigate(`/dashboard/jobs/${job.job_id}`)}
-                          className="px-4 md:px-6 py-2 md:py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition shadow-sm whitespace-nowrap text-sm md:text-base flex-1 sm:flex-none"
+                          className="p-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition cursor-pointer"
+                          title="View Details"
                         >
-                          View Details
+                          <EyeIcon className="h-4 w-4" />
                         </button>
                         {(role === "employer" || role === "superadmin") && (
                           <>
@@ -389,38 +406,46 @@ const AllJobs: React.FC = () => {
                               onClick={() =>
                                 navigate(`/dashboard/jobs/${job.job_id}/applications`)
                               }
-                              className="px-4 md:px-6 py-2 md:py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition shadow-sm whitespace-nowrap text-sm md:text-base flex-1 sm:flex-none"
+                              className="flex items-center gap-1 px-2 py-1.5 bg-[#f5f0fc] hover:bg-[#ede7f8] text-[#6941C6] rounded-lg transition text-xs font-medium cursor-pointer"
+                              title="Manage Applications"
                             >
-                              Manage ({job.applications || 0})
+                              <UsersIcon className="h-3.5 w-3.5" />
+                              <span>{job.applications || 0}</span>
                             </button>
                             {(job.status === "Active" || job.status === "Inactive" || job.status === "Pending") && (
                               <button
                                 onClick={() => handleToggleStatus(job.job_id, job.status)}
                                 disabled={isToggling}
-                                className={`px-4 md:px-6 py-2 md:py-2.5 rounded-lg font-semibold transition shadow-sm whitespace-nowrap text-sm md:text-base flex-1 sm:flex-none ${
+                                className={`p-1.5 rounded-lg transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
                                   job.status === "Active"
-                                    ? "bg-orange-600 hover:bg-orange-700 text-white"
-                                    : job.status === "Pending"
-                                    ? "bg-green-600 hover:bg-green-700 text-white"
-                                    : "bg-green-600 hover:bg-green-700 text-white"
-                                } disabled:opacity-50 disabled:cursor-not-allowed`}
+                                    ? "bg-orange-50 hover:bg-orange-100 text-orange-600"
+                                    : "bg-green-50 hover:bg-green-100 text-green-600"
+                                }`}
+                                title={job.status === "Active" ? "Deactivate" : "Activate"}
                               >
-                                {isToggling
-                                  ? "Updating..."
-                                  : job.status === "Active"
-                                  ? "Deactivate"
-                                  : job.status === "Pending"
-                                  ? "Activate"
-                                  : "Activate"}
+                                {job.status === "Active" ? (
+                                  <PauseIcon className="h-4 w-4" />
+                                ) : (
+                                  <PlayIcon className="h-4 w-4" />
+                                )}
                               </button>
                             )}
                             <button
                               onClick={() =>
                                 navigate(`/dashboard/jobs/${job.job_id}/edit`)
                               }
-                              className="px-4 md:px-6 py-2 md:py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg font-semibold transition shadow-sm whitespace-nowrap text-sm md:text-base flex-1 sm:flex-none"
+                              className="p-1.5 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg transition cursor-pointer"
+                              title="Edit"
                             >
-                              Edit
+                              <PencilSquareIcon className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteJob(job.job_id, job.job_title)}
+                              disabled={isDeleting}
+                              className="p-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                              title="Delete"
+                            >
+                              <TrashIcon className="h-4 w-4" />
                             </button>
                           </>
                         )}

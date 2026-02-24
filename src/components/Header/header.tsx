@@ -3,12 +3,28 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { BellIcon, Bars3Icon } from "@heroicons/react/24/outline";
 import { logoutApi } from "../../services/api/logoutApi";
+import { getUserProfile } from "../../services/api/profileApi";
+import { setUser } from "../../features/auth/authSlice";
 import {
   useGetUnreadNotificationCountQuery,
   useGetNotificationsQuery,
   useMarkNotificationAsReadMutation,
   useMarkAllNotificationsAsReadMutation,
 } from "../../services/api/notificationApi";
+
+// Helper to resolve image URLs - prepend backend server URL for /uploads paths
+const getImageUrl = (url: string | null | undefined): string | null => {
+  if (!url) return null;
+  // If URL starts with /uploads, prepend the backend server URL (without /api)
+  if (url.startsWith('/uploads')) {
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+    // Remove /api from the end to get the backend base URL
+    const backendBaseUrl = apiUrl.replace(/\/api\/?$/, '');
+    return `${backendBaseUrl}${url}`;
+  }
+  // Return as-is for full URLs (http/https) or other paths
+  return url;
+};
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -18,12 +34,14 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isNotificationDropdownOpen, setIsNotificationDropdownOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [imageError, setImageError] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const notificationDropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const role = useSelector((state: any) => state.auth.role);
-  
+  const user = useSelector((state: any) => state.auth.user);
+
   // Get unread notification count for employers/superadmins and students
   const { data: unreadCountData, refetch: refetchUnreadCount } = useGetUnreadNotificationCountQuery(undefined, {
     skip: role !== "employer" && role !== "superadmin" && role !== "student",
@@ -43,6 +61,31 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
 
   const unreadCount = unreadCountData?.data?.count || 0;
   const notifications = notificationsData?.data || [];
+
+  // Reset imageError when profile image URL changes
+  useEffect(() => {
+    setImageError(false);
+  }, [user?.profile_image_url]);
+
+  // Fetch user profile on mount to ensure we have the latest data (including profile_image_url)
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const response = await getUserProfile();
+        if (response.data) {
+          // Update Redux with the latest user data
+          dispatch(setUser(response.data));
+        }
+      } catch (error) {
+        console.error('Failed to fetch user profile in header:', error);
+      }
+    };
+
+    // Only fetch if user is logged in
+    if (user?.user_id || user?.id) {
+      fetchUserProfile();
+    }
+  }, []); // Run once on mount
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -77,8 +120,12 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   const handleNotificationClick = async (notification: any) => {
     if (!notification.is_read) {
       try {
-        await markAsRead(notification.notification_id);
-        refetchUnreadCount();
+        await markAsRead(notification.notification_id).unwrap();
+        // Force refetch both queries to update the UI
+        await Promise.all([
+          refetchUnreadCount(),
+          refetchNotifications(),
+        ]);
       } catch (error) {
         console.error("Failed to mark notification as read:", error);
         // Optionally show user-friendly error message
@@ -108,9 +155,12 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
 
   const handleMarkAllAsRead = async () => {
     try {
-      await markAllAsRead();
-      refetchUnreadCount();
-      refetchNotifications();
+      await markAllAsRead().unwrap();
+      // Force refetch both queries to update the UI
+      await Promise.all([
+        refetchUnreadCount(),
+        refetchNotifications(),
+      ]);
     } catch (error) {
       console.error("Failed to mark all notifications as read:", error);
     }
@@ -159,11 +209,11 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   };
 
   return (
-    <header className="w-full bg-white/80 backdrop-blur-lg h-16 shadow-md border-b border-gray-200/50 flex items-center justify-between px-4 md:px-6 relative z-30">
+    <header className="w-full bg-white/70 dark:bg-[#1a1528]/90 backdrop-blur-lg h-16 shadow-sm border-b border-[#ddd0ec]/50 dark:border-[#2d1b69]/50 flex items-center justify-between px-4 md:px-6 relative z-30 transition-colors duration-300">
       {/* Left side - Mobile menu button */}
       <button
         onClick={onMenuClick}
-        className="lg:hidden text-gray-700 hover:text-gray-900 transition-colors p-2 rounded-lg hover:bg-gray-100"
+        className="lg:hidden text-[#2d1b69] hover:text-[#7F56D9] transition-colors p-2 rounded-lg hover:bg-[#ede7f8]"
         aria-label="Toggle menu"
         type="button"
       >
@@ -171,7 +221,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
       </button>
 
       {/* Center - Role + Dashboard title */}
-      <div className="text-gray-700 font-semibold text-lg capitalize hidden sm:block">
+      <div className="text-[#2d1b69] dark:text-white font-bold text-lg capitalize hidden sm:block">
         {role ? `${role} Dashboard` : "Dashboard"}
       </div>
 
@@ -182,11 +232,11 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
           <div className="relative" ref={notificationDropdownRef}>
             <button
               onClick={() => setIsNotificationDropdownOpen(!isNotificationDropdownOpen)}
-              className="relative cursor-pointer p-2 rounded-lg hover:bg-gray-100 transition-colors group"
+              className="relative cursor-pointer p-2 rounded-lg hover:bg-[#ede7f8] transition-colors group"
               aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ""}`}
               type="button"
             >
-              <BellIcon className="h-6 w-6 text-gray-600 group-hover:text-purple-600 transition-colors" />
+              <BellIcon className="h-6 w-6 text-[#2d1b69] group-hover:text-[#7F56D9] transition-colors" />
               {unreadCount > 0 && (
                 <span className="absolute top-0 right-0 bg-linear-to-r from-red-500 to-red-600 text-white text-xs font-semibold rounded-full h-5 w-5 flex items-center justify-center shadow-lg" aria-label={`${unreadCount} unread notifications`}>
                   {unreadCount > 9 ? "9+" : unreadCount}
@@ -196,9 +246,9 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
 
             {/* Notification Dropdown */}
             {isNotificationDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] sm:w-80 md:w-96 max-w-[calc(100vw-2rem)] sm:max-w-none bg-white/95 backdrop-blur-lg border border-gray-200/50 rounded-xl shadow-2xl z-50 animate-fadeIn overflow-hidden">
-                <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-                  <h3 className="font-semibold text-gray-900">Notifications</h3>
+              <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] sm:w-80 md:w-96 max-w-[calc(100vw-2rem)] sm:max-w-none bg-white/95 dark:bg-[#1a1528]/95 backdrop-blur-lg border border-gray-200/50 dark:border-[#2d1b69]/50 rounded-xl shadow-2xl z-50 animate-fadeIn overflow-hidden">
+                <div className="p-4 border-b border-gray-200 dark:border-[#2d1b69] flex items-center justify-between">
+                  <h3 className="font-semibold text-gray-900 dark:text-white">Notifications</h3>
                   {unreadCount > 0 && (
                     <button
                       onClick={handleMarkAllAsRead}
@@ -210,8 +260,8 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                 </div>
                 <div className="max-h-96 overflow-y-auto">
                   {notifications.length === 0 ? (
-                    <div className="p-8 text-center text-gray-500">
-                      <BellIcon className="h-12 w-12 mx-auto mb-2 text-gray-300" />
+                    <div className="p-8 text-center text-gray-500 dark:text-gray-400">
+                      <BellIcon className="h-12 w-12 mx-auto mb-2 text-gray-300 dark:text-gray-600" />
                       <p>No notifications yet</p>
                     </div>
                   ) : (
@@ -219,8 +269,8 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                       <div
                         key={notification.notification_id}
                         onClick={() => handleNotificationClick(notification)}
-                        className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors ${
-                          !notification.is_read ? "bg-purple-50/50" : ""
+                        className={`p-4 border-b border-gray-100 dark:border-[#2d1b69]/30 cursor-pointer hover:bg-gray-50 dark:hover:bg-[#2d1b69]/20 transition-colors ${
+                          !notification.is_read ? "bg-purple-50/50 dark:bg-[#2d1b69]/15" : ""
                         }`}
                       >
                         <div className="flex items-start gap-3">
@@ -230,10 +280,10 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                             }`}
                           />
                           <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-gray-900 text-sm">
+                            <p className="font-semibold text-gray-900 dark:text-white text-sm">
                               {notification.title}
                             </p>
-                            <p className="text-sm text-gray-600 mt-1">
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                               {notification.message}
                             </p>
                             {notification.application && (
@@ -285,22 +335,29 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
         <div className="relative" ref={dropdownRef}>
           <button
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className="h-10 w-10 rounded-full bg-linear-to-br from-purple-500 to-indigo-600 flex items-center justify-center cursor-pointer border-2 border-white shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200 ring-2 ring-purple-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+            className="h-10 w-10 rounded-full bg-[#2d1b69] flex items-center justify-center cursor-pointer border-2 border-white shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200 ring-2 ring-[#ddd0ec] focus:outline-none focus:ring-2 focus:ring-[#7F56D9] focus:ring-offset-2 overflow-hidden"
             aria-label="User menu"
             type="button"
           >
-            <img
-              src="https://i.pravatar.cc/100?img=3"
-              alt="User avatar"
-              className="h-full w-full rounded-full object-cover"
-            />
+            {user?.profile_image_url && !imageError ? (
+              <img
+                src={getImageUrl(user.profile_image_url) || ''}
+                alt={user?.full_name || user?.name || "User"}
+                className="h-full w-full rounded-full object-cover"
+                onError={() => setImageError(true)}
+              />
+            ) : (
+              <span className="text-white font-semibold text-sm">
+                {(user?.full_name || user?.name || user?.email)?.charAt(0)?.toUpperCase() || "U"}
+              </span>
+            )}
           </button>
 
           {/* Dropdown menu */}
           {isDropdownOpen && (
-            <div className="absolute right-0 mt-2 w-48 bg-white/95 backdrop-blur-lg border border-gray-200/50 rounded-xl shadow-2xl py-2 z-50 animate-fadeIn overflow-hidden">
+            <div className="absolute right-0 mt-2 w-48 bg-white/95 dark:bg-[#1a1528]/95 backdrop-blur-lg border border-gray-200/50 dark:border-[#2d1b69]/50 rounded-xl shadow-2xl py-2 z-50 animate-fadeIn overflow-hidden">
               <button
-                className="w-full text-left px-4 py-2.5 text-gray-700 hover:bg-linear-to-r hover:from-purple-50 hover:to-indigo-50 transition-all duration-200 flex items-center gap-2 group"
+                className="w-full text-left px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-linear-to-r hover:from-purple-50 hover:to-indigo-50 dark:hover:from-[#2d1b69]/30 dark:hover:to-[#2d1b69]/20 transition-all duration-200 flex items-center gap-2 group"
                 onClick={() => {
                   setIsDropdownOpen(false);
                   navigate("/dashboard/profile");
@@ -309,7 +366,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                 <span className="group-hover:text-purple-600 transition-colors">Profile</span>
               </button>
               <button
-                className="w-full text-left px-4 py-2.5 text-gray-700 hover:bg-linear-to-r hover:from-red-50 hover:to-pink-50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 group"
+                className="w-full text-left px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-linear-to-r hover:from-red-50 hover:to-pink-50 dark:hover:from-red-900/20 dark:hover:to-red-900/10 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 group"
                 onClick={handleLogout}
                 disabled={isLoggingOut}
               >

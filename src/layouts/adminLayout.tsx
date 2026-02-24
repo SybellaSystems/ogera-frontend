@@ -2,12 +2,18 @@ import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import Sidebar from "../components/Sidebar/sidebar";
 import Header from "../components/Header/header";
+import { useTheme } from "../context/ThemeContext";
 
 const AdminLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const { resolvedTheme } = useTheme();
+
+  const bgStyle = resolvedTheme === "dark"
+    ? { background: "linear-gradient(180deg, #0f0a1a 0%, #1a1528 50%, #130e20 100%)" }
+    : { background: "linear-gradient(180deg, #e4daf5 0%, #ede7f8 50%, #f5f0fc 100%)" };
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 overflow-hidden">
+    <div className="flex min-h-screen overflow-hidden transition-colors duration-300" style={bgStyle}>
       <Sidebar
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}

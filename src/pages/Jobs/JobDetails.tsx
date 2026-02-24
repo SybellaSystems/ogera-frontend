@@ -76,7 +76,7 @@ const JobDetails: React.FC = () => {
           </p>
           <button
             onClick={() => navigate("/dashboard/jobs/all")}
-            className="mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition"
+            className="mt-4 px-4 py-2 bg-[#2d1b69] text-white rounded-lg hover:bg-[#1a1035] transition"
           >
             Back to All Jobs
           </button>
@@ -95,7 +95,7 @@ const JobDetails: React.FC = () => {
           </p>
           <button
             onClick={() => navigate("/dashboard/jobs/all")}
-            className="mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition"
+            className="mt-4 px-4 py-2 bg-[#2d1b69] text-white rounded-lg hover:bg-[#1a1035] transition"
           >
             Back to All Jobs
           </button>
@@ -121,7 +121,7 @@ const JobDetails: React.FC = () => {
             </button>
           </div>
           <h1 className="text-2xl md:text-4xl font-extrabold text-gray-900 flex items-center gap-3">
-            <BriefcaseIcon className="h-6 w-6 md:h-10 md:w-10 text-purple-600" />
+            <BriefcaseIcon className="h-6 w-6 md:h-10 md:w-10 text-[#6941C6]" />
             {job.job_title}
           </h1>
           <div className="flex flex-wrap items-center gap-3 mt-2">
@@ -149,7 +149,7 @@ const JobDetails: React.FC = () => {
         </div>
         {role === "student" && (
           <Button
-            backgroundcolor={hasApplied ? "#6b7280" : "#7f56d9"}
+            backgroundcolor={hasApplied ? "#6b7280" : "#2d1b69"}
             text={hasApplied ? "Applied" : "Apply Now"}
             onClick={() => !hasApplied && setIsModalOpen(true)}
             disabled={hasApplied}
@@ -158,7 +158,7 @@ const JobDetails: React.FC = () => {
         {(role === "employer" || role === "superadmin") && (
           <div className="flex flex-col sm:flex-row gap-2">
             <Button
-              backgroundcolor="#7f56d9"
+              backgroundcolor="#2d1b69"
               text={`Manage Applications (${job.applications || 0})`}
               onClick={() => navigate(`/dashboard/jobs/${id}/applications`)}
             />
@@ -176,7 +176,7 @@ const JobDetails: React.FC = () => {
         <div className="flex flex-col md:flex-row gap-6">
           {/* Company Info */}
           <div className="flex-shrink-0">
-            <div className="h-20 w-20 md:h-24 md:w-24 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-2xl md:text-3xl shadow-md">
+            <div className="h-20 w-20 md:h-24 md:w-24 rounded-lg bg-gradient-to-br from-[#6941C6] to-[#2d1b69] flex items-center justify-center text-white font-bold text-2xl md:text-3xl shadow-md">
               {companyInitial}
             </div>
           </div>
@@ -235,7 +235,7 @@ const JobDetails: React.FC = () => {
                 </span>
               )}
               {job.experience_level && (
-                <span className="px-3 py-1 bg-purple-50 text-purple-700 rounded-full text-sm font-medium">
+                <span className="px-3 py-1 bg-[#f5f0fc] text-[#6941C6] rounded-full text-sm font-medium">
                   {job.experience_level}
                 </span>
               )}

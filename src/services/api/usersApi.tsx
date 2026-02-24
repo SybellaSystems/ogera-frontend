@@ -14,6 +14,107 @@ export interface PaginationMeta {
   totalPages: number;
 }
 
+// Student Performance Types
+export interface StudentPerformance {
+  id: string;
+  name: string;
+  email: string;
+  university: string;
+  gpa: string;
+  degree: string;
+  fieldOfStudy: string;
+  jobsCompleted: number;
+  jobsPending: number;
+  jobsRejected: number;
+  totalApplications: number;
+  rating: number;
+  earnings: string;
+  trend: string;
+  engagement: "Low" | "Medium" | "High" | "Very High";
+  status: string;
+  verificationStatus: {
+    email: boolean;
+    phone: boolean;
+  };
+  createdAt: string;
+  role: string;
+}
+
+export interface StudentPerformanceSummary {
+  totalStudents: number;
+  totalJobsCompleted: number;
+  avgRating: number;
+  totalEarnings: string;
+  avgCompletionRate: string;
+}
+
+export interface StudentPerformanceParams {
+  page?: number;
+  limit?: number;
+  sortBy?: "rating" | "earnings" | "completion";
+}
+
+export interface StudentPerformanceResponse {
+  success: boolean;
+  status: number;
+  message: string;
+  data: StudentPerformance[];
+  summary: StudentPerformanceSummary;
+  pagination: PaginationMeta;
+}
+
+// Locked Account Types
+export interface LockedAccount {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  reason: string;
+  lockedDate: string;
+  duration: string;
+  lockedBy: string;
+}
+
+export interface LockedAccountsResponse {
+  success: boolean;
+  status: number;
+  message: string;
+  data: LockedAccount[];
+  pagination: PaginationMeta;
+}
+
+export interface LockAccountParams {
+  userId: string;
+  reason: string;
+  duration: string;
+}
+
+// Student Performance Detail Types
+export interface StudentPerformanceDetailResponse {
+  success: boolean;
+  status: number;
+  message: string;
+  data: {
+    student: StudentPerformance;
+    jobHistory: Array<{
+      id: string;
+      title: string;
+      company: string;
+      amount: string;
+      rating: number;
+      date: string;
+      status: string;
+    }>;
+    monthlyEarnings: Array<{ month: string; amount: number }>;
+    metrics: {
+      profileCompletion: number;
+      responseTime: string;
+      acceptanceRate: number;
+      repeatClients: number;
+    };
+  };
+}
+
 export interface UsersListResponse {
   success: boolean;
   status: number;
@@ -140,6 +241,66 @@ export const usersApi = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ["User"],
     }),
+
+    // Get student performance metrics
+    getStudentPerformance: builder.query<StudentPerformanceResponse, StudentPerformanceParams | void>({
+      query: (params = {}) => {
+        const { page = 1, limit = 10, sortBy = "rating" } = params || {};
+        return {
+          url: "/users/students/performance",
+          method: "GET",
+          params: { page, limit, sortBy },
+        };
+      },
+      providesTags: ["User"],
+    }),
+
+    // Get individual student performance detail
+    getStudentPerformanceDetail: builder.query<StudentPerformanceDetailResponse, string>({
+      query: (studentId) => ({
+        url: `/users/students/${studentId}/performance`,
+        method: "GET",
+      }),
+      providesTags: (_result, _error, id) => [{ type: "User", id }],
+    }),
+
+    // Get locked accounts
+    getLockedAccounts: builder.query<LockedAccountsResponse, PaginationParams | void>({
+      query: (params = {}) => {
+        const { page = 1, limit = 10 } = params || {};
+        return {
+          url: "/users/locked",
+          method: "GET",
+          params: { page, limit },
+        };
+      },
+      providesTags: ["User"],
+    }),
+
+    // Lock user account
+    lockUserAccount: builder.mutation<
+      { success: boolean; status: number; message: string; data: any },
+      LockAccountParams
+    >({
+      query: ({ userId, reason, duration }) => ({
+        url: `/users/${userId}/lock`,
+        method: "POST",
+        body: { reason, duration },
+      }),
+      invalidatesTags: ["User"],
+    }),
+
+    // Unlock user account
+    unlockUserAccount: builder.mutation<
+      { success: boolean; status: number; message: string; data: any },
+      string
+    >({
+      query: (userId) => ({
+        url: `/users/${userId}/unlock`,
+        method: "POST",
+      }),
+      invalidatesTags: ["User"],
+    }),
   }),
 });
 
@@ -151,4 +312,9 @@ export const {
   useUpdateUserByIdMutation,
   useDeleteUserMutation,
   useAddUserMutation,
+  useGetStudentPerformanceQuery,
+  useGetStudentPerformanceDetailQuery,
+  useGetLockedAccountsQuery,
+  useLockUserAccountMutation,
+  useUnlockUserAccountMutation,
 } = usersApi;
