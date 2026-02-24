@@ -17,6 +17,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { BookmarkIcon as BookmarkSolidIcon } from "@heroicons/react/24/solid";
 import { useGetAllJobsQuery, useToggleJobStatusMutation, useDeleteJobMutation } from "../../services/api/jobsApi";
+import { useGetAllCategoriesQuery } from "../../services/api/jobCategoriesApi";
 import toast from "react-hot-toast";
 import { useGetUserProfileQuery } from "../../services/api/authApi";
 import { useGetStudentApplicationsQuery } from "../../services/api/jobApplicationApi";
@@ -39,7 +40,15 @@ const AllJobs: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLocation, setSelectedLocation] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
   const [savedJobs, setSavedJobs] = useState<Set<string>>(new Set());
+
+  // Job categories for badges and filtering
+  const { data: categoriesData } = useGetAllCategoriesQuery();
+  const jobCategories = categoriesData?.data || [];
+  const categoryMap = Object.fromEntries(
+    jobCategories.map((c) => [c.category_id, c])
+  );
   
   // Create a Set of job IDs the student has applied to
   const appliedJobIds = new Set(
@@ -69,7 +78,10 @@ const AllJobs: React.FC = () => {
     const matchesStatus =
       !selectedStatus || job.status === selectedStatus;
 
-    return matchesSearch && matchesLocation && matchesStatus;
+    const matchesCategory =
+      !selectedCategory || job.job_category_id === selectedCategory;
+
+    return matchesSearch && matchesLocation && matchesStatus && matchesCategory;
   });
 
   // Get unique locations and statuses for filters
@@ -244,6 +256,24 @@ className="w-full pl-9 pr-8 py-1.5 md:py-2 text-xs md:text-sm border border-gray
               ))}
             </select>
           </div>
+
+          {/* Category Filter */}
+          {jobCategories.length > 0 && (
+            <div className="relative sm:w-48">
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="w-full pl-3 pr-8 py-1.5 md:py-2 text-xs md:text-sm border border-gray-200 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent appearance-none bg-white cursor-pointer transition-all outline-none"
+              >
+                <option value="">All Categories</option>
+                {jobCategories.map((cat) => (
+                  <option key={cat.category_id} value={cat.category_id}>
+                    {cat.icon ? `${cat.icon} ` : ""}{cat.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
       </div>
 
@@ -251,7 +281,7 @@ className="w-full pl-9 pr-8 py-1.5 md:py-2 text-xs md:text-sm border border-gray
         <div className="bg-white rounded-xl p-12 shadow-md border border-[#ede7f8] text-center">
           <BriefcaseIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
           <h3 className="text-xl font-semibold text-gray-900 mb-2">
-            {searchQuery || selectedLocation || selectedStatus
+            {searchQuery || selectedLocation || selectedStatus || selectedCategory
               ? "No jobs found matching your criteria"
               : "No jobs available"}
           </h3>
@@ -355,6 +385,11 @@ className="w-full pl-9 pr-8 py-1.5 md:py-2 text-xs md:text-sm border border-gray
 
                       {/* Skills/Tags */}
                       <div className="flex flex-wrap gap-2 mb-3">
+                        {job.job_category_id && categoryMap[job.job_category_id] && (
+                          <span className="px-2 md:px-3 py-1 bg-amber-50 text-amber-700 rounded-full text-xs font-medium">
+                            {categoryMap[job.job_category_id].icon ? `${categoryMap[job.job_category_id].icon} ` : ""}{categoryMap[job.job_category_id].name}
+                          </span>
+                        )}
                         {job.category && (
                           <span className="px-2 md:px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium">
                             {job.category}
@@ -400,55 +435,63 @@ className="w-full pl-9 pr-8 py-1.5 md:py-2 text-xs md:text-sm border border-gray
                         >
                           <EyeIcon className="h-4 w-4" />
                         </button>
-                        {(role === "employer" || role === "superadmin") && (
-                          <>
-                            <button
-                              onClick={() =>
-                                navigate(`/dashboard/jobs/${job.job_id}/applications`)
-                              }
-                              className="flex items-center gap-1 px-2 py-1.5 bg-[#f5f0fc] hover:bg-[#ede7f8] text-[#6941C6] rounded-lg transition text-xs font-medium cursor-pointer"
-                              title="Manage Applications"
-                            >
-                              <UsersIcon className="h-3.5 w-3.5" />
-                              <span>{job.applications || 0}</span>
-                            </button>
-                            {(job.status === "Active" || job.status === "Inactive" || job.status === "Pending") && (
+                        {(role === "employer" || role === "superadmin" || role === "admin") && (() => {
+                          const canManageJob = role === "superadmin" || role === "admin" ||
+                            (role === "employer" && job.employer_id === currentUserId);
+                          return (
+                            <>
                               <button
-                                onClick={() => handleToggleStatus(job.job_id, job.status)}
-                                disabled={isToggling}
-                                className={`p-1.5 rounded-lg transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
-                                  job.status === "Active"
-                                    ? "bg-orange-50 hover:bg-orange-100 text-orange-600"
-                                    : "bg-green-50 hover:bg-green-100 text-green-600"
-                                }`}
-                                title={job.status === "Active" ? "Deactivate" : "Activate"}
+                                onClick={() =>
+                                  navigate(`/dashboard/jobs/${job.job_id}/applications`)
+                                }
+                                className="flex items-center gap-1 px-2 py-1.5 bg-[#f5f0fc] hover:bg-[#ede7f8] text-[#6941C6] rounded-lg transition text-xs font-medium cursor-pointer"
+                                title="Manage Applications"
                               >
-                                {job.status === "Active" ? (
-                                  <PauseIcon className="h-4 w-4" />
-                                ) : (
-                                  <PlayIcon className="h-4 w-4" />
-                                )}
+                                <UsersIcon className="h-3.5 w-3.5" />
+                                <span>{job.applications || 0}</span>
                               </button>
-                            )}
-                            <button
-                              onClick={() =>
-                                navigate(`/dashboard/jobs/${job.job_id}/edit`)
-                              }
-                              className="p-1.5 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg transition cursor-pointer"
-                              title="Edit"
-                            >
-                              <PencilSquareIcon className="h-4 w-4" />
-                            </button>
-                            <button
-                              onClick={() => handleDeleteJob(job.job_id, job.job_title)}
-                              disabled={isDeleting}
-                              className="p-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                              title="Delete"
-                            >
-                              <TrashIcon className="h-4 w-4" />
-                            </button>
-                          </>
-                        )}
+                              {canManageJob && (
+                                <>
+                                  {(job.status === "Active" || job.status === "Inactive" || job.status === "Pending") && (
+                                    <button
+                                      onClick={() => handleToggleStatus(job.job_id, job.status)}
+                                      disabled={isToggling}
+                                      className={`p-1.5 rounded-lg transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+                                        job.status === "Active"
+                                          ? "bg-orange-50 hover:bg-orange-100 text-orange-600"
+                                          : "bg-green-50 hover:bg-green-100 text-green-600"
+                                      }`}
+                                      title={job.status === "Active" ? "Deactivate" : "Activate"}
+                                    >
+                                      {job.status === "Active" ? (
+                                        <PauseIcon className="h-4 w-4" />
+                                      ) : (
+                                        <PlayIcon className="h-4 w-4" />
+                                      )}
+                                    </button>
+                                  )}
+                                  <button
+                                    onClick={() =>
+                                      navigate(`/dashboard/jobs/${job.job_id}/edit`)
+                                    }
+                                    className="p-1.5 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg transition cursor-pointer"
+                                    title="Edit"
+                                  >
+                                    <PencilSquareIcon className="h-4 w-4" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteJob(job.job_id, job.job_title)}
+                                    disabled={isDeleting}
+                                    className="p-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                    title="Delete"
+                                  >
+                                    <TrashIcon className="h-4 w-4" />
+                                  </button>
+                                </>
+                              )}
+                            </>
+                          );
+                        })()}
                       </>
                     )}
                   </div>

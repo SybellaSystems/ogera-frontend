@@ -11,6 +11,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { BookmarkIcon as BookmarkSolidIcon } from "@heroicons/react/24/solid";
 import { useGetJobByIdQuery } from "../../services/api/jobsApi";
+import { useGetAllCategoriesQuery } from "../../services/api/jobCategoriesApi";
 import { useGetUserProfileQuery } from "../../services/api/authApi";
 import { useCheckStudentApplicationQuery } from "../../services/api/jobApplicationApi";
 import ApplyJobModal from "../../components/ApplyJobModal";
@@ -35,6 +36,13 @@ const JobDetails: React.FC = () => {
   const job = data?.data;
   const currentUserId = profileData?.data?.user_id;
   const isSaved = id ? savedJobs.has(id) : false;
+
+  // Job categories lookup
+  const { data: categoriesData } = useGetAllCategoriesQuery();
+  const jobCategories = categoriesData?.data || [];
+  const jobCategory = job?.job_category_id
+    ? jobCategories.find((c) => c.category_id === job.job_category_id)
+    : null;
 
   const toggleSaveJob = (jobId: string) => {
     setSavedJobs((prev) => {
@@ -132,6 +140,11 @@ const JobDetails: React.FC = () => {
             >
               {job.status}
             </span>
+            {jobCategory && (
+              <span className="px-3 py-1 rounded-full text-sm font-semibold bg-amber-50 text-amber-700">
+                {jobCategory.icon ? `${jobCategory.icon} ` : ""}{jobCategory.name}
+              </span>
+            )}
             {role === "student" && (
               <button
                 onClick={() => id && toggleSaveJob(id)}
@@ -155,18 +168,20 @@ const JobDetails: React.FC = () => {
             disabled={hasApplied}
           />
         )}
-        {(role === "employer" || role === "superadmin") && (
+        {(role === "employer" || role === "superadmin" || role === "admin") && (
           <div className="flex flex-col sm:flex-row gap-2">
             <Button
               backgroundcolor="#2d1b69"
               text={`Manage Applications (${job.applications || 0})`}
               onClick={() => navigate(`/dashboard/jobs/${id}/applications`)}
             />
-            <Button
-              backgroundcolor="#6b7280"
-              text="Edit Job"
-              onClick={() => navigate(`/dashboard/jobs/${id}/edit`)}
-            />
+            {(role === "superadmin" || role === "admin" || (role === "employer" && currentUserId && job.employer_id === currentUserId)) && (
+              <Button
+                backgroundcolor="#6b7280"
+                text="Edit Job"
+                onClick={() => navigate(`/dashboard/jobs/${id}/edit`)}
+              />
+            )}
           </div>
         )}
       </div>
@@ -224,6 +239,11 @@ const JobDetails: React.FC = () => {
 
             {/* Category and Tags */}
             <div className="flex flex-wrap gap-2">
+              {jobCategory && (
+                <span className="px-3 py-1 bg-amber-50 text-amber-700 rounded-full text-sm font-medium">
+                  {jobCategory.icon ? `${jobCategory.icon} ` : ""}{jobCategory.name}
+                </span>
+              )}
               {job.category && (
                 <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-medium">
                   {job.category}

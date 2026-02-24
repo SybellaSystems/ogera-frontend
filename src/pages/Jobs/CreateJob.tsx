@@ -5,7 +5,8 @@ import { useGetUserProfileQuery } from "../../services/api/authApi";
 // Work arrangement options
 import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
-import { BriefcaseIcon, PlusIcon, XMarkIcon, HomeIcon, ArrowPathIcon, BuildingOfficeIcon, TruckIcon } from "@heroicons/react/24/outline";
+import { BriefcaseIcon, PlusIcon, XMarkIcon, HomeIcon, ArrowPathIcon, BuildingOfficeIcon, TruckIcon, TagIcon } from "@heroicons/react/24/outline";
+import { useGetAllCategoriesQuery } from "../../services/api/jobCategoriesApi";
 import type { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import * as Yup from "yup";
 import { useSelector } from "react-redux";
@@ -21,6 +22,7 @@ interface CreateJobFormValues {
   skills?: string;
   employment_type?: string;
   experience_level?: string;
+  job_category_id?: string;
   status?: "Pending" | "Active" | "Inactive" | "Completed";
   employer_id?: string;
 }
@@ -59,12 +61,19 @@ const CreateJob: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const role = useSelector((state: any) => state.auth.role);
-  useGetUserProfileQuery(undefined);
+  const { data: profileData } = useGetUserProfileQuery(undefined);
+  const currentUserId = profileData?.data?.user_id;
   const isEditMode = !!id;
 
   const { data: jobData, isLoading: isLoadingJob } = useGetJobByIdQuery(id || "", {
     skip: !isEditMode,
   });
+
+  // Job categories for auto-categorization
+  const { data: categoriesData } = useGetAllCategoriesQuery();
+  const jobCategories = categoriesData?.data || [];
+  const PREFERRED_CATEGORY_KEY = "employer_preferred_job_category";
+  const [autoSelected, setAutoSelected] = useState(false);
 
   // Work arrangement options with SVG icons
   const workArrangementOptions = [
@@ -81,7 +90,26 @@ const CreateJob: React.FC = () => {
     useUpdateJobMutation();
 
   const job = jobData?.data;
+
+  // Ownership check: employers can only edit their own jobs
+  const isUnauthorized =
+    isEditMode &&
+    job &&
+    currentUserId &&
+    role === "employer" &&
+    job.employer_id !== currentUserId;
+
   const [questions, setQuestions] = useState<JobQuestion[]>([]);
+
+  // Auto-populate job category from localStorage or existing job data
+  const getDefaultCategoryId = () => {
+    if (isEditMode && job?.job_category_id) return job.job_category_id;
+    try {
+      return localStorage.getItem(PREFERRED_CATEGORY_KEY) || "";
+    } catch {
+      return "";
+    }
+  };
 
   const initialValues: CreateJobFormValues = {
     job_title: job?.job_title || "",
@@ -94,6 +122,7 @@ const CreateJob: React.FC = () => {
     skills: job?.skills || "",
     employment_type: job?.employment_type || "",
     experience_level: job?.experience_level || "",
+    job_category_id: getDefaultCategoryId(),
     status: job?.status || "Active",
     employer_id: "",
   };
@@ -136,6 +165,13 @@ const CreateJob: React.FC = () => {
         if (values.experience_level?.trim()) {
           payload.experience_level = values.experience_level.trim();
         }
+        if (values.job_category_id?.trim()) {
+          payload.job_category_id = values.job_category_id.trim();
+          // Save employer's preferred category for auto-populate on next job
+          try {
+            localStorage.setItem(PREFERRED_CATEGORY_KEY, values.job_category_id.trim());
+          } catch { /* silent */ }
+        }
 
         if (role === "superadmin" && values.employer_id?.trim()) {
           payload.employer_id = values.employer_id.trim();
@@ -177,6 +213,7 @@ const CreateJob: React.FC = () => {
         skills: job.skills || "",
         employment_type: job.employment_type || "",
         experience_level: job.experience_level || "",
+        job_category_id: job.job_category_id || "",
         status: job.status || "Active",
         employer_id: "",
       });
@@ -191,6 +228,21 @@ const CreateJob: React.FC = () => {
       }
     }
   }, [job, isEditMode]);
+
+  // Auto-populate category from localStorage for new jobs
+  useEffect(() => {
+    if (!isEditMode && jobCategories.length > 0) {
+      try {
+        const preferred = localStorage.getItem(PREFERRED_CATEGORY_KEY);
+        if (preferred && jobCategories.some(c => c.category_id === preferred)) {
+          if (!formik.values.job_category_id) {
+            formik.setFieldValue("job_category_id", preferred);
+          }
+          setAutoSelected(true);
+        }
+      } catch { /* silent */ }
+    }
+  }, [isEditMode, jobCategories.length]);
 
   useEffect(() => {
     const error = isCreateError ? createError : updateError;
@@ -221,6 +273,41 @@ const CreateJob: React.FC = () => {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#6941C6]"></div>
+      </div>
+    );
+  }
+
+  if (isUnauthorized) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-xl mx-auto">
+          <div className="bg-white rounded-2xl shadow-lg border border-red-200 overflow-hidden">
+            <div className="bg-gradient-to-r from-red-500 to-red-600 px-6 py-5">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-white/20 rounded-lg">
+                  <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                  </svg>
+                </div>
+                <div>
+                  <h1 className="text-xl font-bold text-white">Unauthorized Access</h1>
+                  <p className="text-red-100 text-sm">You cannot edit this job</p>
+                </div>
+              </div>
+            </div>
+            <div className="p-6 text-center">
+              <p className="text-gray-700 mb-4">
+                You can only edit jobs that you created. This job belongs to another employer.
+              </p>
+              <button
+                onClick={() => navigate("/dashboard/jobs/all")}
+                className="px-6 py-2.5 bg-[#2d1b69] text-white rounded-lg hover:bg-[#1a1035] transition font-medium"
+              >
+                Back to All Jobs
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -319,6 +406,42 @@ const CreateJob: React.FC = () => {
                 </div>
                 {formik.touched.category && formik.errors.category && (
                   <p className="text-xs text-red-500 mt-1">{formik.errors.category}</p>
+                )}
+              </div>
+
+              {/* Job Category */}
+              <div className="md:col-span-2">
+                <label htmlFor="job_category_id" className="block text-sm font-medium text-gray-700 mb-1">
+                  <span className="flex items-center gap-1.5">
+                    <TagIcon className="h-4 w-4 text-[#6941C6]" />
+                    Job Category
+                  </span>
+                </label>
+                <select
+                  id="job_category_id"
+                  name="job_category_id"
+                  value={formik.values.job_category_id || ""}
+                  onChange={(e) => {
+                    formik.setFieldValue("job_category_id", e.target.value);
+                    setAutoSelected(false);
+                  }}
+                  onBlur={formik.handleBlur}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6941C6] focus:border-[#6941C6] transition-all text-sm bg-white cursor-pointer"
+                >
+                  <option value="">Select a job category</option>
+                  {jobCategories.map((cat) => (
+                    <option key={cat.category_id} value={cat.category_id}>
+                      {cat.icon ? `${cat.icon} ` : ""}{cat.name}
+                    </option>
+                  ))}
+                </select>
+                {autoSelected && formik.values.job_category_id && !isEditMode && (
+                  <p className="text-xs text-[#6941C6] mt-1 flex items-center gap-1">
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Auto-selected based on your last posting
+                  </p>
                 )}
               </div>
 

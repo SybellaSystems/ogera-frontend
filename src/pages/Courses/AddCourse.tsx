@@ -8,6 +8,7 @@ import Button from "../../components/button";
 import * as Yup from "yup";
 import { useCreateCourseMutation, type CourseStep, uploadCourseContent } from "../../services/api/coursesApi";
 import type { FetchBaseQueryError } from "@reduxjs/toolkit/query";
+import { useTheme } from "../../context/ThemeContext";
 
 interface AddCourseFormValues {
   course_name: string;
@@ -42,6 +43,8 @@ interface StepUploadState {
 
 const AddCourse: React.FC = () => {
   const navigate = useNavigate();
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
   const [steps, setSteps] = useState<CourseStep[]>([]);
   const [stepUploadStates, setStepUploadStates] = useState<Record<number, StepUploadState>>({});
   const [createCourse, { isLoading: isSubmitting,  isSuccess, data }] = useCreateCourseMutation();
@@ -71,7 +74,7 @@ const AddCourse: React.FC = () => {
             step_order: index + 1,
           })) : undefined,
         };
-        
+
         await createCourse(payload).unwrap();
       } catch (error: any) {
         console.error("Create course error:", error);
@@ -144,7 +147,7 @@ const AddCourse: React.FC = () => {
     try {
       // Upload file
       const response = await uploadCourseContent(file, stepType as "image" | "pdf");
-      
+
       if (response.success && response.data.file_url) {
         // Update step content with the uploaded file URL
         const newSteps = [...steps];
@@ -196,20 +199,21 @@ const AddCourse: React.FC = () => {
   };
 
   return (
-    <Container>
-      <FormContainer onSubmit={formik.handleSubmit}>
+    <Container isDark={isDark}>
+      <FormContainer isDark={isDark} onSubmit={formik.handleSubmit}>
         <Header>
           <IconWrapper>
-            <BookOpenIcon className="h-8 w-8 text-purple-600" />
+            <BookOpenIcon className="h-8 w-8" style={{ color: isDark ? "#c084fc" : "#7f56d9" }} />
           </IconWrapper>
-          <Title>Add Course</Title>
-          <Subtitle>Create a new course with all the necessary details.</Subtitle>
+          <Title isDark={isDark}>Add Course</Title>
+          <Subtitle isDark={isDark}>Create a new course with all the necessary details.</Subtitle>
         </Header>
 
         {/* Course Name */}
         <FormGroup>
-          <Label htmlFor="course_name">Course Name *</Label>
+          <Label isDark={isDark} htmlFor="course_name">Course Name *</Label>
           <Input
+            isDark={isDark}
             id="course_name"
             name="course_name"
             placeholder="e.g., Introduction to Web Development"
@@ -224,8 +228,9 @@ const AddCourse: React.FC = () => {
 
         {/* Course Type */}
         <FormGroup>
-          <Label htmlFor="type">Course Type *</Label>
+          <Label isDark={isDark} htmlFor="type">Course Type *</Label>
           <Select
+            isDark={isDark}
             id="type"
             name="type"
             value={formik.values.type}
@@ -247,8 +252,9 @@ const AddCourse: React.FC = () => {
 
         {/* Tag */}
         <FormGroup>
-          <Label htmlFor="tag">Tag *</Label>
+          <Label isDark={isDark} htmlFor="tag">Tag *</Label>
           <Input
+            isDark={isDark}
             id="tag"
             name="tag"
             placeholder="e.g., Programming, Design, Business, Marketing"
@@ -256,7 +262,7 @@ const AddCourse: React.FC = () => {
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
           />
-          <HelperText>
+          <HelperText isDark={isDark}>
             Enter a tag to categorize this course (e.g., Technology, Design, Business)
           </HelperText>
           {formik.touched.tag && formik.errors.tag && (
@@ -266,8 +272,9 @@ const AddCourse: React.FC = () => {
 
         {/* Description */}
         <FormGroup>
-          <Label htmlFor="description">Description (Optional)</Label>
+          <Label isDark={isDark} htmlFor="description">Description (Optional)</Label>
           <TextArea
+            isDark={isDark}
             id="description"
             name="description"
             rows={6}
@@ -276,7 +283,7 @@ const AddCourse: React.FC = () => {
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
           />
-          <HelperText>
+          <HelperText isDark={isDark}>
             Provide a detailed description of what students will learn in this course.
           </HelperText>
           {formik.touched.description && formik.errors.description && (
@@ -285,14 +292,14 @@ const AddCourse: React.FC = () => {
         </FormGroup>
 
         {/* Course Steps Section */}
-        <StepsSection>
+        <StepsSection isDark={isDark}>
           <StepsHeader>
-            <Label>Course Steps (Optional)</Label>
-            <HelperText>
+            <Label isDark={isDark}>Course Steps (Optional)</Label>
+            <HelperText isDark={isDark}>
               Add learning steps for this course. Each step can be a video, link, PDF, image, or text content.
             </HelperText>
           </StepsHeader>
-          
+
           {steps.map((step, index) => {
             // Initialize upload state if not exists
             if (!stepUploadStates[index]) {
@@ -302,10 +309,11 @@ const AddCourse: React.FC = () => {
             const supportsFileUpload = step.step_type === "pdf" || step.step_type === "image";
 
             return (
-              <StepCard key={index}>
+              <StepCard isDark={isDark} key={index}>
                 <StepHeader>
                   <StepNumber>Step {index + 1}</StepNumber>
                   <DeleteStepButton
+                    isDark={isDark}
                     type="button"
                     onClick={() => {
                       const newSteps = steps.filter((_, i) => i !== index);
@@ -319,10 +327,11 @@ const AddCourse: React.FC = () => {
                     <TrashIcon className="h-5 w-5" />
                   </DeleteStepButton>
                 </StepHeader>
-                
+
                 <FormGroup>
-                  <Label htmlFor={`step_title_${index}`}>Step Title (Optional)</Label>
+                  <Label isDark={isDark} htmlFor={`step_title_${index}`}>Step Title (Optional)</Label>
                   <Input
+                    isDark={isDark}
                     id={`step_title_${index}`}
                     value={step.step_title || ""}
                     onChange={(e) => {
@@ -335,8 +344,9 @@ const AddCourse: React.FC = () => {
                 </FormGroup>
 
                 <FormGroup>
-                  <Label htmlFor={`step_type_${index}`}>Step Type *</Label>
+                  <Label isDark={isDark} htmlFor={`step_type_${index}`}>Step Type *</Label>
                   <Select
+                    isDark={isDark}
                     id={`step_type_${index}`}
                     value={step.step_type}
                     onChange={(e) => {
@@ -367,9 +377,9 @@ const AddCourse: React.FC = () => {
                 {/* Input Type Selection (URL or Upload) - Only for PDF and Image */}
                 {supportsFileUpload && (
                   <FormGroup>
-                    <Label>Content Source *</Label>
+                    <Label isDark={isDark}>Content Source *</Label>
                     <InputTypeContainer>
-                      <InputTypeOption>
+                      <InputTypeOption isDark={isDark}>
                         <input
                           type="radio"
                           id={`input_type_url_${index}`}
@@ -379,7 +389,7 @@ const AddCourse: React.FC = () => {
                         />
                         <label htmlFor={`input_type_url_${index}`}>Enter URL</label>
                       </InputTypeOption>
-                      <InputTypeOption>
+                      <InputTypeOption isDark={isDark}>
                         <input
                           type="radio"
                           id={`input_type_upload_${index}`}
@@ -394,7 +404,7 @@ const AddCourse: React.FC = () => {
                 )}
 
                 <FormGroup>
-                  <Label htmlFor={`step_content_${index}`}>
+                  <Label isDark={isDark} htmlFor={`step_content_${index}`}>
                     {step.step_type === "video" && "YouTube Video URL *"}
                     {step.step_type === "link" && "Link URL *"}
                     {step.step_type === "pdf" && uploadState.inputType === "url" && "PDF URL *"}
@@ -405,6 +415,7 @@ const AddCourse: React.FC = () => {
                   </Label>
                   {step.step_type === "text" ? (
                     <TextArea
+                      isDark={isDark}
                       id={`step_content_${index}`}
                       rows={4}
                       value={step.step_content}
@@ -427,7 +438,7 @@ const AddCourse: React.FC = () => {
                         }}
                         disabled={uploadState.isUploading}
                       />
-                      <FileUploadLabel htmlFor={`step_content_${index}`}>
+                      <FileUploadLabel isDark={isDark} htmlFor={`step_content_${index}`}>
                         {uploadState.isUploading ? (
                           <>
                             <CloudArrowUpIcon className="h-5 w-5 animate-pulse" />
@@ -446,7 +457,7 @@ const AddCourse: React.FC = () => {
                         )}
                       </FileUploadLabel>
                       {uploadState.file && !uploadState.isUploading && (
-                        <FileInfo>
+                        <FileInfo isDark={isDark}>
                           {(uploadState.file.size / 1024 / 1024).toFixed(2)} MB
                         </FileInfo>
                       )}
@@ -459,6 +470,7 @@ const AddCourse: React.FC = () => {
                     </FileUploadContainer>
                   ) : (
                     <Input
+                      isDark={isDark}
                       id={`step_content_${index}`}
                       type="url"
                       value={step.step_content}
@@ -468,8 +480,8 @@ const AddCourse: React.FC = () => {
                         setSteps(newSteps);
                       }}
                       placeholder={
-                        step.step_type === "video" 
-                          ? "e.g., https://www.youtube.com/watch?v=..." 
+                        step.step_type === "video"
+                          ? "e.g., https://www.youtube.com/watch?v=..."
                           : step.step_type === "link"
                           ? "e.g., https://example.com/article"
                           : step.step_type === "pdf"
@@ -478,7 +490,7 @@ const AddCourse: React.FC = () => {
                       }
                     />
                   )}
-                  <HelperText>
+                  <HelperText isDark={isDark}>
                     {step.step_type === "video" && "Enter a YouTube video URL"}
                     {step.step_type === "link" && "Enter a web page URL"}
                     {step.step_type === "pdf" && uploadState.inputType === "url" && "Enter a PDF document URL"}
@@ -493,6 +505,7 @@ const AddCourse: React.FC = () => {
           })}
 
           <AddStepButton
+            isDark={isDark}
             type="button"
             onClick={() => {
               setSteps([
@@ -512,7 +525,7 @@ const AddCourse: React.FC = () => {
         </StepsSection>
 
         {/* Action Buttons */}
-        <ButtonContainer>
+        <ButtonContainer isDark={isDark}>
           <Button
             text="Cancel"
             onClick={() => navigate("/dashboard/courses/view")}
@@ -531,33 +544,36 @@ const AddCourse: React.FC = () => {
 
 export default AddCourse;
 
-// Styled Components
-const Container = styled("div")`
-  padding: 24px;
-  min-height: 100vh;
-  background: #f9fafb;
+// ─── Theme prop type ─────────────────────────────────────
+interface ThemeProps {
+  isDark?: boolean;
+}
 
-  @media (min-width: 640px) {
-    padding: 32px;
-  }
+const sfp = { shouldForwardProp: (prop: string) => prop !== "isDark" };
 
-  @media (min-width: 1024px) {
-    padding: 48px;
-  }
-`;
+// ─── Styled Components ───────────────────────────────────
+const Container = styled("div", sfp)<ThemeProps>(({ isDark }) => ({
+  padding: 24,
+  minHeight: "100vh",
+  background: isDark
+    ? "linear-gradient(to bottom right, #0f0a1a, #1a1528)"
+    : "#f9fafb",
+  "@media (min-width: 640px)": { padding: 32 },
+  "@media (min-width: 1024px)": { padding: 48 },
+}));
 
-const FormContainer = styled("form")`
-  max-width: 800px;
-  margin: 0 auto;
-  background: white;
-  border-radius: 12px;
-  padding: 32px;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-
-  @media (min-width: 640px) {
-    padding: 40px;
-  }
-`;
+const FormContainer = styled("form", sfp)<ThemeProps>(({ isDark }) => ({
+  maxWidth: 800,
+  margin: "0 auto",
+  background: isDark ? "#1e1833" : "white",
+  borderRadius: 12,
+  padding: 32,
+  boxShadow: isDark
+    ? "0 1px 3px rgba(0,0,0,0.3)"
+    : "0 1px 3px 0 rgba(0,0,0,0.1), 0 1px 2px 0 rgba(0,0,0,0.06)",
+  border: isDark ? "1px solid rgba(45,27,105,0.5)" : "none",
+  "@media (min-width: 640px)": { padding: 40 },
+}));
 
 const Header = styled("div")`
   text-align: center;
@@ -570,26 +586,20 @@ const IconWrapper = styled("div")`
   margin-bottom: 16px;
 `;
 
-const Title = styled("h1")`
-  font-size: 24px;
-  font-weight: 700;
-  color: #111827;
-  margin-bottom: 8px;
+const Title = styled("h1", sfp)<ThemeProps>(({ isDark }) => ({
+  fontSize: 24,
+  fontWeight: 700,
+  color: isDark ? "#f3f4f6" : "#111827",
+  marginBottom: 8,
+  "@media (min-width: 640px)": { fontSize: 28 },
+}));
 
-  @media (min-width: 640px) {
-    font-size: 28px;
-  }
-`;
-
-const Subtitle = styled("p")`
-  font-size: 12px;
-  color: #6b7280;
-  margin: 0;
-
-  @media (min-width: 640px) {
-    font-size: 14px;
-  }
-`;
+const Subtitle = styled("p", sfp)<ThemeProps>(({ isDark }) => ({
+  fontSize: 12,
+  color: isDark ? "#9ca3af" : "#6b7280",
+  margin: 0,
+  "@media (min-width: 640px)": { fontSize: 14 },
+}));
 
 const FormGroup = styled("div")`
   display: flex;
@@ -597,72 +607,73 @@ const FormGroup = styled("div")`
   margin-bottom: 20px;
 `;
 
-const Label = styled("label")`
-  margin-bottom: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  color: #374151;
-`;
+const Label = styled("label", sfp)<ThemeProps>(({ isDark }) => ({
+  marginBottom: 8,
+  fontSize: 14,
+  fontWeight: 500,
+  color: isDark ? "#d1d5db" : "#374151",
+}));
 
-const Input = styled("input")`
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid #d1d5db;
-  font-size: 14px;
-  transition: border-color 0.2s;
+const Input = styled("input", sfp)<ThemeProps>(({ isDark }) => ({
+  padding: 12,
+  borderRadius: 8,
+  border: `1px solid ${isDark ? "rgba(45,27,105,0.5)" : "#d1d5db"}`,
+  fontSize: 14,
+  transition: "border-color 0.2s",
+  background: isDark ? "#0f0a1a" : "white",
+  color: isDark ? "#f3f4f6" : "#111827",
+  "&:focus": {
+    outline: "none",
+    borderColor: "#7f56d9",
+    boxShadow: "0 0 0 3px rgba(127,86,217,0.1)",
+  },
+  "&::placeholder": {
+    color: isDark ? "#6b7280" : "#9ca3af",
+  },
+}));
 
-  &:focus {
-    outline: none;
-    border-color: #7f56d9;
-    box-shadow: 0 0 0 3px rgba(127, 86, 217, 0.1);
-  }
+const TextArea = styled("textarea", sfp)<ThemeProps>(({ isDark }) => ({
+  padding: 12,
+  borderRadius: 8,
+  border: `1px solid ${isDark ? "rgba(45,27,105,0.5)" : "#d1d5db"}`,
+  fontSize: 14,
+  transition: "border-color 0.2s",
+  resize: "vertical" as const,
+  fontFamily: "inherit",
+  minHeight: 120,
+  background: isDark ? "#0f0a1a" : "white",
+  color: isDark ? "#f3f4f6" : "#111827",
+  "&:focus": {
+    outline: "none",
+    borderColor: "#7f56d9",
+    boxShadow: "0 0 0 3px rgba(127,86,217,0.1)",
+  },
+  "&::placeholder": {
+    color: isDark ? "#6b7280" : "#9ca3af",
+  },
+}));
 
-  &::placeholder {
-    color: #9ca3af;
-  }
-`;
-
-const TextArea = styled("textarea")`
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid #d1d5db;
-  font-size: 14px;
-  transition: border-color 0.2s;
-  resize: vertical;
-  font-family: inherit;
-  min-height: 120px;
-
-  &:focus {
-    outline: none;
-    border-color: #7f56d9;
-    box-shadow: 0 0 0 3px rgba(127, 86, 217, 0.1);
-  }
-
-  &::placeholder {
-    color: #9ca3af;
-  }
-`;
-
-const Select = styled("select")`
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid #d1d5db;
-  font-size: 14px;
-  background: white;
-  cursor: pointer;
-  transition: border-color 0.2s;
-  width: 100%;
-
-  &:focus {
-    outline: none;
-    border-color: #7f56d9;
-    box-shadow: 0 0 0 3px rgba(127, 86, 217, 0.1);
-  }
-
-  option {
-    padding: 8px;
-  }
-`;
+const Select = styled("select", sfp)<ThemeProps>(({ isDark }) => ({
+  padding: 12,
+  borderRadius: 8,
+  border: `1px solid ${isDark ? "rgba(45,27,105,0.5)" : "#d1d5db"}`,
+  fontSize: 14,
+  background: isDark ? "#0f0a1a" : "white",
+  color: isDark ? "#f3f4f6" : "#111827",
+  cursor: "pointer",
+  transition: "border-color 0.2s",
+  width: "100%",
+  "&:focus": {
+    outline: "none",
+    borderColor: "#7f56d9",
+    boxShadow: "0 0 0 3px rgba(127,86,217,0.1)",
+  },
+  "& option": {
+    padding: 8,
+    background: isDark ? "#1e1833" : "white",
+    color: isDark ? "#f3f4f6" : "#111827",
+  },
+}));
 
 const ErrorText = styled("div")`
   font-size: 12px;
@@ -670,46 +681,42 @@ const ErrorText = styled("div")`
   margin-top: 4px;
 `;
 
-const HelperText = styled("div")`
-  font-size: 12px;
-  color: #6b7280;
-  margin-top: 4px;
-`;
+const HelperText = styled("div", sfp)<ThemeProps>(({ isDark }) => ({
+  fontSize: 12,
+  color: isDark ? "#9ca3af" : "#6b7280",
+  marginTop: 4,
+}));
 
-const ButtonContainer = styled("div")`
-  display: flex;
-  gap: 12px;
-  justify-content: flex-end;
-  margin-top: 32px;
-  padding-top: 24px;
-  border-top: 1px solid #e5e7eb;
+const ButtonContainer = styled("div", sfp)<ThemeProps>(({ isDark }) => ({
+  display: "flex",
+  gap: 12,
+  justifyContent: "flex-end",
+  marginTop: 32,
+  paddingTop: 24,
+  borderTop: `1px solid ${isDark ? "rgba(45,27,105,0.5)" : "#e5e7eb"}`,
+  "@media (max-width: 640px)": {
+    flexDirection: "column-reverse",
+    "& button": { width: "100%" },
+  },
+}));
 
-  @media (max-width: 640px) {
-    flex-direction: column-reverse;
-    
-    button {
-      width: 100%;
-    }
-  }
-`;
-
-const StepsSection = styled("div")`
-  margin-top: 32px;
-  padding-top: 32px;
-  border-top: 2px solid #e5e7eb;
-`;
+const StepsSection = styled("div", sfp)<ThemeProps>(({ isDark }) => ({
+  marginTop: 32,
+  paddingTop: 32,
+  borderTop: `2px solid ${isDark ? "rgba(45,27,105,0.5)" : "#e5e7eb"}`,
+}));
 
 const StepsHeader = styled("div")`
   margin-bottom: 20px;
 `;
 
-const StepCard = styled("div")`
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 16px;
-`;
+const StepCard = styled("div", sfp)<ThemeProps>(({ isDark }) => ({
+  background: isDark ? "#0f0a1a" : "#f9fafb",
+  border: `1px solid ${isDark ? "rgba(45,27,105,0.5)" : "#e5e7eb"}`,
+  borderRadius: 12,
+  padding: 20,
+  marginBottom: 16,
+}));
 
 const StepHeader = styled("div")`
   display: flex;
@@ -724,44 +731,42 @@ const StepNumber = styled("span")`
   font-size: 14px;
 `;
 
-const DeleteStepButton = styled("button")`
-  background: #fee2e2;
-  color: #dc2626;
-  border: none;
-  border-radius: 6px;
-  padding: 6px 10px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  transition: background 0.2s;
+const DeleteStepButton = styled("button", sfp)<ThemeProps>(({ isDark }) => ({
+  background: isDark ? "rgba(220,38,38,0.2)" : "#fee2e2",
+  color: "#dc2626",
+  border: "none",
+  borderRadius: 6,
+  padding: "6px 10px",
+  cursor: "pointer",
+  display: "flex",
+  alignItems: "center",
+  transition: "background 0.2s",
+  "&:hover": {
+    background: isDark ? "rgba(220,38,38,0.3)" : "#fecaca",
+  },
+}));
 
-  &:hover {
-    background: #fecaca;
-  }
-`;
-
-const AddStepButton = styled("button")`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  padding: 12px;
-  background: #f3f4f6;
-  border: 2px dashed #d1d5db;
-  border-radius: 8px;
-  color: #6b7280;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-
-  &:hover {
-    background: #e5e7eb;
-    border-color: #7f56d9;
-    color: #7f56d9;
-  }
-`;
+const AddStepButton = styled("button", sfp)<ThemeProps>(({ isDark }) => ({
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: 8,
+  width: "100%",
+  padding: 12,
+  background: isDark ? "rgba(45,27,105,0.15)" : "#f3f4f6",
+  border: `2px dashed ${isDark ? "rgba(45,27,105,0.5)" : "#d1d5db"}`,
+  borderRadius: 8,
+  color: isDark ? "#9ca3af" : "#6b7280",
+  fontSize: 14,
+  fontWeight: 500,
+  cursor: "pointer",
+  transition: "all 0.2s",
+  "&:hover": {
+    background: isDark ? "rgba(45,27,105,0.25)" : "#e5e7eb",
+    borderColor: "#7f56d9",
+    color: "#7f56d9",
+  },
+}));
 
 const InputTypeContainer = styled("div")`
   display: flex;
@@ -769,25 +774,23 @@ const InputTypeContainer = styled("div")`
   margin-top: 8px;
 `;
 
-const InputTypeOption = styled("div")`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-
-  input[type="radio"] {
-    width: 18px;
-    height: 18px;
-    cursor: pointer;
-    accent-color: #7f56d9;
-  }
-
-  label {
-    font-size: 14px;
-    color: #374151;
-    cursor: pointer;
-    user-select: none;
-  }
-`;
+const InputTypeOption = styled("div", sfp)<ThemeProps>(({ isDark }) => ({
+  display: "flex",
+  alignItems: "center",
+  gap: 8,
+  "& input[type='radio']": {
+    width: 18,
+    height: 18,
+    cursor: "pointer",
+    accentColor: "#7f56d9",
+  },
+  "& label": {
+    fontSize: 14,
+    color: isDark ? "#d1d5db" : "#374151",
+    cursor: "pointer",
+    userSelect: "none" as const,
+  },
+}));
 
 const FileUploadContainer = styled("div")`
   display: flex;
@@ -799,38 +802,36 @@ const FileInput = styled("input")`
   display: none;
 `;
 
-const FileUploadLabel = styled("label")`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 12px;
-  background: #f9fafb;
-  border: 2px dashed #d1d5db;
-  border-radius: 8px;
-  color: #6b7280;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
+const FileUploadLabel = styled("label", sfp)<ThemeProps>(({ isDark }) => ({
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: 8,
+  padding: 12,
+  background: isDark ? "#0f0a1a" : "#f9fafb",
+  border: `2px dashed ${isDark ? "rgba(45,27,105,0.5)" : "#d1d5db"}`,
+  borderRadius: 8,
+  color: isDark ? "#9ca3af" : "#6b7280",
+  fontSize: 14,
+  fontWeight: 500,
+  cursor: "pointer",
+  transition: "all 0.2s",
+  "&:hover": {
+    background: isDark ? "rgba(45,27,105,0.15)" : "#f3f4f6",
+    borderColor: "#7f56d9",
+    color: "#7f56d9",
+  },
+  "& svg": {
+    width: 20,
+    height: 20,
+  },
+}));
 
-  &:hover {
-    background: #f3f4f6;
-    border-color: #7f56d9;
-    color: #7f56d9;
-  }
-
-  svg {
-    width: 20px;
-    height: 20px;
-  }
-`;
-
-const FileInfo = styled("div")`
-  font-size: 12px;
-  color: #6b7280;
-  margin-top: -4px;
-`;
+const FileInfo = styled("div", sfp)<ThemeProps>(({ isDark }) => ({
+  fontSize: 12,
+  color: isDark ? "#9ca3af" : "#6b7280",
+  marginTop: -4,
+}));
 
 const SuccessText = styled("div")`
   font-size: 12px;

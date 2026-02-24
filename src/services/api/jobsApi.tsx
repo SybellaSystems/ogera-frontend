@@ -23,6 +23,13 @@ export interface Job {
   skills?: string;
   employment_type?: string;
   experience_level?: string;
+  job_category_id?: string;
+  job_category?: {
+    category_id: string;
+    name: string;
+    icon?: string;
+    color?: string;
+  };
   status: "Pending" | "Active" | "Inactive" | "Completed";
   created_at: string;
   updated_at: string;
@@ -46,6 +53,7 @@ export interface CreateJobRequest {
   skills?: string;
   employment_type?: string;
   experience_level?: string;
+  job_category_id?: string;
   status?: "Pending" | "Active" | "Inactive" | "Completed";
   questions?: JobQuestion[];
 }
@@ -61,6 +69,7 @@ export interface UpdateJobRequest {
   skills?: string;
   employment_type?: string;
   experience_level?: string;
+  job_category_id?: string;
   status?: "Pending" | "Active" | "Inactive" | "Completed";
   employer_name?: string;
   questions?: JobQuestion[];
