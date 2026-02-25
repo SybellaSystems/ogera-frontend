@@ -1200,6 +1200,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         <span className="text-xs text-[#9F7AEA] font-medium">
                           {location.pathname === "/dashboard/transactions" && "Transactions"}
                           {location.pathname === "/dashboard/transactions/pay" && "Pay"}
+                          {location.pathname === "/dashboard/transactions/momo-payments" && "MoMo Payments"}
+
                         </span>
                       )}
                     </div>
@@ -1255,6 +1257,33 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         Pay
                       </span>
                     </li>
+                    <li
+  className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
+    isActive("/dashboard/transactions/momo-payments")
+      ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
+      : "hover:text-purple-300 hover:bg-[#9F7AEA]/10 text-white/60"
+  }`}
+  onClick={() =>
+    handleNavigation("/dashboard/transactions/momo-payments")
+  }
+>
+  <BanknotesIcon
+    className={`h-4 w-4 transition-colors ${
+      isActive("/dashboard/transactions/momo-payments")
+        ? "text-[#9F7AEA]"
+        : "text-white/40 group-hover/item:text-[#9F7AEA]"
+    }`}
+  />
+  <span
+    className={`transition-colors ${
+      isActive("/dashboard/transactions/momo-payments")
+        ? "text-white font-medium"
+        : "group-hover/item:text-white"
+    }`}
+  >
+    MoMo Payments
+  </span>
+</li>
                   </ul>
                 )}
               </div>

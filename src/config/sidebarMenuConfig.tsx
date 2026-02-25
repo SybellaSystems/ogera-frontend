@@ -102,6 +102,7 @@ export const SIDEBAR_MENU_CONFIG: MenuItemConfig[] = [
     submenuItems: [
       { label: "Transactions", path: "/dashboard/transactions" },
       { label: "Pay", path: "/dashboard/transactions/pay" },
+      { label: "MoMo Payments", path: "/dashboard/transactions/momo-payments" },
     ],
   },
   {
