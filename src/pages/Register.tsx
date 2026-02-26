@@ -389,6 +389,8 @@ const RegisterMainContainer = styled("div")`
   min-height: 100vh;
   display: flex;
   overflow: hidden;
+  background: var(--theme-page-bg);
+  transition: background 0.35s ease;
   @media (max-width: 768px) {
     flex-direction: column;
   }
@@ -488,9 +490,14 @@ const RegisterRightContainer = styled("div")`
   justify-content: center;
   align-items: center;
   overflow-y: auto;
+  background-color: var(--theme-card-bg);
+  color: var(--theme-text-primary);
+  transition: background-color 0.35s ease, color 0.35s ease;
   @media (max-width: 768px) {
     width: 100%;
     padding: 20px;
+    border-radius: 20px;
+    margin: 10px;
   }
 `;
 
@@ -504,11 +511,13 @@ const RegisterFormContainer = styled("form")`
 const Head = styled("p")`
   font-size: 26px;
   font-weight: 600;
+  color: var(--theme-text-primary);
 `;
 
 const SmallText = styled("p")`
   font-size: 14px;
   margin-bottom: 20px;
+  color: var(--theme-text-secondary);
 
   a {
     color: #7f56d9;
@@ -526,8 +535,9 @@ const ToggleOption = styled("label")`
   flex: 1;
   padding: 15px;
   border-radius: 10px;
-  border: 1px solid #ccc;
-  background: #fff;
+  border: 1px solid var(--theme-border);
+  background: var(--theme-card-bg);
+  color: var(--theme-text-primary);
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
@@ -543,7 +553,7 @@ const ToggleOption = styled("label")`
   }
 
   &:has(input:checked) {
-    background: #f3ebff;
+    background: var(--theme-table-selected-bg);
     border-color: #7f56d9;
   }
 `;
@@ -558,7 +568,7 @@ const Label = styled("label")`
   margin-bottom: 6px;
   font-size: 14px;
   font-weight: 500;
-  color: #333;
+  color: var(--theme-text-primary);
 `;
 
 const Input = styled("input")`
@@ -594,13 +604,13 @@ const PhoneInput = styled("input")`
 
 const ErrorText = styled("div")`
   font-size: 12px;
-  color: red;
+  color: #ef4444;
   margin-top: 4px;
 `;
 
 const InfoText = styled("div")`
   font-size: 12px;
-  color: #0066cc;
+  color: var(--theme-text-secondary);
   margin-top: 4px;
   font-weight: 500;
 `;
@@ -617,6 +627,7 @@ const TermsItem = styled("div")`
   align-items: flex-start;
   gap: 8px;
   font-size: 14px;
+  color: var(--theme-text-primary);
 
   & input {
     width: 18px;
@@ -626,6 +637,7 @@ const TermsItem = styled("div")`
 
   & label {
     line-height: 1.4;
+    color: var(--theme-text-primary);
   }
 
   & a {

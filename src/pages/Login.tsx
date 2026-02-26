@@ -293,8 +293,7 @@ const Login = () => {
                     type="text"
                     inputMode="numeric"
                     placeholder={t("login.enterSixDigitCode")}
-                    
-                  className="mb-3 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-300 focus:border-transparent outline-none transition-all"
+                    className="mb-3"
                     value={twoFactorCode}
                     onChange={(e: any) => setTwoFactorCode(e.target.value)}
                   />
@@ -377,37 +376,45 @@ const Login = () => {
 
 export default Login;
 
-/* ---------------- Your ORIGINAL styles remain unchanged below ---------------- */
+/* ---------------- Theme-aware styles (dark mode supported via CSS variables) ---------------- */
 
-const LoginMainContainer = styled("div")(({ theme }) => ({
-  width: "100%",
-  maxWidth: "100vw",
-  minHeight: "100vh",
-  display: "flex",
-  flexDirection: "row",
-  fontFamily: "Inter, sans-serif",
-  overflow: "hidden",
-  [theme.breakpoints.down("sm")]: { flexDirection: "column" },
-}));
+const LoginMainContainer = styled("div")`
+  width: 100%;
+  max-width: 100vw;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: row;
+  font-family: Inter, sans-serif;
+  overflow: hidden;
+  background: var(--theme-page-bg);
+  transition: background 0.35s ease;
+  @media (max-width: 600px) {
+    flex-direction: column;
+  }
+`;
 
-const LoginLeftContainer = styled("div")(({ theme }) => ({
-  width: "50vw",
-  minHeight: "100vh",
-  backgroundColor: theme.palette.background.paper,
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  [theme.breakpoints.down("sm")]: {
-    width: "100%", minHeight: "100vh", padding: "20px",
-  },
-}));
+const LoginLeftContainer = styled("div")`
+  width: 50vw;
+  min-height: 100vh;
+  background-color: var(--theme-card-bg);
+  color: var(--theme-text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.35s ease, color 0.35s ease;
+  @media (max-width: 600px) {
+    width: 100%;
+    min-height: 100vh;
+    padding: 20px;
+  }
+`;
 
-const LeftContent = styled("div")({
-  width: "70%",
-  display: "flex",
-  flexDirection: "column",
-  gap: "30px",
-});
+const LeftContent = styled("div")`
+  width: 70%;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+`;
 
 const Logo = styled("div")`
   background: url(${logo}) no-repeat center center;
@@ -423,16 +430,16 @@ const WelcomeTextContainer = styled("div")`
   gap: 10px;
 `;
 
-const Heading = styled("p")(({ theme }) => ({
-  fontSize: "26px",
-  fontWeight: 600,
-  color: theme.palette.text.primary,
-}));
+const Heading = styled("p")`
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--theme-text-primary);
+`;
 
-const SubHeading = styled("p")(({ theme }) => ({
-  fontSize: "15px",
-  color: theme.palette.text.secondary,
-}));
+const SubHeading = styled("p")`
+  font-size: 15px;
+  color: var(--theme-text-secondary);
+`;
 
 const LoginFormContainer = styled("form")`
   display: flex;
@@ -446,64 +453,75 @@ const FormGroup = styled("div")`
   gap: 6px;
 `;
 
-const Label = styled("label")(({ theme }) => ({
-  fontSize: "13px",
-  fontWeight: 500,
-  color: theme.palette.text.primary,
-}));
+const Label = styled("label")`
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--theme-text-primary);
+`;
 
-const Input = styled("input")(({ theme }) => ({
-  padding: "12px 15px",
-  borderRadius: "8px",
-  border: `1px solid ${theme.palette.divider}`,
-  fontSize: "14px",
-  outline: "none",
-  "&:focus": { borderColor: theme.palette.primary.main },
-}));
+const Input = styled("input")`
+  padding: 12px 15px;
+  border-radius: 8px;
+  border: 1px solid var(--theme-border);
+  font-size: 14px;
+  outline: none;
+  background-color: var(--theme-input-bg);
+  color: var(--theme-text-primary);
+  transition: border-color 0.2s ease, background-color 0.35s ease, color 0.35s ease;
+  &:focus {
+    border-color: #7f56d9;
+  }
+`;
 
-const ForgotPassword = styled("a")(({ theme }) => ({
-  fontSize: "12px",
-  color: theme.palette.primary.main,
-  cursor: "pointer",
-  alignSelf: "flex-end",
-  textDecoration: "none",
-  "&:hover": { textDecoration: "underline" },
-}));
+const ForgotPassword = styled("a")`
+  font-size: 12px;
+  color: #7f56d9;
+  cursor: pointer;
+  align-self: flex-end;
+  text-decoration: none;
+  &:hover {
+    text-decoration: underline;
+  }
+`;
 
-const RecaptchaContainer = styled("div")(() => ({
-  display: "flex",
-  justifyContent: "center",
-  margin: "10px 0",
-  "& .g-recaptcha": {
-    transform: "scale(0.9)",
-    transformOrigin: "0 0",
-  },
-}));
+const RecaptchaContainer = styled("div")`
+  display: flex;
+  justify-content: center;
+  margin: 10px 0;
+  & .g-recaptcha {
+    transform: scale(0.9);
+    transform-origin: 0 0;
+  }
+`;
 
-const SignUpText = styled("p")(({ theme }) => ({
-  fontSize: "13px",
-  margin: "0 auto",
-  marginTop: "10px",
-  color: theme.palette.text.secondary,
-  "& a": {
-    color: theme.palette.primary.main,
-    textDecoration: "none",
-    fontWeight: 500,
-    "&:hover": { textDecoration: "underline" },
-  },
-}));
+const SignUpText = styled("p")`
+  font-size: 13px;
+  margin: 0 auto;
+  margin-top: 10px;
+  color: var(--theme-text-secondary);
+  & a {
+    color: #7f56d9;
+    text-decoration: none;
+    font-weight: 500;
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+`;
 
-const LoginRightContainer = styled("div")(({ theme }) => ({
-  width: "50vw",
-  minHeight: "100vh",
-  position: "relative",
-  background: `url(${loginImage}) no-repeat center center`,
-  backgroundSize: "cover",
-  borderTopLeftRadius: "30px",
-  borderBottomLeftRadius: "30px",
-  overflow: "hidden",
-  [theme.breakpoints.down("sm")]: { display: "none" },
-}));
+const LoginRightContainer = styled("div")`
+  width: 50vw;
+  min-height: 100vh;
+  position: relative;
+  background: url(${loginImage}) no-repeat center center;
+  background-size: cover;
+  border-top-left-radius: 30px;
+  border-bottom-left-radius: 30px;
+  overflow: hidden;
+  @media (max-width: 600px) {
+    display: none;
+  }
+`;
 
 const Overlay = styled("div")`
   position: absolute;
@@ -547,23 +565,25 @@ const BottomText = styled("p")`
   opacity: 0.7;
 `;
 
-const ErrorText = styled("div")(({ theme }) => ({
-  fontSize: "12px",
-  color: theme.palette.error.main,
-  marginTop: "4px",
-}));
+const ErrorText = styled("div")`
+  font-size: 12px;
+  color: #ef4444;
+  margin-top: 4px;
+`;
 
-const LostAuthenticatorLink = styled("button")(({ theme }) => ({
-  fontSize: "12px",
-  color: theme.palette.primary.main,
-  cursor: "pointer",
-  alignSelf: "flex-start",
-  textDecoration: "none",
-  marginBottom: "8px",
-  background: "none",
-  border: "none",
-  padding: 0,
-  "&:hover": { textDecoration: "underline" },
-}));
+const LostAuthenticatorLink = styled("button")`
+  font-size: 12px;
+  color: #7f56d9;
+  cursor: pointer;
+  align-self: flex-start;
+  text-decoration: none;
+  margin-bottom: 8px;
+  background: none;
+  border: none;
+  padding: 0;
+  &:hover {
+    text-decoration: underline;
+  }
+`;
 
 
