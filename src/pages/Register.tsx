@@ -564,8 +564,10 @@ const Label = styled("label")`
 const Input = styled("input")`
   padding: 12px;
   border-radius: 8px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--theme-border, #ddd);
   font-size: 14px;
+  background-color: var(--theme-input-bg, #ffffff);
+  color: var(--theme-text-primary, #111827);
 `;
 
 const PhoneInputContainer = styled("div")`
@@ -577,9 +579,11 @@ const PhoneInput = styled("input")`
   flex: 1;
   padding: 12px;
   border-radius: 0 8px 8px 0;
-  border: 1px solid #ddd;
+  border: 1px solid var(--theme-border, #ddd);
   border-left: none;
   font-size: 14px;
+  background-color: var(--theme-input-bg, #ffffff);
+  color: var(--theme-text-primary, #111827);
   
   &:focus {
     outline: none;

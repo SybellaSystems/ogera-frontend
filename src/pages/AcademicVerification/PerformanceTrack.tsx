@@ -35,13 +35,13 @@ const PerformanceTrack: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6 animate-fadeIn">
+    <div className="academic-page theme-page-bg space-y-6 animate-fadeIn p-4 min-h-full">
       <div>
-        <h1 className="text-4xl font-extrabold text-gray-900 flex items-center gap-3">
-          <ChartBarIcon className="h-10 w-10 text-purple-600" />
+        <h1 className="text-4xl font-extrabold text-gray-900 dark:text-[var(--theme-text-primary)] flex items-center gap-3">
+          <ChartBarIcon className="h-10 w-10 text-purple-600 dark:text-purple-400" />
           {t("pages.academic.performanceTrack")}
         </h1>
-        <p className="text-gray-500 mt-2">
+        <p className="text-gray-500 dark:text-[var(--theme-text-secondary)] mt-2">
           {t("pages.academic.performanceSubtitle")}
         </p>
       </div>

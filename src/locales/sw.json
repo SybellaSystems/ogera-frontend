@@ -491,6 +491,11 @@
     "kinyarwanda": "Kinyarwanda",
     "french": "Français"
   },
+  "theme": {
+    "label": "Mandhari",
+    "bright": "Angaavu",
+    "dark": "Giza (laini)"
+  },
   "app": {
     "pageNotFound": "Ukurasa Haupatikani",
     "loading": "Inapakia..."

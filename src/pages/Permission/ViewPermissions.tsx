@@ -220,8 +220,8 @@ const ViewPermissions: React.FC = () => {
             label={permString || t("pages.permission.none")}
             size="small"
             sx={{
-              bgcolor: permCount > 0 ? "#dbeafe" : "#f3f4f6",
-              color: permCount > 0 ? "#1e40af" : "#6b7280",
+              bgcolor: permCount > 0 ? "var(--chip-permission-yes-bg)" : "var(--chip-permission-no-bg)",
+              color: permCount > 0 ? "var(--chip-permission-yes-text)" : "var(--chip-permission-no-text)",
               fontWeight: 500,
             }}
           />

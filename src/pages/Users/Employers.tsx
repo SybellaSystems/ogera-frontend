@@ -113,7 +113,7 @@ const Employers: React.FC = () => {
       align: "center",
       sortable: false,
       format: (value) => (
-        <Typography sx={{ fontWeight: 500, color: "#6b7280" }}>
+        <Typography sx={{ fontWeight: 500, color: "var(--theme-text-secondary, #6b7280)" }}>
           {value}
         </Typography>
       ),
@@ -136,7 +136,7 @@ const Employers: React.FC = () => {
           >
             {row.name.charAt(0)}
           </Avatar>
-          <Typography sx={{ fontWeight: 600, color: "#111827" }}>
+          <Typography sx={{ fontWeight: 600, color: "var(--theme-text-primary, #111827)" }}>
             {value}
           </Typography>
         </Box>
@@ -157,8 +157,8 @@ const Employers: React.FC = () => {
           label={value}
           size="small"
           sx={{
-            bgcolor: "#dbeafe",
-            color: "#1e40af",
+            bgcolor: "var(--chip-role-student-bg)",
+            color: "var(--chip-role-student-text)",
             fontWeight: 600,
           }}
         />
@@ -174,8 +174,8 @@ const Employers: React.FC = () => {
           label={value}
           size="small"
           sx={{
-            bgcolor: "#f3e8ff",
-            color: "#7c3aed",
+            bgcolor: "var(--chip-role-admin-bg)",
+            color: "var(--chip-role-admin-text)",
             fontWeight: 600,
           }}
         />
@@ -191,8 +191,8 @@ const Employers: React.FC = () => {
             label={t("pages.users.verifiedLabel")}
             size="small"
             sx={{
-              bgcolor: "#d1fae5",
-              color: "#065f46",
+              bgcolor: "var(--chip-verified-bg)",
+              color: "var(--chip-verified-text)",
               fontWeight: 600,
             }}
           />
@@ -201,8 +201,8 @@ const Employers: React.FC = () => {
             label={t("pages.users.pending")}
             size="small"
             sx={{
-              bgcolor: "#fed7aa",
-              color: "#9a3412",
+              bgcolor: "var(--chip-status-pending-bg)",
+              color: "var(--chip-status-pending-text)",
               fontWeight: 600,
             }}
           />
@@ -263,14 +263,14 @@ const Employers: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6 animate-fadeIn">
+    <div className="theme-page-bg space-y-6 animate-fadeIn min-h-full p-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl md:text-4xl font-extrabold text-gray-900 flex items-center gap-2 md:gap-3">
-            <BriefcaseIcon className="h-8 w-8 md:h-10 md:w-10 text-green-600" />
+          <h1 className="text-2xl md:text-4xl font-extrabold text-gray-900 dark:text-[var(--theme-text-primary)] flex items-center gap-2 md:gap-3">
+            <BriefcaseIcon className="h-8 w-8 md:h-10 md:w-10 text-green-600 dark:text-green-400" />
             {t("pages.users.employersPageTitle")}
           </h1>
-          <p className="text-sm md:text-base text-gray-500 mt-2">
+          <p className="text-sm md:text-base text-gray-500 dark:text-[var(--theme-text-secondary)] mt-2">
             {t("pages.users.employersSubtitle")}
           </p>
         </div>
@@ -376,7 +376,7 @@ const Employers: React.FC = () => {
             fontSize: isSmallMobile ? "0.875rem" : isMobile ? "1rem" : "1.25rem",
             position: isMobile ? "sticky" : "relative",
             top: 0,
-            backgroundColor: "background.paper",
+            backgroundColor: "var(--theme-card-bg, #ffffff)",
             zIndex: 2,
             borderBottom: isMobile ? "1px solid rgba(0, 0, 0, 0.12)" : "none",
           }}
@@ -443,8 +443,8 @@ const Employers: React.FC = () => {
                   mb: isSmallMobile ? 1.5 : isMobile ? 2 : 2,
                   p: isSmallMobile ? 1.25 : isMobile ? 1.5 : 1.75,
                   borderRadius: 1.5,
-                  backgroundColor: "rgba(16, 185, 129, 0.08)",
-                  border: "1px solid rgba(16, 185, 129, 0.2)",
+                  backgroundColor: "var(--chip-role-employer-bg)",
+                  border: "1px solid var(--chip-role-employer-bg)",
                   flexDirection: isMobile ? "column" : "row",
                   textAlign: isMobile ? "center" : "left",
                 }}
@@ -478,8 +478,8 @@ const Employers: React.FC = () => {
                     label={t("pages.users.employer")}
                     size="small"
                     sx={{
-                      bgcolor: "#d1fae5",
-                      color: "#065f46",
+                      bgcolor: "var(--chip-role-employer-bg)",
+                      color: "var(--chip-role-employer-text)",
                       fontWeight: 600,
                       fontSize: isSmallMobile ? "0.65rem" : isMobile ? "0.7rem" : "0.75rem",
                       height: isSmallMobile ? "20px" : isMobile ? "22px" : "24px",
@@ -497,8 +497,9 @@ const Employers: React.FC = () => {
                     sx={{
                       p: isSmallMobile ? 1.25 : isMobile ? 1.5 : 1.75,
                       borderRadius: 1.5,
-                      backgroundColor: "rgba(0, 0, 0, 0.02)",
-                      border: "1px solid rgba(0, 0, 0, 0.08)",
+                      backgroundColor: "var(--theme-card-bg, #ffffff)",
+                      border: "1px solid var(--theme-border, rgba(0, 0, 0, 0.08))",
+                      boxShadow: "0 4px 10px rgba(15, 23, 42, 0.04)",
                       height: "100%",
                       minHeight: "80px",
                     }}
@@ -536,8 +537,9 @@ const Employers: React.FC = () => {
                     sx={{
                       p: isSmallMobile ? 1.25 : isMobile ? 1.5 : 1.75,
                       borderRadius: 1.5,
-                      backgroundColor: "rgba(0, 0, 0, 0.02)",
-                      border: "1px solid rgba(0, 0, 0, 0.08)",
+                      backgroundColor: "var(--theme-card-bg, #ffffff)",
+                      border: "1px solid var(--theme-border, rgba(0, 0, 0, 0.08))",
+                      boxShadow: "0 4px 10px rgba(15, 23, 42, 0.04)",
                       height: "100%",
                       minHeight: "80px",
                     }}
@@ -574,8 +576,9 @@ const Employers: React.FC = () => {
                     sx={{
                       p: isSmallMobile ? 1.25 : isMobile ? 1.5 : 1.75,
                       borderRadius: 1.5,
-                      backgroundColor: "rgba(0, 0, 0, 0.02)",
-                      border: "1px solid rgba(0, 0, 0, 0.08)",
+                      backgroundColor: "var(--theme-card-bg, #ffffff)",
+                      border: "1px solid var(--theme-border, rgba(0, 0, 0, 0.08))",
+                      boxShadow: "0 4px 10px rgba(15, 23, 42, 0.04)",
                       height: "100%",
                       minHeight: "80px",
                     }}
@@ -650,12 +653,14 @@ const Employers: React.FC = () => {
                     sx={{
                       p: isSmallMobile ? 1.25 : isMobile ? 1.5 : 1.75,
                       borderRadius: 1.5,
-                      backgroundColor: employerDetails.data.email_verified 
-                        ? "rgba(16, 185, 129, 0.08)" 
-                        : "rgba(153, 27, 27, 0.08)",
-                      border: `1px solid ${employerDetails.data.email_verified 
-                        ? "rgba(16, 185, 129, 0.2)" 
-                        : "rgba(153, 27, 27, 0.2)"}`,
+                      backgroundColor: employerDetails.data.email_verified
+                        ? "var(--chip-verified-bg)"
+                        : "var(--chip-unverified-bg)",
+                      border: `1px solid ${
+                        employerDetails.data.email_verified
+                          ? "var(--chip-verified-bg)"
+                          : "var(--chip-unverified-bg)"
+                      }`,
                       height: "100%",
                       minHeight: "80px",
                     }}
@@ -687,8 +692,8 @@ const Employers: React.FC = () => {
                       label={employerDetails.data.email_verified ? t("pages.users.verified") : t("pages.users.notVerified")}
                       size="small"
                       sx={{
-                        bgcolor: employerDetails.data.email_verified ? "#d1fae5" : "#fee2e2",
-                        color: employerDetails.data.email_verified ? "#065f46" : "#991b1b",
+                        bgcolor: employerDetails.data.email_verified ? "var(--chip-verified-bg)" : "var(--chip-unverified-bg)",
+                        color: employerDetails.data.email_verified ? "var(--chip-verified-text)" : "var(--chip-unverified-text)",
                         fontSize: isSmallMobile ? "0.65rem" : isMobile ? "0.7rem" : "0.75rem",
                         height: isSmallMobile ? "22px" : isMobile ? "24px" : "26px",
                         fontWeight: 600,
@@ -703,12 +708,14 @@ const Employers: React.FC = () => {
                     sx={{
                       p: isSmallMobile ? 1.25 : isMobile ? 1.5 : 1.75,
                       borderRadius: 1.5,
-                      backgroundColor: employerDetails.data.phone_verified 
-                        ? "rgba(16, 185, 129, 0.08)" 
-                        : "rgba(153, 27, 27, 0.08)",
-                      border: `1px solid ${employerDetails.data.phone_verified
-                        ? "rgba(16, 185, 129, 0.2)" 
-                        : "rgba(153, 27, 27, 0.2)"}`,
+                      backgroundColor: employerDetails.data.phone_verified
+                        ? "var(--chip-verified-bg)"
+                        : "var(--chip-unverified-bg)",
+                      border: `1px solid ${
+                        employerDetails.data.phone_verified
+                          ? "var(--chip-verified-bg)"
+                          : "var(--chip-unverified-bg)"
+                      }`,
                       height: "100%",
                       minHeight: "80px",
                     }}
@@ -740,8 +747,8 @@ const Employers: React.FC = () => {
                       label={employerDetails.data.phone_verified ? t("pages.users.verified") : t("pages.users.notVerified")}
                       size="small"
                       sx={{
-                        bgcolor: employerDetails.data.phone_verified ? "#d1fae5" : "#fee2e2",
-                        color: employerDetails.data.phone_verified ? "#065f46" : "#991b1b",
+                        bgcolor: employerDetails.data.phone_verified ? "var(--chip-verified-bg)" : "var(--chip-unverified-bg)",
+                        color: employerDetails.data.phone_verified ? "var(--chip-verified-text)" : "var(--chip-unverified-text)",
                         fontSize: isSmallMobile ? "0.65rem" : isMobile ? "0.7rem" : "0.75rem",
                         height: isSmallMobile ? "22px" : isMobile ? "24px" : "26px",
                         fontWeight: 600,
@@ -825,7 +832,7 @@ const Employers: React.FC = () => {
             borderTop: isMobile ? "1px solid rgba(0, 0, 0, 0.12)" : "none",
             position: isMobile ? "sticky" : "relative",
             bottom: 0,
-            backgroundColor: "background.paper",
+            backgroundColor: "var(--theme-card-bg, #ffffff)",
             zIndex: 1,
             boxShadow: isMobile ? "0 -2px 8px rgba(0, 0, 0, 0.1)" : "none",
             flexShrink: 0,
@@ -889,7 +896,7 @@ const Employers: React.FC = () => {
             fontSize: isSmallMobile ? "0.875rem" : isMobile ? "1rem" : "1.25rem",
             position: isMobile ? "sticky" : "relative",
             top: 0,
-            backgroundColor: "background.paper",
+            backgroundColor: "var(--theme-card-bg, #ffffff)",
             zIndex: 2,
             borderBottom: isMobile ? "1px solid rgba(0, 0, 0, 0.12)" : "none",
           }}
@@ -996,8 +1003,8 @@ const Employers: React.FC = () => {
                     label={t("pages.users.employer")}
                     size="small"
                     sx={{
-                      bgcolor: "#d1fae5",
-                      color: "#065f46",
+                      bgcolor: "var(--chip-role-employer-bg)",
+                      color: "var(--chip-role-employer-text)",
                       fontWeight: 600,
                       mt: 0.5,
                       fontSize: isSmallMobile ? "0.65rem" : isMobile ? "0.7rem" : "0.75rem",
@@ -1022,7 +1029,7 @@ const Employers: React.FC = () => {
                       "& .MuiInputBase-root": {
                         fontSize: isSmallMobile ? "0.875rem" : isMobile ? "0.875rem" : "1rem",
                         minHeight: isSmallMobile ? "44px" : isMobile ? "48px" : "56px",
-                        backgroundColor: "background.paper",
+                        backgroundColor: "var(--theme-input-bg, #ffffff)",
                       },
                       "& .MuiInputLabel-root": {
                         fontSize: isSmallMobile ? "0.75rem" : isMobile ? "0.8125rem" : "0.875rem",
@@ -1050,7 +1057,7 @@ const Employers: React.FC = () => {
                       "& .MuiInputBase-root": {
                         fontSize: isSmallMobile ? "0.875rem" : isMobile ? "0.875rem" : "1rem",
                         minHeight: isSmallMobile ? "44px" : isMobile ? "48px" : "56px",
-                        backgroundColor: "background.paper",
+                        backgroundColor: "var(--theme-input-bg, #ffffff)",
                       },
                       "& .MuiInputLabel-root": {
                         fontSize: isSmallMobile ? "0.75rem" : isMobile ? "0.8125rem" : "0.875rem",
@@ -1077,7 +1084,7 @@ const Employers: React.FC = () => {
                       "& .MuiInputBase-root": {
                         fontSize: isSmallMobile ? "0.875rem" : isMobile ? "0.875rem" : "1rem",
                         minHeight: isSmallMobile ? "44px" : isMobile ? "48px" : "56px",
-                        backgroundColor: "background.paper",
+                        backgroundColor: "var(--theme-input-bg, #ffffff)",
                       },
                       "& .MuiInputLabel-root": {
                         fontSize: isSmallMobile ? "0.75rem" : isMobile ? "0.8125rem" : "0.875rem",
@@ -1104,7 +1111,7 @@ const Employers: React.FC = () => {
                       "& .MuiInputBase-root": {
                         fontSize: isSmallMobile ? "0.875rem" : isMobile ? "0.875rem" : "1rem",
                         minHeight: isSmallMobile ? "44px" : isMobile ? "48px" : "56px",
-                        backgroundColor: "background.paper",
+                        backgroundColor: "var(--theme-input-bg, #ffffff)",
                       },
                       "& .MuiInputLabel-root": {
                         fontSize: isSmallMobile ? "0.75rem" : isMobile ? "0.8125rem" : "0.875rem",
@@ -1131,7 +1138,7 @@ const Employers: React.FC = () => {
                       "& .MuiInputBase-root": {
                         fontSize: isSmallMobile ? "0.875rem" : isMobile ? "0.875rem" : "1rem",
                         minHeight: isSmallMobile ? "44px" : isMobile ? "48px" : "56px",
-                        backgroundColor: "background.paper",
+                        backgroundColor: "var(--theme-input-bg, #ffffff)",
                       },
                       "& .MuiInputLabel-root": {
                         fontSize: isSmallMobile ? "0.75rem" : isMobile ? "0.8125rem" : "0.875rem",
@@ -1160,7 +1167,7 @@ const Employers: React.FC = () => {
             borderTop: isMobile ? "1px solid rgba(0, 0, 0, 0.12)" : "none",
             position: isMobile ? "sticky" : "relative",
             bottom: 0,
-            backgroundColor: "background.paper",
+            backgroundColor: "var(--theme-card-bg, #ffffff)",
             zIndex: 1,
             boxShadow: isMobile ? "0 -2px 8px rgba(0, 0, 0, 0.1)" : "none",
           }}

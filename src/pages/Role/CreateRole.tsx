@@ -393,16 +393,20 @@ const Container = styled("div")`
   justify-content: center;
   align-items: flex-start;
   padding: 40px 20px;
-  background: #f9fafb;
+  background: var(--theme-page-bg);
+  transition: background 0.35s ease;
 `;
 
 const FormContainer = styled("form")`
   max-width: 600px;
   width: 100%;
-  background: white;
+  background: var(--theme-card-bg);
+  color: var(--theme-text-primary);
   border-radius: 16px;
   padding: 40px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--theme-border);
+  transition: background 0.35s ease, color 0.35s ease, border-color 0.35s ease;
 `;
 
 const Header = styled("div")`
@@ -419,14 +423,16 @@ const IconWrapper = styled("div")`
 const Title = styled("h1")`
   font-size: 28px;
   font-weight: 700;
-  color: #111827;
+  color: var(--theme-text-primary);
   margin-bottom: 8px;
+  transition: color 0.35s ease;
 `;
 
 const Subtitle = styled("p")`
   font-size: 14px;
-  color: #6b7280;
+  color: var(--theme-text-secondary);
   margin: 0;
+  transition: color 0.35s ease;
 `;
 
 const FormGroup = styled("div")`
@@ -439,19 +445,27 @@ const Label = styled("label")`
   margin-bottom: 8px;
   font-size: 14px;
   font-weight: 500;
-  color: #374151;
+  color: var(--theme-text-secondary);
+  transition: color 0.35s ease;
 `;
 
 const Input = styled("input")`
   padding: 12px;
   border-radius: 8px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--theme-border);
   font-size: 14px;
-  transition: border-color 0.2s;
+  background: var(--theme-input-bg);
+  color: var(--theme-text-primary);
+  transition: border-color 0.2s, background 0.35s ease, color 0.35s ease;
 
   &:focus {
     outline: none;
     border-color: #7f56d9;
+  }
+
+  &::placeholder {
+    color: var(--theme-text-secondary);
+    opacity: 0.8;
   }
 `;
 
@@ -463,18 +477,20 @@ const ErrorText = styled("div")`
 
 const HelperText = styled("div")`
   font-size: 12px;
-  color: #6b7280;
+  color: var(--theme-text-secondary);
   margin-top: 4px;
+  transition: color 0.35s ease;
 `;
 
 const Select = styled("select")`
   padding: 12px;
   border-radius: 8px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--theme-border);
   font-size: 14px;
-  background: white;
+  background: var(--theme-input-bg);
+  color: var(--theme-text-primary);
   cursor: pointer;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, background 0.35s ease, color 0.35s ease;
   width: 100%;
 
   &:focus {
@@ -484,6 +500,8 @@ const Select = styled("select")`
 
   option {
     padding: 8px;
+    background: var(--theme-card-bg);
+    color: var(--theme-text-primary);
   }
 `;
 
@@ -494,10 +512,11 @@ const ApiNameList = styled("div")`
   max-height: 300px;
   overflow-y: auto;
   padding: 12px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--theme-border);
   border-radius: 8px;
-  background: #f9fafb;
+  background: var(--theme-table-header-bg);
   margin-bottom: 16px;
+  transition: background 0.35s ease, border-color 0.35s ease;
 `;
 
 const ApiNameItem = styled("div")<{ selected: boolean }>`
@@ -508,12 +527,12 @@ const ApiNameItem = styled("div")<{ selected: boolean }>`
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s;
-  background: ${(props) => (props.selected ? "#ede9fe" : "white")};
-  border: 1px solid ${(props) => (props.selected ? "#7f56d9" : "#e5e7eb")};
+  background: ${(props) => (props.selected ? "rgba(127, 86, 217, 0.2)" : "var(--theme-card-bg)")};
+  border: 1px solid ${(props) => (props.selected ? "#7f56d9" : "var(--theme-border)")};
 
   &:hover {
-    background: ${(props) => (props.selected ? "#ddd6fe" : "#f3f4f6")};
-    border-color: ${(props) => (props.selected ? "#7f56d9" : "#d1d5db")};
+    background: ${(props) => (props.selected ? "rgba(127, 86, 217, 0.25)" : "var(--theme-table-header-bg)")};
+    border-color: ${(props) => (props.selected ? "#7f56d9" : "var(--theme-border)")};
   }
 
   input[type="checkbox"] {
@@ -525,13 +544,13 @@ const ApiNameItem = styled("div")<{ selected: boolean }>`
 
   .api-name {
     font-weight: 600;
-    color: #111827;
+    color: var(--theme-text-primary);
     display: block;
   }
 
   .api-route {
     font-size: 12px;
-    color: #6b7280;
+    color: var(--theme-text-secondary);
     font-family: monospace;
     display: block;
     margin-top: 4px;
@@ -543,11 +562,12 @@ const SelectedPermissionsSection = styled("div")`
 `;
 
 const PermissionCard = styled("div")`
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
+  background: var(--theme-table-header-bg);
+  border: 1px solid var(--theme-border);
   border-radius: 8px;
   padding: 16px;
   margin-bottom: 12px;
+  transition: background 0.35s ease, border-color 0.35s ease;
 `;
 
 const PermissionHeader = styled("div")`
@@ -594,7 +614,8 @@ const CheckboxLabel = styled("label")`
   gap: 8px;
   cursor: pointer;
   font-size: 14px;
-  color: #374151;
+  color: var(--theme-text-secondary);
+  transition: color 0.35s ease;
 
   input[type="checkbox"] {
     width: 18px;

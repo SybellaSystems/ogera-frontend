@@ -181,7 +181,7 @@ const ViewAdmins: React.FC = () => {
       align: "center",
       sortable: false,
       format: (value) => (
-        <Typography sx={{ fontWeight: 500, color: "#6b7280" }}>
+        <Typography sx={{ fontWeight: 500, color: "var(--theme-text-secondary, #6b7280)" }}>
           {value}
         </Typography>
       ),
@@ -203,7 +203,7 @@ const ViewAdmins: React.FC = () => {
           >
             {row.name.charAt(0)}
           </Avatar>
-          <Typography sx={{ fontWeight: 500, color: "#111827" }}>
+          <Typography sx={{ fontWeight: 500, color: "var(--theme-text-primary, #111827)" }}>
             {value}
           </Typography>
         </Box>
@@ -223,8 +223,8 @@ const ViewAdmins: React.FC = () => {
           label={value}
           size="small"
           sx={{
-            bgcolor: "#dbeafe",
-            color: "#1e40af",
+            bgcolor: "var(--chip-role-admin-bg)",
+            color: "var(--chip-role-admin-text)",
             fontWeight: 600,
           }}
         />
@@ -235,7 +235,7 @@ const ViewAdmins: React.FC = () => {
       label: t("pages.admin.roleName"),
       minWidth: 150,
       format: (value) => (
-        <Typography sx={{ color: "#111827", fontWeight: 500 }}>
+        <Typography sx={{ color: "var(--theme-text-primary, #111827)", fontWeight: 500 }}>
           {value || "-"}
         </Typography>
       ),
@@ -245,7 +245,7 @@ const ViewAdmins: React.FC = () => {
       label: t("pages.admin.mobile"),
       minWidth: 120,
       format: (value) => (
-        <Typography sx={{ color: "#6b7280" }}>
+        <Typography sx={{ color: "var(--theme-text-secondary, #6b7280)" }}>
           {value || "-"}
         </Typography>
       ),
@@ -346,8 +346,8 @@ const ViewAdmins: React.FC = () => {
       {/* View Admin Modal */}
       {viewDialogOpen && selectedAdmin && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-2xl w-full shadow-2xl border-2 border-gray-200 max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
+          <div className="bg-white rounded-xl max-w-2xl w-full shadow-2xl border-2 border-gray-200 max-h-[90vh] overflow-y-auto theme-modal">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between theme-modal-header">
               <h2 className="text-2xl font-bold text-gray-900">{t("pages.admin.adminDetails")}</h2>
               <button
                 onClick={handleCloseViewDialog}
@@ -421,8 +421,8 @@ const ViewAdmins: React.FC = () => {
       {/* Edit Admin Modal */}
       {editDialogOpen && selectedAdmin && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-2xl w-full shadow-2xl border-2 border-gray-200 max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
+          <div className="bg-white rounded-xl max-w-2xl w-full shadow-2xl border-2 border-gray-200 max-h-[90vh] overflow-y-auto theme-modal">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between theme-modal-header">
               <h2 className="text-2xl font-bold text-gray-900">{t("pages.admin.editAdmin")}</h2>
               <button
                 onClick={handleCloseEditDialog}
@@ -518,7 +518,7 @@ const ViewAdmins: React.FC = () => {
       {/* Delete Confirmation Modal */}
       {showDeleteModal && adminToDelete && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-md w-full shadow-2xl border-2 border-red-200">
+          <div className="bg-white rounded-xl max-w-md w-full shadow-2xl border-2 border-red-200 theme-modal">
             <div className="p-6">
               <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full mb-4">
                 <TrashIcon className="h-6 w-6 text-red-600" />

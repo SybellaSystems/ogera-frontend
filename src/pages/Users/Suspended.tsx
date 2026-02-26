@@ -71,10 +71,10 @@ const Suspended: React.FC = () => {
             {row.name.charAt(0)}
           </Avatar>
           <Box>
-            <Typography sx={{ fontWeight: 500, color: "#111827" }}>
+            <Typography sx={{ fontWeight: 500, color: "var(--theme-text-primary, #111827)" }}>
               {value}
             </Typography>
-            <Typography sx={{ fontSize: "0.75rem", color: "#6b7280" }}>
+            <Typography sx={{ fontSize: "0.75rem", color: "var(--theme-text-secondary, #6b7280)" }}>
               {row.email}
             </Typography>
           </Box>
@@ -90,8 +90,8 @@ const Suspended: React.FC = () => {
           label={value}
           size="small"
           sx={{
-            bgcolor: value === "Student" ? "#dbeafe" : "#d1fae5",
-            color: value === "Student" ? "#1e40af" : "#065f46",
+            bgcolor: value === "Student" ? "var(--chip-role-student-bg)" : "var(--chip-role-employer-bg)",
+            color: value === "Student" ? "var(--chip-role-student-text)" : "var(--chip-role-employer-text)",
             fontWeight: 600,
           }}
         />
@@ -121,8 +121,8 @@ const Suspended: React.FC = () => {
           label={value}
           size="small"
           sx={{
-            bgcolor: "#fef3c7",
-            color: "#92400e",
+            bgcolor: "var(--chip-warning-bg)",
+            color: "var(--chip-warning-text)",
             fontWeight: 600,
           }}
         />
@@ -160,19 +160,19 @@ const Suspended: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6 animate-fadeIn">
+    <div className="theme-page-bg space-y-6 animate-fadeIn min-h-full p-4">
       <div>
-        <h1 className="text-2xl md:text-4xl font-extrabold text-gray-900 flex items-center gap-2 md:gap-3">
-          <ShieldExclamationIcon className="h-8 w-8 md:h-10 md:w-10 text-red-600" />
+        <h1 className="text-2xl md:text-4xl font-extrabold text-gray-900 dark:text-[var(--theme-text-primary)] flex items-center gap-2 md:gap-3">
+          <ShieldExclamationIcon className="h-8 w-8 md:h-10 md:w-10 text-red-600 dark:text-red-400" />
           Suspended Users
         </h1>
-        <p className="text-sm md:text-base text-gray-500 mt-2">
+        <p className="text-sm md:text-base text-gray-500 dark:text-[var(--theme-text-secondary)] mt-2">
           Manage suspended and temporarily locked user accounts
         </p>
       </div>
 
-      <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
-        <p className="text-red-800 font-medium text-sm md:text-base">
+      <div className="bg-red-50 dark:border-red-400/80 border-l-4 border-red-500 p-4 rounded-lg">
+        <p className="text-red-800 dark:text-red-200 font-medium text-sm md:text-base">
           🔒 {suspendedUsers.length} accounts currently suspended
         </p>
       </div>

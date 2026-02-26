@@ -156,22 +156,22 @@ const ViewJobApplications: React.FC = () => {
   ).length;
 
   return (
-    <div className="space-y-6 animate-fadeIn">
+    <div className="theme-page-bg space-y-6 animate-fadeIn min-h-full p-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <button
             onClick={() => navigate("/dashboard/jobs/all")}
-            className="p-2 hover:bg-gray-100 rounded-lg transition"
+            className="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg transition"
           >
-            <ArrowLeftIcon className="h-6 w-6 text-gray-600" />
+            <ArrowLeftIcon className="h-6 w-6 text-gray-600 dark:text-gray-300" />
           </button>
           <div>
-            <h1 className="text-4xl font-extrabold text-gray-900 flex items-center gap-3">
-              <BriefcaseIcon className="h-10 w-10 text-purple-600" />
+            <h1 className="text-4xl font-extrabold text-gray-900 dark:text-[var(--theme-text-primary)] flex items-center gap-3">
+              <BriefcaseIcon className="h-10 w-10 text-purple-600 dark:text-purple-400" />
               Applications for {job.job_title}
             </h1>
-            <p className="text-gray-500 mt-2">
+            <p className="text-gray-500 dark:text-[var(--theme-text-secondary)] mt-2">
               View and manage applications for this job posting
             </p>
           </div>
@@ -179,24 +179,24 @@ const ViewJobApplications: React.FC = () => {
       </div>
 
       {/* Job Info Card */}
-      <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
+      <div className="bg-white dark:border-[var(--theme-border)] rounded-xl p-6 shadow-md border border-gray-100">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
-            <p className="text-sm text-gray-600">Location</p>
-            <p className="font-semibold text-gray-900">{job.location}</p>
+            <p className="text-sm text-gray-600 dark:text-[var(--theme-text-secondary)]">Location</p>
+            <p className="font-semibold text-gray-900 dark:text-[var(--theme-text-primary)]">{job.location}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-600">Budget</p>
-            <p className="font-semibold text-gray-900">
+            <p className="text-sm text-gray-600 dark:text-[var(--theme-text-secondary)]">Budget</p>
+            <p className="font-semibold text-gray-900 dark:text-[var(--theme-text-primary)]">
               ${job.budget.toLocaleString()}
             </p>
           </div>
           <div>
-            <p className="text-sm text-gray-600">Duration</p>
-            <p className="font-semibold text-gray-900">{job.duration}</p>
+            <p className="text-sm text-gray-600 dark:text-[var(--theme-text-secondary)]">Duration</p>
+            <p className="font-semibold text-gray-900 dark:text-[var(--theme-text-primary)]">{job.duration}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-600">Status</p>
+            <p className="text-sm text-gray-600 dark:text-[var(--theme-text-secondary)]">Status</p>
             <span
               className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
                 job.status === "Active"
@@ -235,12 +235,12 @@ const ViewJobApplications: React.FC = () => {
       </div>
 
       {applications.length === 0 ? (
-        <div className="bg-white rounded-xl p-12 shadow-md border border-gray-100 text-center">
-          <UserIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">
+        <div className="bg-white rounded-xl p-12 shadow-md border border-gray-100 dark:border-[var(--theme-border)] text-center">
+          <UserIcon className="h-16 w-16 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-[var(--theme-text-primary)] mb-2">
             No applications yet
           </h3>
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-[var(--theme-text-secondary)]">
             This job hasn't received any applications yet.
           </p>
         </div>
@@ -249,7 +249,7 @@ const ViewJobApplications: React.FC = () => {
           {applications.map((application) => (
             <div
               key={application.application_id}
-              className="bg-white rounded-xl p-6 shadow-md border border-gray-100 hover:shadow-lg transition-shadow"
+              className="bg-white rounded-xl p-6 shadow-md border border-gray-100 dark:border-[var(--theme-border)] hover:shadow-lg transition-shadow"
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
@@ -258,14 +258,14 @@ const ViewJobApplications: React.FC = () => {
                       {application.student?.full_name?.charAt(0) || "S"}
                     </div>
                     <div>
-                      <h3 className="text-xl font-semibold text-gray-900">
+                      <h3 className="text-xl font-semibold text-gray-900 dark:text-[var(--theme-text-primary)]">
                         {application.student?.full_name || "Unknown Student"}
                       </h3>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-gray-600 dark:text-[var(--theme-text-secondary)]">
                         {application.student?.email || "No email"}
                       </p>
                       {application.student?.mobile_number && (
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-gray-500 dark:text-[var(--theme-text-secondary)]">
                           📞 {application.student.mobile_number}
                         </p>
                       )}
@@ -274,25 +274,25 @@ const ViewJobApplications: React.FC = () => {
 
                   <div className="ml-16 space-y-2">
                     {application.cover_letter && (
-                      <div className="mt-3 p-3 bg-gray-50 rounded-lg">
-                        <p className="text-sm font-medium text-gray-700 mb-1">
+                      <div className="mt-3 p-3 bg-gray-50 dark:bg-white/5 rounded-lg">
+                        <p className="text-sm font-medium text-gray-700 dark:text-[var(--theme-text-primary)] mb-1">
                           Cover Letter:
                         </p>
-                        <p className="text-sm text-gray-600">{application.cover_letter}</p>
+                        <p className="text-sm text-gray-600 dark:text-[var(--theme-text-secondary)]">{application.cover_letter}</p>
                       </div>
                     )}
                     {application.resume_url && (
                       <div className="mt-3">
                         <button
                           onClick={() => handleViewResume(application.resume_url!)}
-                          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg font-medium transition text-sm"
+                          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 hover:bg-blue-100 dark:bg-blue-500/20 dark:hover:bg-blue-500/30 text-blue-700 dark:text-blue-300 rounded-lg font-medium transition text-sm"
                         >
                           <BriefcaseIcon className="h-4 w-4" />
                           View Resume
                         </button>
                       </div>
                     )}
-                    <div className="flex items-center gap-2 text-sm text-gray-500">
+                    <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-[var(--theme-text-secondary)]">
                       <ClockIcon className="h-4 w-4" />
                       <span>Posted: {formatDate(application.applied_at)}</span>
                     </div>
@@ -343,7 +343,7 @@ const ViewJobApplications: React.FC = () => {
                   )}
 
                   {application.reviewed_at && (
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-gray-500 dark:text-[var(--theme-text-secondary)]">
                       Reviewed: {formatDate(application.reviewed_at)}
                     </p>
                   )}

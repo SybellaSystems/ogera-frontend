@@ -164,10 +164,13 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({ open, onClose }) => {
           justifyContent: "space-between",
           alignItems: "center",
           pb: 1,
-          borderBottom: "1px solid #e5e7eb",
+          borderBottom: "1px solid var(--theme-border, #e5e7eb)",
         }}
       >
-        <Typography variant="h6" sx={{ fontWeight: 600 }}>
+        <Typography
+          variant="h6"
+          sx={{ fontWeight: 600, color: "var(--theme-text-primary, #111827)" }}
+        >
           Add New User
         </Typography>
         <IconButton
@@ -192,7 +195,12 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({ open, onClose }) => {
           <FormControl component="fieldset">
             <FormLabel
               component="legend"
-              sx={{ mb: 1, fontWeight: 500, fontSize: "0.875rem" }}
+              sx={{
+                mb: 1,
+                fontWeight: 500,
+                fontSize: "0.875rem",
+                color: "var(--theme-text-primary, #111827)",
+              }}
             >
               Account Type
             </FormLabel>
@@ -216,13 +224,13 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({ open, onClose }) => {
                 control={<Radio size="small" />}
                 label="Student"
                 sx={{
-                  border: "1px solid #ddd",
+                  border: "1px solid var(--theme-border, #ddd)",
                   borderRadius: 1,
                   mr: 1,
                   px: 2,
                   "&:has(input:checked)": {
                     borderColor: "#7f56d9",
-                    backgroundColor: "#f3ebff",
+                    backgroundColor: "rgba(127, 86, 217, 0.12)",
                   },
                 }}
               />
@@ -231,12 +239,12 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({ open, onClose }) => {
                 control={<Radio size="small" />}
                 label="Employer"
                 sx={{
-                  border: "1px solid #ddd",
+                  border: "1px solid var(--theme-border, #ddd)",
                   borderRadius: 1,
                   px: 2,
                   "&:has(input:checked)": {
                     borderColor: "#7f56d9",
-                    backgroundColor: "#f3ebff",
+                    backgroundColor: "rgba(127, 86, 217, 0.12)",
                   },
                 }}
               />
@@ -347,7 +355,12 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({ open, onClose }) => {
           <Box>
             <Typography
               variant="body2"
-              sx={{ mb: 0.5, fontWeight: 500, fontSize: "0.875rem" }}
+              sx={{
+                mb: 0.5,
+                fontWeight: 500,
+                fontSize: "0.875rem",
+                color: "var(--theme-text-primary, #111827)",
+              }}
             >
               Mobile Number
             </Typography>
@@ -386,7 +399,7 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({ open, onClose }) => {
           px: { xs: 2, sm: 3 },
           pb: { xs: 2, sm: 3 },
           pt: 2,
-          borderTop: "1px solid #e5e7eb",
+          borderTop: "1px solid var(--theme-border, #e5e7eb)",
           gap: 1,
         }}
       >
@@ -428,9 +441,11 @@ const PhoneInput = styled("input")`
   flex: 1;
   padding: 12px;
   border-radius: 0 8px 8px 0;
-  border: 1px solid #ddd;
+  border: 1px solid var(--theme-border, #ddd);
   border-left: none;
   font-size: 14px;
+  background-color: var(--theme-input-bg, #ffffff);
+  color: var(--theme-text-primary, #111827);
 
   &:focus {
     outline: none;

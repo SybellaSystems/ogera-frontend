@@ -491,6 +491,11 @@
     "kinyarwanda": "Kinyarwanda",
     "french": "Français"
   },
+  "theme": {
+    "label": "Itimu",
+    "bright": "Kukhanya",
+    "dark": "Mnyama (smooth)"
+  },
   "app": {
     "pageNotFound": "Ikhasi Alitholakali",
     "loading": "Iyaloda..."

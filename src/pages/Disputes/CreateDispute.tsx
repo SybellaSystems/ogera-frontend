@@ -121,7 +121,7 @@ const CreateDispute: React.FC = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 animate-fadeIn">
+    <div className="create-page max-w-4xl mx-auto space-y-6 animate-fadeIn">
       <div>
         <h1 className="text-3xl font-extrabold text-gray-900 flex items-center gap-3">
           <ExclamationTriangleIcon className="h-8 w-8 text-red-600" />
@@ -130,7 +130,7 @@ const CreateDispute: React.FC = () => {
         <p className="text-gray-500 mt-2">{t("disputes.createSubtitle")}</p>
       </div>
 
-      <div className="bg-white rounded-xl shadow-md border border-gray-100 p-6 md:p-8">
+      <div className="bg-white rounded-xl shadow-md border border-gray-100 p-6 md:p-8 create-page-form">
         <form onSubmit={formik.handleSubmit} className="space-y-6">
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">

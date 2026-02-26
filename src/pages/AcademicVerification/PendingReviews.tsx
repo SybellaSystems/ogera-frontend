@@ -272,7 +272,7 @@ const PendingReviews: React.FC = () => {
   // ===================== STUDENT VIEW =====================
   if (role === "student") {
     return (
-      <div className="bg-gradient-to-br from-purple-50 to-indigo-50 p-3">
+      <div className="academic-page theme-page-bg p-3 min-h-full">
         <div className="max-w-3xl mx-auto space-y-3">
           {/* Header */}
           <div className="text-center space-y-1">
@@ -363,7 +363,7 @@ const PendingReviews: React.FC = () => {
 
   // ===================== ADMIN/VERIFYDOCADMIN VIEW =====================
   return (
-    <div className="bg-gradient-to-br from-purple-50 to-indigo-50 p-3">
+    <div className="academic-page theme-page-bg p-3 min-h-full">
       <div className="max-w-6xl mx-auto space-y-3">
         {/* Header */}
         <div className="text-center space-y-1">
@@ -487,7 +487,7 @@ const PendingReviews: React.FC = () => {
         {showViewer && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 backdrop-blur-sm">
             <div className="fixed inset-0 bg-black/40" onClick={closeViewer} />
-            <div className="relative bg-white rounded-lg shadow-lg max-w-4xl w-full max-h-[85vh] sm:max-h-[90vh] z-60 flex flex-col overflow-hidden">
+            <div className="relative bg-white rounded-lg shadow-lg max-w-4xl w-full max-h-[85vh] sm:max-h-[90vh] z-60 flex flex-col overflow-hidden theme-modal border border-gray-200">
               <div className="flex items-center justify-between p-3 sm:p-4 border-b flex-shrink-0">
                 <h3 className="text-lg font-bold">{t("pages.academic.documentViewer")}</h3>
                 <div className="flex items-center gap-2">

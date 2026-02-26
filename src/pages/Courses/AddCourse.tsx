@@ -533,11 +533,12 @@ const AddCourse: React.FC = () => {
 
 export default AddCourse;
 
-// Styled Components
+// Styled Components - theme-aware for dark mode
 const Container = styled("div")`
   padding: 24px;
   min-height: 100vh;
-  background: #f9fafb;
+  background: var(--theme-page-bg);
+  transition: background 0.35s ease;
 
   @media (min-width: 640px) {
     padding: 32px;
@@ -551,10 +552,13 @@ const Container = styled("div")`
 const FormContainer = styled("form")`
   max-width: 800px;
   margin: 0 auto;
-  background: white;
+  background: var(--theme-card-bg);
+  color: var(--theme-text-primary);
   border-radius: 12px;
   padding: 32px;
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  border: 1px solid var(--theme-border);
+  transition: background 0.35s ease, color 0.35s ease, border-color 0.35s ease;
 
   @media (min-width: 640px) {
     padding: 40px;
@@ -575,8 +579,9 @@ const IconWrapper = styled("div")`
 const Title = styled("h1")`
   font-size: 24px;
   font-weight: 700;
-  color: #111827;
+  color: var(--theme-text-primary);
   margin-bottom: 8px;
+  transition: color 0.35s ease;
 
   @media (min-width: 640px) {
     font-size: 28px;
@@ -585,8 +590,9 @@ const Title = styled("h1")`
 
 const Subtitle = styled("p")`
   font-size: 12px;
-  color: #6b7280;
+  color: var(--theme-text-secondary);
   margin: 0;
+  transition: color 0.35s ease;
 
   @media (min-width: 640px) {
     font-size: 14px;
@@ -603,15 +609,18 @@ const Label = styled("label")`
   margin-bottom: 8px;
   font-size: 14px;
   font-weight: 500;
-  color: #374151;
+  color: var(--theme-text-secondary);
+  transition: color 0.35s ease;
 `;
 
 const Input = styled("input")`
   padding: 12px;
   border-radius: 8px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--theme-border);
   font-size: 14px;
-  transition: border-color 0.2s;
+  background: var(--theme-input-bg);
+  color: var(--theme-text-primary);
+  transition: border-color 0.2s, background 0.35s ease, color 0.35s ease;
 
   &:focus {
     outline: none;
@@ -620,16 +629,19 @@ const Input = styled("input")`
   }
 
   &::placeholder {
-    color: #9ca3af;
+    color: var(--theme-text-secondary);
+    opacity: 0.8;
   }
 `;
 
 const TextArea = styled("textarea")`
   padding: 12px;
   border-radius: 8px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--theme-border);
   font-size: 14px;
-  transition: border-color 0.2s;
+  background: var(--theme-input-bg);
+  color: var(--theme-text-primary);
+  transition: border-color 0.2s, background 0.35s ease, color 0.35s ease;
   resize: vertical;
   font-family: inherit;
   min-height: 120px;
@@ -641,18 +653,20 @@ const TextArea = styled("textarea")`
   }
 
   &::placeholder {
-    color: #9ca3af;
+    color: var(--theme-text-secondary);
+    opacity: 0.8;
   }
 `;
 
 const Select = styled("select")`
   padding: 12px;
   border-radius: 8px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--theme-border);
   font-size: 14px;
-  background: white;
+  background: var(--theme-input-bg);
+  color: var(--theme-text-primary);
   cursor: pointer;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, background 0.35s ease, color 0.35s ease;
   width: 100%;
 
   &:focus {
@@ -663,6 +677,8 @@ const Select = styled("select")`
 
   option {
     padding: 8px;
+    background: var(--theme-card-bg);
+    color: var(--theme-text-primary);
   }
 `;
 
@@ -674,8 +690,9 @@ const ErrorText = styled("div")`
 
 const HelperText = styled("div")`
   font-size: 12px;
-  color: #6b7280;
+  color: var(--theme-text-secondary);
   margin-top: 4px;
+  transition: color 0.35s ease;
 `;
 
 const ButtonContainer = styled("div")`
@@ -684,7 +701,8 @@ const ButtonContainer = styled("div")`
   justify-content: flex-end;
   margin-top: 32px;
   padding-top: 24px;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--theme-border);
+  transition: border-color 0.35s ease;
 
   @media (max-width: 640px) {
     flex-direction: column-reverse;
@@ -698,7 +716,8 @@ const ButtonContainer = styled("div")`
 const StepsSection = styled("div")`
   margin-top: 32px;
   padding-top: 32px;
-  border-top: 2px solid #e5e7eb;
+  border-top: 2px solid var(--theme-border);
+  transition: border-color 0.35s ease;
 `;
 
 const StepsHeader = styled("div")`
@@ -706,11 +725,12 @@ const StepsHeader = styled("div")`
 `;
 
 const StepCard = styled("div")`
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
+  background: var(--theme-table-header-bg);
+  border: 1px solid var(--theme-border);
   border-radius: 12px;
   padding: 20px;
   margin-bottom: 16px;
+  transition: background 0.35s ease, border-color 0.35s ease;
 `;
 
 const StepHeader = styled("div")`
@@ -749,17 +769,16 @@ const AddStepButton = styled("button")`
   gap: 8px;
   width: 100%;
   padding: 12px;
-  background: #f3f4f6;
-  border: 2px dashed #d1d5db;
+  background: var(--theme-table-header-bg);
+  border: 2px dashed var(--theme-border);
   border-radius: 8px;
-  color: #6b7280;
+  color: var(--theme-text-secondary);
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
 
   &:hover {
-    background: #e5e7eb;
     border-color: #7f56d9;
     color: #7f56d9;
   }
@@ -785,9 +804,10 @@ const InputTypeOption = styled("div")`
 
   label {
     font-size: 14px;
-    color: #374151;
+    color: var(--theme-text-secondary);
     cursor: pointer;
     user-select: none;
+    transition: color 0.35s ease;
   }
 `;
 
@@ -807,17 +827,16 @@ const FileUploadLabel = styled("label")`
   justify-content: center;
   gap: 8px;
   padding: 12px;
-  background: #f9fafb;
-  border: 2px dashed #d1d5db;
+  background: var(--theme-table-header-bg);
+  border: 2px dashed var(--theme-border);
   border-radius: 8px;
-  color: #6b7280;
+  color: var(--theme-text-secondary);
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
 
   &:hover {
-    background: #f3f4f6;
     border-color: #7f56d9;
     color: #7f56d9;
   }

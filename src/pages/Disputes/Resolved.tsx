@@ -49,8 +49,8 @@ const Resolved: React.FC = () => {
           label={value}
           size="small"
           sx={{
-            bgcolor: "#dbeafe",
-            color: "#1e40af",
+            bgcolor: "var(--chip-permission-yes-bg)",
+            color: "var(--chip-permission-yes-text)",
             fontWeight: 600,
           }}
         />
@@ -61,7 +61,13 @@ const Resolved: React.FC = () => {
       label: t("disputes.description"),
       minWidth: 250,
       format: (value) => (
-        <Typography sx={{ fontSize: "0.875rem", color: "#374151", fontWeight: 600 }}>
+        <Typography
+          sx={{
+            fontSize: "0.875rem",
+            color: "var(--theme-text-primary, #374151)",
+            fontWeight: 600,
+          }}
+        >
           {value}
         </Typography>
       ),
@@ -91,8 +97,8 @@ const Resolved: React.FC = () => {
           label={value || t("disputes.pending")}
           size="small"
           sx={{
-            bgcolor: "#d1fae5",
-            color: "#065f46",
+            bgcolor: "var(--chip-verified-bg)",
+            color: "var(--chip-verified-text)",
             fontWeight: 600,
           }}
         />

@@ -9,6 +9,7 @@ import i18n from "./i18n";
 import { Provider } from "react-redux";
 import store from "./appStore/store";
 import { Toaster } from "react-hot-toast";
+import { ThemeProvider as AppThemeProvider } from "./contexts/ThemeContext";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -16,8 +17,10 @@ createRoot(document.getElementById("root")!).render(
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <Provider store={store}>
-          <Toaster position="top-right" />
-          <App />
+          <AppThemeProvider>
+            <Toaster position="top-right" />
+            <App />
+          </AppThemeProvider>
         </Provider>
       </ThemeProvider>
     </I18nextProvider>
