@@ -74,8 +74,8 @@ const MyDisputes: React.FC = () => {
           label={value}
           size="small"
           sx={{
-            bgcolor: "#dbeafe",
-            color: "#1e40af",
+            bgcolor: "var(--chip-permission-yes-bg)",
+            color: "var(--chip-permission-yes-text)",
             fontWeight: 600,
           }}
         />
@@ -86,7 +86,13 @@ const MyDisputes: React.FC = () => {
       label: t("disputes.title"),
       minWidth: 250,
       format: (value) => (
-        <Typography sx={{ fontSize: "0.875rem", color: "#374151", fontWeight: 600 }}>
+        <Typography
+          sx={{
+            fontSize: "0.875rem",
+            color: "var(--theme-text-primary, #374151)",
+            fontWeight: 600,
+          }}
+        >
           {value}
         </Typography>
       ),
@@ -102,16 +108,16 @@ const MyDisputes: React.FC = () => {
           sx={{
             bgcolor:
               value === "Open"
-                ? "#fee2e2"
+                ? "var(--chip-status-suspended-bg)"
                 : value === "Under Review" || value === "Mediation"
-                ? "#fef3c7"
-                : "#d1fae5",
+                ? "var(--chip-warning-bg)"
+                : "var(--chip-verified-bg)",
             color:
               value === "Open"
-                ? "#991b1b"
+                ? "var(--chip-status-suspended-text)"
                 : value === "Under Review" || value === "Mediation"
-                ? "#92400e"
-                : "#065f46",
+                ? "var(--chip-warning-text)"
+                : "var(--chip-verified-text)",
             fontWeight: 600,
           }}
         />
@@ -128,16 +134,16 @@ const MyDisputes: React.FC = () => {
           sx={{
             bgcolor:
               value === "High"
-                ? "#fee2e2"
+                ? "var(--chip-status-suspended-bg)"
                 : value === "Medium"
-                ? "#fef3c7"
-                : "#dbeafe",
+                ? "var(--chip-warning-bg)"
+                : "var(--chip-permission-yes-bg)",
             color:
               value === "High"
-                ? "#991b1b"
+                ? "var(--chip-status-suspended-text)"
                 : value === "Medium"
-                ? "#92400e"
-                : "#1e40af",
+                ? "var(--chip-warning-text)"
+                : "var(--chip-permission-yes-text)",
             fontWeight: 600,
           }}
         />

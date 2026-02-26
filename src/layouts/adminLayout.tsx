@@ -7,7 +7,7 @@ const AdminLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 overflow-hidden">
+    <div className="flex min-h-screen theme-page-bg overflow-hidden">
       <Sidebar
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}

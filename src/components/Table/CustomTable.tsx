@@ -237,17 +237,23 @@ function CustomTable<T extends Record<string, any>>({
       sx={{
         width: "100%",
         maxWidth: "100%",
-        border: "1px solid #e5e7eb",
+        border: "1px solid var(--theme-border, #e5e7eb)",
         borderRadius: "12px",
         overflow: "hidden",
         boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1)",
+        bgcolor: "var(--theme-card-bg, #ffffff)",
+        color: "var(--theme-text-primary, #111827)",
       }}
-      className="table-responsive"
+      className="table-responsive theme-table"
     >
       {/* Search Bar */}
       {searchable && (
         <Box
-          sx={{ p: 2, borderBottom: "1px solid #e5e7eb", bgcolor: "#fafafa" }}
+          sx={{
+            p: 2,
+            borderBottom: "1px solid var(--theme-border, #e5e7eb)",
+            bgcolor: "var(--theme-card-bg, #fafafa)",
+          }}
         >
           <TextField
             fullWidth
@@ -265,14 +271,14 @@ function CustomTable<T extends Record<string, any>>({
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <SearchIcon sx={{ color: "#9ca3af" }} />
+                  <SearchIcon sx={{ color: "var(--theme-text-secondary, #9ca3af)" }} />
                 </InputAdornment>
               ),
             }}
             sx={{
               "& .MuiOutlinedInput-root": {
                 borderRadius: "8px",
-                bgcolor: "white",
+                bgcolor: "var(--theme-input-bg, white)",
                 "&:hover fieldset": {
                   borderColor: "#9333ea",
                 },
@@ -292,7 +298,7 @@ function CustomTable<T extends Record<string, any>>({
           <TableHead>
             <TableRow>
               {selectable && (
-                <TableCell padding="checkbox" sx={{ bgcolor: "#f9fafb" }}>
+                <TableCell padding="checkbox" sx={{ bgcolor: "var(--theme-table-header-bg, #f9fafb)" }}>
                   <Checkbox
                     indeterminate={isIndeterminate}
                     checked={isAllSelected}
@@ -316,11 +322,11 @@ function CustomTable<T extends Record<string, any>>({
                   align={column.align || "left"}
                   style={{ minWidth: column.minWidth }}
                   sx={{
-                    bgcolor: "#f9fafb",
+                    bgcolor: "var(--theme-table-header-bg, #f9fafb)",
                     fontWeight: 600,
                     fontSize: "0.75rem",
                     textTransform: "uppercase",
-                    color: "#6b7280",
+                    color: "var(--theme-text-secondary, #6b7280)",
                     letterSpacing: "0.05em",
                   }}
                 >
@@ -331,7 +337,7 @@ function CustomTable<T extends Record<string, any>>({
                       onClick={() => handleSort(column.id)}
                       sx={{
                         "&.MuiTableSortLabel-root": {
-                          color: "#6b7280",
+                          color: "var(--theme-text-secondary, #6b7280)",
                         },
                         "&.MuiTableSortLabel-root:hover": {
                           color: "#9333ea",
@@ -356,11 +362,11 @@ function CustomTable<T extends Record<string, any>>({
                 <TableCell
                   align="center"
                   sx={{
-                    bgcolor: "#f9fafb",
+                    bgcolor: "var(--theme-table-header-bg, #f9fafb)",
                     fontWeight: 600,
                     fontSize: "0.75rem",
                     textTransform: "uppercase",
-                    color: "#6b7280",
+                    color: "var(--theme-text-primary, #6b7280)",
                   }}
                 >
                   Actions
@@ -409,10 +415,10 @@ function CustomTable<T extends Record<string, any>>({
                     sx={{
                       cursor: onRowClick ? "pointer" : "default",
                       "&.Mui-selected": {
-                        bgcolor: "#faf5ff",
+                        bgcolor: "var(--theme-table-selected-bg, #faf5ff)",
                       },
                       "&.Mui-selected:hover": {
-                        bgcolor: "#f3e8ff",
+                        bgcolor: "var(--theme-table-selected-hover-bg, #f3e8ff)",
                       },
                     }}
                   >
@@ -438,7 +444,7 @@ function CustomTable<T extends Record<string, any>>({
                         <TableCell
                           key={String(column.id)}
                           align={column.align || "left"}
-                          sx={{ color: "#374151" }}
+                          sx={{ color: "var(--theme-text-primary, #374151)" }}
                         >
                           {column.format ? column.format(value, row) : value}
                         </TableCell>
@@ -510,7 +516,8 @@ function CustomTable<T extends Record<string, any>>({
         onPageChange={handleChangePage}
         onRowsPerPageChange={handleChangeRowsPerPage}
         sx={{
-          borderTop: "1px solid #e5e7eb",
+          borderTop: "1px solid var(--theme-border, #e5e7eb)",
+          color: "var(--theme-text-primary, inherit)",
           "& .MuiTablePagination-select": {
             borderRadius: "6px",
           },

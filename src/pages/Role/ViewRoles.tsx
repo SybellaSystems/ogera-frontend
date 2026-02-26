@@ -219,15 +219,15 @@ const ViewRoles: React.FC = () => {
   const getRoleTypeColor = (roleType: string) => {
     switch (roleType?.toLowerCase()) {
       case "admin":
-        return { bg: "#dbeafe", color: "#1e40af" };
+        return { bg: "var(--chip-role-admin-bg)", color: "var(--chip-role-admin-text)" };
       case "superadmin":
-        return { bg: "#fce7f3", color: "#9f1239" };
+        return { bg: "var(--chip-role-superadmin-bg)", color: "var(--chip-role-superadmin-text)" };
       case "student":
-        return { bg: "#dcfce7", color: "#166534" };
+        return { bg: "var(--chip-role-student-bg)", color: "var(--chip-role-student-text)" };
       case "employer":
-        return { bg: "#fef3c7", color: "#92400e" };
+        return { bg: "var(--chip-role-employer-bg)", color: "var(--chip-role-employer-text)" };
       default:
-        return { bg: "#f3f4f6", color: "#374151" };
+        return { bg: "var(--chip-default-bg)", color: "var(--chip-default-text)" };
     }
   };
 
@@ -239,7 +239,7 @@ const ViewRoles: React.FC = () => {
       align: "center",
       sortable: false,
       format: (value) => (
-        <Typography sx={{ fontWeight: 500, color: "#6b7280" }}>
+        <Typography sx={{ fontWeight: 500, color: "var(--theme-text-secondary)" }}>
           {value}
         </Typography>
       ),

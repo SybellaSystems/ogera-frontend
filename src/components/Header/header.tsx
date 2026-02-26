@@ -2,9 +2,10 @@ import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
-import { BellIcon, Bars3Icon, LanguageIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
+import { BellIcon, Bars3Icon, LanguageIcon, ChevronDownIcon, SunIcon, MoonIcon } from "@heroicons/react/24/outline";
 import { logoutApi } from "../../services/api/logoutApi";
 import i18n, { supportedLanguages } from "../../i18n";
+import { useTheme } from "../../contexts/ThemeContext";
 import {
   useGetUnreadNotificationCountQuery,
   useGetNotificationsQuery,
@@ -18,13 +19,16 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   const { t } = useTranslation();
+  const { theme, setTheme } = useTheme();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isNotificationDropdownOpen, setIsNotificationDropdownOpen] = useState(false);
   const [isLanguageDropdownOpen, setIsLanguageDropdownOpen] = useState(false);
+  const [isThemeDropdownOpen, setIsThemeDropdownOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const notificationDropdownRef = useRef<HTMLDivElement>(null);
   const languageDropdownRef = useRef<HTMLDivElement>(null);
+  const themeDropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const role = useSelector((state: any) => state.auth.role);
@@ -69,6 +73,12 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
         !languageDropdownRef.current.contains(event.target as Node)
       ) {
         setIsLanguageDropdownOpen(false);
+      }
+      if (
+        themeDropdownRef.current &&
+        !themeDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsThemeDropdownOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -195,8 +205,56 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
         {role ? `${role} ${t("header.dashboard")}` : t("header.dashboard")}
       </div>
 
-      {/* Right side (language + notification + profile) */}
+      {/* Right side (theme + language + notification + profile) */}
       <div className="flex items-center gap-3 md:gap-6">
+        {/* Theme dropdown */}
+        <div className="relative" ref={themeDropdownRef}>
+          <button
+            onClick={() => setIsThemeDropdownOpen(!isThemeDropdownOpen)}
+            className="flex items-center gap-1.5 px-2.5 py-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-600 hover:text-gray-900"
+            aria-label={t("theme.label")}
+            type="button"
+          >
+            {theme === "dark" ? (
+              <MoonIcon className="h-5 w-5" />
+            ) : (
+              <SunIcon className="h-5 w-5" />
+            )}
+            <span className="text-sm font-medium hidden sm:inline">
+              {theme === "dark" ? t("theme.dark") : t("theme.bright")}
+            </span>
+            <ChevronDownIcon className="h-4 w-4" />
+          </button>
+          {isThemeDropdownOpen && (
+            <div className="absolute right-0 mt-2 w-44 bg-white/95 backdrop-blur-lg border border-gray-200/50 rounded-xl shadow-2xl py-2 z-50 animate-fadeIn theme-dropdown">
+              <button
+                onClick={() => {
+                  setTheme("bright");
+                  setIsThemeDropdownOpen(false);
+                }}
+                className={`w-full text-left px-4 py-2 text-sm hover:bg-purple-50 transition-colors flex items-center gap-2 ${
+                  theme === "bright" ? "text-purple-600 font-medium bg-purple-50/50" : "text-gray-700"
+                }`}
+              >
+                <SunIcon className="h-4 w-4" />
+                {t("theme.bright")}
+              </button>
+              <button
+                onClick={() => {
+                  setTheme("dark");
+                  setIsThemeDropdownOpen(false);
+                }}
+                className={`w-full text-left px-4 py-2 text-sm hover:bg-purple-50 transition-colors flex items-center gap-2 ${
+                  theme === "dark" ? "text-purple-600 font-medium bg-purple-50/50" : "text-gray-700"
+                }`}
+              >
+                <MoonIcon className="h-4 w-4" />
+                {t("theme.dark")}
+              </button>
+            </div>
+          )}
+        </div>
+
         {/* Language dropdown */}
         <div className="relative" ref={languageDropdownRef}>
           <button
@@ -212,7 +270,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
             <ChevronDownIcon className="h-4 w-4" />
           </button>
           {isLanguageDropdownOpen && (
-            <div className="absolute right-0 mt-2 w-40 bg-white/95 backdrop-blur-lg border border-gray-200/50 rounded-xl shadow-2xl py-2 z-50 animate-fadeIn">
+            <div className="absolute right-0 mt-2 w-40 bg-white/95 backdrop-blur-lg border border-gray-200/50 rounded-xl shadow-2xl py-2 z-50 animate-fadeIn language-dropdown">
               {supportedLanguages.map((lang) => (
                 <button
                   key={lang.code}
@@ -250,7 +308,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
 
             {/* Notification Dropdown */}
             {isNotificationDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] sm:w-80 md:w-96 max-w-[calc(100vw-2rem)] sm:max-w-none bg-white/95 backdrop-blur-lg border border-gray-200/50 rounded-xl shadow-2xl z-50 animate-fadeIn overflow-hidden">
+              <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] sm:w-80 md:w-96 max-w-[calc(100vw-2rem)] sm:max-w-none bg-white/95 backdrop-blur-lg border border-gray-200/50 rounded-xl shadow-2xl z-50 animate-fadeIn overflow-hidden notification-dropdown">
                 <div className="p-4 border-b border-gray-200 flex items-center justify-between">
                   <h3 className="font-semibold text-gray-900">{t("header.notifications")}</h3>
                   {unreadCount > 0 && (

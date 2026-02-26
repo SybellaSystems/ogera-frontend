@@ -22,7 +22,7 @@ const AccountLocks: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6 animate-fadeIn">
+    <div className="academic-page theme-page-bg space-y-6 animate-fadeIn p-4 min-h-full">
       <div>
         <h1 className="text-4xl font-extrabold text-gray-900 flex items-center gap-3">
           <LockClosedIcon className="h-10 w-10 text-red-600" />

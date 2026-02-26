@@ -247,16 +247,20 @@ const Container = styled("div")`
   justify-content: center;
   align-items: flex-start;
   padding: 40px 20px;
-  background: #f9fafb;
+  background: var(--theme-page-bg);
+  transition: background 0.35s ease;
 `;
 
 const FormContainer = styled("form")`
   max-width: 600px;
   width: 100%;
-  background: white;
+  background: var(--theme-card-bg);
+  color: var(--theme-text-primary);
   border-radius: 16px;
   padding: 40px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--theme-border);
+  transition: background 0.35s ease, color 0.35s ease, border-color 0.35s ease;
 `;
 
 const Header = styled("div")`
@@ -273,14 +277,16 @@ const IconWrapper = styled("div")`
 const Title = styled("h1")`
   font-size: 28px;
   font-weight: 700;
-  color: #111827;
+  color: var(--theme-text-primary);
   margin-bottom: 8px;
+  transition: color 0.35s ease;
 `;
 
 const Subtitle = styled("p")`
   font-size: 14px;
-  color: #6b7280;
+  color: var(--theme-text-secondary);
   margin: 0;
+  transition: color 0.35s ease;
 `;
 
 const FormGroup = styled("div")`
@@ -293,19 +299,27 @@ const Label = styled("label")`
   margin-bottom: 8px;
   font-size: 14px;
   font-weight: 500;
-  color: #374151;
+  color: var(--theme-text-secondary);
+  transition: color 0.35s ease;
 `;
 
 const Input = styled("input")`
   padding: 12px;
   border-radius: 8px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--theme-border);
   font-size: 14px;
-  transition: border-color 0.2s;
+  background: var(--theme-input-bg);
+  color: var(--theme-text-primary);
+  transition: border-color 0.2s, background 0.35s ease, color 0.35s ease;
 
   &:focus {
     outline: none;
     border-color: #7f56d9;
+  }
+
+  &::placeholder {
+    color: var(--theme-text-secondary);
+    opacity: 0.8;
   }
 `;
 
@@ -318,11 +332,12 @@ const ErrorText = styled("div")`
 const Select = styled("select")`
   padding: 12px;
   border-radius: 8px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--theme-border);
   font-size: 14px;
-  background: white;
+  background: var(--theme-input-bg);
+  color: var(--theme-text-primary);
   cursor: pointer;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, background 0.35s ease, color 0.35s ease;
   width: 100%;
 
   &:focus {
@@ -331,12 +346,14 @@ const Select = styled("select")`
   }
 
   &:disabled {
-    background: #f3f4f6;
+    opacity: 0.7;
     cursor: not-allowed;
   }
 
   option {
     padding: 8px;
+    background: var(--theme-card-bg);
+    color: var(--theme-text-primary);
   }
 `;
 

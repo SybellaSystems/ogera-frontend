@@ -55,8 +55,8 @@ const OpenDisputes: React.FC = () => {
           label={value}
           size="small"
           sx={{
-            bgcolor: "#f3e8ff",
-            color: "#7c3aed",
+            bgcolor: "var(--chip-role-admin-bg)",
+            color: "var(--chip-role-admin-text)",
             fontWeight: 600,
           }}
         />
@@ -67,7 +67,13 @@ const OpenDisputes: React.FC = () => {
       label: t("disputes.title"),
       minWidth: 200,
       format: (value) => (
-        <Typography sx={{ fontSize: "0.875rem", color: "#374151", fontWeight: 600 }}>
+        <Typography
+          sx={{
+            fontSize: "0.875rem",
+            color: "var(--theme-text-primary, #374151)",
+            fontWeight: 600,
+          }}
+        >
           {value}
         </Typography>
       ),
@@ -99,16 +105,16 @@ const OpenDisputes: React.FC = () => {
           sx={{
             bgcolor:
               value === "High"
-                ? "#fee2e2"
+                ? "var(--chip-status-suspended-bg)"
                 : value === "Medium"
-                ? "#fed7aa"
-                : "#dbeafe",
+                ? "var(--chip-warning-bg)"
+                : "var(--chip-permission-yes-bg)",
             color:
               value === "High"
-                ? "#991b1b"
+                ? "var(--chip-status-suspended-text)"
                 : value === "Medium"
-                ? "#9a3412"
-                : "#1e40af",
+                ? "var(--chip-warning-text)"
+                : "var(--chip-permission-yes-text)",
             fontWeight: 600,
           }}
         />

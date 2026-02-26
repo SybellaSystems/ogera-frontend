@@ -53,8 +53,8 @@ const InProgress: React.FC = () => {
           label={value}
           size="small"
           sx={{
-            bgcolor: "#fef3c7",
-            color: "#92400e",
+            bgcolor: "var(--chip-warning-bg)",
+            color: "var(--chip-warning-text)",
             fontWeight: 600,
           }}
         />
@@ -65,7 +65,13 @@ const InProgress: React.FC = () => {
       label: t("disputes.description"),
       minWidth: 250,
       format: (value) => (
-        <Typography sx={{ fontSize: "0.875rem", color: "#374151", fontWeight: 600 }}>
+        <Typography
+          sx={{
+            fontSize: "0.875rem",
+            color: "var(--theme-text-primary, #374151)",
+            fontWeight: 600,
+          }}
+        >
           {value}
         </Typography>
       ),
@@ -95,8 +101,8 @@ const InProgress: React.FC = () => {
           label={value?.full_name || t("disputes.unassigned")} 
                    size="small"
           sx={{
-            bgcolor: "#dbeafe",
-            color: "#1e40af",
+            bgcolor: "var(--chip-role-admin-bg)",
+            color: "var(--chip-role-admin-text)",
             fontWeight: 600,
           }}
         />

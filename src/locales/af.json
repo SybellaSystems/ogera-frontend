@@ -491,6 +491,11 @@
     "kinyarwanda": "Kinyarwanda",
     "french": "Français"
   },
+  "theme": {
+    "label": "Tema",
+    "bright": "Helder",
+    "dark": "Donker (sag)"
+  },
   "app": {
     "pageNotFound": "Page Not Found",
     "loading": "Laai..."

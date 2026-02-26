@@ -66,10 +66,13 @@ const Backdrop = styled("div")`
 const ModalBox = styled("div")`
   width: 600px;
   max-height: 80vh;
-  background: white;
+  background: var(--theme-card-bg);
+  color: var(--theme-text-primary);
   padding: 25px;
   border-radius: 12px;
   overflow-y: auto;
+  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.35);
+  transition: background-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
 `;
 
 const ModalTitle = styled("h2")`
@@ -80,7 +83,7 @@ const ModalTitle = styled("h2")`
 const ModalContent = styled("div")`
   font-size: 14px;
   line-height: 1.6;
-  color: #444;
+  color: var(--theme-text-secondary);
 
   h3 {
     margin-top: 15px;

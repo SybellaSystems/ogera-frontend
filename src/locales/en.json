@@ -491,6 +491,11 @@
     "kinyarwanda": "Kinyarwanda",
     "french": "Français"
   },
+  "theme": {
+    "label": "Theme",
+    "bright": "Bright",
+    "dark": "Dark"
+  },
   "app": {
     "pageNotFound": "Page Not Found",
     "loading": "Loading..."

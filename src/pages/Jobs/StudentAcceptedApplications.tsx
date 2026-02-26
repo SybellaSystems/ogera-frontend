@@ -47,14 +47,14 @@ const StudentAcceptedApplications: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6 animate-fadeIn">
+    <div className="theme-page-bg space-y-6 animate-fadeIn min-h-full p-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-4xl font-extrabold text-gray-900 flex items-center gap-3">
-            <CheckCircleIcon className="h-10 w-10 text-green-600" />
+          <h1 className="text-4xl font-extrabold text-gray-900 dark:text-[var(--theme-text-primary)] flex items-center gap-3">
+            <CheckCircleIcon className="h-10 w-10 text-green-600 dark:text-green-400" />
             {t("pages.jobs.acceptedApplicationsTitle")}
           </h1>
-          <p className="text-gray-500 mt-2">
+          <p className="text-gray-500 dark:text-[var(--theme-text-secondary)] mt-2">
             {t("pages.jobs.acceptedApplicationsSubtitleStudent")}
           </p>
         </div>

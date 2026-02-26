@@ -84,7 +84,11 @@ const Transactions: React.FC = () => {
       minWidth: 150,
       format: (value) => (
         <Typography
-          sx={{ fontFamily: "monospace", fontWeight: 600, color: "#374151" }}
+          sx={{
+            fontFamily: "monospace",
+            fontWeight: 600,
+            color: "var(--theme-text-primary, #374151)",
+          }}
         >
           {value}
         </Typography>
@@ -107,7 +111,11 @@ const Transactions: React.FC = () => {
       align: "right",
       format: (value) => (
         <Typography
-          sx={{ fontWeight: 700, fontSize: "1rem", color: "#111827" }}
+          sx={{
+            fontWeight: 700,
+            fontSize: "1rem",
+            color: "var(--theme-text-primary, #111827)",
+          }}
         >
           {value}
         </Typography>
@@ -124,16 +132,16 @@ const Transactions: React.FC = () => {
           sx={{
             bgcolor:
               value === "Payment"
-                ? "#dbeafe"
+                ? "var(--chip-verified-bg)"
                 : value === "Refund"
-                ? "#fed7aa"
-                : "#f3e8ff",
+                ? "var(--chip-warning-bg)"
+                : "var(--chip-permission-yes-bg)",
             color:
               value === "Payment"
-                ? "#1e40af"
+                ? "var(--chip-verified-text)"
                 : value === "Refund"
-                ? "#9a3412"
-                : "#7c3aed",
+                ? "var(--chip-warning-text)"
+                : "var(--chip-permission-yes-text)",
             fontWeight: 600,
           }}
         />
@@ -150,16 +158,16 @@ const Transactions: React.FC = () => {
           sx={{
             bgcolor:
               value === "Completed"
-                ? "#d1fae5"
+                ? "var(--chip-status-active-bg)"
                 : value === "Pending"
-                ? "#fed7aa"
-                : "#fee2e2",
+                ? "var(--chip-status-pending-bg)"
+                : "var(--chip-status-suspended-bg)",
             color:
               value === "Completed"
-                ? "#065f46"
+                ? "var(--chip-status-active-text)"
                 : value === "Pending"
-                ? "#9a3412"
-                : "#991b1b",
+                ? "var(--chip-status-pending-text)"
+                : "var(--chip-status-suspended-text)",
             fontWeight: 600,
           }}
         />
@@ -193,13 +201,13 @@ const Transactions: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6 animate-fadeIn">
+    <div className="theme-page-bg space-y-6 animate-fadeIn min-h-full p-4">
       <div>
-        <h1 className="text-2xl md:text-4xl font-extrabold text-gray-900 flex items-center gap-2 md:gap-3">
-          <CreditCardIcon className="h-8 w-8 md:h-10 md:w-10 text-purple-600" />
+        <h1 className="text-2xl md:text-4xl font-extrabold text-gray-900 dark:text-[var(--theme-text-primary)] flex items-center gap-2 md:gap-3">
+          <CreditCardIcon className="h-8 w-8 md:h-10 md:w-10 text-purple-600 dark:text-purple-400" />
           {t("pages.transactions.transactions")}
         </h1>
-        <p className="text-sm md:text-base text-gray-500 mt-2">
+        <p className="text-sm md:text-base text-gray-500 dark:text-[var(--theme-text-secondary)] mt-2">
           {t("pages.transactions.subtitle")}
         </p>
       </div>

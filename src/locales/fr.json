@@ -732,6 +732,11 @@
     "kinyarwanda": "Kinyarwanda",
     "french": "Français"
   },
+  "theme": {
+    "label": "Thème",
+    "bright": "Clair",
+    "dark": "Sombre (doux)"
+  },
   "app": {
     "pageNotFound": "Page non trouvée",
     "loading": "Chargement..."

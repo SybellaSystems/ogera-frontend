@@ -491,6 +491,11 @@
     "kinyarwanda": "Kinyarwanda",
     "french": "Français"
   },
+  "theme": {
+    "label": "Itangazo",
+    "bright": "Umweru",
+    "dark": "Umukara (smooth)"
+  },
   "app": {
     "pageNotFound": "Urupapuro Rutabonetse",
     "loading": "Irahasira..."
