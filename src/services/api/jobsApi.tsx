@@ -24,9 +24,12 @@ export interface Job {
   employment_type?: string;
   experience_level?: string;
   status: "Pending" | "Active" | "Inactive" | "Completed";
-  funding_status?: "Unfunded" | "Pending" | "Funded" | null;
+  funding_status?: "Unfunded" | "Pending" | "Funded" | "Paid" | null;
   momo_reference_id?: string | null;
   momo_paid_at?: string | null;
+  disbursement_reference_id?: string | null;
+  paid_at?: string | null;
+  amount_received_by_you?: number | null;
   created_at: string;
   updated_at: string;
   questions?: JobQuestion[];

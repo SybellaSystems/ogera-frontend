@@ -31,7 +31,26 @@ export interface JobPaymentItem {
   funding_status: string;
   momo_reference_id: string | null;
   momo_paid_at: string | null;
+  disbursement_reference_id?: string | null;
+  paid_at?: string | null;
+  /** Amount actually sent to student (90% of employer payment). */
+  amount_paid_to_student?: number | null;
   employer?: { user_id: string; full_name: string; email?: string; mobile_number?: string };
+}
+
+export interface WalletBalanceResponse {
+  success: boolean;
+  data?: { availableBalance: string; currency: string };
+}
+
+export interface ApproveWorkAndPayRequest {
+  jobId: string;
+}
+
+export interface ApproveWorkAndPayResponse {
+  success: boolean;
+  message?: string;
+  data?: { referenceId: string; amount: number };
 }
 
 export const momoApi = apiSlice.injectEndpoints({
@@ -57,6 +76,21 @@ export const momoApi = apiSlice.injectEndpoints({
       }),
       providesTags: ["MoMoPayments"],
     }),
+    getWalletBalance: builder.query<WalletBalanceResponse, void>({
+      query: () => ({
+        url: "/momo/admin/wallet-balance",
+        method: "GET",
+      }),
+      providesTags: ["MoMoPayments"],
+    }),
+    approveWorkAndPay: builder.mutation<ApproveWorkAndPayResponse, ApproveWorkAndPayRequest>({
+      query: (body) => ({
+        url: "/momo/approve-work-and-pay",
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Job", "MoMoPayments"],
+    }),
   }),
 });
 
@@ -65,4 +99,6 @@ export const {
   useLazyGetMoMoStatusQuery,
   useGetMoMoStatusQuery,
   useListJobPaymentsQuery,
+  useGetWalletBalanceQuery,
+  useApproveWorkAndPayMutation,
 } = momoApi;

@@ -13,7 +13,7 @@ import { BookmarkIcon as BookmarkSolidIcon } from "@heroicons/react/24/solid";
 import { useGetJobByIdQuery } from "../../services/api/jobsApi";
 import { useGetUserProfileQuery } from "../../services/api/authApi";
 import { useCheckStudentApplicationQuery } from "../../services/api/jobApplicationApi";
-import { useFundJobMutation, useLazyGetMoMoStatusQuery } from "../../services/api/momoApi";
+import { useFundJobMutation, useLazyGetMoMoStatusQuery, useApproveWorkAndPayMutation } from "../../services/api/momoApi";
 import { apiSlice } from "../../services/api/apiSlice";
 import ApplyJobModal from "../../components/ApplyJobModal";
 import Loader from "../../components/Loader";
@@ -33,8 +33,10 @@ const JobDetails: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [savedJobs, setSavedJobs] = useState<Set<string>>(new Set());
   const [momoError, setMomoError] = useState("");
+  const [payError, setPayError] = useState("");
   const [fundJob, { isLoading: isFunding }] = useFundJobMutation();
   const [getMoMoStatus] = useLazyGetMoMoStatusQuery();
+  const [approveWorkAndPay, { isLoading: isPaying }] = useApproveWorkAndPayMutation();
 
    const job = data?.data;
   const currentUserId = profileData?.data?.user_id;
@@ -142,13 +144,28 @@ const JobDetails: React.FC = () => {
             >
               {job.status}
             </span>
-            {(job.funding_status === "Funded" || job.funding_status === "Pending") && (
+            {(job.funding_status === "Funded" ||
+              job.funding_status === "Pending" ||
+              job.funding_status === "Paid") && (
               <span
                 className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                  job.funding_status === "Funded" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
+                  job.funding_status === "Paid"
+                    ? "bg-emerald-100 text-emerald-700"
+                    : job.funding_status === "Funded"
+                    ? "bg-green-100 text-green-700"
+                    : "bg-amber-100 text-amber-700"
                 }`}
               >
-                {job.funding_status === "Funded" ? "Funded" : "Payment pending"}
+                {job.funding_status === "Paid"
+                  ? "Paid"
+                  : job.funding_status === "Funded"
+                  ? "Funded"
+                  : "Payment pending"}
+              </span>
+            )}
+            {role === "student" && job.funding_status === "Paid" && job.amount_received_by_you != null && (
+              <span className="px-3 py-1 rounded-full text-sm font-semibold bg-emerald-100 text-emerald-700">
+                You received {(job.amount_received_by_you as number).toLocaleString()} for this job
               </span>
             )}
             {role === "student" && (
@@ -241,8 +258,46 @@ const JobDetails: React.FC = () => {
               </div>
             </div>
 
+            {/* Student: amount received for this job (when Paid) */}
+            {role === "student" && job.funding_status === "Paid" && job.amount_received_by_you != null && (
+              <div className="p-4 bg-emerald-50 rounded-lg border border-emerald-200">
+                <p className="text-sm font-medium text-emerald-800">Amount you received from Ogera</p>
+                <p className="text-xl font-bold text-emerald-900 mt-1">
+                  {(job.amount_received_by_you as number).toLocaleString()} (paid to your MoMo)
+                </p>
+              </div>
+            )}
+
             {/* Fund with MoMo (employer only) */}
-            {isEmployerView && fundingStatus !== "Funded" && (
+            {/* Approve work & pay student (employer, job Funded, not yet Paid) */}
+            {isEmployerView && fundingStatus === "Funded" && (
+              <div className="mt-4 p-4 bg-emerald-50 rounded-lg border border-emerald-200">
+                <h3 className="text-lg font-semibold text-emerald-900 mb-2">Approve work & pay student</h3>
+                <p className="text-sm text-emerald-700 mb-3">
+                  When the student has completed the work, click below to pay them the job budget via MoMo. The student must have a mobile number in their profile.
+                </p>
+                {payError && (
+                  <div className="mb-3 p-2 bg-red-100 text-red-700 rounded text-sm">{payError}</div>
+                )}
+                <Button
+                  backgroundcolor="#059669"
+                  text={isPaying ? "Paying…" : "Approve work & pay student"}
+                  onClick={async () => {
+                    setPayError("");
+                    try {
+                      await approveWorkAndPay({ jobId: id! }).unwrap();
+                      refetch();
+                    } catch (e: unknown) {
+                      const err = e as { data?: { message?: string }; message?: string };
+                      setPayError(err?.data?.message || err?.message || "Failed to pay student.");
+                    }
+                  }}
+                  disabled={isPaying}
+                />
+              </div>
+            )}
+
+            {isEmployerView && fundingStatus !== "Funded" && fundingStatus !== "Paid" && (
               <div className="mt-4 p-4 bg-purple-50 rounded-lg border border-purple-200">
                 <h3 className="text-lg font-semibold text-purple-900 mb-2">Fund job with MoMo</h3>
                 <p className="text-sm text-purple-700 mb-3">
@@ -253,7 +308,7 @@ const JobDetails: React.FC = () => {
                 )}
                 {fundingStatus === "Pending" ? (
                   <p className="text-amber-700 font-medium">
-                    Payment request sent. Check your MoMo app to approve. This page will update when payment is confirmed.
+                    Payment request sent. Approve on your MoMo app. This page will update when payment is confirmed (wait up to 2 minutes).
                   </p>
                 ) : (
                   <Button
@@ -277,7 +332,7 @@ const JobDetails: React.FC = () => {
                             } catch {
                               // ignore poll errors
                             }
-                          }, 4000);
+                          }, 20000);
                           setTimeout(() => clearInterval(interval), 120000);
                           refetch();
                         }
