@@ -408,24 +408,8 @@ function App() {
               Component: ViewCourse,
             },
             {
-              path: "courses/analytics",
-              element: <ProtectedRoute allowedRoles={["employer", "superadmin", "superAdmin", "admin", "courseAdmin", "CourseAdmin"]} />,
-              children: [
-                {
-                  index: true,
-                  Component: CourseAnalytics,
-                },
-              ],
-            },
-            {
-              path: "courses/analytics/:courseId",
-              element: <ProtectedRoute allowedRoles={["employer", "superadmin", "superAdmin", "admin", "courseAdmin", "CourseAdmin"]} />,
-              children: [
-                {
-                  index: true,
-                  Component: CourseAnalytics,
-                },
-              ],
+              path: "courses/edit/:id",
+              Component: AddCourse,
             },
             {
               path: "courses/:id",
