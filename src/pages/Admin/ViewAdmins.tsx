@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { UserGroupIcon } from "@heroicons/react/24/outline";
 import CustomTable, {
   type Column,
@@ -38,6 +39,9 @@ interface Admin {
 }
 
 const ViewAdmins: React.FC = () => {
+  const { t, i18n } = useTranslation();
+  const dateLocaleMap: Record<string, string> = { af: "af-ZA", zu: "zu-ZA", sw: "sw-KE", rw: "rw-RW", fr: "fr-FR" };
+  const dateLocale = dateLocaleMap[i18n.language] || "en-US";
   const [page, setPage] = useState(0);
   const [limit, setLimit] = useState(10);
 
@@ -90,13 +94,13 @@ const ViewAdmins: React.FC = () => {
 
     try {
       await deleteAdmin(adminToDelete.id).unwrap();
-      toast.success("Admin deleted successfully");
+      toast.success(t("pages.admin.adminDeletedSuccess"));
       setShowDeleteModal(false);
       setAdminToDelete(null);
       refetch();
     } catch (error: any) {
       toast.error(
-        error?.data?.message || "Failed to delete admin. Please try again."
+        error?.data?.message || t("pages.admin.failedToDeleteAdmin")
       );
     }
   };
@@ -133,12 +137,12 @@ const ViewAdmins: React.FC = () => {
     if (!selectedAdmin) return;
     try {
       await updateAdmin({ id: selectedAdmin.id, data: editForm }).unwrap();
-      toast.success("Admin updated successfully");
+      toast.success(t("pages.admin.adminUpdatedSuccess"));
       handleCloseEditDialog();
       refetch();
     } catch (error: any) {
       toast.error(
-        error?.data?.message || "Failed to update admin. Please try again."
+        error?.data?.message || t("pages.admin.failedToUpdateAdmin")
       );
     }
   };
@@ -151,7 +155,7 @@ const ViewAdmins: React.FC = () => {
     role: "Admin", // All admins show as "Admin"
     roleName: admin.role?.roleName || "-", // Show the actual role name (e.g., "job-admin", "users-admin")
     joinDate: admin.created_at
-      ? new Date(admin.created_at).toLocaleDateString("en-US", {
+      ? new Date(admin.created_at).toLocaleDateString(dateLocale, {
           year: "numeric",
           month: "short",
           day: "2-digit",
@@ -177,14 +181,14 @@ const ViewAdmins: React.FC = () => {
       align: "center",
       sortable: false,
       format: (value) => (
-        <Typography sx={{ fontWeight: 500, color: "#6b7280" }}>
+        <Typography sx={{ fontWeight: 500, color: "var(--theme-text-secondary, #6b7280)" }}>
           {value}
         </Typography>
       ),
     },
     {
       id: "name",
-      label: "Admin",
+      label: t("pages.admin.admin"),
       minWidth: 200,
       format: (value, row) => (
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
@@ -199,7 +203,7 @@ const ViewAdmins: React.FC = () => {
           >
             {row.name.charAt(0)}
           </Avatar>
-          <Typography sx={{ fontWeight: 500, color: "#111827" }}>
+          <Typography sx={{ fontWeight: 500, color: "var(--theme-text-primary, #111827)" }}>
             {value}
           </Typography>
         </Box>
@@ -207,20 +211,20 @@ const ViewAdmins: React.FC = () => {
     },
     {
       id: "email",
-      label: "Email",
+      label: t("pages.admin.email"),
       minWidth: 200,
     },
     {
       id: "role",
-      label: "Role",
+      label: t("pages.admin.role"),
       minWidth: 120,
       format: (value) => (
         <Chip
           label={value}
           size="small"
           sx={{
-            bgcolor: "#dbeafe",
-            color: "#1e40af",
+            bgcolor: "var(--chip-role-admin-bg)",
+            color: "var(--chip-role-admin-text)",
             fontWeight: 600,
           }}
         />
@@ -228,34 +232,34 @@ const ViewAdmins: React.FC = () => {
     },
     {
       id: "roleName",
-      label: "Role Name",
+      label: t("pages.admin.roleName"),
       minWidth: 150,
       format: (value) => (
-        <Typography sx={{ color: "#111827", fontWeight: 500 }}>
+        <Typography sx={{ color: "var(--theme-text-primary, #111827)", fontWeight: 500 }}>
           {value || "-"}
         </Typography>
       ),
     },
     {
       id: "mobile_number",
-      label: "Mobile",
+      label: t("pages.admin.mobile"),
       minWidth: 120,
       format: (value) => (
-        <Typography sx={{ color: "#6b7280" }}>
+        <Typography sx={{ color: "var(--theme-text-secondary, #6b7280)" }}>
           {value || "-"}
         </Typography>
       ),
     },
     {
       id: "joinDate",
-      label: "Created Date",
+      label: t("pages.admin.createdDate"),
       minWidth: 120,
     },
   ];
 
   const actions: TableAction<Admin>[] = [
     {
-      label: "View",
+      label: t("pages.admin.view"),
       icon: <ViewIcon fontSize="small" />,
       onClick: (row) => {
         handleView(row);
@@ -263,7 +267,7 @@ const ViewAdmins: React.FC = () => {
       color: "primary",
     },
     {
-      label: "Edit",
+      label: t("pages.admin.edit"),
       icon: <EditIcon fontSize="small" />,
       onClick: (row) => {
         handleEdit(row);
@@ -271,7 +275,7 @@ const ViewAdmins: React.FC = () => {
       color: "primary",
     },
     {
-      label: "Delete",
+      label: t("pages.admin.delete"),
       icon: <DeleteIcon fontSize="small" />,
       onClick: (row) => handleDeleteClick(row.id, row.name),
       color: "error",
@@ -285,10 +289,10 @@ const ViewAdmins: React.FC = () => {
         <div>
           <h1 className="text-2xl md:text-4xl font-extrabold text-gray-900 flex items-center gap-2 md:gap-3">
             <UserGroupIcon className="h-8 w-8 md:h-10 md:w-10 text-purple-600" />
-            Admins
+            {t("pages.admin.viewTitle")}
           </h1>
           <p className="text-sm md:text-base text-gray-500 mt-2">
-            Manage all admin accounts
+            {t("pages.admin.viewSubtitle")}
           </p>
         </div>
       </div>
@@ -296,20 +300,20 @@ const ViewAdmins: React.FC = () => {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
         <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
-          <p className="text-sm text-gray-500 font-medium">Total Admins</p>
+          <p className="text-sm text-gray-500 font-medium">{t("pages.admin.totalAdmins")}</p>
           <p className="text-3xl font-bold text-gray-900 mt-2">
             {isLoading ? "…" : totalCount}
           </p>
-          <p className="text-sm text-green-600 mt-2">Live data</p>
+          <p className="text-sm text-green-600 mt-2">{t("pages.admin.liveData")}</p>
         </div>
         <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
-          <p className="text-sm text-gray-500 font-medium">Admins</p>
+          <p className="text-sm text-gray-500 font-medium">{t("pages.admin.admins")}</p>
           <p className="text-3xl font-bold text-gray-900 mt-2">
             {isLoading
               ? "…"
               : admins.filter((a) => a.role === "Admin").length}
           </p>
-          <p className="text-sm text-blue-600 mt-2">Full admin access</p>
+          <p className="text-sm text-blue-600 mt-2">{t("pages.admin.fullAdminAccess")}</p>
         </div>
       </div>
 
@@ -321,12 +325,12 @@ const ViewAdmins: React.FC = () => {
         loading={isLoading || isDeleting}
         emptyMessage={
           isError
-            ? "Failed to load admins. Please try again."
-            : "No admins found"
+            ? t("pages.admin.failedToLoadAdmins")
+            : t("pages.admin.noAdminsFound")
         }
         selectable={true}
         searchable={true}
-        searchPlaceholder="Search admins by name, email..."
+        searchPlaceholder={t("pages.admin.searchPlaceholder")}
         rowsPerPageOptions={[5, 10, 25, 50]}
         defaultRowsPerPage={limit}
         serverSidePagination={true}
@@ -342,9 +346,9 @@ const ViewAdmins: React.FC = () => {
       {/* View Admin Modal */}
       {viewDialogOpen && selectedAdmin && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-2xl w-full shadow-2xl border-2 border-gray-200 max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-gray-900">Admin Details</h2>
+          <div className="bg-white rounded-xl max-w-2xl w-full shadow-2xl border-2 border-gray-200 max-h-[90vh] overflow-y-auto theme-modal">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between theme-modal-header">
+              <h2 className="text-2xl font-bold text-gray-900">{t("pages.admin.adminDetails")}</h2>
               <button
                 onClick={handleCloseViewDialog}
                 className="text-gray-400 hover:text-gray-600 transition"
@@ -356,7 +360,7 @@ const ViewAdmins: React.FC = () => {
               {isLoadingAdminDetails || !adminDetails?.data ? (
                 <div className="text-center py-8">
                   <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-purple-600 border-r-transparent"></div>
-                  <p className="mt-2 text-gray-600">Loading...</p>
+                  <p className="mt-2 text-gray-600">{t("pages.admin.loading")}</p>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -383,18 +387,18 @@ const ViewAdmins: React.FC = () => {
                   </div>
                   <div className="space-y-3">
                     <div>
-                      <p className="text-xs text-gray-500 mb-1">Email</p>
+                      <p className="text-xs text-gray-500 mb-1">{t("pages.admin.email")}</p>
                       <p className="text-sm text-gray-900">{adminDetails.data.email}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500 mb-1">Mobile</p>
+                      <p className="text-xs text-gray-500 mb-1">{t("pages.admin.mobile")}</p>
                       <p className="text-sm text-gray-900">{adminDetails.data.mobile_number || "-"}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500 mb-1">Created At</p>
+                      <p className="text-xs text-gray-500 mb-1">{t("pages.admin.createdAt")}</p>
                       <p className="text-sm text-gray-900">
                         {adminDetails.data.created_at
-                          ? new Date(adminDetails.data.created_at).toLocaleString()
+                          ? new Date(adminDetails.data.created_at).toLocaleString(dateLocale === "af-ZA" ? "af-ZA" : "en-US")
                           : "-"}
                       </p>
                     </div>
@@ -404,7 +408,7 @@ const ViewAdmins: React.FC = () => {
                       onClick={handleCloseViewDialog}
                       className="w-full px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition font-medium"
                     >
-                      Close
+                      {t("pages.admin.close")}
                     </button>
                   </div>
                 </div>
@@ -417,9 +421,9 @@ const ViewAdmins: React.FC = () => {
       {/* Edit Admin Modal */}
       {editDialogOpen && selectedAdmin && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-2xl w-full shadow-2xl border-2 border-gray-200 max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-gray-900">Edit Admin</h2>
+          <div className="bg-white rounded-xl max-w-2xl w-full shadow-2xl border-2 border-gray-200 max-h-[90vh] overflow-y-auto theme-modal">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between theme-modal-header">
+              <h2 className="text-2xl font-bold text-gray-900">{t("pages.admin.editAdmin")}</h2>
               <button
                 onClick={handleCloseEditDialog}
                 className="text-gray-400 hover:text-gray-600 transition"
@@ -431,13 +435,13 @@ const ViewAdmins: React.FC = () => {
               {isLoadingAdminDetails || !adminDetails?.data ? (
                 <div className="text-center py-8">
                   <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-purple-600 border-r-transparent"></div>
-                  <p className="mt-2 text-gray-600">Loading...</p>
+                  <p className="mt-2 text-gray-600">{t("pages.admin.loading")}</p>
                 </div>
               ) : (
                 <>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Full Name *
+                      {t("pages.admin.fullNameLabel")}
                     </label>
                     <input
                       type="text"
@@ -450,12 +454,12 @@ const ViewAdmins: React.FC = () => {
                         }))
                       }
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder="Enter full name"
+                      placeholder={t("pages.admin.fullNamePlaceholder")}
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Email *
+                      {t("pages.admin.emailAddressLabel")}
                     </label>
                     <input
                       type="email"
@@ -468,12 +472,12 @@ const ViewAdmins: React.FC = () => {
                         }))
                       }
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder="Enter email"
+                      placeholder={t("pages.admin.emailPlaceholder")}
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Mobile Number
+                      {t("pages.admin.mobileNumberOptional")}
                     </label>
                     <input
                       type="tel"
@@ -485,7 +489,7 @@ const ViewAdmins: React.FC = () => {
                         }))
                       }
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder="Enter mobile number"
+                      placeholder={t("pages.admin.mobileNumberPlaceholder")}
                     />
                   </div>
                   <div className="flex gap-3 pt-4">
@@ -494,14 +498,14 @@ const ViewAdmins: React.FC = () => {
                       onClick={handleCloseEditDialog}
                       className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition font-medium"
                     >
-                      Cancel
+                      {t("pages.admin.cancel")}
                     </button>
                     <button
                       type="submit"
                       disabled={isUpdating || isLoadingAdminDetails}
                       className="flex-1 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition font-medium disabled:opacity-50"
                     >
-                      {isUpdating ? "Saving..." : "Save Changes"}
+                      {isUpdating ? t("pages.admin.saving") : t("pages.admin.saveChanges")}
                     </button>
                   </div>
                 </>
@@ -514,18 +518,18 @@ const ViewAdmins: React.FC = () => {
       {/* Delete Confirmation Modal */}
       {showDeleteModal && adminToDelete && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-md w-full shadow-2xl border-2 border-red-200">
+          <div className="bg-white rounded-xl max-w-md w-full shadow-2xl border-2 border-red-200 theme-modal">
             <div className="p-6">
               <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full mb-4">
                 <TrashIcon className="h-6 w-6 text-red-600" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 text-center mb-2">
-                Delete Admin?
+                {t("pages.admin.deleteAdminTitle")}
               </h3>
               <p className="text-gray-600 text-center mb-6">
-                Are you sure you want to delete <span className="font-semibold text-gray-900">"{adminToDelete.name}"</span>? 
+                {t("pages.admin.deleteAdminConfirm", { name: adminToDelete.name })}
                 <br />
-                <span className="text-red-600 font-medium">This action cannot be undone.</span>
+                <span className="text-red-600 font-medium">{t("pages.admin.actionCannotBeUndone")}</span>
               </p>
               <div className="flex gap-3">
                 <button
@@ -533,7 +537,7 @@ const ViewAdmins: React.FC = () => {
                   onClick={handleDeleteCancel}
                   className="flex-1 px-4 py-2.5 border-2 border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition font-medium"
                 >
-                  Cancel
+                  {t("pages.admin.cancel")}
                 </button>
                 <button
                   type="button"
@@ -544,12 +548,12 @@ const ViewAdmins: React.FC = () => {
                   {isDeleting ? (
                     <>
                       <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      Deleting...
+                      {t("pages.admin.deleting")}
                     </>
                   ) : (
                     <>
                       <TrashIcon className="h-5 w-5" />
-                      Delete
+                      {t("pages.admin.delete")}
                     </>
                   )}
                 </button>

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { CheckCircleIcon } from "@heroicons/react/24/outline";
 import CustomTable, {
   type Column,
@@ -12,7 +13,8 @@ import { useNavigate } from "react-router-dom";
 import Loader from "../../components/Loader";
 
 const Resolved: React.FC = () => {
-   const [disputes, setDisputes] = useState<Dispute[]>([]);
+  const { t } = useTranslation();
+  const [disputes, setDisputes] = useState<Dispute[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -40,15 +42,15 @@ const Resolved: React.FC = () => {
   const columns: Column<Dispute>[] = [
     {
       id: "type",
-      label: "Type",
+      label: t("disputes.type"),
       minWidth: 130,
       format: (value) => (
         <Chip
           label={value}
           size="small"
           sx={{
-            bgcolor: "#dbeafe",
-            color: "#1e40af",
+            bgcolor: "var(--chip-permission-yes-bg)",
+            color: "var(--chip-permission-yes-text)",
             fontWeight: 600,
           }}
         />
@@ -56,43 +58,47 @@ const Resolved: React.FC = () => {
     },
     {
       id: "title",
-      label: "Description",
+      label: t("disputes.description"),
       minWidth: 250,
       format: (value) => (
-        <Typography sx={{ fontSize: "0.875rem", color: "#374151", fontWeight: 600 }}>
+        <Typography
+          sx={{
+            fontSize: "0.875rem",
+            color: "var(--theme-text-primary, #374151)",
+            fontWeight: 600,
+          }}
+        >
           {value}
         </Typography>
       ),
     },
     {
       id: "student",
-      label: "Student",
+      label: t("disputes.student"),
       minWidth: 150,
         format: (value: any, row: any) => {
-        // If dispute was created by student, show name, otherwise show "-"
-        return row.reported_by === 'student' ? (value?.full_name || "N/A") : "-";
+        return row.reported_by === 'student' ? (value?.full_name || t("disputes.na")) : "-";
       },
     },
     {
       id: "employer",
-      label: "Employer",
+      label: t("disputes.employer"),
       minWidth: 150,
       format: (value: any, row: any) => {
-        // If dispute was created by employer, show name, otherwise show "-"
-        return row.reported_by === 'employer' ? (value?.full_name || "N/A") : "-";
+        return row.reported_by === 'employer' ? (value?.full_name || t("disputes.na")) : "-";
       },
     },
     {
       id: "resolution",
-      label: "Outcome",
+      label: t("disputes.outcome"),
       minWidth: 120,
       format: (value) => (
         <Chip
-          label={value || "Pending"}
+          label={value || t("disputes.pending")}
           size="small"
           sx={{
-            bgcolor: "#d1fae5",
-            color: "#065f46",
+            bgcolor: "var(--chip-verified-bg)",
+            color: "var(--chip-verified-text)",
             fontWeight: 600,
           }}
         />
@@ -100,15 +106,15 @@ const Resolved: React.FC = () => {
     },
     {
       id: "resolved_at",
-      label: "Resolved Date",
+      label: t("disputes.resolvedDate"),
       minWidth: 130,
-            format: (value) => value ? new Date(value).toLocaleDateString() : "N/A",
+            format: (value) => value ? new Date(value).toLocaleDateString() : t("disputes.na"),
     },
   ];
 
   const actions: TableAction<Dispute>[] = [
     {
-      label: "View Details",
+      label: t("disputes.viewDetails"),
       icon: <ViewIcon fontSize="small" />,
       onClick: (row) => {
                 navigate(`/dashboard/disputes/${row.dispute_id}`);
@@ -135,16 +141,16 @@ const Resolved: React.FC = () => {
       <div>
         <h1 className="text-2xl md:text-4xl font-extrabold text-gray-900 flex items-center gap-2 md:gap-3">
           <CheckCircleIcon className="h-8 w-8 md:h-10 md:w-10 text-green-600" />
-          Resolved Disputes
+          {t("disputes.resolvedTitle")}
         </h1>
         <p className="text-sm md:text-base text-gray-500 mt-2">
-          Successfully resolved disputes archive
+          {t("disputes.resolvedSubtitle")}
         </p>
       </div>
 
       <div className="bg-green-50 border-l-4 border-green-500 p-4 rounded-lg">
         <p className="text-green-800 font-medium text-sm md:text-base">
-                    ✓ {resolvedThisMonth} disputes resolved this month
+          ✓ {t("disputes.resolvedCountMessage", { count: resolvedThisMonth })}
         </p>
       </div>
 
@@ -153,7 +159,7 @@ const Resolved: React.FC = () => {
         data={disputes}
         actions={actions}
         searchable={true}
-        searchPlaceholder="Search resolved disputes..."
+        searchPlaceholder={t("disputes.searchResolvedPlaceholder")}
         rowsPerPageOptions={[5, 10, 25]}
         defaultRowsPerPage={10}
       />

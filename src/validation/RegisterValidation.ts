@@ -25,7 +25,7 @@ export const registerValidationSchema = Yup.object({
   mobile_number: Yup.string()
     .required("Phone number is required")
     .test("mobile-digits", function (value) {
-      const { parent, createError } = this as any;
+      const { parent } = this as any;
       const countryCode = parent?.countryCode;
 
       if (!value) return this.createError({ message: "Phone number is required" });

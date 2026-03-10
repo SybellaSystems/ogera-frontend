@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { TagIcon, PlusIcon, PencilIcon, TrashIcon, ChevronLeftIcon } from "@heroicons/react/24/outline";
 import { useSelector } from "react-redux";
 import { useGetAllCategoriesQuery, useCreateCategoryMutation, useUpdateCategoryMutation, useDeleteCategoryMutation } from "../../services/api/jobCategoriesApi";
@@ -13,6 +14,7 @@ interface CategoryFormData {
 }
 
 const JobCategories: React.FC = () => {
+  const { t } = useTranslation();
   const role = useSelector((state: any) => state.auth.role);
   const isSuperAdmin = role === "superadmin";
 
@@ -87,7 +89,7 @@ const JobCategories: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name.trim()) {
-      toast.error("Category name is required");
+      toast.error(t("pages.jobs.categoryNameRequiredToast"));
       return;
     }
 
@@ -97,15 +99,15 @@ const JobCategories: React.FC = () => {
           id: editingCategory.category_id,
           data: { ...formData, name: formData.name.trim(), description: formData.description.trim() },
         }).unwrap();
-        toast.success("Category updated successfully!");
+        toast.success(t("pages.jobs.categoryUpdatedSuccess"));
       } else {
         await createCategory({ ...formData, name: formData.name.trim(), description: formData.description.trim() }).unwrap();
-        toast.success("Category created successfully!");
+        toast.success(t("pages.jobs.categoryCreatedSuccess"));
       }
       handleCloseForm();
       refetch();
     } catch (error: any) {
-      toast.error(error?.data?.message || error?.message || "Failed to save category");
+      toast.error(error?.data?.message || error?.message || t("pages.jobs.failedToSaveCategory"));
     }
   };
 
@@ -118,12 +120,12 @@ const JobCategories: React.FC = () => {
     if (!categoryToDelete) return;
     try {
       await deleteCategory(categoryToDelete.id).unwrap();
-      toast.success("Category deleted successfully!");
+      toast.success(t("pages.jobs.categoryDeletedSuccess"));
       setShowDeleteModal(false);
       setCategoryToDelete(null);
       refetch();
     } catch (error: any) {
-      toast.error(error?.data?.message || error?.message || "Failed to delete category");
+      toast.error(error?.data?.message || error?.message || t("pages.jobs.failedToDeleteCategory"));
     }
   };
 
@@ -139,7 +141,7 @@ const JobCategories: React.FC = () => {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-purple-600 border-r-transparent"></div>
-          <p className="mt-4 text-gray-600 font-medium">Loading categories...</p>
+          <p className="mt-4 text-gray-600 font-medium">{t("pages.jobs.loadingCategories")}</p>
         </div>
       </div>
     );
@@ -152,10 +154,10 @@ const JobCategories: React.FC = () => {
         <div>
           <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 flex items-center gap-3">
             <TagIcon className="h-8 w-10 md:h-10 md:w-10 text-purple-600" />
-            {showForm ? (editingCategory ? "Edit Category" : "Add New Category") : "Job Categories"}
+            {showForm ? (editingCategory ? t("pages.jobs.editCategory") : t("pages.jobs.addNewCategory")) : t("pages.jobs.jobCategoriesTitle")}
           </h1>
           <p className="text-gray-500 mt-1">
-            {showForm ? "Configure the category details below" : "Organize jobs by category and industry"}
+            {showForm ? t("pages.jobs.configureCategoryDetails") : t("pages.jobs.organizeByCategory")}
           </p>
         </div>
         
@@ -166,7 +168,7 @@ const JobCategories: React.FC = () => {
              className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-md font-medium transition hover:bg-gray-50 flex items-center gap-2 w-full sm:w-auto justify-center text-sm"
            >
              <ChevronLeftIcon className="h-4 w-4" />
-             Back to List
+             {t("pages.jobs.backToList")}
            </button>
           ) : (
             isSuperAdmin && (
@@ -175,7 +177,7 @@ const JobCategories: React.FC = () => {
                 className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md font-medium transition shadow-sm flex items-center gap-2 w-full sm:w-auto justify-center text-sm cursor-pointer"
               >
                 <PlusIcon className="h-4 w-4" />
-                Add Category
+                {t("pages.jobs.addCategory")}
               </button>
             )
           )}
@@ -191,29 +193,29 @@ const JobCategories: React.FC = () => {
               {/* Left Column: Basics */}
               <div className="space-y-6">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Category Name *</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">{t("pages.jobs.categoryNameRequired")}</label>
                   <input
                     type="text"
                     required
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all outline-none"
-                    placeholder="e.g. Software Engineering"
+                    placeholder={t("pages.jobs.categoryNamePlaceholder")}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Description</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">{t("pages.jobs.description")}</label>
                   <textarea
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all outline-none h-32 resize-none"
-                    placeholder="Describe the roles within this category..."
+                    placeholder={t("pages.jobs.descriptionPlaceholder")}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Manual Job Count</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">{t("pages.jobs.manualJobCount")}</label>
                   <input
                     type="number"
                     min="0"
@@ -227,7 +229,7 @@ const JobCategories: React.FC = () => {
               {/* Right Column: Visuals */}
               <div className="space-y-6">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-3">Select Visual Icon</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">{t("pages.jobs.selectVisualIcon")}</label>
                   <div className="grid grid-cols-4 sm:grid-cols-6 gap-3 bg-gray-50 p-4 rounded-xl border border-gray-200">
                     {iconOptions.map((icon) => (
                       <button
@@ -247,7 +249,7 @@ const JobCategories: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Theme Color</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">{t("pages.jobs.themeColor")}</label>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {colorOptions.map((option) => (
                       <button
@@ -275,14 +277,14 @@ const JobCategories: React.FC = () => {
                 disabled={isCreating || isUpdating}
                 className="flex-1 sm:flex-none px-7 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-bold transition shadow-lg disabled:opacity-50 cursor-pointer"
               >
-                {isCreating || isUpdating ? "Saving..." : (editingCategory ? "Update Category" : "Create Category")}
+                {isCreating || isUpdating ? t("pages.jobs.saving") : (editingCategory ? t("pages.jobs.updateCategory") : t("pages.jobs.createCategory"))}
               </button>
               <button
                 type="button"
                 onClick={handleCloseForm}
                 className="flex-1 sm:flex-none px-7 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-semibold transition cursor-pointer"
               >
-                Cancel
+                {t("pages.jobs.cancel")}
               </button>
             </div>
           </form>
@@ -293,17 +295,17 @@ const JobCategories: React.FC = () => {
           <div className="bg-purple-50 rounded-xl p-2 md:p-4 border border-purple-200 shadow-sm">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
               <div>
-                <p className="text-sm text-purple-700 font-medium">Total Categories</p>
+                <p className="text-sm text-purple-700 font-medium">{t("pages.jobs.totalCategories")}</p>
                 <p className="text-1xl md:text-2xl font-bold text-purple-900 mt-1">{categories.length}</p>
               </div>
               <div>
-                <p className="text-sm text-purple-700 font-medium">Total Jobs</p>
+                <p className="text-sm text-purple-700 font-medium">{t("pages.jobs.totalJobs")}</p>
                 <p className="text-1xl md:text-2xl font-bold text-purple-900 mt-1">{totalJobs}</p>
               </div>
               <div>
-                <p className="text-sm text-purple-700 font-medium">Most Popular</p>
+                <p className="text-sm text-purple-700 font-medium">{t("pages.jobs.mostPopular")}</p>
                 <p className="text-1xl md:text-2xl font-bold text-purple-900 mt-1">
-                  {mostPopularCategory?.name || "N/A"}
+                  {mostPopularCategory?.name || t("common.na")}
                 </p>
               </div>
             </div>
@@ -312,15 +314,15 @@ const JobCategories: React.FC = () => {
           {categories.length === 0 ? (
             <div className="bg-white rounded-xl p-12 text-center border-2 border-dashed border-gray-300">
               <TagIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-700 mb-2">No Categories Yet</h3>
-              <p className="text-gray-500 mb-6">Get started by creating your first job category</p>
+              <h3 className="text-xl font-semibold text-gray-700 mb-2">{t("pages.jobs.noCategoriesYet")}</h3>
+              <p className="text-gray-500 mb-6">{t("pages.jobs.getStartedCategory")}</p>
               {isSuperAdmin && (
                 <button
                   onClick={() => handleOpenForm()}
                   className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2.5 rounded-lg font-semibold transition shadow-md inline-flex items-center gap-2"
                 >
                   <PlusIcon className="h-5 w-5" />
-                  Create First Category
+                  {t("pages.jobs.createFirstCategory")}
                 </button>
               )}
             </div>
@@ -336,14 +338,14 @@ const JobCategories: React.FC = () => {
                       <button
                         onClick={() => handleOpenForm(category)}
                         className="p-1.5 bg-white/90 hover:bg-white rounded-md text-blue-600 shadow-sm transition cursor-pointer"
-                        title="Edit"
+                        title={t("pages.users.edit")}
                       >
                         <PencilIcon className="h-4 w-4" />
                       </button>
                       <button
                         onClick={() => handleDeleteClick(category.category_id, category.name)}
                         className="p-1.5 bg-white/90 hover:bg-white rounded-md text-red-600 shadow-sm transition cursor-pointer"
-                        title="Delete"
+                        title={t("pages.users.delete")}
                       >
                         <TrashIcon className="h-4 w-4" />
                       </button>
@@ -355,7 +357,7 @@ const JobCategories: React.FC = () => {
                     <p className="text-sm opacity-80 mb-4 line-clamp-2 leading-relaxed">{category.description}</p>
                   )}
                   <div className="flex items-center justify-between mt-auto">
-                    <p className="text-2xl font-black">{category.jobCount || category.job_count || 0} <span className="text-xs font-normal uppercase tracking-wider">Jobs</span></p>
+                    <p className="text-2xl font-black">{category.jobCount || category.job_count || 0} <span className="text-xs font-normal uppercase tracking-wider">{t("pages.jobs.jobs")}</span></p>
                     <button className="p-2 bg-white/50 hover:bg-white rounded-full transition border border-transparent hover:border-current">
                        <PlusIcon className="h-4 w-4" />
                     </button>
@@ -375,23 +377,23 @@ const JobCategories: React.FC = () => {
               <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
                 <TrashIcon className="h-8 w-8" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Delete Category?</h3>
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">{t("pages.jobs.deleteCategoryTitle")}</h3>
               <p className="text-gray-500 mb-8 leading-relaxed">
-                Are you sure you want to delete <span className="font-bold text-gray-900">"{categoryToDelete.name}"</span>? This will permanently remove the category.
+                {t("pages.jobs.deleteCategoryConfirm", { name: categoryToDelete.name })}
               </p>
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowDeleteModal(false)}
                   className="flex-1 py-3 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-semibold transition"
                 >
-                  No, Keep it
+                  {t("pages.jobs.noKeepIt")}
                 </button>
                 <button
                   onClick={handleDeleteConfirm}
                   disabled={isDeleting}
                   className="flex-1 py-3 px-4 bg-red-600 hover:bg-red-700 text-white rounded-xl font-semibold transition flex items-center justify-center gap-2"
                 >
-                  {isDeleting ? "Deleting..." : "Yes, Delete"}
+                  {isDeleting ? t("pages.jobs.deleting") : t("pages.jobs.yesDelete")}
                 </button>
               </div>
             </div>

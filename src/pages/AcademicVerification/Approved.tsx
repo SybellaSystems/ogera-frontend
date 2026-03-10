@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { CheckCircleIcon, EyeIcon, CalendarIcon, UserIcon, ClockIcon } from "@heroicons/react/24/outline";
 import type { AcademicVerification } from "../../services/api/academicVerificationApi";
 import { getAcademicVerificationsByStatus } from "../../services/api/academicVerificationApi";
 import api from "../../services/api/axiosInstance";
 
 const Approved: React.FC = () => {
+  const { t } = useTranslation();
   const [approved, setApproved] = useState<AcademicVerification[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -27,7 +29,7 @@ const Approved: React.FC = () => {
         const msg =
           err?.response?.data?.message ||
           err?.message ||
-          "Failed to load approved verifications";
+          t("pages.academic.failedToLoadApproved");
         setError(msg);
       } finally {
         setLoading(false);
@@ -42,7 +44,7 @@ const Approved: React.FC = () => {
       setError(null);
 
       if (item.storage_type === 's3') {
-        const res = await api.get(`/academic-verifications/${item.id}/document`);
+        const res = await api.get<{ url?: string }>(`/academic-verifications/${item.id}/document`);
         const url = res?.data?.url;
         if (url) {
           setViewerUrl(url);
@@ -50,7 +52,7 @@ const Approved: React.FC = () => {
           setViewerContentType(null);
           setShowViewer(true);
         } else {
-          setError('Could not obtain document URL');
+          setError(t("pages.academic.couldNotObtainUrl"));
         }
         return;
       }
@@ -67,7 +69,7 @@ const Approved: React.FC = () => {
       setViewerContentType(blob.type || null);
       setShowViewer(true);
     } catch (err: any) {
-      const msg = err?.response?.data?.message || err?.message || 'Failed to open document';
+      const msg = err?.response?.data?.message || err?.message || t("pages.academic.failedToOpenDocument");
       setError(msg);
     }
   };
@@ -110,12 +112,12 @@ const Approved: React.FC = () => {
         window.URL.revokeObjectURL(url);
       }
     } catch (e: any) {
-      setError(e?.message || 'Download failed');
+      setError(e?.message || t("pages.academic.downloadFailed"));
     }
   };
 
   return (
-    <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-4">
+    <div className="academic-page theme-page-bg p-4 min-h-full">
       <div className="max-w-7xl mx-auto space-y-4">
         {/* Header */}
         <div className="text-center space-y-2">
@@ -123,16 +125,16 @@ const Approved: React.FC = () => {
             <CheckCircleIcon className="h-6 w-6 text-white" />
           </div>
           <h1 className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-            Approved Verifications
+            {t("pages.academic.approvedVerifications")}
           </h1>
-          <p className="text-gray-600 text-sm">Successfully verified academic credentials</p>
+          <p className="text-gray-600 text-sm">{t("pages.academic.approvedSubtitle")}</p>
         </div>
 
         {/* Stats Card */}
         <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-4 max-w-xs mx-auto">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-green-600 font-bold text-xs uppercase">Approved</p>
+              <p className="text-green-600 font-bold text-xs uppercase">{t("pages.academic.approved")}</p>
               <p className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
                 {approved.length}
               </p>
@@ -158,13 +160,13 @@ const Approved: React.FC = () => {
           <div className="flex items-center justify-center py-8">
             <div className="flex items-center gap-2">
               <div className="w-5 h-5 border-2 border-green-200 border-t-green-600 rounded-full animate-spin"></div>
-              <p className="text-gray-600 text-sm">Loading approved verifications...</p>
+              <p className="text-gray-600 text-sm">{t("pages.academic.loadingApproved")}</p>
             </div>
           </div>
         ) : approved.length === 0 ? (
           <div className="text-center py-8">
             <CheckCircleIcon className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-            <p className="text-gray-500">No approved verifications yet</p>
+            <p className="text-gray-500">{t("pages.academic.noApprovedYet")}</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -199,7 +201,7 @@ const Approved: React.FC = () => {
                       <div className="flex items-center gap-2">
                         <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1">
                           <CheckCircleIcon className="w-3 h-3" />
-                          Approved
+                          {t("pages.academic.approved")}
                         </span>
                       </div>
                     </div>
@@ -209,7 +211,7 @@ const Approved: React.FC = () => {
                       <div className="bg-gray-50 rounded-lg p-2">
                         <div className="flex items-center gap-1 text-gray-600 mb-1">
                           <ClockIcon className="w-3 h-3" />
-                          <span className="font-medium">Reviewed By</span>
+                          <span className="font-medium">{t("pages.academic.reviewedBy")}</span>
                         </div>
                         <p className="text-gray-800">{item.reviewer?.full_name || "N/A"}</p>
                       </div>
@@ -218,7 +220,7 @@ const Approved: React.FC = () => {
                           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                           </svg>
-                          <span className="font-medium">Storage Type</span>
+                          <span className="font-medium">{t("pages.academic.storageType")}</span>
                         </div>
                         <p className="text-gray-800 uppercase">{item.storage_type}</p>
                       </div>
@@ -231,7 +233,7 @@ const Approved: React.FC = () => {
                       onClick={() => handleViewDocument(item)}
                       className="flex-1 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-all text-sm flex items-center justify-center gap-1">
                       <EyeIcon className="w-4 h-4" />
-                      <span>View</span>
+                      <span>{t("pages.academic.view")}</span>
                     </button>
                   </div>
                 </div>
@@ -242,12 +244,12 @@ const Approved: React.FC = () => {
         {showViewer && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 backdrop-blur-sm">
             <div className="fixed inset-0 bg-black/40" onClick={closeViewer} />
-            <div className="relative bg-white rounded-lg shadow-lg max-w-4xl w-full max-h-[85vh] sm:max-h-[90vh] z-60 flex flex-col overflow-hidden">
+            <div className="relative bg-white rounded-lg shadow-lg max-w-4xl w-full max-h-[85vh] sm:max-h-[90vh] z-60 flex flex-col overflow-hidden theme-modal border border-gray-200">
               <div className="flex items-center justify-between p-3 sm:p-4 border-b flex-shrink-0">
-                <h3 className="text-lg font-bold">Document Viewer</h3>
+                <h3 className="text-lg font-bold">{t("pages.academic.documentViewer")}</h3>
                 <div className="flex items-center gap-2">
-                  <button className="px-3 py-1 text-sm bg-green-500 rounded" onClick={downloadViewer}>Download</button>
-                  <button className="px-3 py-1 text-sm bg-red-400 rounded" onClick={closeViewer}>Close</button>
+                  <button className="px-3 py-1 text-sm bg-green-500 rounded" onClick={downloadViewer}>{t("pages.academic.download")}</button>
+                  <button className="px-3 py-1 text-sm bg-red-400 rounded" onClick={closeViewer}>{t("pages.academic.close")}</button>
                 </div>
               </div>
               <div className="flex-1 overflow-y-auto p-2 sm:p-4">
@@ -260,7 +262,7 @@ const Approved: React.FC = () => {
                     <iframe src={viewerUrl} className="w-full h-full border-0 min-h-[500px] sm:min-h-[600px]" title="Document" />
                   )
                 ) : (
-                  <div className="text-center p-8">No document to display</div>
+                  <div className="text-center p-8">{t("pages.academic.noDocumentToDisplay")}</div>
                 )}
               </div>
             </div>

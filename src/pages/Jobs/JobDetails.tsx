@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
+import { useTranslation } from "react-i18next";
 import {
   BriefcaseIcon,
   MapPinIcon,
@@ -21,6 +23,7 @@ import { formatRelativeTime } from "../../utils/timeUtils";
 import Button from "../../components/button";
 
 const JobDetails: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { id } = useParams<{ id: string }>();
@@ -84,13 +87,13 @@ const JobDetails: React.FC = () => {
       <div className="space-y-6 animate-fadeIn">
         <div className="bg-red-50 border border-red-200 rounded-xl p-6">
           <p className="text-red-800 font-medium">
-            Job not found or failed to load. Please try again later.
+            {t("pages.jobs.jobNotFound")}
           </p>
           <button
             onClick={() => navigate("/dashboard/jobs/all")}
             className="mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition"
           >
-            Back to All Jobs
+            {t("pages.jobs.backToAllJobs")}
           </button>
         </div>
       </div>
@@ -103,20 +106,20 @@ const JobDetails: React.FC = () => {
       <div className="space-y-6 animate-fadeIn">
         <div className="bg-red-50 border border-red-200 rounded-xl p-6">
           <p className="text-red-800 font-medium">
-            You don't have permission to view this job.
+            {t("pages.jobs.noPermissionViewJob")}
           </p>
           <button
             onClick={() => navigate("/dashboard/jobs/all")}
             className="mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition"
           >
-            Back to All Jobs
+            {t("pages.jobs.backToAllJobs")}
           </button>
         </div>
       </div>
     );
   }
 
-  const employerName = job.employer?.full_name || "Unknown Employer";
+  const employerName = job.employer?.full_name || t("pages.jobs.unknownEmployer");
   const companyInitial = employerName.charAt(0).toUpperCase();
 
   return (
@@ -129,7 +132,7 @@ const JobDetails: React.FC = () => {
               onClick={() => navigate("/dashboard/jobs/all")}
               className="text-gray-600 hover:text-gray-900 transition-colors"
             >
-              ← Back
+              ← {t("pages.jobs.back")}
             </button>
           </div>
           <h1 className="text-2xl md:text-4xl font-extrabold text-gray-900 flex items-center gap-3">
@@ -172,7 +175,7 @@ const JobDetails: React.FC = () => {
               <button
                 onClick={() => id && toggleSaveJob(id)}
                 className="p-2 hover:bg-gray-100 rounded-full transition"
-                title={isSaved ? "Remove from saved" : "Save job"}
+                title={isSaved ? t("pages.jobs.removeFromSaved") : t("pages.jobs.saveJob")}
               >
                 {isSaved ? (
                   <BookmarkSolidIcon className="h-5 w-5 text-blue-600" />
@@ -186,7 +189,7 @@ const JobDetails: React.FC = () => {
         {role === "student" && (
           <Button
             backgroundcolor={hasApplied ? "#6b7280" : "#7f56d9"}
-            text={hasApplied ? "Applied" : "Apply Now"}
+            text={hasApplied ? t("pages.jobs.applied") : t("pages.jobs.applyNow")}
             onClick={() => !hasApplied && setIsModalOpen(true)}
             disabled={hasApplied}
           />
@@ -195,12 +198,12 @@ const JobDetails: React.FC = () => {
           <div className="flex flex-col sm:flex-row gap-2">
             <Button
               backgroundcolor="#7f56d9"
-              text={`Manage Applications (${job.applications || 0})`}
+              text={`${t("pages.jobs.manage")} (${job.applications || 0})`}
               onClick={() => navigate(`/dashboard/jobs/${id}/applications`)}
             />
             <Button
               backgroundcolor="#6b7280"
-              text="Edit Job"
+              text={t("pages.jobs.editJob")}
               onClick={() => navigate(`/dashboard/jobs/${id}/edit`)}
             />
           </div>
@@ -234,13 +237,13 @@ const JobDetails: React.FC = () => {
               <div className="flex items-center gap-2 text-gray-700">
                 <MapPinIcon className="h-5 w-5 text-gray-500" />
                 <span className="text-sm md:text-base">
-                  <strong>Location:</strong> {job.location}
+                  <strong>{t("pages.jobs.location")}:</strong> {job.location}
                 </span>
               </div>
               <div className="flex items-center gap-2 text-gray-700">
                 <CurrencyDollarIcon className="h-5 w-5 text-gray-500" />
                 <span className="text-sm md:text-base">
-                  <strong>Budget:</strong> ${job.budget?.toLocaleString() || "Not specified"}
+                  <strong>{t("pages.jobs.budget")}:</strong> ${job.budget?.toLocaleString() || t("pages.jobs.notSpecified")}
                 </span>
               </div>
               <div className="flex items-center gap-2 text-gray-700">
@@ -376,7 +379,7 @@ const JobDetails: React.FC = () => {
       {job.description && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6">
           <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-3">
-            Job Description
+            {t("pages.jobs.jobDescription")}
           </h3>
           <p className="text-gray-700 text-sm md:text-base whitespace-pre-wrap">
             {job.description}
@@ -388,7 +391,7 @@ const JobDetails: React.FC = () => {
       {job.requirements && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6">
           <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-3">
-            Requirements
+            {t("pages.jobs.requirements")}
           </h3>
           <p className="text-gray-700 text-sm md:text-base whitespace-pre-wrap">
             {job.requirements}

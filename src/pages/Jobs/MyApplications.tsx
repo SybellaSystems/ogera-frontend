@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useGetStudentApplicationsQuery } from "../../services/api/jobApplicationApi";
 import {
   BriefcaseIcon,
@@ -10,6 +11,7 @@ import {
 import Loader from "../../components/Loader";
 
 const MyApplications: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { data, isLoading, error } = useGetStudentApplicationsQuery();
 
@@ -72,7 +74,7 @@ const MyApplications: React.FC = () => {
       <div className="space-y-6 animate-fadeIn">
         <div className="bg-red-50 border border-red-200 rounded-xl p-6">
           <p className="text-red-800 font-medium">
-            Failed to load applications. Please try again later.
+            {t("pages.myApplications.failedToLoad")}
           </p>
         </div>
       </div>
@@ -85,38 +87,38 @@ const MyApplications: React.FC = () => {
         <div>
           <h1 className="text-4xl font-extrabold text-gray-900 flex items-center gap-3">
             <BriefcaseIcon className="h-10 w-10 text-purple-600" />
-            My Applications
+            {t("pages.myApplications.title")}
           </h1>
           <p className="text-gray-500 mt-2">
-            View all your job applications and their status
+            {t("pages.myApplications.subtitle")}
           </p>
         </div>
         <button
           onClick={() => navigate("/dashboard/jobs/all")}
                         className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 text-white rounded-lg font-semibold transition text-sm whitespace-nowrap cursor-pointer"
         >
-          Browse Jobs
+          {t("pages.myApplications.browseJobs")}
         </button>
       </div>
 
       {/* Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-2"> 
   <div className="bg-purple-50 rounded-xl p-4 border border-purple-200 hover:shadow-sm transition-shadow">
-    <p className="text-xs uppercase tracking-wider text-purple-700 font-semibold">Total Applications</p>
+    <p className="text-xs uppercase tracking-wider text-purple-700 font-semibold">{t("pages.myApplications.totalApplications")}</p>
     <p className="text-2xl font-bold text-purple-900 mt-1">
             {applications.length}
           </p>
         </div>
   <div className="bg-orange-50 rounded-xl p-4 border border-orange-200 hover:shadow-sm transition-shadow">
-    <p className="text-xs uppercase tracking-wider text-orange-700 font-semibold">Pending Review</p>
+    <p className="text-xs uppercase tracking-wider text-orange-700 font-semibold">{t("pages.jobs.pendingReview")}</p>
     <p className="text-2xl font-bold text-orange-900 mt-1">{pendingCount}</p>
         </div>
   <div className="bg-green-50 rounded-xl p-4 border border-green-200 hover:shadow-sm transition-shadow">
-    <p className="text-xs uppercase tracking-wider text-green-700 font-semibold">Accepted</p>
+    <p className="text-xs uppercase tracking-wider text-green-700 font-semibold">{t("pages.myApplications.accepted")}</p>
     <p className="text-2xl font-bold text-green-900 mt-1">{acceptedCount}</p>
         </div>
   <div className="bg-red-50 rounded-xl p-4 border border-red-200 hover:shadow-sm transition-shadow">
-    <p className="text-xs uppercase tracking-wider text-red-700 font-semibold">Rejected</p>
+    <p className="text-xs uppercase tracking-wider text-red-700 font-semibold">{t("pages.myApplications.rejected")}</p>
     <p className="text-2xl font-bold text-red-900 mt-1">{rejectedCount}</p>
         </div>
       </div>
@@ -125,16 +127,16 @@ const MyApplications: React.FC = () => {
         <div className="bg-white rounded-xl p-12 shadow-md border border-gray-100 text-center">
           <BriefcaseIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
           <h3 className="text-xl font-semibold text-gray-900 mb-2">
-            No applications yet
+            {t("pages.myApplications.noApplicationsYet")}
           </h3>
           <p className="text-gray-600 mb-4">
-            You haven't applied to any jobs yet. Start browsing jobs to apply!
+            {t("pages.myApplications.startBrowsing")}
           </p>
           <button
             onClick={() => navigate("/dashboard/jobs/all")}
             className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-semibold transition shadow-md"
           >
-            Browse Jobs
+            {t("pages.myApplications.browseJobs")}
           </button>
         </div>
       ) : (

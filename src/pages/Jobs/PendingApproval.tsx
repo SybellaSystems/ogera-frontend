@@ -1,12 +1,14 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { useTranslation } from "react-i18next";
 import { ClockIcon } from "@heroicons/react/24/outline";
 import { useGetPendingJobsQuery, useToggleJobStatusMutation } from "../../services/api/jobsApi";
 import Loader from "../../components/Loader";
 import { formatRelativeTime } from "../../utils/timeUtils";
 
 const PendingApproval: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const role = useSelector((state: any) => state.auth.role);
   const { data, isLoading, error, refetch } = useGetPendingJobsQuery();
@@ -20,7 +22,7 @@ const PendingApproval: React.FC = () => {
       refetch();
     } catch (error: any) {
       console.error("Failed to approve job:", error);
-      alert("Failed to approve job. Please try again.");
+      alert(t("pages.jobs.failedToApprove"));
     }
   };
 
@@ -33,7 +35,7 @@ const PendingApproval: React.FC = () => {
       <div className="space-y-6 animate-fadeIn">
         <div className="bg-red-50 border border-red-200 rounded-xl p-6">
           <p className="text-red-800 font-medium">
-            Failed to load pending jobs. Please try again later.
+            {t("pages.jobs.failedToLoadPendingJobs")}
           </p>
         </div>
       </div>
@@ -67,8 +69,8 @@ const PendingApproval: React.FC = () => {
       ) : (
         <div className="space-y-4">
           {pendingJobs.map((job: any) => {
-            const employerName = job.employer?.full_name || "Unknown Employer";
-            const employerEmail = job.employer?.email || "N/A";
+            const employerName = job.employer?.full_name || t("pages.jobs.unknownEmployer");
+            const employerEmail = job.employer?.email || t("common.na");
 
             return (
               <div key={job.job_id} className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
@@ -77,16 +79,16 @@ const PendingApproval: React.FC = () => {
                     <div className="flex items-center gap-3 mb-2">
                       <h3 className="text-xl font-semibold text-gray-900">{job.job_title}</h3>
                       <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-semibold">
-                        Pending
+                        {t("pages.jobs.pendingReview")}
                       </span>
                     </div>
                     <p className="text-gray-600 font-medium mb-3">{employerName}</p>
                     <div className="flex flex-wrap gap-4 text-sm text-gray-600">
-                      <span>💰 ${job.budget?.toLocaleString() || "N/A"}</span>
+                      <span>💰 ${job.budget?.toLocaleString() || t("common.na")}</span>
                       <span>📍 {job.location}</span>
                       {employerEmail && <span>📧 {employerEmail}</span>}
                       {job.created_at && (
-                        <span>📅 Submitted: {formatRelativeTime(job.created_at)}</span>
+                        <span>📅 {t("pages.jobs.submitted")}: {formatRelativeTime(job.created_at)}</span>
                       )}
                       {job.category && <span>🏷️ {job.category}</span>}
                     </div>
@@ -104,7 +106,7 @@ const PendingApproval: React.FC = () => {
                           disabled={isToggling}
                           className="px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition shadow-md whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          {isToggling ? "Approving..." : "Approve"}
+                          {isToggling ? t("pages.jobs.approving") : t("pages.jobs.approve")}
                         </button>
                       </>
                     )}
@@ -112,7 +114,7 @@ const PendingApproval: React.FC = () => {
                       onClick={() => navigate(`/dashboard/jobs/${job.job_id}`)}
                       className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition shadow-md whitespace-nowrap"
                     >
-                      View Full Details
+                      {t("pages.jobs.viewFullDetails")}
                     </button>
                   </div>
                 </div>

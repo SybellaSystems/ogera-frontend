@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import {
@@ -20,6 +21,7 @@ import toast from "react-hot-toast";
 import { formatRelativeTime } from "../../utils/timeUtils";
 
 const ViewCourse: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const role = useSelector((state: any) => state.auth.role);
   const { data, isLoading, error, refetch } = useGetAllCoursesQuery();
@@ -55,16 +57,16 @@ const ViewCourse: React.FC = () => {
   );
 
   const handleDelete = async (courseId: string, courseName: string) => {
-    if (!window.confirm(`Are you sure you want to delete "${courseName}"?`)) {
+    if (!window.confirm(t("courses.deleteConfirm", { name: courseName }))) {
       return;
     }
 
     try {
       await deleteCourse(courseId).unwrap();
-      toast.success("Course deleted successfully");
+      toast.success(t("courses.courseDeletedSuccess"));
       refetch();
     } catch (error: any) {
-      toast.error(error?.data?.message || "Failed to delete course");
+      toast.error(error?.data?.message || t("courses.failedToDeleteCourse"));
     }
   };
 
@@ -88,15 +90,15 @@ const ViewCourse: React.FC = () => {
   const getStepTypeLabel = (stepType: string) => {
     switch (stepType) {
       case "video":
-        return "Watch Video";
+        return t("courses.watchVideo");
       case "link":
-        return "Read Link";
+        return t("courses.readLink");
       case "pdf":
-        return "Read PDF";
+        return t("courses.readPdf");
       case "image":
-        return "View Image";
+        return t("courses.viewImage");
       case "text":
-        return "Read Text";
+        return t("courses.readText");
       default:
         return stepType;
     }
@@ -111,7 +113,7 @@ const ViewCourse: React.FC = () => {
       <div className="space-y-6 animate-fadeIn p-6">
         <div className="bg-red-50 border border-red-200 rounded-xl p-6">
           <p className="text-red-800 font-medium">
-            Failed to load courses. Please try again later.
+            {t("courses.courseNotFound")}
           </p>
         </div>
       </div>
@@ -126,12 +128,12 @@ const ViewCourse: React.FC = () => {
           <BookOpenIcon className="h-8 w-8 text-purple-600" />
           <div>
             <h1 className="text-2xl md:text-4xl font-extrabold text-gray-900">
-              {isStudent ? "Available Courses" : "All Courses"}
+              {isStudent ? t("courses.availableCourses") : t("courses.allCourses")}
             </h1>
             <p className="text-gray-600 mt-1">
               {isStudent 
-                ? `Browse and learn from ${filteredCourses.length} ${filteredCourses.length === 1 ? 'course' : 'courses'}`
-                : `Manage and view all courses (${filteredCourses.length} ${filteredCourses.length === 1 ? 'course' : 'courses'})`
+                ? t("courses.browseLearn", { count: filteredCourses.length })
+                : t("courses.manageViewAll", { count: filteredCourses.length })
               }
             </p>
           </div>
@@ -142,7 +144,7 @@ const ViewCourse: React.FC = () => {
             className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
           >
             <PlusIcon className="h-5 w-5" />
-            Add Course
+            {t("courses.addCourse")}
           </button>
         )}
       </div>
@@ -155,7 +157,7 @@ const ViewCourse: React.FC = () => {
             <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
             <input
               type="text"
-              placeholder="Search courses..."
+              placeholder={t("courses.searchPlaceholder")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
@@ -168,7 +170,7 @@ const ViewCourse: React.FC = () => {
             onChange={(e) => setSelectedType(e.target.value)}
             className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
           >
-            <option value="">All Types</option>
+            <option value="">{t("courses.allTypes")}</option>
             {types.map((type) => (
               <option key={type} value={type}>
                 {type}
@@ -197,12 +199,12 @@ const ViewCourse: React.FC = () => {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
           <BookOpenIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
           <h3 className="text-xl font-semibold text-gray-900 mb-2">
-            No courses found
+            {t("courses.noCoursesFound")}
           </h3>
           <p className="text-gray-600 mb-6">
             {searchQuery || selectedType || selectedTag
-              ? "Try adjusting your filters"
-              : "Get started by creating your first course"}
+              ? t("courses.tryAdjustingFilters")
+              : t("courses.getStartedCreateFirst")}
           </p>
           {!searchQuery && !selectedType && !selectedTag && isAdmin && (
             <button
@@ -210,7 +212,7 @@ const ViewCourse: React.FC = () => {
               className="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
             >
               <PlusIcon className="h-5 w-5" />
-              Create Course
+              {t("courses.createCourse")}
             </button>
           )}
         </div>
@@ -242,7 +244,7 @@ const ViewCourse: React.FC = () => {
                       <button
                         onClick={() => navigate(`/dashboard/courses/edit/${course.course_id}`)}
                         className="p-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
-                        title="Edit course"
+                        title={t("courses.editCourse")}
                       >
                         <PencilIcon className="h-5 w-5" />
                       </button>
@@ -250,7 +252,7 @@ const ViewCourse: React.FC = () => {
                         onClick={() => handleDelete(course.course_id, course.course_name)}
                         disabled={isDeleting}
                         className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
-                        title="Delete course"
+                        title={t("courses.deleteCourse")}
                       >
                         <TrashIcon className="h-5 w-5" />
                       </button>
@@ -269,7 +271,7 @@ const ViewCourse: React.FC = () => {
                 {course.steps && course.steps.length > 0 && (
                   <div className="mb-4">
                     <h4 className="text-sm font-semibold text-gray-700 mb-2">
-                      Course Steps ({course.steps.length})
+                      {t("courses.courseSteps", { count: course.steps.length })}
                     </h4>
                     <div className="space-y-2">
                       {[...course.steps]
@@ -281,7 +283,7 @@ const ViewCourse: React.FC = () => {
                             className="flex items-center gap-2 text-sm text-gray-600 bg-gray-50 px-3 py-2 rounded-lg"
                           >
                             <span className="text-purple-600 font-medium">
-                              Step {step.step_order}:
+                              {t("courses.step")} {step.step_order}:
                             </span>
                             <span className="flex items-center gap-1">
                               {getStepTypeIcon(step.step_type)}
@@ -291,7 +293,7 @@ const ViewCourse: React.FC = () => {
                         ))}
                       {course.steps.length > 3 && (
                         <p className="text-xs text-gray-500 pl-3">
-                          +{course.steps.length - 3} more steps
+                          {t("courses.moreSteps", { count: course.steps.length - 3 })}
                         </p>
                       )}
                     </div>
@@ -301,7 +303,7 @@ const ViewCourse: React.FC = () => {
                 {/* Footer */}
                 <div className="flex items-center justify-between pt-4 border-t border-gray-200">
                   <span className="text-xs text-gray-500">
-                    {isAdmin && `Created ${formatRelativeTime(course.created_at)}`}
+                    {isAdmin && `${t("courses.created")} ${formatRelativeTime(course.created_at)}`}
                   </span>
                   {isStudent ? (
                     <button
@@ -309,14 +311,14 @@ const ViewCourse: React.FC = () => {
                       className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
                     >
                       <PlayIcon className="h-5 w-5" />
-                      Start Learning
+                      {t("courses.startLearning")}
                     </button>
                   ) : (
                     <button
                       onClick={() => navigate(`/dashboard/courses/${course.course_id}`)}
                       className="text-sm text-purple-600 hover:text-purple-700 font-medium"
                     >
-                      View Details →
+                      {t("courses.viewDetails")}
                     </button>
                   )}
                 </div>

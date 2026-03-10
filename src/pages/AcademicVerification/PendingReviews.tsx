@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
+import { useTranslation } from "react-i18next";
 import { DocumentCheckIcon } from "@heroicons/react/24/outline";
 import type { AcademicVerification } from "../../services/api/academicVerificationApi";
 import {
@@ -16,6 +17,7 @@ interface RootState {
 }
 
 const PendingReviews: React.FC = () => {
+  const { t } = useTranslation();
   const role = useSelector((state: RootState) => state.auth.role);
 
   // -------- student state --------
@@ -48,11 +50,16 @@ const PendingReviews: React.FC = () => {
     } catch (err: any) {
       // If not found, keep null
       setMyVerification(null);
-      const msg =
-        err?.response?.data?.message ||
-        err?.message ||
-        "Could not fetch academic verification";
-      setStudentError(msg);
+      const data = err?.response?.data;
+      const raw =
+        (typeof data?.message === "string" ? data.message : null) ||
+        (typeof data?.error === "string" ? data.error : null) ||
+        (typeof data?.msg === "string" ? data.msg : null) ||
+        (typeof err?.message === "string" ? err.message : null) ||
+        "";
+      setStudentError(
+        raw ? getTranslatedErrorMessage(raw) : t("pages.academic.failedToFetch")
+      );
     }
   };
 
@@ -63,14 +70,37 @@ const PendingReviews: React.FC = () => {
       const res = await getPendingAcademicVerifications({ page: 1, limit: 20 });
       setPending(res.data || []);
     } catch (err: any) {
-      const msg =
-        err?.response?.data?.message ||
-        err?.message ||
-        "Failed to load pending academic verifications";
-      setAdminError(msg);
+      const data = err?.response?.data;
+      const raw =
+        (typeof data?.message === "string" ? data.message : null) ||
+        (typeof data?.error === "string" ? data.error : null) ||
+        (typeof data?.msg === "string" ? data.msg : null) ||
+        (typeof err?.message === "string" ? err.message : null) ||
+        "";
+      setAdminError(
+        raw ? getTranslatedErrorMessage(raw) : t("pages.academic.failedToLoadPending")
+      );
     } finally {
       setLoadingAdmin(false);
     }
+  };
+
+  // Map known API messages / rejection reasons to translated strings so they follow the selected language
+  const getTranslatedErrorMessage = (apiMessage: string | undefined): string => {
+    if (!apiMessage || typeof apiMessage !== "string") return apiMessage || "";
+    const lower = apiMessage.toLowerCase().trim();
+    // Match "incorrect document / please upload the correct document" in various phrasings
+    const hasCorrectDocument = lower.includes("correct document");
+    const hasWrongOrNotCorrect =
+      lower.includes("not correct") ||
+      lower.includes("incorrect") ||
+      lower.includes("wrong document") ||
+      lower.includes("not the correct");
+    const hasUpload = lower.includes("upload") || lower.includes("laai");
+    if (hasCorrectDocument && hasWrongOrNotCorrect && hasUpload) {
+      return t("pages.academic.incorrectDocumentMessage");
+    }
+    return apiMessage;
   };
 
   useEffect(() => {
@@ -99,26 +129,27 @@ const PendingReviews: React.FC = () => {
           "../../services/api/academicVerificationApi"
         );
         await reuploadAcademicVerification(myVerification.id, file);
-        setStudentSuccess(
-          "Document re-uploaded successfully. It will be reviewed again."
-        );
+        setStudentSuccess(t("pages.academic.documentReuploadedSuccess"));
       } else {
         const { uploadAcademicVerification } = await import(
           "../../services/api/academicVerificationApi"
         );
         await uploadAcademicVerification(file);
-        setStudentSuccess(
-          "Document uploaded successfully. Status is now pending."
-        );
+        setStudentSuccess(t("pages.academic.documentUploadedSuccess"));
       }
 
       await loadMyVerification();
     } catch (err: any) {
-      const msg =
-        err?.response?.data?.message ||
-        err?.message ||
-        "Failed to upload document";
-      setStudentError(msg);
+      const data = err?.response?.data;
+      const raw =
+        (typeof data?.message === "string" ? data.message : null) ||
+        (typeof data?.error === "string" ? data.error : null) ||
+        (typeof data?.msg === "string" ? data.msg : null) ||
+        (typeof err?.message === "string" ? err.message : null) ||
+        "";
+      setStudentError(
+        raw ? getTranslatedErrorMessage(raw) : t("pages.academic.failedToUpload")
+      );
     } finally {
       setUploading(false);
       e.target.value = "";
@@ -140,11 +171,16 @@ const PendingReviews: React.FC = () => {
       await reviewAcademicVerification({ id, status, rejection_reason });
       await loadPendingForAdmin();
     } catch (err: any) {
-      const msg =
-        err?.response?.data?.message ||
-        err?.message ||
-        "Failed to review academic verification";
-      setAdminError(msg);
+      const data = err?.response?.data;
+      const raw =
+        (typeof data?.message === "string" ? data.message : null) ||
+        (typeof data?.error === "string" ? data.error : null) ||
+        (typeof data?.msg === "string" ? data.msg : null) ||
+        (typeof err?.message === "string" ? err.message : null) ||
+        "";
+      setAdminError(
+        raw ? getTranslatedErrorMessage(raw) : t("pages.academic.failedToReview")
+      );
     } finally {
       setReviewLoadingId(null);
     }
@@ -155,7 +191,7 @@ const PendingReviews: React.FC = () => {
       setAdminError(null);
 
       if (item.storage_type === 's3') {
-        const res = await api.get(`/academic-verifications/${item.id}/document`);
+        const res = await api.get<{ url?: string }>(`/academic-verifications/${item.id}/document`);
         const url = res?.data?.url;
         if (url) {
           setViewerUrl(url);
@@ -163,7 +199,7 @@ const PendingReviews: React.FC = () => {
           setViewerContentType(null);
           setShowViewer(true);
         } else {
-          setAdminError('Could not obtain document URL');
+          setAdminError(t("pages.academic.couldNotObtainUrl"));
         }
         return;
       }
@@ -180,8 +216,14 @@ const PendingReviews: React.FC = () => {
       setViewerContentType(blob.type || null);
       setShowViewer(true);
     } catch (err: any) {
-      const msg = err?.response?.data?.message || err?.message || 'Failed to open document';
-      setAdminError(msg);
+      const raw =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        err?.message ||
+        "";
+      setAdminError(
+        raw ? getTranslatedErrorMessage(raw) : t("pages.academic.failedToOpenDocument")
+      );
     }
   };
 
@@ -223,14 +265,14 @@ const PendingReviews: React.FC = () => {
         window.URL.revokeObjectURL(url);
       }
     } catch (e: any) {
-      setAdminError(e?.message || 'Download failed');
+      setAdminError(e?.message || t("pages.academic.downloadFailed"));
     }
   };
 
   // ===================== STUDENT VIEW =====================
   if (role === "student") {
     return (
-      <div className="bg-gradient-to-br from-purple-50 to-indigo-50 p-3">
+      <div className="academic-page theme-page-bg p-3 min-h-full">
         <div className="max-w-3xl mx-auto space-y-3">
           {/* Header */}
           <div className="text-center space-y-1">
@@ -238,18 +280,18 @@ const PendingReviews: React.FC = () => {
               <DocumentCheckIcon className="h-5 w-5 text-white" />
             </div>
             <h1 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
-              Academic Verification
+              {t("pages.academic.title")}
             </h1>
-            <p className="text-gray-600 text-xs">Upload and track verification status</p>
+            <p className="text-gray-600 text-xs">{t("pages.academic.subtitle")}</p>
           </div>
 
           {/* Status Card */}
           <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-3">
-            <h2 className="text-base font-bold text-gray-800 mb-2">Status</h2>
+            <h2 className="text-base font-bold text-gray-800 mb-2">{t("pages.academic.status")}</h2>
             {myVerification ? (
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <span className="text-gray-700 text-sm">Current:</span>
+                  <span className="text-gray-700 text-sm">{t("pages.academic.current")}:</span>
                   <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${
                     myVerification.status === "accepted"
                       ? "bg-green-100 text-green-700"
@@ -257,29 +299,29 @@ const PendingReviews: React.FC = () => {
                       ? "bg-red-100 text-red-700"
                       : "bg-yellow-100 text-yellow-700"
                   }`}>
-                    {myVerification.status}
+                    {myVerification.status === "accepted" ? t("pages.academic.approved") : myVerification.status === "rejected" ? t("pages.academic.rejected") : t("pages.academic.pending")}
                   </span>
                 </div>
                 {myVerification.rejection_reason && (
                   <div className="bg-red-50 border-l-4 border-red-400 p-2 rounded-r">
-                    <p className="text-red-700 text-xs font-medium">Reason:</p>
-                    <p className="text-red-600 text-xs">{myVerification.rejection_reason}</p>
+                    <p className="text-red-700 text-xs font-medium">{t("pages.academic.reason")}:</p>
+                    <p className="text-red-600 text-xs">{getTranslatedErrorMessage(myVerification.rejection_reason)}</p>
                   </div>
                 )}
               </div>
             ) : (
-              <p className="text-gray-500 text-sm">No document uploaded</p>
+              <p className="text-gray-500 text-sm">{t("pages.academic.noDocumentUploaded")}</p>
             )}
           </div>
 
           {/* Upload Card */}
           <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-3">
             <h2 className="text-base font-bold text-gray-800 mb-2">
-              {myVerification?.status === "rejected" ? "Re-upload" : "Upload"}
+              {myVerification?.status === "rejected" ? t("pages.academic.reupload") : t("pages.academic.upload")}
             </h2>
 
             <div className="bg-purple-50 border border-purple-200 rounded-lg p-2 mb-2">
-              <p className="text-purple-600 text-xs">PDF, JPG, PNG, DOC, DOCX • Max 10MB</p>
+              <p className="text-purple-600 text-xs">{t("pages.academic.fileTypesHint")}</p>
             </div>
 
             {studentError && (
@@ -304,13 +346,13 @@ const PendingReviews: React.FC = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                 </svg>
               )}
-              <span>{uploading ? "Uploading..." : "Choose File"}</span>
+              <span>{uploading ? t("pages.academic.uploading") : t("pages.academic.chooseFile")}</span>
               <input type="file" className="hidden" onChange={handleFileChange} disabled={uploading} />
             </label>
 
             {myVerification?.status === "pending" && (
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-2 mt-3 text-center">
-                <p className="text-yellow-600 text-xs">Under review by verification team</p>
+                <p className="text-yellow-600 text-xs">{t("pages.academic.underReview")}</p>
               </div>
             )}
           </div>
@@ -321,7 +363,7 @@ const PendingReviews: React.FC = () => {
 
   // ===================== ADMIN/VERIFYDOCADMIN VIEW =====================
   return (
-    <div className="bg-gradient-to-br from-purple-50 to-indigo-50 p-3">
+    <div className="academic-page theme-page-bg p-3 min-h-full">
       <div className="max-w-6xl mx-auto space-y-3">
         {/* Header */}
         <div className="text-center space-y-1">
@@ -329,16 +371,16 @@ const PendingReviews: React.FC = () => {
             <DocumentCheckIcon className="h-5 w-5 text-white" />
           </div>
           <h1 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
-            Pending Reviews
+            {t("pages.academic.pendingReviews")}
           </h1>
-          <p className="text-gray-600 text-xs">Academic verifications awaiting review</p>
+          <p className="text-gray-600 text-xs">{t("pages.academic.awaitingReview")}</p>
         </div>
 
         {/* Stats */}
         <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-3 max-w-xs mx-auto">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-purple-600 font-bold text-xs uppercase">Pending</p>
+              <p className="text-purple-600 font-bold text-xs uppercase">{t("pages.academic.pending")}</p>
               <p className="text-xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
                 {pending.length}
               </p>
@@ -357,13 +399,13 @@ const PendingReviews: React.FC = () => {
           <div className="flex items-center justify-center py-8">
             <div className="flex items-center gap-2">
               <div className="w-5 h-5 border-2 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
-              <p className="text-gray-600 text-sm">Loading...</p>
+              <p className="text-gray-600 text-sm">{t("pages.academic.loading")}</p>
             </div>
           </div>
         ) : pending.length === 0 ? (
           <div className="text-center py-6">
             <DocumentCheckIcon className="h-10 w-10 text-gray-400 mx-auto mb-2" />
-            <p className="text-gray-500 text-sm">No pending verifications</p>
+            <p className="text-gray-500 text-sm">{t("pages.academic.noPendingVerifications")}</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -392,12 +434,12 @@ const PendingReviews: React.FC = () => {
                     {/* Rejection Reason */}
                     <div>
                       <label className="block text-gray-700 font-medium text-xs mb-1">
-                        Rejection Reason <span className="text-red-500">*</span>
+                        {t("pages.academic.rejectionReason")} <span className="text-red-500">*</span>
                       </label>
                       <textarea
                         className="w-full rounded-lg border border-gray-200 px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-purple-500 resize-none"
                         rows={2}
-                        placeholder="Required for rejection..."
+                        placeholder={t("pages.academic.rejectionReasonPlaceholder")}
                         value={rejectionNotes[item.id] || ""}
                         onChange={(e) =>
                           setRejectionNotes((prev) => ({
@@ -415,7 +457,7 @@ const PendingReviews: React.FC = () => {
                       className={`flex-1 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-all text-xs disabled:opacity-50`}
                       onClick={() => handleViewDocument(item)}
                     >
-                      View
+                      {t("pages.academic.view")}
                     </button>
                     <button
                       className={`flex-1 px-3 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition-all text-xs disabled:opacity-50 ${
@@ -424,7 +466,7 @@ const PendingReviews: React.FC = () => {
                       disabled={reviewLoadingId === item.id}
                       onClick={() => handleReview(item.id, "accepted")}
                     >
-                      {reviewLoadingId === item.id ? "Approving..." : "Approve"}
+                      {reviewLoadingId === item.id ? t("pages.academic.approving") : t("pages.academic.approve")}
                     </button>
                     
                     <button
@@ -434,7 +476,7 @@ const PendingReviews: React.FC = () => {
                       disabled={reviewLoadingId === item.id}
                       onClick={() => handleReview(item.id, "rejected")}
                     >
-                      {reviewLoadingId === item.id ? "Rejecting..." : "Reject"}
+                      {reviewLoadingId === item.id ? t("pages.academic.rejecting") : t("pages.academic.reject")}
                     </button>
                   </div>
                 </div>
@@ -445,12 +487,12 @@ const PendingReviews: React.FC = () => {
         {showViewer && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 backdrop-blur-sm">
             <div className="fixed inset-0 bg-black/40" onClick={closeViewer} />
-            <div className="relative bg-white rounded-lg shadow-lg max-w-4xl w-full max-h-[85vh] sm:max-h-[90vh] z-60 flex flex-col overflow-hidden">
+            <div className="relative bg-white rounded-lg shadow-lg max-w-4xl w-full max-h-[85vh] sm:max-h-[90vh] z-60 flex flex-col overflow-hidden theme-modal border border-gray-200">
               <div className="flex items-center justify-between p-3 sm:p-4 border-b flex-shrink-0">
-                <h3 className="text-lg font-bold">Document Viewer</h3>
+                <h3 className="text-lg font-bold">{t("pages.academic.documentViewer")}</h3>
                 <div className="flex items-center gap-2">
-                  <button className="px-3 py-1 text-sm bg-green-500 rounded" onClick={downloadViewer}>Download</button>
-                  <button className="px-3 py-1 text-sm bg-red-400 rounded" onClick={closeViewer}>Close</button>
+                  <button className="px-3 py-1 text-sm bg-green-500 rounded" onClick={downloadViewer}>{t("pages.academic.download")}</button>
+                  <button className="px-3 py-1 text-sm bg-red-400 rounded" onClick={closeViewer}>{t("pages.academic.close")}</button>
                 </div>
               </div>
               <div className="flex-1 overflow-y-auto p-2 sm:p-4">
@@ -463,7 +505,7 @@ const PendingReviews: React.FC = () => {
                     <iframe src={viewerUrl} className="w-full h-full border-0 min-h-[500px] sm:min-h-[600px]" title="Document" />
                   )
                 ) : (
-                  <div className="text-center p-8">No document to display</div>
+                  <div className="text-center p-8">{t("pages.academic.noDocumentToDisplay")}</div>
                 )}
               </div>
             </div>

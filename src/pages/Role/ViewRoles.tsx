@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { ShieldCheckIcon, TrashIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import CustomTable, {
   type Column,
@@ -28,6 +29,9 @@ interface RoleRow {
 }
 
 const ViewRoles: React.FC = () => {
+  const { t, i18n } = useTranslation();
+  const dateLocaleMap: Record<string, string> = { af: "af-ZA", zu: "zu-ZA", sw: "sw-KE", rw: "rw-RW", fr: "fr-FR" };
+  const dateLocale = dateLocaleMap[i18n.language] || "en-US";
   const { data: rolesData, isLoading, isError, refetch } = useGetAllRolesQuery();
   const { data: permissionsData } = useGetAllPermissionsQuery();
   const [deleteRole, { isLoading: isDeleting }] = useDeleteRoleMutation();
@@ -108,12 +112,12 @@ const ViewRoles: React.FC = () => {
           permission_json: editForm.permission_json,
         },
       }).unwrap();
-      toast.success("Role updated successfully");
+      toast.success(t("pages.role.roleUpdatedSuccess"));
       handleEditClose();
       refetch();
     } catch (error: any) {
       toast.error(
-        error?.data?.error || error?.data?.message || "Failed to update role. Please try again."
+        error?.data?.error || error?.data?.message || t("pages.role.failedToUpdateRole")
       );
     }
   };
@@ -128,13 +132,13 @@ const ViewRoles: React.FC = () => {
 
     try {
       await deleteRole(roleToDelete.id).unwrap();
-      toast.success("Role deleted successfully");
+      toast.success(t("pages.role.roleDeletedSuccess"));
       setShowDeleteModal(false);
       setRoleToDelete(null);
       refetch();
     } catch (error: any) {
       toast.error(
-        error?.data?.error || error?.data?.message || "Failed to delete role. Please try again."
+        error?.data?.error || error?.data?.message || t("pages.role.failedToDeleteRole")
       );
     }
   };
@@ -200,7 +204,7 @@ const ViewRoles: React.FC = () => {
     roleName: role.roleName,
     roleType: role.roleType,
     createdDate: role.created_at
-      ? new Date(role.created_at).toLocaleDateString("en-US", {
+      ? new Date(role.created_at).toLocaleDateString(dateLocale, {
           year: "numeric",
           month: "short",
           day: "2-digit",
@@ -215,15 +219,15 @@ const ViewRoles: React.FC = () => {
   const getRoleTypeColor = (roleType: string) => {
     switch (roleType?.toLowerCase()) {
       case "admin":
-        return { bg: "#dbeafe", color: "#1e40af" };
+        return { bg: "var(--chip-role-admin-bg)", color: "var(--chip-role-admin-text)" };
       case "superadmin":
-        return { bg: "#fce7f3", color: "#9f1239" };
+        return { bg: "var(--chip-role-superadmin-bg)", color: "var(--chip-role-superadmin-text)" };
       case "student":
-        return { bg: "#dcfce7", color: "#166534" };
+        return { bg: "var(--chip-role-student-bg)", color: "var(--chip-role-student-text)" };
       case "employer":
-        return { bg: "#fef3c7", color: "#92400e" };
+        return { bg: "var(--chip-role-employer-bg)", color: "var(--chip-role-employer-text)" };
       default:
-        return { bg: "#f3f4f6", color: "#374151" };
+        return { bg: "var(--chip-default-bg)", color: "var(--chip-default-text)" };
     }
   };
 
@@ -235,14 +239,14 @@ const ViewRoles: React.FC = () => {
       align: "center",
       sortable: false,
       format: (value) => (
-        <Typography sx={{ fontWeight: 500, color: "#6b7280" }}>
+        <Typography sx={{ fontWeight: 500, color: "var(--theme-text-secondary)" }}>
           {value}
         </Typography>
       ),
     },
     {
       id: "roleName",
-      label: "Role Name",
+      label: t("pages.role.roleName"),
       minWidth: 200,
       format: (value) => (
         <Typography sx={{ fontWeight: 600, color: "#111827" }}>
@@ -252,7 +256,7 @@ const ViewRoles: React.FC = () => {
     },
     {
       id: "roleType",
-      label: "Role Type",
+      label: t("pages.role.roleType"),
       minWidth: 150,
       format: (value) => {
         const colors = getRoleTypeColor(value as string);
@@ -272,20 +276,20 @@ const ViewRoles: React.FC = () => {
     },
     {
       id: "createdDate",
-      label: "Created Date",
+      label: t("pages.role.createdDate"),
       minWidth: 120,
     },
   ];
 
   const actions: TableAction<RoleRow>[] = [
     {
-      label: "Edit",
+      label: t("pages.role.edit"),
       icon: <EditIcon fontSize="small" />,
       onClick: (row) => handleEditClick(row),
       color: "primary",
     },
     {
-      label: "Delete",
+      label: t("pages.role.delete"),
       icon: <DeleteIcon fontSize="small" />,
       onClick: (row) => handleDeleteClick(row.id, row.roleName),
       color: "error",
@@ -305,10 +309,10 @@ const ViewRoles: React.FC = () => {
         <div>
           <h1 className="text-2xl md:text-4xl font-extrabold text-gray-900 flex items-center gap-2 md:gap-3">
             <ShieldCheckIcon className="h-8 w-8 md:h-10 md:w-10 text-purple-600" />
-            Roles Management
+            {t("pages.role.viewTitle")}
           </h1>
           <p className="text-sm md:text-base text-gray-500 mt-2">
-            Manage all system roles and permissions
+            {t("pages.role.viewSubtitle")}
           </p>
         </div>
       </div>
@@ -316,32 +320,32 @@ const ViewRoles: React.FC = () => {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
-          <p className="text-sm text-gray-500 font-medium">Total Roles</p>
+          <p className="text-sm text-gray-500 font-medium">{t("pages.role.totalRoles")}</p>
           <p className="text-3xl font-bold text-gray-900 mt-2">
             {isLoading ? "…" : roles.length}
           </p>
-          <p className="text-sm text-green-600 mt-2">Live data</p>
+          <p className="text-sm text-green-600 mt-2">{t("pages.role.liveData")}</p>
         </div>
         <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
-          <p className="text-sm text-gray-500 font-medium">Admin Roles</p>
+          <p className="text-sm text-gray-500 font-medium">{t("pages.role.adminRoles")}</p>
           <p className="text-3xl font-bold text-gray-900 mt-2">
             {isLoading ? "…" : rolesByType["admin"] || 0}
           </p>
-          <p className="text-sm text-blue-600 mt-2">Admin access</p>
+          <p className="text-sm text-blue-600 mt-2">{t("pages.role.adminAccess")}</p>
         </div>
         <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
-          <p className="text-sm text-gray-500 font-medium">Student Roles</p>
+          <p className="text-sm text-gray-500 font-medium">{t("pages.role.studentRoles")}</p>
           <p className="text-3xl font-bold text-gray-900 mt-2">
             {isLoading ? "…" : rolesByType["student"] || 0}
           </p>
-          <p className="text-sm text-green-600 mt-2">Student access</p>
+          <p className="text-sm text-green-600 mt-2">{t("pages.role.studentAccess")}</p>
         </div>
         <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
-          <p className="text-sm text-gray-500 font-medium">Employer Roles</p>
+          <p className="text-sm text-gray-500 font-medium">{t("pages.role.employerRoles")}</p>
           <p className="text-3xl font-bold text-gray-900 mt-2">
             {isLoading ? "…" : rolesByType["employer"] || 0}
           </p>
-          <p className="text-sm text-amber-600 mt-2">Employer access</p>
+          <p className="text-sm text-amber-600 mt-2">{t("pages.role.employerAccess")}</p>
         </div>
       </div>
 
@@ -353,12 +357,12 @@ const ViewRoles: React.FC = () => {
         loading={isLoading || isDeleting}
         emptyMessage={
           isError
-            ? "Failed to load roles. Please try again."
-            : "No roles found"
+            ? t("pages.role.failedToLoadRoles")
+            : t("pages.role.noRolesFound")
         }
         selectable={true}
         searchable={true}
-        searchPlaceholder="Search roles by name or type..."
+        searchPlaceholder={t("pages.role.searchPlaceholder")}
         rowsPerPageOptions={[5, 10, 25, 50]}
         defaultRowsPerPage={10}
         serverSidePagination={false}
@@ -369,7 +373,7 @@ const ViewRoles: React.FC = () => {
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl max-w-2xl w-full shadow-2xl border-2 border-gray-200 max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-gray-900">Edit Role</h2>
+              <h2 className="text-2xl font-bold text-gray-900">{t("pages.role.editRole")}</h2>
               <button
                 onClick={handleEditClose}
                 className="text-gray-400 hover:text-gray-600 transition"
@@ -381,7 +385,7 @@ const ViewRoles: React.FC = () => {
             <form onSubmit={(e) => { e.preventDefault(); handleEditSave(); }} className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Role Name *
+                  {t("pages.role.roleNameLabel")}
                 </label>
                 <input
                   type="text"
@@ -389,13 +393,13 @@ const ViewRoles: React.FC = () => {
                   value={editForm.roleName}
                   onChange={(e) => setEditForm({ ...editForm, roleName: e.target.value })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  placeholder="e.g., Job Admin"
+                  placeholder={t("pages.role.roleNamePlaceholderEdit")}
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Permissions
+                  {t("pages.role.permissions")}
                 </label>
                 <div className="border border-gray-300 rounded-lg p-4 max-h-96 overflow-y-auto">
                   {permissionsData?.data && permissionsData.data.length > 0 ? (
@@ -427,7 +431,7 @@ const ViewRoles: React.FC = () => {
                                       onChange={(e) => updatePermissionFlags(permission.route, flag, e.target.checked)}
                                       className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
                                     />
-                                    <span className="text-xs text-gray-700 capitalize">{flag}</span>
+                                    <span className="text-xs text-gray-700">{t(flag === "edit" ? "pages.role.update" : `pages.role.${flag}`)}</span>
                                   </label>
                                 ))}
                               </div>
@@ -437,10 +441,10 @@ const ViewRoles: React.FC = () => {
                       })}
                     </div>
                   ) : (
-                    <p className="text-sm text-gray-500">No permissions available</p>
+                    <p className="text-sm text-gray-500">{t("pages.role.noPermissionsAvailable")}</p>
                   )}
                 </div>
-                <p className="text-xs text-gray-500 mt-1">Select routes and configure permissions for this role</p>
+                <p className="text-xs text-gray-500 mt-1">{t("pages.role.selectRoutesHelper")}</p>
               </div>
 
               <div className="flex gap-3 pt-4">
@@ -449,14 +453,14 @@ const ViewRoles: React.FC = () => {
                   onClick={handleEditClose}
                   className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition font-medium"
                 >
-                  Cancel
+                  {t("pages.role.cancel")}
                 </button>
                 <button
                   type="submit"
                   disabled={isUpdating}
                   className="flex-1 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition font-medium disabled:opacity-50"
                 >
-                  {isUpdating ? "Updating..." : "Update Role"}
+                  {isUpdating ? t("pages.role.updating") : t("pages.role.updateRole")}
                 </button>
               </div>
             </form>
@@ -473,12 +477,12 @@ const ViewRoles: React.FC = () => {
                 <TrashIcon className="h-6 w-6 text-red-600" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 text-center mb-2">
-                Delete Role?
+                {t("pages.role.deleteRoleTitle")}
               </h3>
               <p className="text-gray-600 text-center mb-6">
-                Are you sure you want to delete <span className="font-semibold text-gray-900">"{roleToDelete.name}"</span>? 
+                {t("pages.role.deleteRoleConfirm", { name: roleToDelete.name })}
                 <br />
-                <span className="text-red-600 font-medium">This action cannot be undone.</span>
+                <span className="text-red-600 font-medium">{t("pages.role.actionCannotBeUndone")}</span>
               </p>
               <div className="flex gap-3">
                 <button
@@ -486,7 +490,7 @@ const ViewRoles: React.FC = () => {
                   onClick={handleDeleteCancel}
                   className="flex-1 px-4 py-2.5 border-2 border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition font-medium"
                 >
-                  Cancel
+                  {t("pages.role.cancel")}
                 </button>
                 <button
                   type="button"
@@ -497,12 +501,12 @@ const ViewRoles: React.FC = () => {
                   {isDeleting ? (
                     <>
                       <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      Deleting...
+                      {t("pages.role.deleting")}
                     </>
                   ) : (
                     <>
                       <TrashIcon className="h-5 w-5" />
-                      Delete
+                      {t("pages.role.delete")}
                     </>
                   )}
                 </button>

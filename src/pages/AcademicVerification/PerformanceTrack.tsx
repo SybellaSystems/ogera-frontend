@@ -1,7 +1,9 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { ChartBarIcon } from "@heroicons/react/24/outline";
 
 const PerformanceTrack: React.FC = () => {
+  const { t } = useTranslation();
   const students = [
     {
       id: 1,
@@ -33,32 +35,32 @@ const PerformanceTrack: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6 animate-fadeIn">
+    <div className="academic-page theme-page-bg space-y-6 animate-fadeIn p-4 min-h-full">
       <div>
-        <h1 className="text-4xl font-extrabold text-gray-900 flex items-center gap-3">
-          <ChartBarIcon className="h-10 w-10 text-purple-600" />
-          Performance Track
+        <h1 className="text-4xl font-extrabold text-gray-900 dark:text-[var(--theme-text-primary)] flex items-center gap-3">
+          <ChartBarIcon className="h-10 w-10 text-purple-600 dark:text-purple-400" />
+          {t("pages.academic.performanceTrack")}
         </h1>
-        <p className="text-gray-500 mt-2">
-          Monitor student performance and job completion metrics
+        <p className="text-gray-500 dark:text-[var(--theme-text-secondary)] mt-2">
+          {t("pages.academic.performanceSubtitle")}
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-blue-50 rounded-xl p-6 border border-blue-200">
-          <p className="text-sm text-blue-700 font-medium">Avg Performance</p>
+          <p className="text-sm text-blue-700 font-medium">{t("pages.academic.avgPerformance")}</p>
           <p className="text-3xl font-bold text-blue-900 mt-2">4.7/5.0</p>
         </div>
         <div className="bg-green-50 rounded-xl p-6 border border-green-200">
-          <p className="text-sm text-green-700 font-medium">Total Jobs</p>
+          <p className="text-sm text-green-700 font-medium">{t("pages.academic.totalJobs")}</p>
           <p className="text-3xl font-bold text-green-900 mt-2">1,245</p>
         </div>
         <div className="bg-purple-50 rounded-xl p-6 border border-purple-200">
-          <p className="text-sm text-purple-700 font-medium">Completion Rate</p>
+          <p className="text-sm text-purple-700 font-medium">{t("pages.academic.completionRate")}</p>
           <p className="text-3xl font-bold text-purple-900 mt-2">94%</p>
         </div>
         <div className="bg-orange-50 rounded-xl p-6 border border-orange-200">
-          <p className="text-sm text-orange-700 font-medium">Total Earnings</p>
+          <p className="text-sm text-orange-700 font-medium">{t("pages.academic.totalEarnings")}</p>
           <p className="text-3xl font-bold text-orange-900 mt-2">$124K</p>
         </div>
       </div>
@@ -68,25 +70,25 @@ const PerformanceTrack: React.FC = () => {
           <thead className="bg-gray-50 border-b">
             <tr>
               <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">
-                Student
+                {t("pages.academic.student")}
               </th>
               <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">
-                University
+                {t("pages.academic.university")}
               </th>
               <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">
-                GPA
+                {t("pages.academic.gpa")}
               </th>
               <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">
-                Jobs Completed
+                {t("pages.academic.jobsCompleted")}
               </th>
               <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">
-                Rating
+                {t("pages.academic.rating")}
               </th>
               <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">
-                Earnings
+                {t("pages.academic.earnings")}
               </th>
               <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">
-                Actions
+                {t("pages.academic.actions")}
               </th>
             </tr>
           </thead>
@@ -129,7 +131,7 @@ const PerformanceTrack: React.FC = () => {
                 </td>
                 <td className="px-6 py-4">
                   <button className="text-purple-600 hover:text-purple-800 font-medium text-sm">
-                    View Report
+                    {t("pages.academic.viewReport")}
                   </button>
                 </td>
               </tr>

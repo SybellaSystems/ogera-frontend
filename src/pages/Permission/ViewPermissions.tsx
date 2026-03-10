@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { ShieldCheckIcon, TrashIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import CustomTable, {
   type Column,
@@ -29,6 +30,9 @@ interface PermissionRow {
 }
 
 const ViewPermissions: React.FC = () => {
+  const { t, i18n } = useTranslation();
+  const dateLocaleMap: Record<string, string> = { af: "af-ZA", zu: "zu-ZA", sw: "sw-KE", rw: "rw-RW", fr: "fr-FR" };
+  const dateLocale = dateLocaleMap[i18n.language] || "en-US";
   const { data: permissionsData, isLoading, isError, refetch } = useGetAllPermissionsQuery();
   const { data: routesData } = useGetAllRoutesQuery();
   const [deletePermission, { isLoading: isDeleting }] = useDeletePermissionMutation();
@@ -107,12 +111,12 @@ const ViewPermissions: React.FC = () => {
         id: selectedPermission.id,
         data: editForm,
       }).unwrap();
-      toast.success("Permission updated successfully");
+      toast.success(t("pages.permission.permissionUpdatedSuccess"));
       handleEditClose();
       refetch();
     } catch (error: any) {
       toast.error(
-        error?.data?.error || error?.data?.message || "Failed to update permission. Please try again."
+        error?.data?.error || error?.data?.message || t("pages.permission.failedToUpdatePermission")
       );
     }
   };
@@ -127,13 +131,13 @@ const ViewPermissions: React.FC = () => {
 
     try {
       await deletePermission(permissionToDelete.id).unwrap();
-      toast.success("Permission deleted successfully");
+      toast.success(t("pages.permission.permissionDeletedSuccess"));
       setShowDeleteModal(false);
       setPermissionToDelete(null);
       refetch();
     } catch (error: any) {
       toast.error(
-        error?.data?.error || error?.data?.message || "Failed to delete permission. Please try again."
+        error?.data?.error || error?.data?.message || t("pages.permission.failedToDeletePermission")
       );
     }
   };
@@ -145,11 +149,11 @@ const ViewPermissions: React.FC = () => {
 
   const formatPermissions = (permission: Permission["permission"]) => {
     const perms: string[] = [];
-    if (permission.view) perms.push("View");
-    if (permission.create) perms.push("Create");
-    if (permission.edit) perms.push("Update");
-    if (permission.delete) perms.push("Delete");
-    return perms.length > 0 ? perms.join(", ") : "None";
+    if (permission.view) perms.push(t("pages.permission.view"));
+    if (permission.create) perms.push(t("pages.permission.create"));
+    if (permission.edit) perms.push(t("pages.permission.update"));
+    if (permission.delete) perms.push(t("pages.permission.delete"));
+    return perms.length > 0 ? perms.join(", ") : t("pages.permission.none");
   };
 
   const mapPermission = (permission: Permission, index: number): PermissionRow => ({
@@ -159,7 +163,7 @@ const ViewPermissions: React.FC = () => {
     route: permission.route,
     permissions: formatPermissions(permission.permission),
     createdDate: permission.created_at
-      ? new Date(permission.created_at).toLocaleDateString("en-US", {
+      ? new Date(permission.created_at).toLocaleDateString(dateLocale, {
           year: "numeric",
           month: "short",
           day: "2-digit",
@@ -186,7 +190,7 @@ const ViewPermissions: React.FC = () => {
     },
     {
       id: "api_name",
-      label: "API Name",
+      label: t("pages.permission.apiName"),
       minWidth: 200,
       format: (value) => (
         <Typography sx={{ fontWeight: 600, color: "#111827" }}>
@@ -196,7 +200,7 @@ const ViewPermissions: React.FC = () => {
     },
     {
       id: "route",
-      label: "Route",
+      label: t("pages.permission.route"),
       minWidth: 250,
       format: (value) => (
         <Typography sx={{ color: "#6b7280", fontFamily: "monospace" }}>
@@ -206,18 +210,18 @@ const ViewPermissions: React.FC = () => {
     },
     {
       id: "permissions",
-      label: "Permissions",
+      label: t("pages.permission.permissions"),
       minWidth: 200,
       format: (value) => {
         const permString = value as string;
         const permCount = permString.split(", ").length;
         return (
           <Chip
-            label={permString || "None"}
+            label={permString || t("pages.permission.none")}
             size="small"
             sx={{
-              bgcolor: permCount > 0 ? "#dbeafe" : "#f3f4f6",
-              color: permCount > 0 ? "#1e40af" : "#6b7280",
+              bgcolor: permCount > 0 ? "var(--chip-permission-yes-bg)" : "var(--chip-permission-no-bg)",
+              color: permCount > 0 ? "var(--chip-permission-yes-text)" : "var(--chip-permission-no-text)",
               fontWeight: 500,
             }}
           />
@@ -226,20 +230,20 @@ const ViewPermissions: React.FC = () => {
     },
     {
       id: "createdDate",
-      label: "Created Date",
+      label: t("pages.permission.createdDate"),
       minWidth: 120,
     },
   ];
 
   const actions: TableAction<PermissionRow>[] = [
     {
-      label: "Edit",
+      label: t("pages.permission.edit"),
       icon: <EditIcon fontSize="small" />,
       onClick: (row) => handleEditClick(row),
       color: "primary",
     },
     {
-      label: "Delete",
+      label: t("pages.permission.delete"),
       icon: <DeleteIcon fontSize="small" />,
       onClick: (row) => handleDeleteClick(row.id, row.api_name),
       color: "error",
@@ -253,10 +257,10 @@ const ViewPermissions: React.FC = () => {
         <div>
           <h1 className="text-2xl md:text-4xl font-extrabold text-gray-900 flex items-center gap-2 md:gap-3">
             <ShieldCheckIcon className="h-8 w-8 md:h-10 md:w-10 text-purple-600" />
-            Permissions Management
+            {t("pages.permission.viewTitle")}
           </h1>
           <p className="text-sm md:text-base text-gray-500 mt-2">
-            Manage all API permissions and routes
+            {t("pages.permission.viewSubtitle")}
           </p>
         </div>
       </div>
@@ -264,25 +268,25 @@ const ViewPermissions: React.FC = () => {
       {/* Stats Card */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
         <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
-          <p className="text-sm text-gray-500 font-medium">Total Permissions</p>
+          <p className="text-sm text-gray-500 font-medium">{t("pages.permission.totalPermissions")}</p>
           <p className="text-3xl font-bold text-gray-900 mt-2">
             {isLoading ? "…" : permissions.length}
           </p>
-          <p className="text-sm text-green-600 mt-2">Live data</p>
+          <p className="text-sm text-green-600 mt-2">{t("pages.permission.liveData")}</p>
         </div>
         <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
-          <p className="text-sm text-gray-500 font-medium">Active Routes</p>
+          <p className="text-sm text-gray-500 font-medium">{t("pages.permission.activeRoutes")}</p>
           <p className="text-3xl font-bold text-gray-900 mt-2">
             {isLoading ? "…" : new Set(permissions.map(p => p.route)).size}
           </p>
-          <p className="text-sm text-blue-600 mt-2">Unique routes</p>
+          <p className="text-sm text-blue-600 mt-2">{t("pages.permission.uniqueRoutes")}</p>
         </div>
         <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
-          <p className="text-sm text-gray-500 font-medium">API Names</p>
+          <p className="text-sm text-gray-500 font-medium">{t("pages.permission.apiNames")}</p>
           <p className="text-3xl font-bold text-gray-900 mt-2">
             {isLoading ? "…" : new Set(permissions.map(p => p.api_name)).size}
           </p>
-          <p className="text-sm text-purple-600 mt-2">Unique APIs</p>
+          <p className="text-sm text-purple-600 mt-2">{t("pages.permission.uniqueApis")}</p>
         </div>
       </div>
 
@@ -294,12 +298,12 @@ const ViewPermissions: React.FC = () => {
         loading={isLoading || isDeleting}
         emptyMessage={
           isError
-            ? "Failed to load permissions. Please try again."
-            : "No permissions found"
+            ? t("pages.permission.failedToLoadPermissions")
+            : t("pages.permission.noPermissionsFound")
         }
         selectable={true}
         searchable={true}
-        searchPlaceholder="Search permissions by API name or route..."
+        searchPlaceholder={t("pages.permission.searchPlaceholder")}
         rowsPerPageOptions={[5, 10, 25, 50]}
         defaultRowsPerPage={10}
         serverSidePagination={false}
@@ -310,7 +314,7 @@ const ViewPermissions: React.FC = () => {
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl max-w-2xl w-full shadow-2xl border-2 border-gray-200 max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-gray-900">Edit Permission</h2>
+              <h2 className="text-2xl font-bold text-gray-900">{t("pages.permission.editPermission")}</h2>
               <button
                 onClick={handleEditClose}
                 className="text-gray-400 hover:text-gray-600 transition"
@@ -322,7 +326,7 @@ const ViewPermissions: React.FC = () => {
             <form onSubmit={(e) => { e.preventDefault(); handleEditSave(); }} className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  API Name *
+                  {t("pages.permission.apiNameLabel")}
                 </label>
                 <input
                   type="text"
@@ -330,13 +334,13 @@ const ViewPermissions: React.FC = () => {
                   value={editForm.api_name}
                   onChange={(e) => setEditForm({ ...editForm, api_name: e.target.value })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  placeholder="e.g., Jobs Management"
+                  placeholder={t("pages.permission.apiNamePlaceholderEdit")}
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Route *
+                  {t("pages.permission.routeLabel")}
                 </label>
                 <select
                   required
@@ -344,7 +348,7 @@ const ViewPermissions: React.FC = () => {
                   onChange={(e) => setEditForm({ ...editForm, route: e.target.value })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 >
-                  <option value="">Select a route</option>
+                  <option value="">{t("pages.permission.selectRoute")}</option>
                   {routesData?.data?.map((route: string) => (
                     <option key={route} value={route}>
                       {route}
@@ -355,7 +359,7 @@ const ViewPermissions: React.FC = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Permissions
+                  {t("pages.permission.permissions")}
                 </label>
                 <div className="grid grid-cols-2 gap-4">
                   <label className="flex items-center gap-2 cursor-pointer">
@@ -368,7 +372,7 @@ const ViewPermissions: React.FC = () => {
                       })}
                       className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
                     />
-                    <span className="text-sm text-gray-700">View</span>
+                    <span className="text-sm text-gray-700">{t("pages.permission.view")}</span>
                   </label>
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -380,7 +384,7 @@ const ViewPermissions: React.FC = () => {
                       })}
                       className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
                     />
-                    <span className="text-sm text-gray-700">Create</span>
+                    <span className="text-sm text-gray-700">{t("pages.permission.create")}</span>
                   </label>
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -392,7 +396,7 @@ const ViewPermissions: React.FC = () => {
                       })}
                       className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
                     />
-                    <span className="text-sm text-gray-700">Edit</span>
+                    <span className="text-sm text-gray-700">{t("pages.permission.update")}</span>
                   </label>
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -404,7 +408,7 @@ const ViewPermissions: React.FC = () => {
                       })}
                       className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
                     />
-                    <span className="text-sm text-gray-700">Delete</span>
+                    <span className="text-sm text-gray-700">{t("pages.permission.delete")}</span>
                   </label>
                 </div>
               </div>
@@ -415,14 +419,14 @@ const ViewPermissions: React.FC = () => {
                   onClick={handleEditClose}
                   className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition font-medium"
                 >
-                  Cancel
+                  {t("pages.permission.cancel")}
                 </button>
                 <button
                   type="submit"
                   disabled={isUpdating}
                   className="flex-1 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition font-medium disabled:opacity-50"
                 >
-                  {isUpdating ? "Updating..." : "Update Permission"}
+                  {isUpdating ? t("pages.permission.updating") : t("pages.permission.updatePermission")}
                 </button>
               </div>
             </form>
@@ -439,12 +443,12 @@ const ViewPermissions: React.FC = () => {
                 <TrashIcon className="h-6 w-6 text-red-600" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 text-center mb-2">
-                Delete Permission?
+                {t("pages.permission.deletePermissionTitle")}
               </h3>
               <p className="text-gray-600 text-center mb-6">
-                Are you sure you want to delete <span className="font-semibold text-gray-900">"{permissionToDelete.name}"</span>? 
+                {t("pages.permission.deletePermissionConfirm", { name: permissionToDelete.name })}
                 <br />
-                <span className="text-red-600 font-medium">This action cannot be undone.</span>
+                <span className="text-red-600 font-medium">{t("pages.permission.actionCannotBeUndone")}</span>
               </p>
               <div className="flex gap-3">
                 <button
@@ -452,7 +456,7 @@ const ViewPermissions: React.FC = () => {
                   onClick={handleDeleteCancel}
                   className="flex-1 px-4 py-2.5 border-2 border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition font-medium"
                 >
-                  Cancel
+                  {t("pages.permission.cancel")}
                 </button>
                 <button
                   type="button"
@@ -463,12 +467,12 @@ const ViewPermissions: React.FC = () => {
                   {isDeleting ? (
                     <>
                       <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      Deleting...
+                      {t("pages.permission.deleting")}
                     </>
                   ) : (
                     <>
                       <TrashIcon className="h-5 w-5" />
-                      Delete
+                      {t("pages.permission.delete")}
                     </>
                   )}
                 </button>

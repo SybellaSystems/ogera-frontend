@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { useTranslation } from "react-i18next";
 import {
   CheckBadgeIcon,
   MagnifyingGlassIcon,
@@ -18,6 +19,7 @@ import Loader from "../../components/Loader";
 import { formatRelativeTime } from "../../utils/timeUtils";
 
 const ActiveJobs: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const role = useSelector((state: any) => state.auth.role);
   const { data, isLoading, error } = useGetActiveJobsQuery();
@@ -96,7 +98,7 @@ const ActiveJobs: React.FC = () => {
       <div className="space-y-6 animate-fadeIn">
         <div className="bg-red-50 border border-red-200 rounded-xl p-6">
           <p className="text-red-800 font-medium">
-            Failed to load active jobs. Please try again later.
+            {t("pages.jobs.failedToLoadActive")}
           </p>
         </div>
       </div>
@@ -110,10 +112,10 @@ const ActiveJobs: React.FC = () => {
         <div>
           <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
             <CheckBadgeIcon className="h-8 w-8 text-green-600" />
-            Active Jobs
+            {t("pages.jobs.activeJobsTitle")}
           </h1>
           <p className="text-gray-600 mt-1">
-            {filteredJobs.length} jobs found
+            {t("pages.jobs.jobsFound", { count: filteredJobs.length })}
           </p>
         </div>
       </div>
@@ -126,7 +128,7 @@ const ActiveJobs: React.FC = () => {
             <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
             <input
               type="text"
-              placeholder="Search jobs by title, company, or skills..."
+              placeholder={t("pages.jobs.searchPlaceholderActive")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -141,7 +143,7 @@ const ActiveJobs: React.FC = () => {
               onChange={(e) => setSelectedLocation(e.target.value)}
               className="w-full pl-10 pr-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white"
             >
-              <option value="">All Locations</option>
+              <option value="">{t("pages.jobs.allLocations")}</option>
               {locations.map((location: string) => (
                 <option key={location} value={location}>
                   {location}
@@ -158,19 +160,19 @@ const ActiveJobs: React.FC = () => {
           <CheckBadgeIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
           <h3 className="text-xl font-semibold text-gray-900 mb-2">
             {searchQuery || selectedLocation
-              ? "No jobs found matching your criteria"
-              : "No active jobs available"}
+              ? t("pages.jobs.noJobsMatching")
+              : t("pages.jobs.noActiveJobsAvailable")}
           </h3>
           <p className="text-gray-600">
             {searchQuery || selectedLocation
-              ? "Try adjusting your search or filters"
-              : "There are no active job postings at the moment. Check back later!"}
+              ? t("pages.jobs.tryAdjusting")
+              : t("pages.jobs.noActiveCheckBack")}
           </p>
         </div>
       ) : (
         <div className="space-y-4">
           {filteredJobs.map((job: any) => {
-            const employerName = job.employer?.full_name || "Unknown Employer";
+            const employerName = job.employer?.full_name || t("pages.jobs.unknownEmployer");
             const companyInitial = employerName.charAt(0).toUpperCase();
             const isSaved = savedJobs.has(job.job_id);
 
@@ -204,7 +206,7 @@ const ActiveJobs: React.FC = () => {
                       <button
                         onClick={() => toggleSaveJob(job.job_id)}
                         className="flex-shrink-0 ml-4 p-2 hover:bg-gray-100 rounded-full transition"
-                        title={isSaved ? "Remove from saved" : "Save job"}
+                        title={isSaved ? t("pages.jobs.removeFromSaved") : t("pages.jobs.saveJob")}
                       >
                         {isSaved ? (
                           <BookmarkSolidIcon className="h-5 w-5 text-blue-600" />
@@ -222,7 +224,7 @@ const ActiveJobs: React.FC = () => {
                       </span>
                       <span className="flex items-center gap-1">
                         <CurrencyDollarIcon className="h-4 w-4" />
-                        ${job.budget?.toLocaleString() || "Not specified"}
+                        ${job.budget?.toLocaleString() || t("pages.jobs.notSpecified")}
                       </span>
                       {job.duration && (
                         <span className="flex items-center gap-1">
@@ -233,7 +235,7 @@ const ActiveJobs: React.FC = () => {
                       {job.created_at && (
                         <span className="flex items-center gap-1">
                           <ClockIcon className="h-4 w-4" />
-                          Posted {formatRelativeTime(job.created_at)}
+                          {t("pages.jobs.posted")} {formatRelativeTime(job.created_at)}
                         </span>
                       )}
                     </div>
@@ -263,7 +265,7 @@ const ActiveJobs: React.FC = () => {
                         </span>
                       )}
                       <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">
-                        {job.applications || 0} applicants
+                        {job.applications || 0} {t("pages.jobs.applicants")}
                       </span>
                     </div>
                   </div>
@@ -278,14 +280,14 @@ className={`px-3 md:px-4 py-1.5 md:py-2 rounded-md font-medium transition shadow
                             : "bg-blue-600 hover:bg-blue-700 text-white"
                         }`}
                       >
-                        {appliedJobIds.has(job.job_id) ? "Applied" : "Apply Now"}
+                        {appliedJobIds.has(job.job_id) ? t("pages.jobs.applied") : t("pages.jobs.applyNow")}
                       </button>
                     ) : (
                       <>
                         <button
                           onClick={() => navigate(`/dashboard/jobs/${job.job_id}`)}
 className="px-3 md:px-4 py-1.5 md:py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-md font-medium transition shadow-sm whitespace-nowrap text-xs md:text-sm flex-1 sm:flex-none cursor-pointer">                        
-                          View Details
+                          {t("pages.jobs.viewDetails")}
                         </button>
                         {(role === "employer" || role === "superadmin") && (
                           <button
@@ -293,7 +295,7 @@ className="px-3 md:px-4 py-1.5 md:py-2 bg-purple-600 hover:bg-purple-700 text-wh
                               navigate(`/dashboard/jobs/${job.job_id}/applications`)
                             }
 className="px-3 md:px-4 py-1.5 md:py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium transition shadow-sm whitespace-nowrap text-xs md:text-sm flex-1 sm:flex-none cursor-pointer">                          
-                            Manage ({job.applications || 0})
+                            {t("pages.jobs.manage")} ({job.applications || 0})
                           </button>
                         )}
                       </>

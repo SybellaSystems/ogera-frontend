@@ -4,6 +4,7 @@ import {
   Navigate,
 } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { useTranslation } from "react-i18next";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminLayout from "./layouts/adminLayout";
@@ -63,6 +64,7 @@ import MyDisputes from "./pages/Disputes/MyDisputes";
 
 // Other Pages
 import Analytics from "./pages/Analytics";
+import Notifications from "./pages/Notifications";
 import Transactions from "./pages/Transactions";
 import Pay from "./pages/Transactions/Pay";
 import MoMoPayments from "./pages/Transactions/MoMoPayments";
@@ -88,6 +90,7 @@ import CourseDetail from "./pages/Courses/CourseDetail";
 import CourseAnalytics from "./pages/Courses/CourseAnalytics";
 
 function App() {
+  const { t } = useTranslation();
   const isLoading = useRefreshOnLoad();
   const roleRaw = useSelector((state: any) => state.auth.role);
   const role = roleRaw ? String(roleRaw).toLowerCase().trim() : undefined;
@@ -98,7 +101,7 @@ function App() {
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <div className="text-center">
           <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-purple-600 border-r-transparent"></div>
-          <p className="mt-4 text-gray-600 font-medium">Loading...</p>
+          <p className="mt-4 text-gray-600 font-medium">{t("app.loading")}</p>
         </div>
       </div>
     );
@@ -386,6 +389,10 @@ function App() {
               Component: Analytics,
             },
             {
+              path: "notifications",
+              Component: Notifications,
+            },
+            {
               path: "transactions",
               Component: Transactions,
             },
@@ -450,19 +457,22 @@ function App() {
 export default App;
 
 /** 404 PAGE **/
-const NotFound = () => (
-  <div
-    style={{
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      justifyContent: "center",
-      height: "100vh",
-      color: "#7F56D9",
-      fontFamily: "Inter, sans-serif",
-    }}
-  >
-    <h1 style={{ fontSize: "50px", marginBottom: "20px" }}>404</h1>
-    <p style={{ fontSize: "18px" }}>Page Not Found</p>
-  </div>
-);
+const NotFound = () => {
+  const { t } = useTranslation();
+  return (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        height: "100vh",
+        color: "#7F56D9",
+        fontFamily: "Inter, sans-serif",
+      }}
+    >
+      <h1 style={{ fontSize: "50px", marginBottom: "20px" }}>404</h1>
+      <p style={{ fontSize: "18px" }}>{t("common.pageNotFound")}</p>
+    </div>
+  );
+};

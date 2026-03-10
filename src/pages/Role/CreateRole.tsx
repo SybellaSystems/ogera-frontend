@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useFormik } from "formik";
+import { useTranslation } from "react-i18next";
 import {
   useCreateRoleMutation,
   useGetAllPermissionsQuery,
@@ -29,35 +30,36 @@ interface CreateRoleFormValues {
   }>;
 }
 
-const validationSchema = Yup.object({
-  roleName: Yup.string()
-    .min(2, "Role name must be at least 2 characters")
-    .max(50, "Role name must not exceed 50 characters")
-    .required("Role name is required")
-    .matches(
-      /^[a-zA-Z0-9_]+$/,
-      "Role name can only contain letters, numbers, and underscores"
-    ),
-  roleType: Yup.string()
-    .oneOf(["student", "employer", "admin"], "Invalid role type")
-    .required("Role type is required"),
-  permission_json: Yup.array()
-    .of(
-      Yup.object({
-        route: Yup.string().required("Route is required"),
-        permission: Yup.object({
-          view: Yup.boolean().required(),
-          create: Yup.boolean().required(),
-          edit: Yup.boolean().required(),
-          delete: Yup.boolean().required(),
-        }).required(),
-      })
-    )
-    .optional(),
-});
-
 const CreateRole: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
+
+  const validationSchema = Yup.object({
+    roleName: Yup.string()
+      .min(2, t("pages.role.validationRoleNameMin"))
+      .max(50, t("pages.role.validationRoleNameMax"))
+      .required(t("pages.role.validationRoleNameRequired"))
+      .matches(
+        /^[a-zA-Z0-9_]+$/,
+        t("pages.role.validationRoleNameMatch")
+      ),
+    roleType: Yup.string()
+      .oneOf(["student", "employer", "admin"], t("pages.role.validationRoleTypeInvalid"))
+      .required(t("pages.role.validationRoleTypeRequired")),
+    permission_json: Yup.array()
+      .of(
+        Yup.object({
+          route: Yup.string().required(t("pages.role.validationRouteRequired")),
+          permission: Yup.object({
+            view: Yup.boolean().required(),
+            create: Yup.boolean().required(),
+            edit: Yup.boolean().required(),
+            delete: Yup.boolean().required(),
+          }).required(),
+        })
+      )
+      .optional(),
+  });
 
   const [createRole, { isLoading, isError, error, isSuccess, data }] =
     useCreateRoleMutation();
@@ -179,16 +181,16 @@ const CreateRole: React.FC = () => {
         data?: { error?: string; message?: string };
       };
       toast.error(
-        err?.data?.error || err?.data?.message || "Failed to create role"
+        err?.data?.error || err?.data?.message || t("pages.role.failedToCreateRole")
       );
     }
 
     if (data && isSuccess) {
-      toast.success(data?.message || "Role created successfully!");
+      toast.success(data?.message || t("pages.role.roleCreatedSuccess"));
       resetForm();
       navigate("/dashboard/role/view");
     }
-  }, [isError, error, data, isSuccess, resetForm, navigate]);
+  }, [isError, error, data, isSuccess, resetForm, navigate, t]);
 
   return (
     <Container>
@@ -197,19 +199,19 @@ const CreateRole: React.FC = () => {
           <IconWrapper>
             <ShieldCheckIcon className="h-8 w-8 text-purple-600" />
           </IconWrapper>
-          <Title>Create Role</Title>
+          <Title>{t("pages.role.createRole")}</Title>
           <Subtitle>
-            Create a new role. Only superadmin can create roles.
+            {t("pages.role.createRoleSubtitle")}
           </Subtitle>
         </Header>
 
         {/* Role Name */}
         <FormGroup>
-          <Label htmlFor="roleName">Role Name *</Label>
+          <Label htmlFor="roleName">{t("pages.role.roleNameLabel")}</Label>
           <Input
             id="roleName"
             name="roleName"
-            placeholder="Enter role name (e.g., xyz, admin, verifyDocAdmin)"
+            placeholder={t("pages.role.roleNamePlaceholder")}
             value={formik.values.roleName}
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
@@ -218,13 +220,13 @@ const CreateRole: React.FC = () => {
             <ErrorText>{formik.errors.roleName}</ErrorText>
           )}
           <HelperText>
-            Role name can only contain letters, numbers, and underscores
+            {t("pages.role.roleNameHelper")}
           </HelperText>
         </FormGroup>
 
         {/* Role Type */}
         <FormGroup>
-          <Label htmlFor="roleType">Role Type *</Label>
+          <Label htmlFor="roleType">{t("pages.role.roleTypeLabel")}</Label>
           <Select
             id="roleType"
             name="roleType"
@@ -232,9 +234,9 @@ const CreateRole: React.FC = () => {
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
           >
-            <option value="admin">Admin</option>
-            <option value="student">Student</option>
-            <option value="employer">Employer</option>
+            <option value="admin">{t("pages.role.roleTypeAdmin")}</option>
+            <option value="student">{t("pages.role.roleTypeStudent")}</option>
+            <option value="employer">{t("pages.role.roleTypeEmployer")}</option>
           </Select>
           {formik.touched.roleType && formik.errors.roleType && (
             <ErrorText>{formik.errors.roleType}</ErrorText>
@@ -243,17 +245,17 @@ const CreateRole: React.FC = () => {
 
         {/* Permissions */}
         <FormGroup>
-          <Label>Select API Permissions (Optional)</Label>
+          <Label>{t("pages.role.selectApiPermissions")}</Label>
           {isLoadingPermissions ? (
-            <HelperText>Loading permissions...</HelperText>
+            <HelperText>{t("pages.role.loadingPermissions")}</HelperText>
           ) : availablePermissions.length === 0 ? (
             <HelperText>
-              No permissions available. Please create permissions first in the Permission section.
+              {t("pages.role.noPermissionsCreateFirst")}
             </HelperText>
           ) : (
             <>
               <HelperText style={{ marginBottom: "12px" }}>
-                Select API names from the list below. For each selected API, you can choose which permissions to grant.
+                {t("pages.role.selectApiNamesHelper")}
               </HelperText>
 
               {/* API Name Selection */}
@@ -281,7 +283,7 @@ const CreateRole: React.FC = () => {
               {selectedApiNames.length > 0 && (
                 <SelectedPermissionsSection>
                   <Label style={{ marginBottom: "16px" }}>
-                    Configure Permissions for Selected APIs
+                    {t("pages.role.configurePermissions")}
                   </Label>
                   {selectedApiNames.map((apiName) => {
                     const availablePerm = getPermissionForApiName(apiName);
@@ -321,7 +323,7 @@ const CreateRole: React.FC = () => {
                                     updatePermission(apiName, "view", e.target.checked)
                                   }
                                 />
-                                <span>View</span>
+                                <span>{t("pages.role.view")}</span>
                               </CheckboxLabel>
                             )}
                             {availablePerm?.create && (
@@ -333,7 +335,7 @@ const CreateRole: React.FC = () => {
                                     updatePermission(apiName, "create", e.target.checked)
                                   }
                                 />
-                                <span>Create</span>
+                                <span>{t("pages.role.create")}</span>
                               </CheckboxLabel>
                             )}
                             {availablePerm?.edit && (
@@ -345,7 +347,7 @@ const CreateRole: React.FC = () => {
                                     updatePermission(apiName, "edit", e.target.checked)
                                   }
                                 />
-                                <span>Update</span>
+                                <span>{t("pages.role.update")}</span>
                               </CheckboxLabel>
                             )}
                             {availablePerm?.delete && (
@@ -357,7 +359,7 @@ const CreateRole: React.FC = () => {
                                     updatePermission(apiName, "delete", e.target.checked)
                                   }
                                 />
-                                <span>Delete</span>
+                                <span>{t("pages.role.delete")}</span>
                               </CheckboxLabel>
                             )}
                           </CheckboxGroup>
@@ -374,7 +376,7 @@ const CreateRole: React.FC = () => {
         <Button
           backgroundcolor="#7f56d9"
           type="submit"
-          text={isLoading ? "Creating..." : "Create Role"}
+          text={isLoading ? t("pages.role.creating") : t("pages.role.createRoleButton")}
           disabled={isLoading}
         />
       </FormContainer>
@@ -391,16 +393,20 @@ const Container = styled("div")`
   justify-content: center;
   align-items: flex-start;
   padding: 40px 20px;
-  background: #f9fafb;
+  background: var(--theme-page-bg);
+  transition: background 0.35s ease;
 `;
 
 const FormContainer = styled("form")`
   max-width: 600px;
   width: 100%;
-  background: white;
+  background: var(--theme-card-bg);
+  color: var(--theme-text-primary);
   border-radius: 16px;
   padding: 40px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--theme-border);
+  transition: background 0.35s ease, color 0.35s ease, border-color 0.35s ease;
 `;
 
 const Header = styled("div")`
@@ -417,14 +423,16 @@ const IconWrapper = styled("div")`
 const Title = styled("h1")`
   font-size: 28px;
   font-weight: 700;
-  color: #111827;
+  color: var(--theme-text-primary);
   margin-bottom: 8px;
+  transition: color 0.35s ease;
 `;
 
 const Subtitle = styled("p")`
   font-size: 14px;
-  color: #6b7280;
+  color: var(--theme-text-secondary);
   margin: 0;
+  transition: color 0.35s ease;
 `;
 
 const FormGroup = styled("div")`
@@ -437,19 +445,27 @@ const Label = styled("label")`
   margin-bottom: 8px;
   font-size: 14px;
   font-weight: 500;
-  color: #374151;
+  color: var(--theme-text-secondary);
+  transition: color 0.35s ease;
 `;
 
 const Input = styled("input")`
   padding: 12px;
   border-radius: 8px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--theme-border);
   font-size: 14px;
-  transition: border-color 0.2s;
+  background: var(--theme-input-bg);
+  color: var(--theme-text-primary);
+  transition: border-color 0.2s, background 0.35s ease, color 0.35s ease;
 
   &:focus {
     outline: none;
     border-color: #7f56d9;
+  }
+
+  &::placeholder {
+    color: var(--theme-text-secondary);
+    opacity: 0.8;
   }
 `;
 
@@ -461,18 +477,20 @@ const ErrorText = styled("div")`
 
 const HelperText = styled("div")`
   font-size: 12px;
-  color: #6b7280;
+  color: var(--theme-text-secondary);
   margin-top: 4px;
+  transition: color 0.35s ease;
 `;
 
 const Select = styled("select")`
   padding: 12px;
   border-radius: 8px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--theme-border);
   font-size: 14px;
-  background: white;
+  background: var(--theme-input-bg);
+  color: var(--theme-text-primary);
   cursor: pointer;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, background 0.35s ease, color 0.35s ease;
   width: 100%;
 
   &:focus {
@@ -482,6 +500,8 @@ const Select = styled("select")`
 
   option {
     padding: 8px;
+    background: var(--theme-card-bg);
+    color: var(--theme-text-primary);
   }
 `;
 
@@ -492,10 +512,11 @@ const ApiNameList = styled("div")`
   max-height: 300px;
   overflow-y: auto;
   padding: 12px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--theme-border);
   border-radius: 8px;
-  background: #f9fafb;
+  background: var(--theme-table-header-bg);
   margin-bottom: 16px;
+  transition: background 0.35s ease, border-color 0.35s ease;
 `;
 
 const ApiNameItem = styled("div")<{ selected: boolean }>`
@@ -506,12 +527,12 @@ const ApiNameItem = styled("div")<{ selected: boolean }>`
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s;
-  background: ${(props) => (props.selected ? "#ede9fe" : "white")};
-  border: 1px solid ${(props) => (props.selected ? "#7f56d9" : "#e5e7eb")};
+  background: ${(props) => (props.selected ? "rgba(127, 86, 217, 0.2)" : "var(--theme-card-bg)")};
+  border: 1px solid ${(props) => (props.selected ? "#7f56d9" : "var(--theme-border)")};
 
   &:hover {
-    background: ${(props) => (props.selected ? "#ddd6fe" : "#f3f4f6")};
-    border-color: ${(props) => (props.selected ? "#7f56d9" : "#d1d5db")};
+    background: ${(props) => (props.selected ? "rgba(127, 86, 217, 0.25)" : "var(--theme-table-header-bg)")};
+    border-color: ${(props) => (props.selected ? "#7f56d9" : "var(--theme-border)")};
   }
 
   input[type="checkbox"] {
@@ -523,13 +544,13 @@ const ApiNameItem = styled("div")<{ selected: boolean }>`
 
   .api-name {
     font-weight: 600;
-    color: #111827;
+    color: var(--theme-text-primary);
     display: block;
   }
 
   .api-route {
     font-size: 12px;
-    color: #6b7280;
+    color: var(--theme-text-secondary);
     font-family: monospace;
     display: block;
     margin-top: 4px;
@@ -541,11 +562,12 @@ const SelectedPermissionsSection = styled("div")`
 `;
 
 const PermissionCard = styled("div")`
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
+  background: var(--theme-table-header-bg);
+  border: 1px solid var(--theme-border);
   border-radius: 8px;
   padding: 16px;
   margin-bottom: 12px;
+  transition: background 0.35s ease, border-color 0.35s ease;
 `;
 
 const PermissionHeader = styled("div")`
@@ -592,7 +614,8 @@ const CheckboxLabel = styled("label")`
   gap: 8px;
   cursor: pointer;
   font-size: 14px;
-  color: #374151;
+  color: var(--theme-text-secondary);
+  transition: color 0.35s ease;
 
   input[type="checkbox"] {
     width: 18px;

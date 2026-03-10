@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { useFormik } from "formik";
+import { useTranslation } from "react-i18next";
 import {
   useCreatePermissionMutation,
   useGetAllRoutesQuery,
@@ -25,28 +26,29 @@ interface CreatePermissionFormValues {
   };
 }
 
-const validationSchema = Yup.object({
-  api_name: Yup.string()
-    .min(2, "API name must be at least 2 characters")
-    .max(100, "API name must not exceed 100 characters")
-    .required("API name is required")
-    .matches(
-      /^[a-zA-Z0-9_-]+$/,
-      "API name can only contain letters, numbers, underscores, and hyphens"
-    ),
-  route: Yup.string()
-    .required("Route is required")
-    .matches(/^\//, "Route must start with /"),
-  permission: Yup.object({
-    view: Yup.boolean().required(),
-    create: Yup.boolean().required(),
-    edit: Yup.boolean().required(),
-    delete: Yup.boolean().required(),
-  }).required(),
-});
-
 const CreatePermission: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
+
+  const validationSchema = Yup.object({
+    api_name: Yup.string()
+      .min(2, t("pages.permission.validationApiNameMin"))
+      .max(100, t("pages.permission.validationApiNameMax"))
+      .required(t("pages.permission.validationApiNameRequired"))
+      .matches(
+        /^[a-zA-Z0-9_-]+$/,
+        t("pages.permission.validationApiNameMatch")
+      ),
+    route: Yup.string()
+      .required(t("pages.permission.validationRouteRequired"))
+      .matches(/^\//, t("pages.permission.validationRouteStart")),
+    permission: Yup.object({
+      view: Yup.boolean().required(),
+      create: Yup.boolean().required(),
+      edit: Yup.boolean().required(),
+      delete: Yup.boolean().required(),
+    }).required(),
+  });
 
   const [createPermission, { isLoading, isError, error, isSuccess, data }] =
     useCreatePermissionMutation();
@@ -91,16 +93,16 @@ const CreatePermission: React.FC = () => {
         data?: { error?: string; message?: string };
       };
       toast.error(
-        err?.data?.error || err?.data?.message || "Failed to create permission"
+        err?.data?.error || err?.data?.message || t("pages.permission.failedToCreatePermission")
       );
     }
 
     if (data && isSuccess) {
-      toast.success(data?.message || "Permission created successfully!");
+      toast.success(data?.message || t("pages.permission.permissionCreatedSuccess"));
       resetForm();
       navigate("/dashboard/permission/view");
     }
-  }, [isError, error, data, isSuccess, resetForm, navigate]);
+  }, [isError, error, data, isSuccess, resetForm, navigate, t]);
 
   const updatePermission = (
     permissionType: "view" | "create" | "edit" | "delete",
@@ -116,19 +118,19 @@ const CreatePermission: React.FC = () => {
           <IconWrapper>
             <ShieldCheckIcon className="h-8 w-8 text-purple-600" />
           </IconWrapper>
-          <Title>Create Permission</Title>
+          <Title>{t("pages.permission.createPermission")}</Title>
           <Subtitle>
-            Create a new permission for an API route. Only superadmin can create permissions.
+            {t("pages.permission.createPermissionSubtitle")}
           </Subtitle>
         </Header>
 
         {/* API Name */}
         <FormGroup>
-          <Label htmlFor="api_name">API Name *</Label>
+          <Label htmlFor="api_name">{t("pages.permission.apiNameLabel")}</Label>
           <Input
             id="api_name"
             name="api_name"
-            placeholder="Enter API name (e.g., job-route, academic-route)"
+            placeholder={t("pages.permission.apiNamePlaceholder")}
             value={formik.values.api_name}
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
@@ -137,13 +139,13 @@ const CreatePermission: React.FC = () => {
             <ErrorText>{formik.errors.api_name}</ErrorText>
           )}
           <HelperText>
-            API name can only contain letters, numbers, underscores, and hyphens
+            {t("pages.permission.apiNameHelper")}
           </HelperText>
         </FormGroup>
 
         {/* Route */}
         <FormGroup>
-          <Label htmlFor="route">Route *</Label>
+          <Label htmlFor="route">{t("pages.permission.routeLabel")}</Label>
           <Select
             id="route"
             name="route"
@@ -154,7 +156,7 @@ const CreatePermission: React.FC = () => {
             onBlur={formik.handleBlur}
             disabled={isLoadingRoutes}
           >
-            <option value="">Select a route</option>
+            <option value="">{t("pages.permission.selectRoute")}</option>
             {availableRoutes.map((route: string) => (
               <option key={route} value={route}>
                 {route}
@@ -165,13 +167,13 @@ const CreatePermission: React.FC = () => {
             <ErrorText>{formik.errors.route}</ErrorText>
           )}
           <HelperText>
-            Select a route from available routes (excluding auth routes)
+            {t("pages.permission.routeHelper")}
           </HelperText>
         </FormGroup>
 
         {/* Permissions */}
         <FormGroup>
-          <Label>Permissions *</Label>
+          <Label>{t("pages.permission.permissionsLabel")}</Label>
           <PermissionCheckboxes>
             <CheckboxGroup>
               <CheckboxLabel>
@@ -180,7 +182,7 @@ const CreatePermission: React.FC = () => {
                   checked={formik.values.permission.view}
                   onChange={(e) => updatePermission("view", e.target.checked)}
                 />
-                <span>View</span>
+                <span>{t("pages.permission.view")}</span>
               </CheckboxLabel>
               <CheckboxLabel>
                 <input
@@ -188,7 +190,7 @@ const CreatePermission: React.FC = () => {
                   checked={formik.values.permission.create}
                   onChange={(e) => updatePermission("create", e.target.checked)}
                 />
-                <span>Create</span>
+                <span>{t("pages.permission.create")}</span>
               </CheckboxLabel>
               <CheckboxLabel>
                 <input
@@ -196,7 +198,7 @@ const CreatePermission: React.FC = () => {
                   checked={formik.values.permission.edit}
                   onChange={(e) => updatePermission("edit", e.target.checked)}
                 />
-                <span>Update</span>
+                <span>{t("pages.permission.update")}</span>
               </CheckboxLabel>
               <CheckboxLabel>
                 <input
@@ -204,19 +206,19 @@ const CreatePermission: React.FC = () => {
                   checked={formik.values.permission.delete}
                   onChange={(e) => updatePermission("delete", e.target.checked)}
                 />
-                <span>Delete</span>
+                <span>{t("pages.permission.delete")}</span>
               </CheckboxLabel>
             </CheckboxGroup>
           </PermissionCheckboxes>
           <HelperText>
-            Select which permissions should be available for this API route
+            {t("pages.permission.permissionsHelper")}
           </HelperText>
         </FormGroup>
 
         <Button
           backgroundcolor="#7f56d9"
           type="submit"
-          text={isLoading ? "Creating..." : "Create Permission"}
+          text={isLoading ? t("pages.permission.creating") : t("pages.permission.createPermissionButton")}
           disabled={isLoading}
         />
       </FormContainer>
@@ -233,16 +235,20 @@ const Container = styled("div")`
   justify-content: center;
   align-items: flex-start;
   padding: 40px 20px;
-  background: #f9fafb;
+  background: var(--theme-page-bg);
+  transition: background 0.35s ease;
 `;
 
 const FormContainer = styled("form")`
   max-width: 600px;
   width: 100%;
-  background: white;
+  background: var(--theme-card-bg);
+  color: var(--theme-text-primary);
   border-radius: 16px;
   padding: 40px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--theme-border);
+  transition: background 0.35s ease, color 0.35s ease, border-color 0.35s ease;
 `;
 
 const Header = styled("div")`
@@ -259,14 +265,16 @@ const IconWrapper = styled("div")`
 const Title = styled("h1")`
   font-size: 28px;
   font-weight: 700;
-  color: #111827;
+  color: var(--theme-text-primary);
   margin-bottom: 8px;
+  transition: color 0.35s ease;
 `;
 
 const Subtitle = styled("p")`
   font-size: 14px;
-  color: #6b7280;
+  color: var(--theme-text-secondary);
   margin: 0;
+  transition: color 0.35s ease;
 `;
 
 const FormGroup = styled("div")`
@@ -279,19 +287,27 @@ const Label = styled("label")`
   margin-bottom: 8px;
   font-size: 14px;
   font-weight: 500;
-  color: #374151;
+  color: var(--theme-text-secondary);
+  transition: color 0.35s ease;
 `;
 
 const Input = styled("input")`
   padding: 12px;
   border-radius: 8px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--theme-border);
   font-size: 14px;
-  transition: border-color 0.2s;
+  background: var(--theme-input-bg);
+  color: var(--theme-text-primary);
+  transition: border-color 0.2s, background 0.35s ease, color 0.35s ease;
 
   &:focus {
     outline: none;
     border-color: #7f56d9;
+  }
+
+  &::placeholder {
+    color: var(--theme-text-secondary);
+    opacity: 0.8;
   }
 `;
 
@@ -303,18 +319,20 @@ const ErrorText = styled("div")`
 
 const HelperText = styled("div")`
   font-size: 12px;
-  color: #6b7280;
+  color: var(--theme-text-secondary);
   margin-top: 4px;
+  transition: color 0.35s ease;
 `;
 
 const Select = styled("select")`
   padding: 12px;
   border-radius: 8px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--theme-border);
   font-size: 14px;
-  background: white;
+  background: var(--theme-input-bg);
+  color: var(--theme-text-primary);
   cursor: pointer;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, background 0.35s ease, color 0.35s ease;
   width: 100%;
 
   &:focus {
@@ -323,12 +341,14 @@ const Select = styled("select")`
   }
 
   &:disabled {
-    background: #f3f4f6;
+    opacity: 0.7;
     cursor: not-allowed;
   }
 
   option {
     padding: 8px;
+    background: var(--theme-card-bg);
+    color: var(--theme-text-primary);
   }
 `;
 
@@ -352,7 +372,8 @@ const CheckboxLabel = styled("label")`
   gap: 8px;
   cursor: pointer;
   font-size: 14px;
-  color: #374151;
+  color: var(--theme-text-secondary);
+  transition: color 0.35s ease;
 
   input[type="checkbox"] {
     width: 18px;

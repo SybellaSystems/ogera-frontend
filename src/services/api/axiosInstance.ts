@@ -15,7 +15,7 @@ const api = axios.create({
   withCredentials: true, 
 });
 
-// Attach access token
+// Attach access token and current locale for backend translations
 api.interceptors.request.use((config: any) => {
   const token = store.getState().auth.accessToken;
 
@@ -24,6 +24,9 @@ api.interceptors.request.use((config: any) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+
+  const locale = localStorage.getItem("ogera_language") || "en";
+  config.headers["Accept-Language"] = locale;
 
   return config;
 });

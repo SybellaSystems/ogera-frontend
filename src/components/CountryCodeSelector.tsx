@@ -190,9 +190,9 @@ const SelectButton = styled("button")<StyledProps>`
   align-items: center;
   gap: 8px;
   padding: 12px 14px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--theme-border, #ddd);
   border-radius: 8px 0 0 8px;
-  background: white;
+  background: var(--theme-input-bg, #ffffff);
   cursor: pointer;
   font-size: 14px;
   min-width: 100px;
@@ -229,8 +229,8 @@ const Dropdown = styled("div")`
   top: 100%;
   left: 0;
   right: 0;
-  background: white;
-  border: 1px solid #7f56d9;
+  background: var(--theme-card-bg, #ffffff);
+  border: 1px solid var(--theme-border, #7f56d9);
   border-radius: 0 0 8px 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   z-index: 1000;
@@ -243,9 +243,11 @@ const Dropdown = styled("div")`
 const SearchInput = styled("input")`
   padding: 10px 14px;
   border: none;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--theme-border, #eee);
   font-size: 14px;
   outline: none;
+  background: var(--theme-input-bg, #ffffff);
+  color: var(--theme-text-primary, #111827);
 
   &:focus {
     border-bottom-color: #7f56d9;
@@ -267,15 +269,15 @@ const CountryItem = styled("div")<StyledProps>`
   transition: background 0.2s;
 
   &:hover {
-    background: #f3ebff;
+    background: rgba(127, 86, 217, 0.08);
   }
 
   ${(props: StyledProps) =>
     props.$isSelected &&
     `
-    background: #f3ebff;
+    background: rgba(127, 86, 217, 0.14);
     font-weight: 600;
-    color: #7f56d9;
+    color: inherit;
   `}
 
   span:first-of-type {

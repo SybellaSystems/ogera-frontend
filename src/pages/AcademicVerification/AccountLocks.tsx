@@ -1,7 +1,9 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { LockClosedIcon } from "@heroicons/react/24/outline";
 
 const AccountLocks: React.FC = () => {
+  const { t } = useTranslation();
   const lockedAccounts = [
     {
       id: 1,
@@ -20,20 +22,20 @@ const AccountLocks: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6 animate-fadeIn">
+    <div className="academic-page theme-page-bg space-y-6 animate-fadeIn p-4 min-h-full">
       <div>
         <h1 className="text-4xl font-extrabold text-gray-900 flex items-center gap-3">
           <LockClosedIcon className="h-10 w-10 text-red-600" />
-          Account Locks
+          {t("pages.academic.accountLocks")}
         </h1>
         <p className="text-gray-500 mt-2">
-          Manage suspended and locked user accounts
+          {t("pages.academic.accountLocksSubtitle")}
         </p>
       </div>
 
       <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
         <p className="text-red-800 font-medium">
-          🔒 {lockedAccounts.length} accounts currently locked
+          🔒 {t("pages.academic.accountsLocked", { count: lockedAccounts.length })}
         </p>
       </div>
 
@@ -54,15 +56,15 @@ const AccountLocks: React.FC = () => {
                   </h3>
                   <div className="mt-2 space-y-1">
                     <p className="text-sm text-gray-600">
-                      <span className="font-medium">Reason:</span>{" "}
+                      <span className="font-medium">{t("pages.academic.lockedReason")}:</span>{" "}
                       {account.reason}
                     </p>
                     <p className="text-sm text-gray-600">
-                      <span className="font-medium">Locked on:</span>{" "}
+                      <span className="font-medium">{t("pages.academic.lockedOn")}:</span>{" "}
                       {account.lockedDate}
                     </p>
                     <p className="text-sm text-gray-600">
-                      <span className="font-medium">Duration:</span>{" "}
+                      <span className="font-medium">{t("pages.academic.duration")}:</span>{" "}
                       {account.duration}
                     </p>
                   </div>
@@ -70,10 +72,10 @@ const AccountLocks: React.FC = () => {
               </div>
               <div className="flex gap-3">
                 <button className="px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition shadow-md">
-                  Unlock
+                  {t("pages.academic.unlock")}
                 </button>
                 <button className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition shadow-md">
-                  View History
+                  {t("pages.academic.viewHistory")}
                 </button>
               </div>
             </div>

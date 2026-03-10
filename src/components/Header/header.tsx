@@ -1,8 +1,11 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { BellIcon, Bars3Icon } from "@heroicons/react/24/outline";
+import { useTranslation } from "react-i18next";
+import { BellIcon, Bars3Icon, LanguageIcon, ChevronDownIcon, SunIcon, MoonIcon } from "@heroicons/react/24/outline";
 import { logoutApi } from "../../services/api/logoutApi";
+import i18n, { supportedLanguages } from "../../i18n";
+import { useTheme } from "../../contexts/ThemeContext";
 import {
   useGetUnreadNotificationCountQuery,
   useGetNotificationsQuery,
@@ -15,11 +18,17 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
+  const { t } = useTranslation();
+  const { theme, setTheme } = useTheme();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isNotificationDropdownOpen, setIsNotificationDropdownOpen] = useState(false);
+  const [isLanguageDropdownOpen, setIsLanguageDropdownOpen] = useState(false);
+  const [isThemeDropdownOpen, setIsThemeDropdownOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const notificationDropdownRef = useRef<HTMLDivElement>(null);
+  const languageDropdownRef = useRef<HTMLDivElement>(null);
+  const themeDropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const role = useSelector((state: any) => state.auth.role);
@@ -58,6 +67,18 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
         !notificationDropdownRef.current.contains(event.target as Node)
       ) {
         setIsNotificationDropdownOpen(false);
+      }
+      if (
+        languageDropdownRef.current &&
+        !languageDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsLanguageDropdownOpen(false);
+      }
+      if (
+        themeDropdownRef.current &&
+        !themeDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsThemeDropdownOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -135,13 +156,15 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
       
       const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
-      if (diffInSeconds < 60) return "Just now";
-      if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
-      if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
-      return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+      if (diffInSeconds < 60) return t("header.justNow");
+      if (diffInSeconds < 3600) return t("header.minutesAgo", { count: Math.floor(diffInSeconds / 60) });
+      if (diffInSeconds < 86400) return t("header.hoursAgo", { count: Math.floor(diffInSeconds / 3600) });
+      const dateLocaleMap: Record<string, string> = { af: "af-ZA", zu: "zu-ZA", sw: "sw-KE", rw: "rw-RW", fr: "fr-FR" };
+      const dateLocale = dateLocaleMap[i18n.language] || "en-US";
+      return date.toLocaleDateString(dateLocale, { month: "short", day: "numeric" });
     } catch (error) {
       console.error("Error formatting date:", error);
-      return "Recently";
+      return t("header.recently");
     }
   };
 
@@ -179,23 +202,105 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
 
       {/* Center - Role + Dashboard title */}
       <div className="text-gray-700 font-semibold text-lg capitalize hidden sm:block">
-        {role ? `${role} Dashboard` : "Dashboard"}
+        {role ? `${role} ${t("header.dashboard")}` : t("header.dashboard")}
       </div>
 
-      {/* Right side (notification + profile) */}
+      {/* Right side (theme + language + notification + profile) */}
       <div className="flex items-center gap-3 md:gap-6">
+        {/* Theme dropdown */}
+        <div className="relative" ref={themeDropdownRef}>
+          <button
+            onClick={() => setIsThemeDropdownOpen(!isThemeDropdownOpen)}
+            className="flex items-center gap-1.5 px-2.5 py-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-600 hover:text-gray-900"
+            aria-label={t("theme.label")}
+            type="button"
+          >
+            {theme === "dark" ? (
+              <MoonIcon className="h-5 w-5" />
+            ) : (
+              <SunIcon className="h-5 w-5" />
+            )}
+            <span className="text-sm font-medium hidden sm:inline">
+              {theme === "dark" ? t("theme.dark") : t("theme.bright")}
+            </span>
+            <ChevronDownIcon className="h-4 w-4" />
+          </button>
+          {isThemeDropdownOpen && (
+            <div className="absolute right-0 mt-2 w-44 bg-white/95 backdrop-blur-lg border border-gray-200/50 rounded-xl shadow-2xl py-2 z-50 animate-fadeIn theme-dropdown">
+              <button
+                onClick={() => {
+                  setTheme("bright");
+                  setIsThemeDropdownOpen(false);
+                }}
+                className={`w-full text-left px-4 py-2 text-sm hover:bg-purple-50 transition-colors flex items-center gap-2 ${
+                  theme === "bright" ? "text-purple-600 font-medium bg-purple-50/50" : "text-gray-700"
+                }`}
+              >
+                <SunIcon className="h-4 w-4" />
+                {t("theme.bright")}
+              </button>
+              <button
+                onClick={() => {
+                  setTheme("dark");
+                  setIsThemeDropdownOpen(false);
+                }}
+                className={`w-full text-left px-4 py-2 text-sm hover:bg-purple-50 transition-colors flex items-center gap-2 ${
+                  theme === "dark" ? "text-purple-600 font-medium bg-purple-50/50" : "text-gray-700"
+                }`}
+              >
+                <MoonIcon className="h-4 w-4" />
+                {t("theme.dark")}
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Language dropdown */}
+        <div className="relative" ref={languageDropdownRef}>
+          <button
+            onClick={() => setIsLanguageDropdownOpen(!isLanguageDropdownOpen)}
+            className="flex items-center gap-1.5 px-2.5 py-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-600 hover:text-gray-900"
+            aria-label={t("language.label")}
+            type="button"
+          >
+            <LanguageIcon className="h-5 w-5" />
+            <span className="text-sm font-medium hidden sm:inline">
+              {supportedLanguages.find((l) => l.code === i18n.language)?.label ?? t("language.english")}
+            </span>
+            <ChevronDownIcon className="h-4 w-4" />
+          </button>
+          {isLanguageDropdownOpen && (
+            <div className="absolute right-0 mt-2 w-40 bg-white/95 backdrop-blur-lg border border-gray-200/50 rounded-xl shadow-2xl py-2 z-50 animate-fadeIn language-dropdown">
+              {supportedLanguages.map((lang) => (
+                <button
+                  key={lang.code}
+                  onClick={() => {
+                    i18n.changeLanguage(lang.code);
+                    setIsLanguageDropdownOpen(false);
+                  }}
+                  className={`w-full text-left px-4 py-2 text-sm hover:bg-purple-50 transition-colors ${
+                    i18n.language === lang.code ? "text-purple-600 font-medium bg-purple-50/50" : "text-gray-700"
+                  }`}
+                >
+                  {lang.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
         {/* Notification icon with dropdown */}
         {(role === "employer" || role === "superadmin" || role === "student") && (
           <div className="relative" ref={notificationDropdownRef}>
             <button
               onClick={() => setIsNotificationDropdownOpen(!isNotificationDropdownOpen)}
               className="relative cursor-pointer p-2 rounded-lg hover:bg-gray-100 transition-colors group"
-              aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ""}`}
+              aria-label={`${t("header.notifications")}${unreadCount > 0 ? ` (${t("header.unreadCount", { count: unreadCount })})` : ""}`}
               type="button"
             >
               <BellIcon className="h-6 w-6 text-gray-600 group-hover:text-purple-600 transition-colors" />
               {unreadCount > 0 && (
-                <span className="absolute top-0 right-0 bg-linear-to-r from-red-500 to-red-600 text-white text-xs font-semibold rounded-full h-5 w-5 flex items-center justify-center shadow-lg" aria-label={`${unreadCount} unread notifications`}>
+                <span className="absolute top-0 right-0 bg-linear-to-r from-red-500 to-red-600 text-white text-xs font-semibold rounded-full h-5 w-5 flex items-center justify-center shadow-lg" aria-label={t("header.unreadCount", { count: unreadCount })}>
                   {unreadCount > 9 ? "9+" : unreadCount}
                 </span>
               )}
@@ -203,23 +308,23 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
 
             {/* Notification Dropdown */}
             {isNotificationDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] sm:w-80 md:w-96 max-w-[calc(100vw-2rem)] sm:max-w-none bg-white/95 backdrop-blur-lg border border-gray-200/50 rounded-xl shadow-2xl z-50 animate-fadeIn overflow-hidden">
+              <div className="fixed sm:absolute inset-x-4 sm:inset-x-auto top-16 sm:top-auto sm:right-0 mt-0 sm:mt-2 w-auto sm:w-80 md:w-96 max-w-[calc(100vw-2rem)] sm:max-w-none bg-white/95 backdrop-blur-lg border border-gray-200/50 rounded-xl shadow-2xl z-50 animate-fadeIn overflow-hidden notification-dropdown">
                 <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-                  <h3 className="font-semibold text-gray-900">Notifications</h3>
+                  <h3 className="font-semibold text-gray-900">{t("header.notifications")}</h3>
                   {unreadCount > 0 && (
                     <button
                       onClick={handleMarkAllAsRead}
                       className="text-xs text-purple-600 hover:text-purple-700 font-medium"
                     >
-                      Mark all as read
+                      {t("header.markAllAsRead")}
                     </button>
                   )}
                 </div>
-                <div className="max-h-96 overflow-y-auto">
+                <div className="max-h-[calc(100vh-8rem)] sm:max-h-96 overflow-y-auto">
                   {notifications.length === 0 ? (
                     <div className="p-8 text-center text-gray-500">
                       <BellIcon className="h-12 w-12 mx-auto mb-2 text-gray-300" />
-                      <p>No notifications yet</p>
+                      <p>{t("header.noNotifications")}</p>
                     </div>
                   ) : (
                     notifications.map((notification: any) => (
@@ -247,12 +352,12 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                               <div className="mt-2 text-xs text-gray-500 space-y-1">
                                 {notification.application.student && (role === "employer" || role === "superadmin") && (
                                   <p>
-                                    Student: <span className="font-medium">{notification.application.student.full_name}</span>
+                                    {t("header.student")}: <span className="font-medium">{notification.application.student.full_name}</span>
                                   </p>
                                 )}
                                 {notification.application.job && (
                                   <p>
-                                    Job: <span className="font-medium">{notification.application.job.job_title}</span>
+                                    {t("header.job")}: <span className="font-medium">{notification.application.job.job_title}</span>
                                   </p>
                                 )}
                               </div>
@@ -279,7 +384,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                       }}
                       className="text-sm text-purple-600 hover:text-purple-700 font-medium"
                     >
-                      {role === "student" ? "View my applications" : "View all applications"}
+                      {role === "student" ? t("header.viewMyApplications") : t("header.viewAllApplications")}
                     </button>
                   </div>
                 )}
@@ -313,7 +418,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                   navigate("/dashboard/profile");
                 }}
               >
-                <span className="group-hover:text-purple-600 transition-colors">Profile</span>
+                <span className="group-hover:text-purple-600 transition-colors">{t("header.profile")}</span>
               </button>
               <button
                 className="w-full text-left px-4 py-2.5 text-gray-700 hover:bg-linear-to-r hover:from-red-50 hover:to-pink-50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 group"
@@ -321,7 +426,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                 disabled={isLoggingOut}
               >
                 <span className="group-hover:text-red-600 transition-colors">
-                  {isLoggingOut ? "Logging out..." : "Logout"}
+                  {isLoggingOut ? t("header.loggingOut") : t("header.logout")}
                 </span>
               </button>
             </div>

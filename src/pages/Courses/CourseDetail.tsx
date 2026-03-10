@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   BookOpenIcon,
@@ -26,6 +27,7 @@ import { CheckCircleIcon as CheckCircleIconOutline } from "@heroicons/react/24/o
 const BASE_URL = import.meta.env.VITE_API_URL;
 
 const CourseDetail: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { data, isLoading, error } = useGetCourseByIdQuery(id || "");
@@ -82,15 +84,15 @@ const CourseDetail: React.FC = () => {
   const getStepTypeLabel = (stepType: string) => {
     switch (stepType) {
       case "video":
-        return "Video";
+        return t("courses.video");
       case "link":
-        return "External Link";
+        return t("courses.externalLink");
       case "pdf":
-        return "PDF Document";
+        return t("courses.pdfDocument");
       case "image":
-        return "Image";
+        return t("courses.image");
       case "text":
-        return "Text Content";
+        return t("courses.textContent");
       default:
         return stepType;
     }
@@ -125,7 +127,7 @@ const CourseDetail: React.FC = () => {
     return url;
   };
 
-  const handlePdfDownload = async (filePath: string, fileName: string) => {
+  const handlePdfDownload = async (filePath: string, _fileName: string) => {
     try {
       // Check if it's already a full URL (S3)
       if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
@@ -142,7 +144,7 @@ const CourseDetail: React.FC = () => {
       );
 
       // Create a blob URL and open it
-      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const blob = new Blob([response.data as BlobPart], { type: 'application/pdf' });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -154,7 +156,7 @@ const CourseDetail: React.FC = () => {
       window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Error downloading PDF:', error);
-      alert('Failed to open PDF. Please try again.');
+      alert(t("courses.failedToOpenPdf"));
     }
   };
 
@@ -192,7 +194,7 @@ const CourseDetail: React.FC = () => {
               className="text-purple-600 hover:text-purple-700 underline flex items-center gap-2"
             >
               <LinkIcon className="h-4 w-4" />
-              Open Link
+              {t("courses.openLink")}
             </a>
           </div>
         );
@@ -211,7 +213,7 @@ const CourseDetail: React.FC = () => {
                 className="text-red-600 hover:text-red-700 underline flex items-center gap-2"
               >
                 <DocumentIcon className="h-4 w-4" />
-                View PDF
+                {t("courses.viewPdf")}
               </a>
             </div>
           );
@@ -226,7 +228,7 @@ const CourseDetail: React.FC = () => {
               className="text-red-600 hover:text-red-700 underline flex items-center gap-2 cursor-pointer bg-transparent border-none p-0"
             >
               <DocumentIcon className="h-4 w-4" />
-              View PDF
+              {t("courses.viewPdf")}
             </button>
           </div>
         );
@@ -241,7 +243,7 @@ const CourseDetail: React.FC = () => {
           <div className="mt-4">
             <img
               src={imageUrl}
-              alt={step.step_title || "Course image"}
+              alt={step.step_title || t("courses.courseImage")}
               className="w-full rounded-lg"
             />
           </div>
@@ -270,13 +272,13 @@ const CourseDetail: React.FC = () => {
       <div className="space-y-6 animate-fadeIn">
         <div className="bg-red-50 border border-red-200 rounded-xl p-6">
           <p className="text-red-800 font-medium">
-            Course not found or failed to load. Please try again later.
+            {t("courses.courseNotFound")}
           </p>
           <button
             onClick={() => navigate("/dashboard/courses/view")}
             className="mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition"
           >
-            Back to Courses
+            {t("courses.backToCourses")}
           </button>
         </div>
       </div>
@@ -298,7 +300,7 @@ const CourseDetail: React.FC = () => {
               className="text-gray-600 hover:text-gray-900 transition-colors flex items-center gap-2"
             >
               <ArrowLeftIcon className="h-5 w-5" />
-              Back to Courses
+              {t("courses.backToCourses")}
             </button>
           </div>
           <h1 className="text-2xl md:text-4xl font-extrabold text-gray-900 flex items-center gap-3">
@@ -313,14 +315,14 @@ const CourseDetail: React.FC = () => {
               {course.tag}
             </span>
             <span className="text-xs text-gray-500">
-              Created {formatRelativeTime(course.created_at)}
+              {t("courses.created")} {formatRelativeTime(course.created_at)}
             </span>
           </div>
           {/* Completion Status */}
           {completion.total > 0 && (
             <div className="mt-4 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg p-4 border border-purple-200">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-semibold text-gray-700">Course Progress</span>
+                <span className="text-sm font-semibold text-gray-700">{t("courses.courseProgress")}</span>
                 <span className="text-lg font-bold text-purple-600">{completion.percentage}%</span>
               </div>
               <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
@@ -331,7 +333,7 @@ const CourseDetail: React.FC = () => {
               </div>
               <div className="flex items-center justify-between mt-2">
                 <p className="text-xs text-gray-600">
-                  {completion.completed} of {completion.total} steps completed
+                  {t("courses.stepsCompleted", { completed: completion.completed, total: completion.total })}
                 </p>
                 {completion.started && completion.started_at && (
                   <p className="text-xs text-gray-500">
@@ -341,7 +343,7 @@ const CourseDetail: React.FC = () => {
               </div>
               {!completion.started && (
                 <p className="text-xs text-purple-600 mt-1 italic">
-                  Start learning by marking your first step as complete
+                  {t("courses.startLearningHint")}
                 </p>
               )}
             </div>
@@ -353,7 +355,7 @@ const CourseDetail: React.FC = () => {
       {course.description && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6">
           <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-3">
-            Course Description
+            {t("courses.courseDescription")}
           </h3>
           <p className="text-gray-700 text-sm md:text-base whitespace-pre-wrap">
             {course.description}
@@ -365,7 +367,7 @@ const CourseDetail: React.FC = () => {
       {sortedSteps.length > 0 ? (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6">
           <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-4">
-            Course Content ({sortedSteps.length} {sortedSteps.length === 1 ? "step" : "steps"})
+            {t("courses.courseContent", { count: sortedSteps.length })}
           </h3>
           <div className="space-y-6">
             {sortedSteps.map((step, index) => (
@@ -389,17 +391,17 @@ const CourseDetail: React.FC = () => {
                         <button
                           onClick={() => handleToggleStepComplete(step.step_id!, completedStepIds.has(step.step_id!))}
                           className="ml-auto flex items-center gap-1 text-sm text-gray-600 hover:text-green-600 transition-colors"
-                          title={completedStepIds.has(step.step_id!) ? "Mark as incomplete" : "Mark as complete"}
+                          title={completedStepIds.has(step.step_id!) ? t("courses.markIncomplete") : t("courses.markComplete")}
                         >
                           {completedStepIds.has(step.step_id!) ? (
                             <>
                               <CheckCircleIcon className="h-5 w-5 text-green-600" />
-                              <span className="text-xs text-green-600 font-medium">Completed</span>
+                              <span className="text-xs text-green-600 font-medium">{t("courses.completed")}</span>
                             </>
                           ) : (
                             <>
                               <CheckCircleIconOutline className="h-5 w-5" />
-                              <span className="text-xs">Mark Complete</span>
+                              <span className="text-xs">{t("courses.markComplete")}</span>
                             </>
                           )}
                         </button>
@@ -421,10 +423,10 @@ const CourseDetail: React.FC = () => {
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
           <BookOpenIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
           <h3 className="text-xl font-semibold text-gray-900 mb-2">
-            No course content available
+            {t("courses.noContentAvailable")}
           </h3>
           <p className="text-gray-600">
-            This course doesn't have any content steps yet.
+            {t("courses.noContentYet")}
           </p>
         </div>
       )}

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 import { getAllDisputes, getDisputeStats, type Dispute, type DisputeStats } from "../services/api/disputesApi";
 import { useNavigate } from "react-router-dom";
@@ -6,6 +7,7 @@ import { useSelector } from "react-redux";
 import Loader from "../components/Loader";
 
 const Disputes: React.FC = () => {
+  const { t } = useTranslation();
   const [disputes, setDisputes] = useState<Dispute[]>([]);
   const [stats, setStats] = useState<DisputeStats>({ open: 0, underReview: 0, resolved: 0, highPriority: 0 });
   const [loading, setLoading] = useState(true);
@@ -42,22 +44,22 @@ const Disputes: React.FC = () => {
       <div>
         <h1 className="text-4xl font-extrabold text-gray-900 flex items-center gap-3">
           <ExclamationTriangleIcon className="h-10 w-10 text-red-600" />
-          Disputes
+          {t("disputes.disputes")}
         </h1>
-        <p className="text-gray-500 mt-2">Manage and resolve disputes between students and employers</p>
+        <p className="text-gray-500 mt-2">{t("disputes.manageResolve")}</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-red-50 rounded-xl p-6 border border-red-200">
-          <p className="text-sm text-red-700 font-medium">Open Disputes</p>
+          <p className="text-sm text-red-700 font-medium">{t("disputes.openDisputes")}</p>
                     <p className="text-3xl font-bold text-red-900 mt-2">{stats.open}</p>
         </div>
         <div className="bg-orange-50 rounded-xl p-6 border border-orange-200">
-          <p className="text-sm text-orange-700 font-medium">Under Review</p>
+          <p className="text-sm text-orange-700 font-medium">{t("disputes.underReview")}</p>
                     <p className="text-3xl font-bold text-orange-900 mt-2">{stats.underReview}</p>
         </div>
         <div className="bg-green-50 rounded-xl p-6 border border-green-200">
-          <p className="text-sm text-green-700 font-medium">Resolved This Month</p>
+          <p className="text-sm text-green-700 font-medium">{t("disputes.resolvedThisMonth")}</p>
                     <p className="text-3xl font-bold text-green-900 mt-2">{stats.resolved}</p>
         </div>
       </div>
@@ -65,7 +67,7 @@ const Disputes: React.FC = () => {
       <div className="space-y-4">
         {disputes.length === 0 ? (
           <div className="bg-white rounded-xl p-8 shadow-md border border-gray-100 text-center">
-            <p className="text-gray-500 text-lg">No disputes found</p>
+            <p className="text-gray-500 text-lg">{t("disputes.noDisputesFound")}</p>
           </div>
         ) : (
           disputes.map((dispute) => (
@@ -128,21 +130,21 @@ const Disputes: React.FC = () => {
                     onClick={() => navigate(`/dashboard/disputes/${dispute.dispute_id}`)}
                     className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition shadow-md whitespace-nowrap"
                   >
-                    View Details
+                    {t("disputes.viewDetails")}
                   </button>
                   {dispute.status !== "Resolved" && (
                     <button
                       onClick={() => navigate(`/dashboard/disputes/${dispute.dispute_id}`)}
                       className="px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition shadow-md whitespace-nowrap"
                     >
-                      Resolve
+                      {t("disputes.resolve")}
                     </button>
                   )}
                   <button
                     onClick={() => navigate(`/dashboard/disputes/${dispute.dispute_id}`)}
                     className="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition shadow-md whitespace-nowrap"
                   >
-                    Message Parties
+                    {t("disputes.messageParties")}
                   </button>
                 </div>
               </div>

@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import type { TrustScore } from "../services/api/trustScoreApi";
 
 interface TrustScoreCardProps {
@@ -10,6 +11,7 @@ const TrustScoreCard: React.FC<TrustScoreCardProps> = ({
   trustScore,
   isLoading = false,
 }) => {
+  const { t } = useTranslation();
   if (isLoading) {
     return (
       <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100 animate-pulse">
@@ -84,13 +86,13 @@ const TrustScoreCard: React.FC<TrustScoreCardProps> = ({
     <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">TrustScore</h2>
+        <h2 className="text-2xl font-bold text-gray-900">{t("profile.trustScore")}</h2>
         <span
           className={`px-4 py-2 rounded-full text-sm font-semibold border ${getLevelColor(
             trustScore.level
           )}`}
         >
-          {trustScore.level}
+          {t(`profile.trustScoreLevel.${trustScore.level}`)}
         </span>
       </div>
 
@@ -120,13 +122,15 @@ const TrustScoreCard: React.FC<TrustScoreCardProps> = ({
         </div>
       </div>
 
-      {/* Description */}
-      <p className="text-gray-600 text-sm mb-6">{trustScore.description}</p>
+      {/* Description - translated by level */}
+      <p className="text-gray-600 text-sm mb-6">
+        {t(`profile.trustScoreDescription.${trustScore.level}`)}
+      </p>
 
       {/* Verification Status */}
       <div className="space-y-4 mb-6">
         <h3 className="text-lg font-semibold text-gray-900">
-          Verification Status
+          {t("profile.verificationStatus")}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Email Verification */}
@@ -138,11 +142,11 @@ const TrustScoreCard: React.FC<TrustScoreCardProps> = ({
             }`}
           >
             <div className="flex items-center justify-between mb-2">
-              <span className="font-medium text-gray-700">Email</span>
+              <span className="font-medium text-gray-700">{t("profile.email")}</span>
               {getVerificationIcon(trustScore.email_verified)}
             </div>
             <p className="text-sm text-gray-600">
-              {trustScore.breakdown.email_verification_score.toFixed(1)} points
+              {trustScore.breakdown.email_verification_score.toFixed(1)} {t("profile.points")}
             </p>
           </div>
 
@@ -155,11 +159,11 @@ const TrustScoreCard: React.FC<TrustScoreCardProps> = ({
             }`}
           >
             <div className="flex items-center justify-between mb-2">
-              <span className="font-medium text-gray-700">Phone</span>
+              <span className="font-medium text-gray-700">{t("profile.phone")}</span>
               {getVerificationIcon(trustScore.phone_verified)}
             </div>
             <p className="text-sm text-gray-600">
-              {trustScore.breakdown.phone_verification_score.toFixed(1)} points
+              {trustScore.breakdown.phone_verification_score.toFixed(1)} {t("profile.points")}
             </p>
           </div>
 
@@ -172,11 +176,11 @@ const TrustScoreCard: React.FC<TrustScoreCardProps> = ({
             }`}
           >
             <div className="flex items-center justify-between mb-2">
-              <span className="font-medium text-gray-700">Academic</span>
+              <span className="font-medium text-gray-700">{t("profile.academic")}</span>
               {getVerificationIcon(trustScore.academic_verified)}
             </div>
             <p className="text-sm text-gray-600">
-              {trustScore.breakdown.academic_verification_score.toFixed(1)} points
+              {trustScore.breakdown.academic_verification_score.toFixed(1)} {t("profile.points")}
             </p>
           </div>
         </div>
@@ -185,14 +189,14 @@ const TrustScoreCard: React.FC<TrustScoreCardProps> = ({
       {/* Score Breakdown */}
       <div className="pt-6 border-t border-gray-200">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          Score Breakdown
+          {t("profile.scoreBreakdown")}
         </h3>
         <div className="space-y-3">
           {/* Email Score */}
           <div>
             <div className="flex justify-between items-center mb-1">
               <span className="text-sm font-medium text-gray-700">
-                Email Verification
+                {t("profile.emailVerification")}
               </span>
               <span className="text-sm font-semibold text-gray-900">
                 {trustScore.breakdown.email_verification_score.toFixed(2)} / 33.33
@@ -214,7 +218,7 @@ const TrustScoreCard: React.FC<TrustScoreCardProps> = ({
           <div>
             <div className="flex justify-between items-center mb-1">
               <span className="text-sm font-medium text-gray-700">
-                Phone Verification
+                {t("profile.phoneVerification")}
               </span>
               <span className="text-sm font-semibold text-gray-900">
                 {trustScore.breakdown.phone_verification_score.toFixed(2)} / 33.33
@@ -236,7 +240,7 @@ const TrustScoreCard: React.FC<TrustScoreCardProps> = ({
           <div>
             <div className="flex justify-between items-center mb-1">
               <span className="text-sm font-medium text-gray-700">
-                Academic Verification
+                {t("profile.academicVerificationScore")}
               </span>
               <span className="text-sm font-semibold text-gray-900">
                 {trustScore.breakdown.academic_verification_score.toFixed(2)} / 33.34

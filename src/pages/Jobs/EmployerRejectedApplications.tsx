@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useGetEmployerApplicationsQuery } from "../../services/api/jobApplicationApi";
 import {
   BriefcaseIcon,
@@ -11,6 +12,7 @@ import api from "../../services/api/axiosInstance";
 import toast from "react-hot-toast";
 
 const EmployerRejectedApplications: React.FC = () => {
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { data, isLoading, error } = useGetEmployerApplicationsQuery(
     { status: "Rejected" },
@@ -22,7 +24,7 @@ const EmployerRejectedApplications: React.FC = () => {
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
+    return date.toLocaleDateString(i18n.language === "en" ? "en-US" : i18n.language, {
       year: "numeric",
       month: "short",
       day: "numeric",
@@ -34,33 +36,35 @@ const EmployerRejectedApplications: React.FC = () => {
   const handleViewResume = async (resumeUrl: string) => {
     try {
       let filePath = resumeUrl;
-      
-      if (resumeUrl.includes('/api/resumes/download')) {
+
+      if (resumeUrl.includes("/api/resumes/download")) {
         const url = new URL(resumeUrl, window.location.origin);
-        filePath = url.searchParams.get('path') || resumeUrl;
-      } else if (resumeUrl.startsWith('http://') || resumeUrl.startsWith('https://')) {
-        window.open(resumeUrl, '_blank');
+        filePath = url.searchParams.get("path") || resumeUrl;
+      } else if (resumeUrl.startsWith("http://") || resumeUrl.startsWith("https://")) {
+        window.open(resumeUrl, "_blank");
         return;
       }
 
       const response = await api.get(`/resumes/download?path=${encodeURIComponent(filePath)}`, {
-        responseType: 'blob',
+        responseType: "blob",
       });
 
-      const blob = new Blob([response.data as BlobPart], { type: (response.data as any)?.type || 'application/pdf' });
+      const blob = new Blob([response.data as BlobPart], {
+        type: (response.data as any)?.type || "application/pdf",
+      });
       const blobUrl = window.URL.createObjectURL(blob);
-      
-      window.open(blobUrl, '_blank');
-      
+
+      window.open(blobUrl, "_blank");
+
       setTimeout(() => {
         window.URL.revokeObjectURL(blobUrl);
       }, 100);
     } catch (error: any) {
-      console.error('Error viewing resume:', error);
+      console.error("Error viewing resume:", error);
       toast.error(
-        error?.response?.data?.message || 
-        error?.message || 
-        'Failed to view resume. Please try again.'
+        error?.response?.data?.message ||
+          error?.message ||
+          t("pages.jobs.failedToViewResume")
       );
     }
   };
@@ -74,7 +78,7 @@ const EmployerRejectedApplications: React.FC = () => {
       <div className="space-y-6 animate-fadeIn">
         <div className="bg-red-50 border border-red-200 rounded-xl p-6">
           <p className="text-red-800 font-medium">
-            Failed to load applications. Please try again later.
+            {t("pages.jobs.failedToLoadApplications")}
           </p>
         </div>
       </div>
@@ -82,28 +86,30 @@ const EmployerRejectedApplications: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6 animate-fadeIn">
+    <div className="theme-page-bg space-y-6 animate-fadeIn min-h-full p-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-4xl font-extrabold text-gray-900 flex items-center gap-3">
-            <XCircleIcon className="h-10 w-10 text-red-600" />
-            Rejected Applications
+          <h1 className="text-4xl font-extrabold text-gray-900 dark:text-[var(--theme-text-primary)] flex items-center gap-3">
+            <XCircleIcon className="h-10 w-10 text-red-600 dark:text-red-400" />
+            {t("pages.jobs.rejectedApplicationsTitle")}
           </h1>
-          <p className="text-gray-500 mt-2">
-            View all rejected job applications for your posted jobs
+          <p className="text-gray-500 dark:text-[var(--theme-text-secondary)] mt-2">
+            {t("pages.jobs.rejectedApplicationsSubtitle")}
           </p>
         </div>
         <button
           onClick={() => navigate("/dashboard/jobs/applications")}
           className=" text-sm font-medium bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg font-semibold transition shadow-sm cursor-pointer"
         >
-          View All Applications
+          {t("pages.jobs.viewAllApplications")}
         </button>
       </div>
 
       {/* Statistics */}
       <div className="bg-red-50 rounded-xl p-4 border border-red-200">
-        <p className="text-sm text-red-700 font-medium">Total Rejected</p>
+        <p className="text-sm text-red-700 font-medium">
+          {t("pages.jobs.totalRejected")}
+        </p>
         <p className="text-3xl font-bold text-red-900 mt-2">
           {rejectedApplications.length}
         </p>
@@ -113,11 +119,9 @@ const EmployerRejectedApplications: React.FC = () => {
         <div className="bg-white rounded-xl p-12 shadow-md border border-gray-100 text-center">
           <XCircleIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
           <h3 className="text-xl font-semibold text-gray-900 mb-2">
-            No rejected applications
+            {t("pages.jobs.noRejectedYet")}
           </h3>
-          <p className="text-gray-600">
-            You haven't rejected any job applications yet.
-          </p>
+          <p className="text-gray-600">{t("pages.jobs.noRejectedMessage")}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -134,10 +138,12 @@ const EmployerRejectedApplications: React.FC = () => {
                     </div>
                     <div>
                       <h3 className="text-xl font-semibold text-gray-900">
-                        {application.student?.full_name || "Unknown Student"}
+                        {application.student?.full_name ||
+                          t("pages.jobs.unknownStudent")}
                       </h3>
                       <p className="text-sm text-gray-600">
-                        {application.student?.email || "No email"}
+                        {application.student?.email ||
+                          t("pages.jobs.noEmail")}
                       </p>
                       {application.student?.mobile_number && (
                         <p className="text-sm text-gray-500">
@@ -151,17 +157,23 @@ const EmployerRejectedApplications: React.FC = () => {
                     <div className="flex items-center gap-2">
                       <BriefcaseIcon className="h-4 w-4 text-gray-400" />
                       <span className="text-gray-700 font-medium">
-                        {application.job?.job_title || "Unknown Job"}
+                        {application.job?.job_title ||
+                          t("pages.jobs.unknownJob")}
                       </span>
                     </div>
                     <div className="flex items-center gap-4 text-sm text-gray-600">
-                      <span>📍 {application.job?.location || "N/A"}</span>
-                      <span>💰 ${application.job?.budget?.toLocaleString() || "N/A"}</span>
+                      <span>
+                        📍 {application.job?.location || "N/A"}
+                      </span>
+                      <span>
+                        💰 $
+                        {application.job?.budget?.toLocaleString() || "N/A"}
+                      </span>
                     </div>
                     {application.cover_letter && (
                       <div className="mt-3 p-3 bg-gray-50 rounded-lg">
                         <p className="text-sm font-medium text-gray-700 mb-1">
-                          Cover Letter:
+                          {t("pages.jobs.coverLetter")}
                         </p>
                         <p className="text-sm text-gray-600 line-clamp-3">
                           {application.cover_letter}
@@ -171,22 +183,30 @@ const EmployerRejectedApplications: React.FC = () => {
                     {application.resume_url && (
                       <div className="mt-3">
                         <button
-                          onClick={() => handleViewResume(application.resume_url!)}
+                          onClick={() =>
+                            handleViewResume(application.resume_url!)
+                          }
                           className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg font-medium transition text-sm"
                         >
                           <BriefcaseIcon className="h-4 w-4" />
-                          View Resume
+                          {t("pages.jobs.viewResume")}
                         </button>
                       </div>
                     )}
                     <div className="flex items-center gap-2 text-sm text-gray-500">
                       <ClockIcon className="h-4 w-4" />
-                      <span>Applied: {formatDate(application.applied_at)}</span>
+                      <span>
+                        {t("pages.jobs.appliedLabel")}:{" "}
+                        {formatDate(application.applied_at)}
+                      </span>
                     </div>
                     {application.reviewed_at && (
                       <div className="flex items-center gap-2 text-sm text-red-600 font-medium">
                         <XCircleIcon className="h-4 w-4" />
-                        <span>Rejected: {formatDate(application.reviewed_at)}</span>
+                        <span>
+                          {t("pages.jobs.rejectedAtLabel")}:{" "}
+                          {formatDate(application.reviewed_at)}
+                        </span>
                       </div>
                     )}
                   </div>
@@ -196,7 +216,7 @@ const EmployerRejectedApplications: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <XCircleIcon className="h-5 w-5 text-red-600" />
                     <span className="px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">
-                      Rejected
+                      {t("pages.jobs.rejectedLabel")}
                     </span>
                   </div>
                 </div>
@@ -210,4 +230,3 @@ const EmployerRejectedApplications: React.FC = () => {
 };
 
 export default EmployerRejectedApplications;
-

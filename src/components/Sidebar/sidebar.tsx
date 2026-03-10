@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { hasAnyPermission } from "../../utils/permissionUtils";
 import type { Role } from "../../utils/permissionUtils";
 import { SIDEBAR_MENU_CONFIG } from "../../config/sidebarMenuConfig";
@@ -9,7 +10,6 @@ import {
   UsersIcon,
   BriefcaseIcon,
   ChartBarIcon,
-  NoSymbolIcon,
   ExclamationTriangleIcon,
   ChevronDownIcon,
   AcademicCapIcon,
@@ -20,8 +20,6 @@ import {
   ClockIcon,
   CheckCircleIcon,
   XCircleIcon,
-  ChartBarSquareIcon,
-  LockClosedIcon,
   FolderIcon,
   FireIcon,
   ArrowPathIcon,
@@ -40,6 +38,7 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
+  const { t } = useTranslation();
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
@@ -159,7 +158,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           >
             <HomeIcon className={`h-5 w-5 transition-colors ${isActive("/dashboard") ? "text-white" : "text-white/70 group-hover:text-white"}`} />
             <span className={`font-medium transition-colors ${isActive("/dashboard") ? "text-white" : "group-hover:text-white"}`}>
-              Dashboard
+              {t("sidebar.dashboard")}
             </span>
           </div>
 
@@ -174,15 +173,15 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                   <AcademicCapIcon className="h-5 w-5 text-white/70 group-hover:text-white transition-colors" />
                   <div className="flex flex-col">
                     <span className="font-medium group-hover:text-white transition-colors">
-                      Academic Verification
+                      {t("sidebar.academicVerification")}
                     </span>
                     {isActiveGroup("/dashboard/academic") && openMenu !== "academic" && (
                       <span className="text-xs text-[#9F7AEA] font-medium">
-                        {location.pathname === "/dashboard/academic/pending" && "Pending Reviews"}
-                        {location.pathname === "/dashboard/academic/approved" && "Approved"}
-                        {location.pathname === "/dashboard/academic/rejected" && "Rejected"}
-                        {/* {location.pathname === "/dashboard/academic/performance" && "Performance Track"} */}
-                        {/* {location.pathname === "/dashboard/academic/locks" && "Account Locks"} */}
+                        {location.pathname === "/dashboard/academic/pending" && t("sidebar.pendingReviews")}
+                        {location.pathname === "/dashboard/academic/approved" && t("sidebar.approved")}
+                        {location.pathname === "/dashboard/academic/rejected" && t("sidebar.rejected")}
+                        {/* {location.pathname === "/dashboard/academic/performance" && t("sidebar.performanceTrack")} */}
+                        {/* {location.pathname === "/dashboard/academic/locks" && t("sidebar.accountLocks")} */}
                       </span>
                     )}
                   </div>
@@ -216,7 +215,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         ? "text-white font-medium"
                         : "group-hover/item:text-white"
                     }`}>
-                      Pending Reviews
+                      {t("sidebar.pendingReviews")}
                     </span>
                   </li>
                   <li
@@ -239,7 +238,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         ? "text-white font-medium"
                         : "group-hover/item:text-white"
                     }`}>
-                      Approved
+                      {t("sidebar.approved")}
                     </span>
                   </li>
                   <li
@@ -262,7 +261,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         ? "text-white font-medium"
                         : "group-hover/item:text-white"
                     }`}>
-                      Rejected
+                      {t("sidebar.rejected")}
                     </span>
                   </li>
                   {/* <li
@@ -327,13 +326,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                   <UsersIcon className="h-5 w-5 text-white/70 group-hover:text-white transition-colors" />
                   <div className="flex flex-col">
                     <span className="font-medium group-hover:text-white transition-colors">
-                      User
+                      {t("sidebar.user")}
                     </span>
                     {isActiveGroup("/dashboard/users") && openMenu !== "users" && (
                       <span className="text-xs text-[#9F7AEA] font-medium">
-                        {location.pathname === "/dashboard/users/all" && "All Users"}
-                        {location.pathname === "/dashboard/users/students" && "Students"}
-                        {location.pathname === "/dashboard/users/employers" && "Employers"}
+                        {location.pathname === "/dashboard/users/all" && t("sidebar.allUsers")}
+                        {location.pathname === "/dashboard/users/students" && t("sidebar.students")}
+                        {location.pathname === "/dashboard/users/employers" && t("sidebar.employers")}
                         {/* {location.pathname === "/dashboard/users/pending" && "Pending Approval"} */}
                         {/* {location.pathname === "/dashboard/users/suspended" && "Suspended"} */}
                       </span>
@@ -367,7 +366,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         ? "text-white font-medium"
                         : "group-hover/item:text-white"
                     }`}>
-                      All Users
+                      {t("sidebar.allUsers")}
                     </span>
                   </li>
                   <li
@@ -390,7 +389,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         ? "text-white font-medium"
                         : "group-hover/item:text-white"
                     }`}>
-                      Students
+                      {t("sidebar.students")}
                     </span>
                   </li>
                   <li
@@ -413,7 +412,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         ? "text-white font-medium"
                         : "group-hover/item:text-white"
                     }`}>
-                      Employers
+                      {t("sidebar.employers")}
                     </span>
                   </li>
                   {/* <li
@@ -476,12 +475,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                   <ShieldCheckIcon className="h-5 w-5 text-white/70 group-hover:text-white transition-colors" />
                   <div className="flex flex-col">
                     <span className="font-medium group-hover:text-white transition-colors">
-                      Admin
+                      {t("sidebar.admin")}
                     </span>
                     {isActiveGroup("/dashboard/admin") && openMenu !== "admin" && (
                       <span className="text-xs text-[#9F7AEA] font-medium">
-                        {location.pathname === "/dashboard/admin/create" && "Create"}
-                        {location.pathname === "/dashboard/admin/view" && "View"}
+                        {location.pathname === "/dashboard/admin/create" && t("sidebar.create")}
+                        {location.pathname === "/dashboard/admin/view" && t("sidebar.view")}
                       </span>
                     )}
                   </div>
@@ -513,7 +512,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         ? "text-white font-medium"
                         : "group-hover/item:text-white"
                     }`}>
-                      Create
+                      {t("sidebar.create")}
                     </span>
                   </li>
                   <li
@@ -534,7 +533,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         ? "text-white font-medium"
                         : "group-hover/item:text-white"
                     }`}>
-                      View
+                      {t("sidebar.view")}
                     </span>
                   </li>
                 </ul>
@@ -553,12 +552,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                   <ShieldCheckIcon className="h-5 w-5 text-white/70 group-hover:text-white transition-colors" />
                   <div className="flex flex-col">
                     <span className="font-medium group-hover:text-white transition-colors">
-                      Permission
+                      {t("sidebar.permission")}
                     </span>
                     {isActiveGroup("/dashboard/permission") && openMenu !== "permission" && (
                       <span className="text-xs text-[#9F7AEA] font-medium">
-                        {location.pathname === "/dashboard/permission/create" && "Create"}
-                        {location.pathname === "/dashboard/permission/view" && "View"}
+                        {location.pathname === "/dashboard/permission/create" && t("sidebar.create")}
+                        {location.pathname === "/dashboard/permission/view" && t("sidebar.view")}
                       </span>
                     )}
                   </div>
@@ -590,7 +589,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         ? "text-white font-medium"
                         : "group-hover/item:text-white"
                     }`}>
-                      Create
+                      {t("sidebar.create")}
                     </span>
                   </li>
                   <li
@@ -611,7 +610,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         ? "text-white font-medium"
                         : "group-hover/item:text-white"
                     }`}>
-                      View
+                      {t("sidebar.view")}
                     </span>
                   </li>
                 </ul>
@@ -630,12 +629,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                   <ShieldCheckIcon className="h-5 w-5 text-white/70 group-hover:text-white transition-colors" />
                   <div className="flex flex-col">
                     <span className="font-medium group-hover:text-white transition-colors">
-                      Role
+                      {t("sidebar.role")}
                     </span>
                     {isActiveGroup("/dashboard/role") && openMenu !== "role" && (
                       <span className="text-xs text-[#9F7AEA] font-medium">
-                        {location.pathname === "/dashboard/role/create" && "Create"}
-                        {location.pathname === "/dashboard/role/view" && "View"}
+                        {location.pathname === "/dashboard/role/create" && t("sidebar.create")}
+                        {location.pathname === "/dashboard/role/view" && t("sidebar.view")}
                       </span>
                     )}
                   </div>
@@ -667,7 +666,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         ? "text-white font-medium"
                         : "group-hover/item:text-white"
                     }`}>
-                      Create
+                      {t("sidebar.create")}
                     </span>
                   </li>
                   <li
@@ -688,7 +687,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         ? "text-white font-medium"
                         : "group-hover/item:text-white"
                     }`}>
-                      View
+                      {t("sidebar.view")}
                     </span>
                   </li>
                 </ul>
@@ -720,15 +719,15 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                   <AcademicCapIcon className="h-5 w-5 text-white/70 group-hover:text-white transition-colors" />
                   <div className="flex flex-col">
                     <span className="font-medium group-hover:text-white transition-colors">
-                      Academic Verification
+                      {t("sidebar.academicVerification")}
                     </span>
                     {isActiveGroup("/dashboard/academic") && openMenu !== "academic" && (
                       <span className="text-xs text-[#9F7AEA] font-medium">
-                        {location.pathname === "/dashboard/academic/pending" && "Pending Reviews"}
-                        {location.pathname === "/dashboard/academic/approved" && "Approved"}
-                        {location.pathname === "/dashboard/academic/rejected" && "Rejected"}
-                        {location.pathname === "/dashboard/academic/performance" && "Performance Track"}
-                        {/* {location.pathname === "/dashboard/academic/locks" && "Account Locks"} */}
+                        {location.pathname === "/dashboard/academic/pending" && t("sidebar.pendingReviews")}
+                        {location.pathname === "/dashboard/academic/approved" && t("sidebar.approved")}
+                        {location.pathname === "/dashboard/academic/rejected" && t("sidebar.rejected")}
+                        {location.pathname === "/dashboard/academic/performance" && t("sidebar.performanceTrack")}
+                        {/* {location.pathname === "/dashboard/academic/locks" && t("sidebar.accountLocks")} */}
                       </span>
                     )}
                   </div>
@@ -762,7 +761,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         ? "text-white font-medium"
                         : "group-hover/item:text-white"
                     }`}>
-                      Pending Reviews
+                      {t("sidebar.pendingReviews")}
                     </span>
                   </li>
                   <li
@@ -785,7 +784,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         ? "text-white font-medium"
                         : "group-hover/item:text-white"
                     }`}>
-                      Approved
+                      {t("sidebar.approved")}
                     </span>
                   </li>
                   <li
@@ -808,7 +807,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         ? "text-white font-medium"
                         : "group-hover/item:text-white"
                     }`}>
-                      Rejected
+                      {t("sidebar.rejected")}
                     </span>
                   </li>
                   {/* <li
@@ -888,20 +887,20 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     <BriefcaseIcon className="h-5 w-5 text-white/70 group-hover:text-white transition-colors" />
                     <div className="flex flex-col">
                       <span className="font-medium group-hover:text-white transition-colors">
-                        Jobs
+                        {t("sidebar.jobs")}
                       </span>
                       {isActiveGroup("/dashboard/jobs") && openMenu !== "jobs" && (
                         <span className="text-xs text-[#9F7AEA] font-medium">
-                          {location.pathname === "/dashboard/jobs/create" && "Create Job"}
-                          {location.pathname === "/dashboard/jobs/applications" && "Applications"}
-                          {location.pathname === "/dashboard/jobs/applications/accepted" && "Accepted"}
-                          {location.pathname === "/dashboard/jobs/applications/rejected" && "Rejected"}
-                          {location.pathname === "/dashboard/jobs/my-applications" && "My Applications"}
-                          {location.pathname === "/dashboard/jobs/my-applications/accepted" && "Accepted"}
-                          {location.pathname === "/dashboard/jobs/my-applications/rejected" && "Rejected"}
-                          {location.pathname === "/dashboard/jobs/my-applications/completed" && "Completed"}
-                          {location.pathname === "/dashboard/jobs/categories" && "Categories"}
-                          {location.pathname === "/dashboard/jobs/all" && "All Jobs"}
+                          {location.pathname === "/dashboard/jobs/create" && t("sidebar.createJob")}
+                          {location.pathname === "/dashboard/jobs/applications" && t("sidebar.applications")}
+                          {location.pathname === "/dashboard/jobs/applications/accepted" && t("sidebar.approved")}
+                          {location.pathname === "/dashboard/jobs/applications/rejected" && t("sidebar.rejected")}
+                          {location.pathname === "/dashboard/jobs/my-applications" && t("sidebar.myApplications")}
+                          {location.pathname === "/dashboard/jobs/my-applications/accepted" && t("sidebar.approved")}
+                          {location.pathname === "/dashboard/jobs/my-applications/rejected" && t("sidebar.rejected")}
+                          {location.pathname === "/dashboard/jobs/my-applications/completed" && t("sidebar.completed")}
+                          {location.pathname === "/dashboard/jobs/categories" && t("sidebar.jobCategories")}
+                          {location.pathname === "/dashboard/jobs/all" && t("sidebar.allJobs")}
                         </span>
                       )}
                     </div>
@@ -923,7 +922,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         >
                           <PlusIcon className="h-4 w-4 text-white/40 group-hover/item:text-[#9F7AEA] transition-colors" />
                           <span className="text-white/60 group-hover/item:text-white transition-colors">
-                            Create Job
+                            {t("sidebar.createJob")}
                           </span>
                         </li>
                         <li
@@ -932,7 +931,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         >
                           <BriefcaseIcon className="h-4 w-4 text-white/40 group-hover/item:text-[#9F7AEA] transition-colors" />
                           <span className="text-white/60 group-hover/item:text-white transition-colors">
-                            Applications
+                            {t("sidebar.applications")}
                           </span>
                         </li>
                         <li
@@ -941,7 +940,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         >
                           <CheckCircleIcon className="h-4 w-4 text-white/40 group-hover/item:text-green-400 transition-colors" />
                           <span className="text-white/60 group-hover/item:text-white transition-colors">
-                            Accepted
+                            {t("sidebar.approved")}
                           </span>
                         </li>
                         <li
@@ -950,7 +949,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         >
                           <XCircleIcon className="h-4 w-4 text-white/40 group-hover/item:text-red-400 transition-colors" />
                           <span className="text-white/60 group-hover/item:text-white transition-colors">
-                            Rejected
+                            {t("sidebar.rejected")}
                           </span>
                         </li>
                       </>
@@ -963,7 +962,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         >
                           <BriefcaseIcon className="h-4 w-4 text-white/40 group-hover/item:text-[#9F7AEA] transition-colors" />
                           <span className="text-white/60 group-hover/item:text-white transition-colors">
-                            My Applications
+                            {t("sidebar.myApplications")}
                           </span>
                         </li>
                         <li
@@ -972,7 +971,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         >
                           <CheckCircleIcon className="h-4 w-4 text-white/40 group-hover/item:text-green-400 transition-colors" />
                           <span className="text-white/60 group-hover/item:text-white transition-colors">
-                            Accepted
+                            {t("sidebar.approved")}
                           </span>
                         </li>
                         <li
@@ -981,7 +980,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         >
                           <XCircleIcon className="h-4 w-4 text-white/40 group-hover/item:text-red-400 transition-colors" />
                           <span className="text-white/60 group-hover/item:text-white transition-colors">
-                            Rejected
+                            {t("sidebar.rejected")}
                           </span>
                         </li>
                       </>
@@ -992,7 +991,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     >
                       <FolderIcon className="h-4 w-4 text-white/40 group-hover/item:text-[#9F7AEA] transition-colors" />
                       <span className="text-white/60 group-hover/item:text-white transition-colors">
-                        All Jobs
+                        {t("sidebar.allJobs")}
                       </span>
                     </li>
                     <li
@@ -1001,7 +1000,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     >
                       <FireIcon className="h-4 w-4 text-white/40 group-hover/item:text-orange-400 transition-colors" />
                       <span className="text-white/60 group-hover/item:text-white transition-colors">
-                        Active Jobs
+                        {t("sidebar.activeJobs")}
                       </span>
                     </li>
                     <li
@@ -1012,7 +1011,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     >
                       <CheckBadgeIcon className="h-4 w-4 text-white/40 group-hover/item:text-green-400 transition-colors" />
                       <span className="text-white/60 group-hover/item:text-white transition-colors">
-                        Completed
+                        {t("sidebar.completed")}
                       </span>
                     </li>
                     {/* {isBuiltInAdmin && (
@@ -1037,7 +1036,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                       >
                         <BriefcaseIcon className="h-4 w-4 text-white/40 group-hover/item:text-[#9F7AEA] transition-colors" />
                         <span className="text-white/60 group-hover/item:text-white transition-colors">
-                          Job Categories
+                          {t("sidebar.jobCategories")}
                         </span>
                       </li>
                     )}
@@ -1066,17 +1065,17 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     <ExclamationTriangleIcon className="h-5 w-5 text-white/70 group-hover:text-white transition-colors" />
                     <div className="flex flex-col">
                       <span className="font-medium group-hover:text-white transition-colors">
-                        Disputes
+                        {t("sidebar.disputes")}
                       </span>
                       {isActiveGroup("/dashboard/disputes") && openMenu !== "disputes" && (
                         <span className="text-xs text-[#9F7AEA] font-medium">
-                                                    {location.pathname === "/dashboard/disputes" && "All Disputes"}
-                          {location.pathname === "/dashboard/disputes/open" && "Open Disputes"}
-                          {location.pathname === "/dashboard/disputes/in-progress" && "In Progress"}
-                          {location.pathname === "/dashboard/disputes/resolved" && "Resolved"}
-                           {location.pathname === "/dashboard/disputes/create" && "Create Dispute"}
-                          {location.pathname.startsWith("/dashboard/disputes/detail") && "Dispute Detail"}
-                          {location.pathname === "/dashboard/disputes/my-disputes" && "My Disputes"}
+                                                    {location.pathname === "/dashboard/disputes" && t("sidebar.allDisputes")}
+                          {location.pathname === "/dashboard/disputes/open" && t("sidebar.openDisputes")}
+                          {location.pathname === "/dashboard/disputes/in-progress" && t("sidebar.inProgress")}
+                          {location.pathname === "/dashboard/disputes/resolved" && t("sidebar.resolved")}
+                           {location.pathname === "/dashboard/disputes/create" && t("sidebar.createDispute")}
+                          {location.pathname.startsWith("/dashboard/disputes/detail") && t("sidebar.disputeDetail")}
+                          {location.pathname === "/dashboard/disputes/my-disputes" && t("sidebar.myDisputes")}
                         </span>
                       )}
                     </div>
@@ -1102,7 +1101,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         >
                           <ExclamationTriangleIcon className="h-4 w-4 text-white/40 group-hover/item:text-yellow-400 transition-colors" />
                           <span className="text-white/60 group-hover/item:text-white transition-colors">
-                            Open Disputes
+                            {t("sidebar.openDisputes")}
                           </span>
                         </li>
                         <li
@@ -1113,7 +1112,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         >
                           <ArrowPathIcon className="h-4 w-4 text-white/40 group-hover/item:text-blue-400 transition-colors" />
                           <span className="text-white/60 group-hover/item:text-white transition-colors">
-                            In Progress
+                            {t("sidebar.inProgress")}
                           </span>
                         </li>
                         <li
@@ -1124,7 +1123,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         >
                           <CheckCircleIcon className="h-4 w-4 text-white/40 group-hover/item:text-green-400 transition-colors" />
                           <span className="text-white/60 group-hover/item:text-white transition-colors">
-                            Resolved
+                            {t("sidebar.resolved")}
                           </span>
                         </li>
                         <li
@@ -1133,7 +1132,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         >
                           <ListBulletIcon className="h-4 w-4 text-white/40 group-hover/item:text-purple-400 transition-colors" />
                           <span className="text-white/60 group-hover/item:text-white transition-colors">
-                         All Disputes
+                         {t("sidebar.allDisputes")}
                          </span>
                         </li>
                       </>
@@ -1148,7 +1147,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                        >
                          <PlusIcon className="h-4 w-4 text-white/40 group-hover/item:text-purple-400 transition-colors" />
                           <span className="text-white/60 group-hover/item:text-white transition-colors">
-                         Create Dispute
+                         {t("sidebar.createDispute")}
                          </span>
                        </li>
 
@@ -1158,7 +1157,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                       >
                         <UsersIcon className="h-4 w-4 text-white/40 group-hover/item:text-purple-400 transition-colors" />
                           <span className="text-white/60 group-hover/item:text-white transition-colors">
-                       My Disputes
+                       {t("sidebar.myDisputes")}
                        </span>
                       </li>
                      </>
@@ -1177,7 +1176,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               >
                 <ChartBarIcon className="h-5 w-5 text-white/70 group-hover:text-white transition-colors" />
                 <span className="font-medium group-hover:text-white transition-colors">
-                  Analytics
+                  {t("sidebar.analytics")}
                 </span>
               </div>
             )}
@@ -1194,7 +1193,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     <CreditCardIcon className="h-5 w-5 text-white/70 group-hover:text-white transition-colors" />
                     <div className="flex flex-col">
                       <span className="font-medium group-hover:text-white transition-colors">
-                        Transaction
+                        {t("sidebar.transaction")}
                       </span>
                       {isActiveGroup("/dashboard/transactions") && openMenu !== "transactions" && (
                         <span className="text-xs text-[#9F7AEA] font-medium">
@@ -1233,7 +1232,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                           ? "text-white font-medium"
                           : "group-hover/item:text-white"
                       }`}>
-                        Transactions
+                        {t("sidebar.transactions")}
                       </span>
                     </li>
                     <li
@@ -1254,7 +1253,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                           ? "text-white font-medium"
                           : "group-hover/item:text-white"
                       }`}>
-                        Pay
+                        {t("sidebar.pay")}
                       </span>
                     </li>
                     <li
@@ -1334,11 +1333,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         <IconComponent className="h-5 w-5 text-white/70 group-hover:text-white transition-colors" />
                         <div className="flex flex-col">
                           <span className="font-medium group-hover:text-white transition-colors">
-                            {menuConfig.label}
+                            {t(menuConfig.labelKey)}
                           </span>
                           {isActiveGroup(menuConfig.basePath) && openMenu !== menuConfig.menuKey && (
                             <span className="text-xs text-[#9F7AEA] font-medium">
-                              {menuConfig.submenuItems.find(item => item.path === location.pathname)?.label}
+                              {menuConfig.submenuItems?.find(item => item.path === location.pathname)?.labelKey
+                                ? t(menuConfig.submenuItems!.find(item => item.path === location.pathname)!.labelKey!)
+                                : menuConfig.submenuItems?.find(item => item.path === location.pathname)?.label}
                             </span>
                           )}
                         </div>
@@ -1362,7 +1363,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                             >
                               <SubIcon className="h-4 w-4 text-white/40 group-hover/item:text-[#9F7AEA] transition-colors" />
                               <span className="text-white/60 group-hover/item:text-white transition-colors">
-                                {subItem.label}
+                                {subItem.labelKey ? t(subItem.labelKey) : subItem.label}
                               </span>
                             </li>
                           );
@@ -1383,7 +1384,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 >
                   <IconComponent className="h-5 w-5 text-white/70 group-hover:text-white transition-colors" />
                   <span className="font-medium group-hover:text-white transition-colors">
-                    {menuConfig.label}
+                    {t(menuConfig.labelKey)}
                   </span>
                 </div>
               );

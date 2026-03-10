@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
+import { useTranslation } from "react-i18next";
 import {
   UserGroupIcon,
   BriefcaseIcon,
@@ -27,19 +28,19 @@ interface DashboardMetrics {
   totalEarnings: number;
 }
 
-const getGreeting = (): string => {
-  const hour = new Date().getHours();
-  if (hour < 12) return "Good morning";
-  if (hour < 17) return "Good afternoon";
-  return "Good evening";
-};
-
 const Dashboard: React.FC = () => {
+  const { t } = useTranslation();
   const user = useSelector((state: any) => state.auth.user);
   const roleRaw = useSelector((state: any) => state.auth.role);
   const accessToken = useSelector((state: any) => state.auth.accessToken);
   const role = roleRaw ? String(roleRaw).toLowerCase().trim() : undefined;
-  const greeting = getGreeting();
+  const hour = new Date().getHours();
+  const greeting =
+    hour < 12
+      ? t("dashboard.goodMorning")
+      : hour < 17
+      ? t("dashboard.goodAfternoon")
+      : t("dashboard.goodEvening");
 
   // State for dashboard metrics
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
@@ -124,15 +125,15 @@ const Dashboard: React.FC = () => {
       const interviewsValue = studentMetrics?.interviews?.value ?? null;
 
       const formatNumber = (v: any) => {
-        if (v === null || v === undefined) return 'N/A';
+        if (v === null || v === undefined) return t("common.na");
         if (typeof v === 'number') return v.toLocaleString();
         return String(v);
       };
 
       return [
         {
-          title: 'Applications Sent',
-          value: studentLoading ? '...' : (appsValue !== null ? formatNumber(appsValue) : (studentError ? 'Error' : (studentMetrics?.applications?.note || 'N/A'))),
+          title: t("dashboard.applicationsSent"),
+          value: studentLoading ? "..." : (appsValue !== null ? formatNumber(appsValue) : (studentError ? t("dashboard.error") : (studentMetrics?.applications?.note || t("common.na")))),
           change: appsChange !== null && appsChange !== undefined ? (appsChange >= 0 ? `+${appsChange}` : String(appsChange)) : undefined,
           trending: appsChange !== null && appsChange !== undefined ? (appsChange >= 0 ? 'up' as const : 'down' as const) : 'up' as const,
           icon: <BriefcaseIcon className="h-4 w-4" />,
@@ -141,8 +142,8 @@ const Dashboard: React.FC = () => {
           changeBg: 'bg-green-50 text-green-700',
         },
         {
-          title: 'Jobs Completed',
-          value: studentLoading ? '...' : (jobsCompletedValue !== null && jobsCompletedValue !== undefined ? String(jobsCompletedValue) : (studentMetrics?.jobsCompleted?.note || 'N/A')),
+          title: t("dashboard.jobsCompleted"),
+          value: studentLoading ? "..." : (jobsCompletedValue !== null && jobsCompletedValue !== undefined ? String(jobsCompletedValue) : (studentMetrics?.jobsCompleted?.note || t("common.na"))),
           change: undefined,
           trending: 'up' as const,
           icon: <AcademicCapIcon className="h-4 w-4" />,
@@ -151,8 +152,8 @@ const Dashboard: React.FC = () => {
           changeBg: 'bg-green-50 text-green-700',
         },
         {
-          title: 'Interviews',
-          value: studentLoading ? '...' : (interviewsValue !== null && interviewsValue !== undefined ? String(interviewsValue) : (studentMetrics?.interviews?.note || 'N/A')),
+          title: t("dashboard.interviews"),
+          value: studentLoading ? "..." : (interviewsValue !== null && interviewsValue !== undefined ? String(interviewsValue) : (studentMetrics?.interviews?.note || t("common.na"))),
           change: undefined,
           trending: 'up' as const,
           icon: <UserGroupIcon className="h-4 w-4" />,
@@ -161,8 +162,8 @@ const Dashboard: React.FC = () => {
           changeBg: 'bg-green-50 text-green-700',
         },
         {
-          title: 'Earnings',
-          value: studentLoading ? '...' : (earningsValue !== null ? `${earningsCurrency ?? '$'}${formatNumber(earningsValue)}` : (studentError ? 'Error' : 'N/A')),
+          title: t("dashboard.earnings"),
+          value: studentLoading ? "..." : (earningsValue !== null ? `${earningsCurrency ?? "$"}${formatNumber(earningsValue)}` : (studentError ? t("dashboard.error") : t("common.na"))),
           change: undefined,
           trending: 'up' as const,
           icon: <ChartBarIcon className="h-4 w-4" />,
@@ -175,7 +176,7 @@ const Dashboard: React.FC = () => {
     if (role === "employer") {
       return [
         {
-          title: "Jobs Posted",
+          title: t("dashboard.jobsPosted"),
           value: "18",
           change: "+3",
           trending: "up" as const,
@@ -185,7 +186,7 @@ const Dashboard: React.FC = () => {
           changeBg: "bg-green-50 text-green-700",
         },
         {
-          title: "Applications Received",
+          title: t("dashboard.applicationsReceived"),
           value: "245",
           change: "+12.4%",
           trending: "up" as const,
@@ -195,7 +196,7 @@ const Dashboard: React.FC = () => {
           changeBg: "bg-green-50 text-green-700",
         },
         {
-          title: "Active Hires",
+          title: t("dashboard.activeHires"),
           value: "12",
           change: "+2",
           trending: "up" as const,
@@ -205,7 +206,7 @@ const Dashboard: React.FC = () => {
           changeBg: "bg-green-50 text-green-700",
         },
         {
-          title: "Total Spent",
+          title: t("dashboard.totalSpent"),
           value: "$34,500",
           change: "+8.7%",
           trending: "up" as const,
@@ -227,9 +228,8 @@ const Dashboard: React.FC = () => {
 
     return [
       {
-        title: "Total Users",
-        // Show loading indicator while loading. When loaded, show exact number returned by API.
-        value: metricsLoading ? "..." : (metrics ? formatNumber(metrics.totalUsers) : (metricsError ? "Error" : "N/A")),
+        title: t("dashboard.totalUsers"),
+        value: metricsLoading ? "..." : (metrics ? formatNumber(metrics.totalUsers) : (metricsError ? t("dashboard.error") : t("common.na"))),
         change: "+12.5%",
         trending: "up" as const,
         icon: <UserGroupIcon className="h-4 w-4" />,
@@ -238,8 +238,8 @@ const Dashboard: React.FC = () => {
         changeBg: "bg-green-50 text-green-700",
       },
       {
-        title: "Total Students",
-        value: metricsLoading ? "..." : (metrics ? formatNumber(metrics.totalStudents) : (metricsError ? "Error" : "N/A")),
+        title: t("dashboard.totalStudents"),
+        value: metricsLoading ? "..." : (metrics ? formatNumber(metrics.totalStudents) : (metricsError ? t("dashboard.error") : t("common.na"))),
         change: "+8.2%",
         trending: "up" as const,
         icon: <AcademicCapIcon className="h-4 w-4" />,
@@ -248,8 +248,8 @@ const Dashboard: React.FC = () => {
         changeBg: "bg-green-50 text-green-700",
       },
       {
-        title: "Active Jobs",
-        value: metricsLoading ? "..." : (metrics ? formatNumber(metrics.activeJobs) : (metricsError ? "Error" : "N/A")),
+        title: t("dashboard.activeJobs"),
+        value: metricsLoading ? "..." : (metrics ? formatNumber(metrics.activeJobs) : (metricsError ? t("dashboard.error") : t("common.na"))),
         change: "-3.1%",
         trending: "down" as const,
         icon: <BriefcaseIcon className="h-4 w-4" />,
@@ -258,8 +258,8 @@ const Dashboard: React.FC = () => {
         changeBg: "bg-red-50 text-red-600",
       },
       {
-        title: "Total Earnings",
-        value: metricsLoading ? "..." : (metrics ? (`$${formatNumber(metrics.totalEarnings)}`) : (metricsError ? "Error" : "N/A")),
+        title: t("dashboard.totalEarnings"),
+        value: metricsLoading ? "..." : (metrics ? (`$${formatNumber(metrics.totalEarnings)}`) : (metricsError ? t("dashboard.error") : t("common.na"))),
         change: "+18.7%",
         trending: "up" as const,
         icon: <ChartBarIcon className="h-4 w-4" />,
@@ -273,62 +273,60 @@ const Dashboard: React.FC = () => {
   const getQuickStats = () => {
     if (role === "student") {
       return [
-        { color: "text-green-600", hoverBg: "hover:bg-green-50", text: "3 applications shortlisted" },
-        { color: "text-blue-600", hoverBg: "hover:bg-blue-50", text: "2 jobs in progress" },
-        { color: "text-orange-600", hoverBg: "hover:bg-orange-50", text: "1 interview scheduled" },
-        { color: "text-purple-600", hoverBg: "hover:bg-purple-50", text: "5 new job matches" },
+        { color: "text-green-600", hoverBg: "hover:bg-green-50", text: t("dashboard.applicationsShortlisted") },
+        { color: "text-blue-600", hoverBg: "hover:bg-blue-50", text: t("dashboard.jobsInProgress") },
+        { color: "text-orange-600", hoverBg: "hover:bg-orange-50", text: t("dashboard.interviewScheduled") },
+        { color: "text-purple-600", hoverBg: "hover:bg-purple-50", text: t("dashboard.newJobMatches") },
       ];
     }
     if (role === "employer") {
       return [
-        { color: "text-green-600", hoverBg: "hover:bg-green-50", text: "32 new applicants this week" },
-        { color: "text-blue-600", hoverBg: "hover:bg-blue-50", text: "5 positions filled this month" },
-        { color: "text-orange-600", hoverBg: "hover:bg-orange-50", text: "8 interviews pending" },
-        { color: "text-red-600", hoverBg: "hover:bg-red-50", text: "3 contracts expiring soon" },
+        { color: "text-green-600", hoverBg: "hover:bg-green-50", text: t("dashboard.newApplicantsThisWeek") },
+        { color: "text-blue-600", hoverBg: "hover:bg-blue-50", text: t("dashboard.positionsFilledThisMonth") },
+        { color: "text-orange-600", hoverBg: "hover:bg-orange-50", text: t("dashboard.interviewsPending") },
+        { color: "text-red-600", hoverBg: "hover:bg-red-50", text: t("dashboard.contractsExpiringSoon") },
       ];
     }
-    // superadmin / default
     return [
-      { color: "text-green-600", hoverBg: "hover:bg-green-50", text: "540 new students this week" },
-      { color: "text-blue-600", hoverBg: "hover:bg-blue-50", text: "230 jobs posted this week" },
-      { color: "text-orange-600", hoverBg: "hover:bg-orange-50", text: "120 academic verifications pending" },
-      { color: "text-red-600", hoverBg: "hover:bg-red-50", text: "87 disputes resolved" },
+      { color: "text-green-600", hoverBg: "hover:bg-green-50", text: t("dashboard.newStudentsThisWeek") },
+      { color: "text-blue-600", hoverBg: "hover:bg-blue-50", text: t("dashboard.jobsPostedThisWeek") },
+      { color: "text-orange-600", hoverBg: "hover:bg-orange-50", text: t("dashboard.academicVerificationsPending") },
+      { color: "text-red-600", hoverBg: "hover:bg-red-50", text: t("dashboard.disputesResolved") },
     ];
   };
 
   const getRecentActivity = () => {
     if (role === "student") {
       return [
-        "You applied for Frontend Developer at TechCorp",
-        "Your application was shortlisted for UI Designer",
-        "Job completed: Logo Design for StartupXYZ",
-        "Interview scheduled for Thursday at 2:00 PM",
-        "Payment of $350 received from employer",
+        t("dashboard.recentActivityStudent1"),
+        t("dashboard.recentActivityStudent2"),
+        t("dashboard.recentActivityStudent3"),
+        t("dashboard.recentActivityStudent4"),
+        t("dashboard.recentActivityStudent5"),
       ];
     }
     if (role === "employer") {
       return [
-        "New application received for Backend Developer",
-        "Interview completed with John Doe",
-        "Job posting 'Data Analyst' expires in 3 days",
-        "Payment of $500 processed to hired student",
-        "New candidate matched your job requirements",
+        t("dashboard.recentActivityEmployer1"),
+        t("dashboard.recentActivityEmployer2"),
+        t("dashboard.recentActivityEmployer3"),
+        t("dashboard.recentActivityEmployer4"),
+        t("dashboard.recentActivityEmployer5"),
       ];
     }
-    // superadmin / default
     return [
-      "New student registered",
-      "Employer posted a new job",
-      "Student completed a training module",
-      "Admin approved an academic verification",
-      "Employer paid out $500 to student",
+      t("dashboard.recentActivityAdmin1"),
+      t("dashboard.recentActivityAdmin2"),
+      t("dashboard.recentActivityAdmin3"),
+      t("dashboard.recentActivityAdmin4"),
+      t("dashboard.recentActivityAdmin5"),
     ];
   };
 
   const getSubtitle = () => {
-    if (role === "student") return "Track your applications, jobs & earnings.";
-    if (role === "employer") return "Manage your jobs, applicants & hiring pipeline.";
-    return "Insights across students, employers, jobs & overall activity.";
+    if (role === "student") return t("dashboard.subtitleStudent");
+    if (role === "employer") return t("dashboard.subtitleEmployer");
+    return t("dashboard.subtitleAdmin");
   };
 
   const getChartData = () => {
@@ -344,10 +342,10 @@ const Dashboard: React.FC = () => {
           { day: "Sun", applications: 0, completed: 0 },
         ],
         bars: [
-          { key: "applications", name: "Applications", fill: "#7F56D9" },
-          { key: "completed", name: "Jobs Completed", fill: "#E9D5FF" },
+          { key: "applications", name: t("dashboard.applications"), fill: "#7F56D9" },
+          { key: "completed", name: t("dashboard.jobsCompleted"), fill: "#E9D5FF" },
         ],
-        title: "Weekly Activity",
+        title: t("dashboard.weeklyActivity"),
       };
     }
     if (role === "employer") {
@@ -362,10 +360,10 @@ const Dashboard: React.FC = () => {
           { day: "Sun", applications: 5, hires: 0 },
         ],
         bars: [
-          { key: "applications", name: "Applications", fill: "#7F56D9" },
-          { key: "hires", name: "Hires", fill: "#E9D5FF" },
+          { key: "applications", name: t("dashboard.applications"), fill: "#7F56D9" },
+          { key: "hires", name: t("dashboard.hires"), fill: "#E9D5FF" },
         ],
-        title: "Weekly Hiring Activity",
+        title: t("dashboard.weeklyHiringActivity"),
       };
     }
     return {
@@ -379,10 +377,10 @@ const Dashboard: React.FC = () => {
         { day: "Sun", students: 65, employers: 18 },
       ],
       bars: [
-        { key: "students", name: "Students", fill: "#7F56D9" },
-        { key: "employers", name: "Employers", fill: "#E9D5FF" },
+        { key: "students", name: t("dashboard.students"), fill: "#7F56D9" },
+        { key: "employers", name: t("dashboard.employers"), fill: "#E9D5FF" },
       ],
-      title: "Weekly User Growth",
+      title: t("dashboard.weeklyUserGrowth"),
     };
   };
 
@@ -397,7 +395,7 @@ const Dashboard: React.FC = () => {
       {/* Welcome Section */}
       <div className="bg-gradient-to-r from-[#7F56D9] to-[#6941C6] rounded-lg p-3 text-white shadow-sm">
         <h1 className="text-sm md:text-base font-bold">
-          {greeting}, {user?.full_name || "User"}
+          {greeting}, {user?.full_name || t("dashboard.user")}
         </h1>
         <p className="text-[11px] text-purple-200 mt-0.5">
           {subtitle}
@@ -478,12 +476,12 @@ const Dashboard: React.FC = () => {
 
         {/* Quick Stats */}
         <div className="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
-          <h2 className="text-xs font-semibold text-gray-800 mb-2">Quick Stats</h2>
+          <h2 className="text-xs font-semibold text-gray-800 mb-2">{t("dashboard.quickStats")}</h2>
 
           {/* Student Rating */}
           {role === "student" && (
             <div className="mb-2 p-2 rounded bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-100">
-              <p className="text-[10px] text-gray-500 mb-0.5">Your Rating</p>
+              <p className="text-[10px] text-gray-500 mb-0.5">{t("dashboard.yourRating")}</p>
               <div className="flex items-center gap-1.5">
                 <div className="flex items-center gap-px">
                   {[1, 2, 3, 4, 5].map((star) => (
@@ -495,7 +493,7 @@ const Dashboard: React.FC = () => {
                   ))}
                 </div>
                 <span className="text-xs font-bold text-gray-900">4.0</span>
-                <span className="text-[9px] text-gray-400">(12 reviews)</span>
+                <span className="text-[9px] text-gray-400">({t("dashboard.reviews", { count: 12 })})</span>
               </div>
             </div>
           )}
@@ -513,7 +511,7 @@ const Dashboard: React.FC = () => {
 
       {/* Recent Activity */}
       <div className="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
-        <h2 className="text-xs font-semibold mb-2 text-gray-800">Recent Activity</h2>
+        <h2 className="text-xs font-semibold mb-2 text-gray-800">{t("dashboard.recentActivity")}</h2>
         <ul className="space-y-1">
           {recentActivity.map((activity, index) => (
             <li
@@ -530,12 +528,12 @@ const Dashboard: React.FC = () => {
       {/* Student KPIs */}
       {role === "student" && (
         <div className="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
-          <h2 className="text-xs font-semibold mb-2.5 text-gray-800">Your Progress</h2>
+          <h2 className="text-xs font-semibold mb-2.5 text-gray-800">{t("dashboard.yourProgress")}</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {/* Profile Completion */}
             <div className="space-y-1">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] text-gray-600">Profile Completion</span>
+                <span className="text-[11px] text-gray-600">{t("dashboard.profileCompletion")}</span>
                 <span className="text-[11px] font-bold text-[#7F56D9]">75%</span>
               </div>
               <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
@@ -544,7 +542,7 @@ const Dashboard: React.FC = () => {
                   style={{ width: "75%" }}
                 />
               </div>
-              <p className="text-[9px] text-gray-400">Add skills & bio to reach 100%</p>
+              <p className="text-[9px] text-gray-400">{t("dashboard.addSkillsAndBio")}</p>
             </div>
 
             {/* Job Completion Rate */}
@@ -559,13 +557,13 @@ const Dashboard: React.FC = () => {
                   style={{ width: "85%" }}
                 />
               </div>
-              <p className="text-[9px] text-gray-400">11 of 13 jobs completed on time</p>
+              <p className="text-[9px] text-gray-400">{t("dashboard.jobsCompletedOnTime")}</p>
             </div>
 
             {/* Application Success Rate */}
             <div className="space-y-1">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] text-gray-600">Application Success</span>
+                <span className="text-[11px] text-gray-600">{t("dashboard.applicationSuccess")}</span>
                 <span className="text-[11px] font-bold text-orange-600">42%</span>
               </div>
               <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
@@ -574,7 +572,7 @@ const Dashboard: React.FC = () => {
                   style={{ width: "42%" }}
                 />
               </div>
-              <p className="text-[9px] text-gray-400">10 of 24 applications accepted</p>
+              <p className="text-[9px] text-gray-400">{t("dashboard.applicationsAccepted")}</p>
             </div>
           </div>
         </div>

@@ -2,6 +2,8 @@ import { fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import type { BaseQueryFn, FetchArgs, FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import { setAccessToken, logout } from "../../features/auth/authSlice";
 
+const LANGUAGE_KEY = "ogera_language";
+
 const baseQuery = fetchBaseQuery({
   baseUrl: import.meta.env.VITE_API_URL,
   credentials: "include",
@@ -12,6 +14,9 @@ const baseQuery = fetchBaseQuery({
     if (token) {
       headers.set("authorization", `Bearer ${token}`);
     }
+    // Send current UI language so backend can return translated content
+    const locale = localStorage.getItem(LANGUAGE_KEY) || "en";
+    headers.set("Accept-Language", locale);
     return headers;
   },
 });

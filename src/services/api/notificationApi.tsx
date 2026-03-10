@@ -42,18 +42,24 @@ export interface MarkAllReadResponse {
 
 export const notificationApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-    // Get all notifications for the authenticated user
+    /**
+     * GET /notifications - Fetches all notification data from the database notifications table.
+     * Call this when the user opens the Notifications page (e.g. by clicking the notification sidebar).
+     * Optional: is_read (boolean), limit (number). Omit limit to get all notifications.
+     */
     getNotifications: builder.query<
       NotificationsListResponse,
       { is_read?: boolean; limit?: number } | void
     >({
       query: (params) => {
         const queryParams = new URLSearchParams();
-        if (params?.is_read !== undefined) {
-          queryParams.append("is_read", String(params.is_read));
-        }
-        if (params?.limit) {
-          queryParams.append("limit", String(params.limit));
+        if (params && typeof params === "object") {
+          if (params.is_read !== undefined) {
+            queryParams.append("is_read", String(params.is_read));
+          }
+          if (params.limit != null && params.limit > 0) {
+            queryParams.append("limit", String(params.limit));
+          }
         }
         const queryString = queryParams.toString();
         return {

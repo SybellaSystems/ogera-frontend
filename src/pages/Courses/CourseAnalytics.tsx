@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   BookOpenIcon,
@@ -14,12 +15,14 @@ import {
   useGetCourseStatisticsQuery,
   useGetCourseSpecificStatisticsQuery,
   useGetCourseStudentsQuery,
+  type CourseStudent,
 } from "../../services/api/coursesApi";
 import Loader from "../../components/Loader";
 import { formatRelativeTime } from "../../utils/timeUtils";
 import { useSelector } from "react-redux";
 
 const CourseAnalytics: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { courseId } = useParams<{ courseId: string }>();
   const [selectedCourseId, setSelectedCourseId] = React.useState<string | null>(courseId || null);
@@ -55,15 +58,11 @@ const CourseAnalytics: React.FC = () => {
   // Handle students data - it should be an array directly in data
   const allStudents = React.useMemo(() => {
     if (!studentsData) return [];
-    
+    const d = (studentsData as { data?: unknown }).data;
     // RTK Query response format: { success, data, message }
-    // The data field contains the array of students
-    if (Array.isArray(studentsData.data)) {
-      return studentsData.data;
-    }
-    
-    // Fallback: try to get from nested structure if API returns differently
-    return studentsData.data?.data || studentsData.data || [];
+    if (Array.isArray(d)) return d;
+    const nested = (d as { data?: unknown })?.data;
+    return (Array.isArray(nested) ? nested : Array.isArray(d) ? d : []);
   }, [studentsData]);
 
   // Filter students based on status
@@ -98,13 +97,13 @@ const CourseAnalytics: React.FC = () => {
       <div className="space-y-6 animate-fadeIn">
         <div className="bg-red-50 border border-red-200 rounded-xl p-6">
           <p className="text-red-800 font-medium">
-            You don't have permission to view course analytics.
+            {t("courses.noPermissionAnalytics")}
           </p>
           <button
             onClick={() => navigate("/dashboard")}
             className="mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition"
           >
-            Back to Dashboard
+            {t("courses.backToDashboard")}
           </button>
         </div>
       </div>
@@ -126,12 +125,12 @@ const CourseAnalytics: React.FC = () => {
               className="text-gray-600 hover:text-gray-900 transition-colors flex items-center gap-2"
             >
               <ArrowLeftIcon className="h-5 w-5" />
-              Back to Dashboard
+              {t("courses.backToDashboard")}
             </button>
           </div>
           <h1 className="text-2xl md:text-4xl font-extrabold text-gray-900 flex items-center gap-3">
             <ChartBarIcon className="h-6 w-6 md:h-10 md:w-10 text-purple-600" />
-            Course Analytics
+            {t("courses.courseAnalytics")}
           </h1>
         </div>
       </div>
@@ -142,7 +141,7 @@ const CourseAnalytics: React.FC = () => {
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Total Courses</p>
+                <p className="text-sm text-gray-600 mb-1">{t("courses.totalCourses")}</p>
                 <p className="text-3xl font-bold text-gray-900">{statistics.total_courses}</p>
               </div>
               <div className="p-3 bg-purple-100 rounded-lg">
@@ -154,7 +153,7 @@ const CourseAnalytics: React.FC = () => {
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Students Enrolled</p>
+                <p className="text-sm text-gray-600 mb-1">{t("courses.studentsEnrolled")}</p>
                 <p className="text-3xl font-bold text-gray-900">{statistics.total_students_enrolled}</p>
               </div>
               <div className="p-3 bg-blue-100 rounded-lg">
@@ -166,7 +165,7 @@ const CourseAnalytics: React.FC = () => {
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Course Completions</p>
+                <p className="text-sm text-gray-600 mb-1">{t("courses.courseCompletions")}</p>
                 <p className="text-3xl font-bold text-gray-900">{statistics.total_course_completions}</p>
               </div>
               <div className="p-3 bg-green-100 rounded-lg">
@@ -179,7 +178,7 @@ const CourseAnalytics: React.FC = () => {
 
       {/* Course Selection */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Select a Course</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">{t("courses.selectCourse")}</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {courses.map((course) => (
             <button
@@ -209,24 +208,24 @@ const CourseAnalytics: React.FC = () => {
           ) : courseStats ? (
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                {courseStats.course_name} - Statistics
+                {courseStats.course_name} - {t("courses.statistics")}
               </h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                 <div className="text-center p-4 bg-gray-50 rounded-lg">
                   <p className="text-2xl font-bold text-gray-900">{courseStats.total_enrolled}</p>
-                  <p className="text-sm text-gray-600">Total Enrolled</p>
+                  <p className="text-sm text-gray-600">{t("courses.totalEnrolled")}</p>
                 </div>
                 <div className="text-center p-4 bg-green-50 rounded-lg">
                   <p className="text-2xl font-bold text-green-600">{courseStats.completed_students}</p>
-                  <p className="text-sm text-gray-600">Completed</p>
+                  <p className="text-sm text-gray-600">{t("courses.completed")}</p>
                 </div>
                 <div className="text-center p-4 bg-yellow-50 rounded-lg">
                   <p className="text-2xl font-bold text-yellow-600">{courseStats.in_progress_students}</p>
-                  <p className="text-sm text-gray-600">In Progress</p>
+                  <p className="text-sm text-gray-600">{t("courses.inProgress")}</p>
                 </div>
                 <div className="text-center p-4 bg-blue-50 rounded-lg">
                   <p className="text-2xl font-bold text-blue-600">{courseStats.completion_rate}%</p>
-                  <p className="text-sm text-gray-600">Completion Rate</p>
+                  <p className="text-sm text-gray-600">{t("courses.completionRate")}</p>
                 </div>
               </div>
             </div>
@@ -236,7 +235,7 @@ const CourseAnalytics: React.FC = () => {
           {studentsError && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4">
               <p className="text-red-800 font-medium">
-                Error loading students: {studentsError && 'data' in studentsError 
+                {t("courses.errorLoadingStudents")}: {studentsError && 'data' in studentsError 
                   ? (studentsError as any).data?.message || (studentsError as any).message || 'Failed to load students'
                   : (studentsError as any).message || 'Failed to load students'}
               </p>
@@ -244,7 +243,7 @@ const CourseAnalytics: React.FC = () => {
                 onClick={() => refetchStudents()}
                 className="mt-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition text-sm"
               >
-                Retry
+                {t("courses.retry")}
               </button>
             </div>
           )}
@@ -257,10 +256,10 @@ const CourseAnalytics: React.FC = () => {
                   <CheckCircleIcon className="h-8 w-8 text-green-600" />
                   <div>
                     <h2 className="text-xl font-semibold text-gray-900">
-                      Completed Students
+                      {t("courses.completedStudents")}
                     </h2>
                     <p className="text-sm text-gray-600">
-                      {allStudents.filter((s: any) => s.is_completed).length} student(s) have completed this course
+                      {t("courses.studentsCompletedCount", { count: allStudents.filter((s: any) => s.is_completed).length })}
                     </p>
                   </div>
                 </div>
@@ -282,11 +281,11 @@ const CourseAnalytics: React.FC = () => {
                             <p className="text-sm text-gray-600 mb-2">{student.email}</p>
                             <div className="flex items-center gap-2">
                               <span className="px-2 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full">
-                                100% Complete
-                              </span>
-                              <span className="text-xs text-gray-500">
-                                {student.completed_steps}/{student.total_steps} steps
-                              </span>
+                              {t("courses.complete100")}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              {student.completed_steps}/{student.total_steps} {t("courses.steps")}
+                            </span>
                             </div>
                           </div>
                           <CheckCircleIcon className="h-6 w-6 text-green-600 flex-shrink-0" />
@@ -301,7 +300,7 @@ const CourseAnalytics: React.FC = () => {
                 </div>
               ) : (
                 <p className="text-gray-600 text-center py-4">
-                  No students have completed this course yet.
+                  {t("courses.noStudentsCompleted")}
                 </p>
               )}
             </div>
@@ -314,7 +313,7 @@ const CourseAnalytics: React.FC = () => {
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold text-gray-900">
-                  All Students Enrolled ({filteredStudents.length} of {allStudents.length})
+                  {t("courses.allStudentsEnrolled", { filtered: filteredStudents.length, total: allStudents.length })}
                 </h2>
                 <div className="flex items-center gap-2">
                   <FunnelIcon className="h-5 w-5 text-gray-500" />
@@ -323,10 +322,10 @@ const CourseAnalytics: React.FC = () => {
                     onChange={(e) => setFilterStatus(e.target.value as any)}
                     className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   >
-                    <option value="all">All Students</option>
-                    <option value="completed">Completed Only</option>
-                    <option value="in-progress">In Progress</option>
-                    <option value="not-started">Not Started</option>
+                    <option value="all">{t("courses.allStudents")}</option>
+                    <option value="completed">{t("courses.completedOnly")}</option>
+                    <option value="in-progress">{t("courses.inProgressFilter")}</option>
+                    <option value="not-started">{t("courses.notStarted")}</option>
                   </select>
                 </div>
               </div>
@@ -340,21 +339,21 @@ const CourseAnalytics: React.FC = () => {
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Student
+                        {t("courses.student")}
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Progress
+                        {t("courses.progress")}
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Status
+                        {t("courses.status")}
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Started
+                        {t("courses.started")}
                       </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {students.map((student) => (
+                    {students.map((student: CourseStudent) => (
                       <tr key={student.user_id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div>
@@ -369,36 +368,36 @@ const CourseAnalytics: React.FC = () => {
                                 className={`h-2 rounded-full ${
                                   student.is_completed
                                     ? "bg-green-600"
-                                    : student.percentage > 50
+                                    : (student.percentage ?? 0) > 50
                                     ? "bg-yellow-500"
                                     : "bg-blue-500"
                                 }`}
-                                style={{ width: `${student.percentage}%` }}
+                                style={{ width: `${student.percentage ?? 0}%` }}
                               />
                             </div>
-                            <span className="text-sm text-gray-700">{student.percentage}%</span>
+                            <span className="text-sm text-gray-700">{student.percentage ?? 0}%</span>
                           </div>
                           <div className="text-xs text-gray-500 mt-1">
-                            {student.completed_steps} of {student.total_steps} steps
+                            {student.completed_steps ?? 0} of {student.total_steps ?? 0} {t("courses.steps")}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           {student.is_completed ? (
                             <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                              Completed
+                              {t("courses.completed")}
                             </span>
-                          ) : student.completed_steps > 0 ? (
+                          ) : (student.completed_steps ?? 0) > 0 ? (
                             <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                              In Progress
+                              {t("courses.inProgress")}
                             </span>
                           ) : (
                             <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
-                              Not Started
+                              {t("courses.notStartedLabel")}
                             </span>
                           )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {student.started_at ? formatRelativeTime(student.started_at) : "Not started"}
+                          {student.started_at ? formatRelativeTime(student.started_at) : t("courses.notStartedLabel")}
                         </td>
                       </tr>
                     ))}
@@ -410,8 +409,8 @@ const CourseAnalytics: React.FC = () => {
           ) : (
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
               <AcademicCapIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">No students enrolled</h3>
-              <p className="text-gray-600">No students have started this course yet.</p>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">{t("courses.noStudentsEnrolled")}</h3>
+              <p className="text-gray-600">{t("courses.noStudentsStarted")}</p>
             </div>
           )}
         </>

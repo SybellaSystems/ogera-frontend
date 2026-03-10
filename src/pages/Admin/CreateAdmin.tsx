@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useFormik } from "formik";
+import { useTranslation } from "react-i18next";
 import { useCreateAdminMutation, useGetAllRolesQuery } from "../../services/api/adminApi";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
@@ -21,27 +22,28 @@ interface CreateAdminFormValues {
   mobile_number: string;
 }
 
-const validationSchema = Yup.object({
-  email: Yup.string()
-    .email("Invalid email address")
-    .required("Email is required"),
-  password: Yup.string()
-    .min(8, "Password must be at least 8 characters")
-    .required("Password is required"),
-  role: Yup.string()
-    .required("Role is required"),
-  full_name: Yup.string()
-    .min(2, "Full name must be at least 2 characters")
-    .required("Full name is required"),
-  mobile_number: Yup.string()
-    .min(10, "Mobile number must be at least 10 digits")
-    .max(15, "Mobile number must not exceed 15 digits")
-    .optional(),
-});
-
 const CreateAdmin: React.FC = () => {
+  const { t } = useTranslation();
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+
+  const validationSchema = Yup.object({
+    email: Yup.string()
+      .email(t("pages.admin.validationEmailInvalid"))
+      .required(t("pages.admin.validationEmailRequired")),
+    password: Yup.string()
+      .min(8, t("pages.admin.validationPasswordMin"))
+      .required(t("pages.admin.validationPasswordRequired")),
+    role: Yup.string()
+      .required(t("pages.admin.validationRoleRequired")),
+    full_name: Yup.string()
+      .min(2, t("pages.admin.validationFullNameMin"))
+      .required(t("pages.admin.validationFullNameRequired")),
+    mobile_number: Yup.string()
+      .min(10, t("pages.admin.validationMobileMin"))
+      .max(15, t("pages.admin.validationMobileMax"))
+      .optional(),
+  });
 
   const [createAdmin, { isLoading, isError, error, isSuccess, data }] =
     useCreateAdminMutation();
@@ -93,15 +95,15 @@ const CreateAdmin: React.FC = () => {
       const err = error as FetchBaseQueryError & {
         data?: { message?: string };
       };
-      toast.error(err?.data?.message || "Failed to create admin");
+      toast.error(err?.data?.message || t("pages.admin.failedToCreateAdmin"));
     }
 
     if (data && isSuccess) {
-      toast.success(data?.message || "Admin created successfully!");
+      toast.success(data?.message || t("pages.admin.adminCreatedSuccess"));
       resetForm();
       navigate("/dashboard/admin/view");
     }
-  }, [isError, error, data, isSuccess, resetForm, navigate]);
+  }, [isError, error, data, isSuccess, resetForm, navigate, t]);
 
   return (
     <Container>
@@ -110,15 +112,15 @@ const CreateAdmin: React.FC = () => {
           <IconWrapper>
             <UserPlusIcon className="h-8 w-8 text-purple-600" />
           </IconWrapper>
-          <Title>Create Admin</Title>
+          <Title>{t("pages.admin.createAdmin")}</Title>
           <Subtitle>
-            Create a new admin account. Only superadmin can create admin accounts.
+            {t("pages.admin.createAdminSubtitle")}
           </Subtitle>
         </Header>
 
         {/* Role Selection */}
         <FormGroup>
-          <Label htmlFor="role">Role Name *</Label>
+          <Label htmlFor="role">{t("pages.admin.roleNameLabel")}</Label>
           <Select
             id="role"
             name="role"
@@ -127,7 +129,7 @@ const CreateAdmin: React.FC = () => {
             onBlur={formik.handleBlur}
             disabled={isLoadingRoles}
           >
-            <option value="">Select a role</option>
+            <option value="">{t("pages.admin.selectRole")}</option>
             {adminRoles.map((role: any) => (
               <option key={role.id} value={role.roleName}>
                 {role.roleName}
@@ -141,11 +143,11 @@ const CreateAdmin: React.FC = () => {
 
         {/* Full Name */}
         <FormGroup>
-          <Label htmlFor="full_name">Full Name *</Label>
+          <Label htmlFor="full_name">{t("pages.admin.fullNameLabel")}</Label>
           <Input
             id="full_name"
             name="full_name"
-            placeholder="Enter full name"
+            placeholder={t("pages.admin.fullNamePlaceholder")}
             value={formik.values.full_name}
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
@@ -157,12 +159,12 @@ const CreateAdmin: React.FC = () => {
 
         {/* Email */}
         <FormGroup>
-          <Label htmlFor="email">Email Address *</Label>
+          <Label htmlFor="email">{t("pages.admin.emailAddressLabel")}</Label>
           <Input
             id="email"
             name="email"
             type="email"
-            placeholder="Enter email address"
+            placeholder={t("pages.admin.emailPlaceholder")}
             value={formik.values.email}
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
@@ -174,12 +176,12 @@ const CreateAdmin: React.FC = () => {
 
         {/* Password */}
         <FormGroup>
-          <Label htmlFor="password">Password *</Label>
+          <Label htmlFor="password">{t("pages.admin.passwordLabel")}</Label>
           <TextField
             id="password"
             name="password"
             type={showPassword ? "text" : "password"}
-            placeholder="Create password"
+            placeholder={t("pages.admin.passwordPlaceholder")}
             variant="outlined"
             fullWidth
             size="small"
@@ -208,11 +210,11 @@ const CreateAdmin: React.FC = () => {
 
         {/* Mobile Number */}
         <FormGroup>
-          <Label htmlFor="mobile_number">Mobile Number (Optional)</Label>
+          <Label htmlFor="mobile_number">{t("pages.admin.mobileNumberOptional")}</Label>
           <Input
             id="mobile_number"
             name="mobile_number"
-            placeholder="Enter mobile number"
+            placeholder={t("pages.admin.mobileNumberPlaceholder")}
             value={formik.values.mobile_number}
             onChange={(e) => {
               const cleaned = e.target.value.replace(/[^0-9]/g, "");
@@ -228,7 +230,7 @@ const CreateAdmin: React.FC = () => {
         <Button
           backgroundcolor="#7f56d9"
           type="submit"
-          text={isLoading ? "Creating..." : "Create Admin"}
+          text={isLoading ? t("pages.admin.creating") : t("pages.admin.createAdminButton")}
           disabled={isLoading}
         />
       </FormContainer>
@@ -245,16 +247,20 @@ const Container = styled("div")`
   justify-content: center;
   align-items: flex-start;
   padding: 40px 20px;
-  background: #f9fafb;
+  background: var(--theme-page-bg);
+  transition: background 0.35s ease;
 `;
 
 const FormContainer = styled("form")`
   max-width: 600px;
   width: 100%;
-  background: white;
+  background: var(--theme-card-bg);
+  color: var(--theme-text-primary);
   border-radius: 16px;
   padding: 40px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--theme-border);
+  transition: background 0.35s ease, color 0.35s ease, border-color 0.35s ease;
 `;
 
 const Header = styled("div")`
@@ -271,14 +277,16 @@ const IconWrapper = styled("div")`
 const Title = styled("h1")`
   font-size: 28px;
   font-weight: 700;
-  color: #111827;
+  color: var(--theme-text-primary);
   margin-bottom: 8px;
+  transition: color 0.35s ease;
 `;
 
 const Subtitle = styled("p")`
   font-size: 14px;
-  color: #6b7280;
+  color: var(--theme-text-secondary);
   margin: 0;
+  transition: color 0.35s ease;
 `;
 
 const FormGroup = styled("div")`
@@ -291,19 +299,27 @@ const Label = styled("label")`
   margin-bottom: 8px;
   font-size: 14px;
   font-weight: 500;
-  color: #374151;
+  color: var(--theme-text-secondary);
+  transition: color 0.35s ease;
 `;
 
 const Input = styled("input")`
   padding: 12px;
   border-radius: 8px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--theme-border);
   font-size: 14px;
-  transition: border-color 0.2s;
+  background: var(--theme-input-bg);
+  color: var(--theme-text-primary);
+  transition: border-color 0.2s, background 0.35s ease, color 0.35s ease;
 
   &:focus {
     outline: none;
     border-color: #7f56d9;
+  }
+
+  &::placeholder {
+    color: var(--theme-text-secondary);
+    opacity: 0.8;
   }
 `;
 
@@ -316,11 +332,12 @@ const ErrorText = styled("div")`
 const Select = styled("select")`
   padding: 12px;
   border-radius: 8px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--theme-border);
   font-size: 14px;
-  background: white;
+  background: var(--theme-input-bg);
+  color: var(--theme-text-primary);
   cursor: pointer;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, background 0.35s ease, color 0.35s ease;
   width: 100%;
 
   &:focus {
@@ -329,12 +346,14 @@ const Select = styled("select")`
   }
 
   &:disabled {
-    background: #f3f4f6;
+    opacity: 0.7;
     cursor: not-allowed;
   }
 
   option {
     padding: 8px;
+    background: var(--theme-card-bg);
+    color: var(--theme-text-primary);
   }
 `;
 

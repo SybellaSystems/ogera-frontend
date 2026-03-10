@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { useFormik } from "formik";
 import { XMarkIcon, DocumentIcon, XCircleIcon } from "@heroicons/react/24/outline";
 import { createProfileUpdateValidation } from "../validation/Index";
@@ -25,6 +26,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
   onUpdateSuccess,
   userRole,
 }) => {
+  const { t } = useTranslation();
   const [isUpdating, setIsUpdating] = useState(false);
   const [_emailChanged, setEmailChanged] = useState(false);
   const [resumeFile, setResumeFile] = useState<File | null>(null);
@@ -47,12 +49,12 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
       setTwoFALoading(true);
       const res = await setup2FA();
       setTwoFASetupData(res.data);
-      toast.success("Scan the QR code in Google Authenticator, then enter the 6-digit code to enable 2FA.");
+      toast.success(t("profile.scanQRCode"));
     } catch (error: any) {
       toast.error(
         error?.response?.data?.message ||
           error?.message ||
-          "Failed to start 2FA setup"
+          t("profile.twoFAStartFailed")
       );
     } finally {
       setTwoFALoading(false);
@@ -62,12 +64,12 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
   const handleEnable2FA = async () => {
     try {
       if (!twoFAToken.trim()) {
-        toast.error("Please enter the 6-digit code from your authenticator app");
+        toast.error(t("profile.enterSixDigitCode"));
         return;
       }
       setTwoFALoading(true);
       await verify2FA(twoFAToken.trim());
-      toast.success("2FA enabled successfully!");
+      toast.success(t("profile.twoFAEnabled"));
       setTwoFASetupData(null);
       setTwoFAToken("");
       onUpdateSuccess();
@@ -75,7 +77,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
       toast.error(
         error?.response?.data?.message ||
           error?.message ||
-          "Failed to enable 2FA"
+          t("profile.twoFAEnableFailed")
       );
     } finally {
       setTwoFALoading(false);
@@ -85,12 +87,12 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
   const handleDisable2FA = async () => {
     try {
       if (!twoFADisablePassword.trim()) {
-        toast.error("Password is required to disable 2FA");
+        toast.error(t("profile.passwordRequired"));
         return;
       }
       setTwoFALoading(true);
       await disable2FA(twoFADisablePassword.trim(), twoFADisableToken.trim() || undefined);
-      toast.success("2FA disabled successfully!");
+      toast.success(t("profile.twoFADisabled"));
       setTwoFADisablePassword("");
       setTwoFADisableToken("");
       onUpdateSuccess();
@@ -98,7 +100,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
       toast.error(
         error?.response?.data?.message ||
           error?.message ||
-          "Failed to disable 2FA"
+          t("profile.twoFADisableFailed")
       );
     } finally {
       setTwoFALoading(false);
@@ -141,7 +143,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
         // Validate mobile number based on country code from form
         const mobileValidation = validateMobileNumber(values.mobile_number, values.countryCode);
         if (!mobileValidation.isValid) {
-          toast.error(mobileValidation.message || "Invalid mobile number");
+          toast.error(mobileValidation.message || t("profile.invalidMobile"));
           setSubmitting(false);
           return;
         }
@@ -187,18 +189,15 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
 
         if (response && response.success) {
           if (emailHasChanged) {
-            toast.success(
-              "Profile updated! Please check your email to verify your new email address.",
-              { duration: 5000 }
-            );
+            toast.success(t("profile.profileUpdatedVerifyEmail"), { duration: 5000 });
             setEmailChanged(true);
           } else {
-            toast.success(response.message || "Profile updated successfully!");
+            toast.success(response.message || t("profile.profileUpdatedSuccess"));
           }
           onUpdateSuccess();
           onClose();
         } else {
-          throw new Error(response?.message || "Profile update failed. Please try again.");
+          throw new Error(response?.message || t("profile.profileUpdateFailed"));
         }
       } catch (error: any) {
         console.error("Update profile error:", error);
@@ -206,7 +205,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
           error?.response?.data?.message ||
           error?.response?.data?.error ||
           error?.message ||
-          "Failed to update profile. Please try again.";
+          t("profile.profileUpdateFailed");
         toast.error(errorMessage);
       } finally {
         setIsUpdating(false);
@@ -268,14 +267,12 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
     const maxSize = 5 * 1024 * 1024; // 5MB
 
     if (!allowedTypes.includes(file.type)) {
-      toast.error(
-        "Invalid file type. Please upload a PDF, DOC, DOCX, or TXT file."
-      );
+      toast.error(t("profile.invalidFileType"));
       return;
     }
 
     if (file.size > maxSize) {
-      toast.error("File size too large. Please upload a file smaller than 5MB.");
+      toast.error(t("profile.fileTooLarge"));
       return;
     }
 
@@ -286,12 +283,12 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
       setIsUploadingResume(true);
       const response = await uploadResume(file);
       setResumeUrl(response.data.resume_url);
-      toast.success("Resume uploaded successfully!");
+      toast.success(t("profile.resumeUploadSuccess"));
     } catch (err: any) {
       toast.error(
         err?.response?.data?.message ||
           err?.response?.data?.error ||
-          "Failed to upload resume"
+          t("profile.resumeUploadFailed")
       );
       setResumeFile(null);
       if (fileInputRef.current) {
@@ -318,7 +315,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
     if (value.trim()) {
       const validation = validateMobileNumber(value, formik.values.countryCode);
       if (!validation.isValid) {
-        setMobileValidationError(validation.message || "Invalid mobile number");
+        setMobileValidationError(validation.message || t("profile.invalidMobile"));
       } else {
         setMobileValidationError(null);
       }
@@ -337,7 +334,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
     if (formik.values.mobile_number.trim()) {
       const validation = validateMobileNumber(formik.values.mobile_number, iso);
       if (!validation.isValid) {
-        setMobileValidationError(validation.message || "Invalid mobile number");
+        setMobileValidationError(validation.message || t("profile.invalidMobile"));
       } else {
         setMobileValidationError(null);
       }
@@ -360,10 +357,10 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
         {/* Header */}
         <div className="mb-6">
           <h2 className="text-2xl font-bold text-gray-800 mb-2">
-            Edit Profile
+            {t("profile.editProfileTitle")}
           </h2>
           <p className="text-gray-600 text-sm">
-            Update your profile information below.
+            {t("profile.editProfileSubtitle")}
           </p>
         </div>
 
@@ -373,7 +370,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
           {formik.submitCount > 0 && Object.keys(formik.errors).length > 0 && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
               <p className="text-sm font-medium text-red-800 mb-2">
-                Please fix the following errors:
+                {t("profile.fixErrors")}
               </p>
               <ul className="text-sm text-red-700 list-disc list-inside space-y-1">
                 {Object.entries(formik.errors).map(([key, value]) => (
@@ -389,13 +386,13 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                 htmlFor="firstName"
                 className="block text-sm font-medium text-gray-700 mb-2"
               >
-                First Name <span className="text-red-500">*</span>
+                {t("profile.firstName")} <span className="text-red-500">*</span>
               </label>
               <input
                 id="firstName"
                 name="firstName"
                 type="text"
-                placeholder="Enter first name"
+                placeholder={t("profile.enterFirstName")}
                 value={formik.values.firstName}
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
@@ -414,13 +411,13 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                 htmlFor="lastName"
                 className="block text-sm font-medium text-gray-700 mb-2"
               >
-                Last Name <span className="text-red-500">*</span>
+                {t("profile.lastName")} <span className="text-red-500">*</span>
               </label>
               <input
                 id="lastName"
                 name="lastName"
                 type="text"
-                placeholder="Enter last name"
+                placeholder={t("profile.enterLastName")}
                 value={formik.values.lastName}
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
@@ -436,7 +433,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
             {/* Phone Number with Country Code */}
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Phone Number <span className="text-red-500">*</span>
+                {t("profile.phoneNumber")} <span className="text-red-500">*</span>
               </label>
               <div className="flex gap-2">
                 {/* Country Code Dropdown */}
@@ -452,7 +449,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                   id="mobile_number"
                   name="mobile_number"
                   type="tel"
-                  placeholder="Enter phone number"
+                  placeholder={t("profile.enterPhoneNumber")}
                   value={formik.values.mobile_number}
                   onChange={handleMobileChange}
                   onBlur={formik.handleBlur}
@@ -489,13 +486,13 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                 htmlFor="email"
                 className="block text-sm font-medium text-gray-700 mb-2"
               >
-                Email Address <span className="text-red-500">*</span>
+                {t("profile.emailAddress")} <span className="text-red-500">*</span>
               </label>
               <input
                 id="email"
                 name="email"
                 type="email"
-                placeholder="Enter email address"
+                placeholder={t("profile.enterEmailAddress")}
                 value={formik.values.email}
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
@@ -508,7 +505,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
               )}
               {formik.values.email !== profileData?.email && (
                 <p className="mt-1 text-xs text-amber-600">
-                  ⚠️ Changing your email will require verification
+                  ⚠️ {t("profile.emailChangeWarning")}
                 </p>
               )}
             </div>
@@ -519,15 +516,15 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <p className="text-sm font-semibold text-gray-800">
-                      Two-Factor Authentication (2FA)
+                      {t("profile.twoFactorAuth")}
                     </p>
                     <p className="text-xs text-gray-600 mt-1">
-                      Optional. Adds extra security using Google Authenticator.
+                      {t("profile.twoFactorOptional")}
                     </p>
                     <p className="text-xs mt-2">
-                      Status:{" "}
+                      {t("profile.status")}{" "}
                       <span className={profileData?.two_fa_enabled ? "text-green-700 font-semibold" : "text-gray-700 font-semibold"}>
-                        {profileData?.two_fa_enabled ? "Enabled" : "Disabled"}
+                        {profileData?.two_fa_enabled ? t("profile.enabled") : t("profile.disabled")}
                       </span>
                     </p>
                   </div>
@@ -539,7 +536,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                       disabled={twoFALoading}
                       className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
                     >
-                      {twoFALoading ? "Loading..." : "Enable 2FA"}
+                      {twoFALoading ? t("profile.loading") : t("profile.enable2FA")}
                     </button>
                   ) : (
                     <button
@@ -548,7 +545,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                       disabled={twoFALoading}
                       className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
                     >
-                      {twoFALoading ? "Loading..." : showDisable2FA ? "Cancel" : "Disable 2FA"}
+                      {twoFALoading ? t("profile.loading") : showDisable2FA ? t("profile.cancel") : t("profile.disable2FA")}
                     </button>
                   )}
                 </div>
@@ -563,19 +560,19 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                         className="w-48 h-48 object-contain"
                       />
                       <p className="text-[11px] text-gray-600 mt-2 text-center">
-                        Scan this QR code with Google Authenticator.
+                        {t("profile.scanQRCodeShort")}
                       </p>
                     </div>
                     <div className="bg-white border border-gray-200 rounded-lg p-3">
                       <p className="text-xs text-gray-700 font-medium">
-                        Secret (manual entry)
+                        {t("profile.secretManualEntry")}
                       </p>
                       <p className="text-xs font-mono break-all mt-1 text-gray-800">
                         {twoFASetupData.secret}
                       </p>
 
                       <label className="block text-sm font-medium text-gray-700 mt-4 mb-2">
-                        6-digit code
+                        {t("profile.sixDigitCode")}
                       </label>
                       <input
                         type="text"
@@ -591,7 +588,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                         disabled={twoFALoading}
                         className="mt-3 w-full px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
                       >
-                        {twoFALoading ? "Verifying..." : "Verify & Enable"}
+                        {twoFALoading ? t("profile.verifying") : t("profile.verifyAndEnable")}
                       </button>
                     </div>
                   </div>
@@ -602,11 +599,11 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                   <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Password
+                        {t("profile.password")}
                       </label>
                       <input
                         type="password"
-                        placeholder="Enter your password"
+                        placeholder={t("profile.enterPassword")}
                         value={twoFADisablePassword}
                         onChange={(e) => setTwoFADisablePassword(e.target.value)}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all"
@@ -614,7 +611,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        2FA code
+                        {t("profile.twoFACode")}
                       </label>
                       <input
                         type="text"
@@ -625,7 +622,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all"
                       />
                       <p className="text-xs text-gray-600 mt-1">
-                        Required to disable 2FA (for security).
+                        {t("profile.requiredToDisable2FA")}
                       </p>
                     </div>
                     <div className="md:col-span-2">
@@ -635,7 +632,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                         disabled={twoFALoading}
                         className="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
                       >
-                        {twoFALoading ? "Disabling..." : "Confirm Disable 2FA"}
+                        {twoFALoading ? t("profile.disabling") : t("profile.confirmDisable2FA")}
                       </button>
                     </div>
                   </div>
@@ -650,13 +647,13 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                   htmlFor="national_id_number"
                   className="block text-sm font-medium text-gray-700 mb-2"
                 >
-                  National ID Number <span className="text-red-500">*</span>
+                  {t("profile.nationalIdNumber")} <span className="text-red-500">*</span>
                 </label>
                 <input
                   id="national_id_number"
                   name="national_id_number"
                   type="text"
-                  placeholder="Enter national ID number"
+                  placeholder={t("profile.enterNationalIdNumber")}
                   value={formik.values.national_id_number}
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
@@ -678,13 +675,13 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                   htmlFor="business_registration_id"
                   className="block text-sm font-medium text-gray-700 mb-2"
                 >
-                  Business Registration ID <span className="text-red-500">*</span>
+                  {t("profile.businessRegistrationId")} <span className="text-red-500">*</span>
                 </label>
                 <input
                   id="business_registration_id"
                   name="business_registration_id"
                   type="text"
-                  placeholder="Enter business registration ID"
+                  placeholder={t("profile.enterBusinessRegistrationId")}
                   value={formik.values.business_registration_id}
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
@@ -703,7 +700,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
             {userRole === "student" && (
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Resume (Optional)
+                  {t("profile.resumeOptional")}
                 </label>
                 {!resumeFile && !resumeUrl ? (
                   <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-purple-400 transition-colors">
@@ -714,7 +711,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                           htmlFor="resume"
                           className="relative cursor-pointer bg-white rounded-md font-medium text-purple-600 hover:text-purple-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-purple-500"
                         >
-                          <span>Upload a file</span>
+                          <span>{t("profile.uploadFile")}</span>
                           <input
                             id="resume"
                             name="resume"
@@ -726,10 +723,10 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                             disabled={isUploadingResume}
                           />
                         </label>
-                        <p className="pl-1">or drag and drop</p>
+                        <p className="pl-1">{t("profile.orDragDrop")}</p>
                       </div>
                       <p className="text-xs text-gray-500">
-                        PDF, DOC, DOCX, TXT up to 5MB
+                        {t("profile.resumeFormats")}
                       </p>
                     </div>
                   </div>
@@ -739,14 +736,14 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                       <DocumentIcon className="h-8 w-8 text-purple-600" />
                       <div>
                         <p className="text-sm font-medium text-gray-900">
-                          {resumeFile?.name || "Resume uploaded"}
+                          {resumeFile?.name || t("profile.resumeUploadedLabel")}
                         </p>
                         {isUploadingResume && (
-                          <p className="text-xs text-gray-500">Uploading...</p>
+                          <p className="text-xs text-gray-500">{t("profile.uploading")}</p>
                         )}
                         {resumeUrl && !isUploadingResume && (
                           <p className="text-xs text-green-600 font-medium">
-                            ✓ Uploaded
+                            {t("profile.uploaded")}
                           </p>
                         )}
                       </div>
@@ -771,20 +768,20 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                   htmlFor="cover_letter"
                   className="block text-sm font-medium text-gray-700 mb-2"
                 >
-                  Cover Letter (Optional)
+                  {t("profile.coverLetterOptional")}
                 </label>
                 <textarea
                   id="cover_letter"
                   name="cover_letter"
                   rows={6}
-                  placeholder="Enter your default cover letter that will be used when applying for jobs..."
+                  placeholder={t("profile.coverLetterPlaceholder")}
                   value={formik.values.cover_letter}
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all resize-vertical"
                 />
                 <p className="mt-1 text-xs text-gray-500">
-                  This cover letter will be used as default when applying for jobs. You can edit it for each application.
+                  {t("profile.coverLetterHint")}
                 </p>
               </div>
             )}
@@ -796,20 +793,20 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                   htmlFor="preferred_location"
                   className="block text-sm font-medium text-gray-700 mb-2"
                 >
-                  Preferred Work Location (Optional)
+                  {t("profile.preferredLocationOptional")}
                 </label>
                 <input
                   id="preferred_location"
                   name="preferred_location"
                   type="text"
-                  placeholder="e.g., New York, Remote, London"
+                  placeholder={t("profile.preferredLocationPlaceholder")}
                   value={formik.values.preferred_location}
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all"
                 />
                 <p className="mt-1 text-xs text-gray-500">
-                  Where would you prefer to work?
+                  {t("profile.preferredLocationHint")}
                 </p>
               </div>
             )}
@@ -823,14 +820,14 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
               className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
               disabled={isUpdating}
             >
-              Cancel
+              {t("profile.cancel")}
             </button>
             <button
               type="submit"
               disabled={isUpdating || isUploadingResume}
               className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {isUpdating ? "Updating..." : isUploadingResume ? "Uploading Resume..." : "Update Profile"}
+              {isUpdating ? t("profile.updating") : isUploadingResume ? t("profile.uploadingResume") : t("profile.updateProfile")}
             </button>
           </div>
         </form>

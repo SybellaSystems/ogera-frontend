@@ -187,7 +187,7 @@ export const addDisputeMessage = async (
     message,
     is_internal,
   });
-  return response.data.data as DisputeMessage;
+  return response.data.data as unknown as DisputeMessage;
 };
 
 // Upload evidence
@@ -203,7 +203,7 @@ export const uploadEvidence = async (
   const response = await api.post<DisputeResponse>(`/disputes/${id}/evidence`, formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
-  return response.data.data as DisputeEvidence;
+  return response.data.data as unknown as DisputeEvidence;
 };
 
 // Get dispute statistics

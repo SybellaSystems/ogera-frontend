@@ -21,7 +21,7 @@ const LostAuthenticatorModal: React.FC<LostAuthenticatorModalProps> = ({
   isOpen,
   onClose,
   userEmail,
-  userPassword,
+  userPassword: _userPassword,
 }) => {
   const [step, setStep] = useState<Step>("send-otp");
   const [emailOtp, setEmailOtp] = useState({ otp1: "", otp2: "", otp3: "", otp4: "" });

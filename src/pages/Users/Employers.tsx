@@ -34,6 +34,7 @@ import {
 } from "../../services/api/usersApi";
 import type { UserProfile } from "../../services/api/profileApi";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 
 interface Employer {
   index: number;
@@ -47,6 +48,7 @@ interface Employer {
 }
 
 const Employers: React.FC = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isSmallMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -111,14 +113,14 @@ const Employers: React.FC = () => {
       align: "center",
       sortable: false,
       format: (value) => (
-        <Typography sx={{ fontWeight: 500, color: "#6b7280" }}>
+        <Typography sx={{ fontWeight: 500, color: "var(--theme-text-secondary, #6b7280)" }}>
           {value}
         </Typography>
       ),
     },
     {
       id: "name",
-      label: "Company",
+      label: t("pages.users.company"),
       minWidth: 200,
       format: (value, row) => (
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
@@ -134,7 +136,7 @@ const Employers: React.FC = () => {
           >
             {row.name.charAt(0)}
           </Avatar>
-          <Typography sx={{ fontWeight: 600, color: "#111827" }}>
+          <Typography sx={{ fontWeight: 600, color: "var(--theme-text-primary, #111827)" }}>
             {value}
           </Typography>
         </Box>
@@ -142,12 +144,12 @@ const Employers: React.FC = () => {
     },
     {
       id: "contact",
-      label: "Contact",
+      label: t("pages.users.contact"),
       minWidth: 200,
     },
     {
       id: "jobsPosted",
-      label: "Jobs Posted",
+      label: t("pages.users.jobsPosted"),
       minWidth: 120,
       align: "center",
       format: (value) => (
@@ -155,8 +157,8 @@ const Employers: React.FC = () => {
           label={value}
           size="small"
           sx={{
-            bgcolor: "#dbeafe",
-            color: "#1e40af",
+            bgcolor: "var(--chip-role-student-bg)",
+            color: "var(--chip-role-student-text)",
             fontWeight: 600,
           }}
         />
@@ -164,7 +166,7 @@ const Employers: React.FC = () => {
     },
     {
       id: "activeJobs",
-      label: "Active Jobs",
+      label: t("pages.users.activeJobs"),
       minWidth: 120,
       align: "center",
       format: (value) => (
@@ -172,8 +174,8 @@ const Employers: React.FC = () => {
           label={value}
           size="small"
           sx={{
-            bgcolor: "#f3e8ff",
-            color: "#7c3aed",
+            bgcolor: "var(--chip-role-admin-bg)",
+            color: "var(--chip-role-admin-text)",
             fontWeight: 600,
           }}
         />
@@ -181,26 +183,26 @@ const Employers: React.FC = () => {
     },
     {
       id: "verified",
-      label: "Verified",
+      label: t("pages.users.verified"),
       minWidth: 120,
       format: (value) =>
         value ? (
           <Chip
-            label="✓ Verified"
+            label={t("pages.users.verifiedLabel")}
             size="small"
             sx={{
-              bgcolor: "#d1fae5",
-              color: "#065f46",
+              bgcolor: "var(--chip-verified-bg)",
+              color: "var(--chip-verified-text)",
               fontWeight: 600,
             }}
           />
         ) : (
           <Chip
-            label="Pending"
+            label={t("pages.users.pending")}
             size="small"
             sx={{
-              bgcolor: "#fed7aa",
-              color: "#9a3412",
+              bgcolor: "var(--chip-status-pending-bg)",
+              color: "var(--chip-status-pending-text)",
               fontWeight: 600,
             }}
           />
@@ -234,16 +236,16 @@ const Employers: React.FC = () => {
 
     try {
       await updateUser({ id: employerToEdit.userId, data: editFormData }).unwrap();
-      toast.success("Employer updated successfully");
+      toast.success(t("pages.users.employerUpdatedSuccess"));
       handleCloseEditDialog();
     } catch (error: any) {
-      toast.error(error?.data?.message || "Failed to update employer");
+      toast.error(error?.data?.message || t("pages.users.failedToUpdateEmployer"));
     }
   };
 
   const actions: TableAction<Employer>[] = [
     {
-      label: "View Profile",
+      label: t("pages.users.viewProfile"),
       icon: <ViewIcon fontSize="small" />,
       onClick: (row) => {
         handleViewClick(row);
@@ -251,7 +253,7 @@ const Employers: React.FC = () => {
       color: "primary",
     },
     {
-      label: "Edit",
+      label: t("pages.users.edit"),
       icon: <EditIcon fontSize="small" />,
       onClick: (row) => {
         handleEditClick(row);
@@ -261,15 +263,15 @@ const Employers: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6 animate-fadeIn">
+    <div className="theme-page-bg space-y-6 animate-fadeIn min-h-full p-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl md:text-4xl font-extrabold text-gray-900 flex items-center gap-2 md:gap-3">
-            <BriefcaseIcon className="h-8 w-8 md:h-10 md:w-10 text-green-600" />
-            Employers
+          <h1 className="text-2xl md:text-4xl font-extrabold text-gray-900 dark:text-[var(--theme-text-primary)] flex items-center gap-2 md:gap-3">
+            <BriefcaseIcon className="h-8 w-8 md:h-10 md:w-10 text-green-600 dark:text-green-400" />
+            {t("pages.users.employersPageTitle")}
           </h1>
-          <p className="text-sm md:text-base text-gray-500 mt-2">
-            Manage employer accounts and their job postings
+          <p className="text-sm md:text-base text-gray-500 dark:text-[var(--theme-text-secondary)] mt-2">
+            {t("pages.users.employersSubtitle")}
           </p>
         </div>
       </div>
@@ -277,20 +279,20 @@ const Employers: React.FC = () => {
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 shadow-md border border-green-200">
-          <p className="text-sm text-green-700 font-medium">Total Employers</p>
+          <p className="text-sm text-green-700 font-medium">{t("pages.users.totalEmployers")}</p>
           <p className="text-3xl font-bold text-green-900 mt-2">
             {isLoading ? "…" : totalCount}
           </p>
         </div>
         <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 shadow-md border border-blue-200">
           <p className="text-sm text-blue-700 font-medium">
-            Active Jobs Posted
+            {t("pages.users.activeJobsPosted")}
           </p>
           <p className="text-3xl font-bold text-blue-900 mt-2">1,480</p>
         </div>
         <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-6 shadow-md border border-purple-200">
           <p className="text-sm text-purple-700 font-medium">
-            Verified Employers
+            {t("pages.users.verifiedEmployers")}
           </p>
           <p className="text-3xl font-bold text-purple-900 mt-2">1,120</p>
         </div>
@@ -304,13 +306,13 @@ const Employers: React.FC = () => {
         loading={isLoading}
         emptyMessage={
           isError
-            ? "Failed to load employers. Please try again."
+            ? t("pages.users.failedToLoadEmployers")
             : totalCount === 0
-            ? "No employers present"
-            : "No employers found"
+            ? t("pages.users.noEmployersPresent")
+            : t("pages.users.noEmployersFound")
         }
         searchable={true}
-        searchPlaceholder="Search employers..."
+        searchPlaceholder={t("pages.users.searchEmployers")}
         rowsPerPageOptions={[5, 10, 25, 50]}
         defaultRowsPerPage={limit}
         serverSidePagination={true}
@@ -374,7 +376,7 @@ const Employers: React.FC = () => {
             fontSize: isSmallMobile ? "0.875rem" : isMobile ? "1rem" : "1.25rem",
             position: isMobile ? "sticky" : "relative",
             top: 0,
-            backgroundColor: "background.paper",
+            backgroundColor: "var(--theme-card-bg, #ffffff)",
             zIndex: 2,
             borderBottom: isMobile ? "1px solid rgba(0, 0, 0, 0.12)" : "none",
           }}
@@ -393,7 +395,7 @@ const Employers: React.FC = () => {
                 fontSize: isSmallMobile ? "0.875rem" : isMobile ? "1rem" : "1.25rem",
               }}
             >
-              Employer Details
+              {t("pages.users.employerDetails")}
             </Typography>
           </Box>
           <IconButton
@@ -441,8 +443,8 @@ const Employers: React.FC = () => {
                   mb: isSmallMobile ? 1.5 : isMobile ? 2 : 2,
                   p: isSmallMobile ? 1.25 : isMobile ? 1.5 : 1.75,
                   borderRadius: 1.5,
-                  backgroundColor: "rgba(16, 185, 129, 0.08)",
-                  border: "1px solid rgba(16, 185, 129, 0.2)",
+                  backgroundColor: "var(--chip-role-employer-bg)",
+                  border: "1px solid var(--chip-role-employer-bg)",
                   flexDirection: isMobile ? "column" : "row",
                   textAlign: isMobile ? "center" : "left",
                 }}
@@ -473,11 +475,11 @@ const Employers: React.FC = () => {
                     {employerDetails.data.full_name}
                   </Typography>
                   <Chip
-                    label="Employer"
+                    label={t("pages.users.employer")}
                     size="small"
                     sx={{
-                      bgcolor: "#d1fae5",
-                      color: "#065f46",
+                      bgcolor: "var(--chip-role-employer-bg)",
+                      color: "var(--chip-role-employer-text)",
                       fontWeight: 600,
                       fontSize: isSmallMobile ? "0.65rem" : isMobile ? "0.7rem" : "0.75rem",
                       height: isSmallMobile ? "20px" : isMobile ? "22px" : "24px",
@@ -495,8 +497,9 @@ const Employers: React.FC = () => {
                     sx={{
                       p: isSmallMobile ? 1.25 : isMobile ? 1.5 : 1.75,
                       borderRadius: 1.5,
-                      backgroundColor: "rgba(0, 0, 0, 0.02)",
-                      border: "1px solid rgba(0, 0, 0, 0.08)",
+                      backgroundColor: "var(--theme-card-bg, #ffffff)",
+                      border: "1px solid var(--theme-border, rgba(0, 0, 0, 0.08))",
+                      boxShadow: "0 4px 10px rgba(15, 23, 42, 0.04)",
                       height: "100%",
                       minHeight: "80px",
                     }}
@@ -512,7 +515,7 @@ const Employers: React.FC = () => {
                         letterSpacing: "0.5px",
                       }}
                     >
-                      Email Address
+                      {t("pages.users.emailAddress")}
                     </Typography>
                     <Typography 
                       variant="body2" 
@@ -534,8 +537,9 @@ const Employers: React.FC = () => {
                     sx={{
                       p: isSmallMobile ? 1.25 : isMobile ? 1.5 : 1.75,
                       borderRadius: 1.5,
-                      backgroundColor: "rgba(0, 0, 0, 0.02)",
-                      border: "1px solid rgba(0, 0, 0, 0.08)",
+                      backgroundColor: "var(--theme-card-bg, #ffffff)",
+                      border: "1px solid var(--theme-border, rgba(0, 0, 0, 0.08))",
+                      boxShadow: "0 4px 10px rgba(15, 23, 42, 0.04)",
                       height: "100%",
                       minHeight: "80px",
                     }}
@@ -551,7 +555,7 @@ const Employers: React.FC = () => {
                         letterSpacing: "0.5px",
                       }}
                     >
-                      Mobile Number
+                      {t("pages.users.mobileNumber")}
                     </Typography>
                     <Typography 
                       variant="body2" 
@@ -572,8 +576,9 @@ const Employers: React.FC = () => {
                     sx={{
                       p: isSmallMobile ? 1.25 : isMobile ? 1.5 : 1.75,
                       borderRadius: 1.5,
-                      backgroundColor: "rgba(0, 0, 0, 0.02)",
-                      border: "1px solid rgba(0, 0, 0, 0.08)",
+                      backgroundColor: "var(--theme-card-bg, #ffffff)",
+                      border: "1px solid var(--theme-border, rgba(0, 0, 0, 0.08))",
+                      boxShadow: "0 4px 10px rgba(15, 23, 42, 0.04)",
                       height: "100%",
                       minHeight: "80px",
                     }}
@@ -589,7 +594,7 @@ const Employers: React.FC = () => {
                         letterSpacing: "0.5px",
                       }}
                     >
-                      Business Registration ID
+                      {t("pages.users.businessRegistrationId")}
                     </Typography>
                     <Typography 
                       variant="body2" 
@@ -627,7 +632,7 @@ const Employers: React.FC = () => {
                         letterSpacing: "0.5px",
                       }}
                     >
-                      Preferred Location
+                      {t("pages.users.preferredLocation")}
                     </Typography>
                     <Typography 
                       variant="body2" 
@@ -648,12 +653,14 @@ const Employers: React.FC = () => {
                     sx={{
                       p: isSmallMobile ? 1.25 : isMobile ? 1.5 : 1.75,
                       borderRadius: 1.5,
-                      backgroundColor: employerDetails.data.email_verified 
-                        ? "rgba(16, 185, 129, 0.08)" 
-                        : "rgba(153, 27, 27, 0.08)",
-                      border: `1px solid ${employerDetails.data.email_verified 
-                        ? "rgba(16, 185, 129, 0.2)" 
-                        : "rgba(153, 27, 27, 0.2)"}`,
+                      backgroundColor: employerDetails.data.email_verified
+                        ? "var(--chip-verified-bg)"
+                        : "var(--chip-unverified-bg)",
+                      border: `1px solid ${
+                        employerDetails.data.email_verified
+                          ? "var(--chip-verified-bg)"
+                          : "var(--chip-unverified-bg)"
+                      }`,
                       height: "100%",
                       minHeight: "80px",
                     }}
@@ -682,11 +689,11 @@ const Employers: React.FC = () => {
                           }}
                         />
                       ) : undefined}
-                      label={employerDetails.data.email_verified ? "Verified" : "Not Verified"}
+                      label={employerDetails.data.email_verified ? t("pages.users.verified") : t("pages.users.notVerified")}
                       size="small"
                       sx={{
-                        bgcolor: employerDetails.data.email_verified ? "#d1fae5" : "#fee2e2",
-                        color: employerDetails.data.email_verified ? "#065f46" : "#991b1b",
+                        bgcolor: employerDetails.data.email_verified ? "var(--chip-verified-bg)" : "var(--chip-unverified-bg)",
+                        color: employerDetails.data.email_verified ? "var(--chip-verified-text)" : "var(--chip-unverified-text)",
                         fontSize: isSmallMobile ? "0.65rem" : isMobile ? "0.7rem" : "0.75rem",
                         height: isSmallMobile ? "22px" : isMobile ? "24px" : "26px",
                         fontWeight: 600,
@@ -701,12 +708,14 @@ const Employers: React.FC = () => {
                     sx={{
                       p: isSmallMobile ? 1.25 : isMobile ? 1.5 : 1.75,
                       borderRadius: 1.5,
-                      backgroundColor: employerDetails.data.phone_verified 
-                        ? "rgba(16, 185, 129, 0.08)" 
-                        : "rgba(153, 27, 27, 0.08)",
-                      border: `1px solid ${employerDetails.data.phone_verified
-                        ? "rgba(16, 185, 129, 0.2)" 
-                        : "rgba(153, 27, 27, 0.2)"}`,
+                      backgroundColor: employerDetails.data.phone_verified
+                        ? "var(--chip-verified-bg)"
+                        : "var(--chip-unverified-bg)",
+                      border: `1px solid ${
+                        employerDetails.data.phone_verified
+                          ? "var(--chip-verified-bg)"
+                          : "var(--chip-unverified-bg)"
+                      }`,
                       height: "100%",
                       minHeight: "80px",
                     }}
@@ -722,7 +731,7 @@ const Employers: React.FC = () => {
                         letterSpacing: "0.5px",
                       }}
                     >
-                      Phone Verification
+                      {t("pages.users.phoneVerification")}
                     </Typography>
                     <Chip
                       icon={employerDetails.data.phone_verified ? (
@@ -735,11 +744,11 @@ const Employers: React.FC = () => {
                           }}
                         />
                       ) : undefined}
-                      label={employerDetails.data.phone_verified ? "Verified" : "Not Verified"}
+                      label={employerDetails.data.phone_verified ? t("pages.users.verified") : t("pages.users.notVerified")}
                       size="small"
                       sx={{
-                        bgcolor: employerDetails.data.phone_verified ? "#d1fae5" : "#fee2e2",
-                        color: employerDetails.data.phone_verified ? "#065f46" : "#991b1b",
+                        bgcolor: employerDetails.data.phone_verified ? "var(--chip-verified-bg)" : "var(--chip-unverified-bg)",
+                        color: employerDetails.data.phone_verified ? "var(--chip-verified-text)" : "var(--chip-unverified-text)",
                         fontSize: isSmallMobile ? "0.65rem" : isMobile ? "0.7rem" : "0.75rem",
                         height: isSmallMobile ? "22px" : isMobile ? "24px" : "26px",
                         fontWeight: 600,
@@ -823,7 +832,7 @@ const Employers: React.FC = () => {
             borderTop: isMobile ? "1px solid rgba(0, 0, 0, 0.12)" : "none",
             position: isMobile ? "sticky" : "relative",
             bottom: 0,
-            backgroundColor: "background.paper",
+            backgroundColor: "var(--theme-card-bg, #ffffff)",
             zIndex: 1,
             boxShadow: isMobile ? "0 -2px 8px rgba(0, 0, 0, 0.1)" : "none",
             flexShrink: 0,
@@ -841,7 +850,7 @@ const Employers: React.FC = () => {
               fontWeight: isMobile ? 500 : 400,
             }}
           >
-            Close
+            {t("pages.users.close")}
           </Button>
         </DialogActions>
       </Dialog>
@@ -887,7 +896,7 @@ const Employers: React.FC = () => {
             fontSize: isSmallMobile ? "0.875rem" : isMobile ? "1rem" : "1.25rem",
             position: isMobile ? "sticky" : "relative",
             top: 0,
-            backgroundColor: "background.paper",
+            backgroundColor: "var(--theme-card-bg, #ffffff)",
             zIndex: 2,
             borderBottom: isMobile ? "1px solid rgba(0, 0, 0, 0.12)" : "none",
           }}
@@ -906,7 +915,7 @@ const Employers: React.FC = () => {
                 fontSize: isSmallMobile ? "0.875rem" : isMobile ? "1rem" : "1.25rem",
               }}
             >
-              Edit Employer
+              {t("pages.users.editEmployer")}
             </Typography>
           </Box>
           <IconButton
@@ -991,11 +1000,11 @@ const Employers: React.FC = () => {
                     {employerDetails.data.full_name}
                   </Typography>
                   <Chip
-                    label="Employer"
+                    label={t("pages.users.employer")}
                     size="small"
                     sx={{
-                      bgcolor: "#d1fae5",
-                      color: "#065f46",
+                      bgcolor: "var(--chip-role-employer-bg)",
+                      color: "var(--chip-role-employer-text)",
                       fontWeight: 600,
                       mt: 0.5,
                       fontSize: isSmallMobile ? "0.65rem" : isMobile ? "0.7rem" : "0.75rem",
@@ -1009,7 +1018,7 @@ const Employers: React.FC = () => {
                 <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
                     fullWidth
-                    label="Full Name"
+                    label={t("pages.users.fullName")}
                     value={editFormData.full_name || ""}
                     onChange={(e) =>
                       setEditFormData({ ...editFormData, full_name: e.target.value })
@@ -1020,7 +1029,7 @@ const Employers: React.FC = () => {
                       "& .MuiInputBase-root": {
                         fontSize: isSmallMobile ? "0.875rem" : isMobile ? "0.875rem" : "1rem",
                         minHeight: isSmallMobile ? "44px" : isMobile ? "48px" : "56px",
-                        backgroundColor: "background.paper",
+                        backgroundColor: "var(--theme-input-bg, #ffffff)",
                       },
                       "& .MuiInputLabel-root": {
                         fontSize: isSmallMobile ? "0.75rem" : isMobile ? "0.8125rem" : "0.875rem",
@@ -1036,7 +1045,7 @@ const Employers: React.FC = () => {
                 <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
                     fullWidth
-                    label="Email"
+                    label={t("pages.users.email")}
                     type="email"
                     value={editFormData.email || ""}
                     onChange={(e) =>
@@ -1048,7 +1057,7 @@ const Employers: React.FC = () => {
                       "& .MuiInputBase-root": {
                         fontSize: isSmallMobile ? "0.875rem" : isMobile ? "0.875rem" : "1rem",
                         minHeight: isSmallMobile ? "44px" : isMobile ? "48px" : "56px",
-                        backgroundColor: "background.paper",
+                        backgroundColor: "var(--theme-input-bg, #ffffff)",
                       },
                       "& .MuiInputLabel-root": {
                         fontSize: isSmallMobile ? "0.75rem" : isMobile ? "0.8125rem" : "0.875rem",
@@ -1075,7 +1084,7 @@ const Employers: React.FC = () => {
                       "& .MuiInputBase-root": {
                         fontSize: isSmallMobile ? "0.875rem" : isMobile ? "0.875rem" : "1rem",
                         minHeight: isSmallMobile ? "44px" : isMobile ? "48px" : "56px",
-                        backgroundColor: "background.paper",
+                        backgroundColor: "var(--theme-input-bg, #ffffff)",
                       },
                       "& .MuiInputLabel-root": {
                         fontSize: isSmallMobile ? "0.75rem" : isMobile ? "0.8125rem" : "0.875rem",
@@ -1091,7 +1100,7 @@ const Employers: React.FC = () => {
                 <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
                     fullWidth
-                    label="Business Registration ID"
+                    label={t("pages.users.businessRegistrationId")}
                     value={editFormData.business_registration_id || ""}
                     onChange={(e) =>
                       setEditFormData({ ...editFormData, business_registration_id: e.target.value })
@@ -1102,7 +1111,7 @@ const Employers: React.FC = () => {
                       "& .MuiInputBase-root": {
                         fontSize: isSmallMobile ? "0.875rem" : isMobile ? "0.875rem" : "1rem",
                         minHeight: isSmallMobile ? "44px" : isMobile ? "48px" : "56px",
-                        backgroundColor: "background.paper",
+                        backgroundColor: "var(--theme-input-bg, #ffffff)",
                       },
                       "& .MuiInputLabel-root": {
                         fontSize: isSmallMobile ? "0.75rem" : isMobile ? "0.8125rem" : "0.875rem",
@@ -1118,7 +1127,7 @@ const Employers: React.FC = () => {
                 <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
                     fullWidth
-                    label="Preferred Location"
+                    label={t("pages.users.preferredLocation")}
                     value={editFormData.preferred_location || ""}
                     onChange={(e) =>
                       setEditFormData({ ...editFormData, preferred_location: e.target.value })
@@ -1129,7 +1138,7 @@ const Employers: React.FC = () => {
                       "& .MuiInputBase-root": {
                         fontSize: isSmallMobile ? "0.875rem" : isMobile ? "0.875rem" : "1rem",
                         minHeight: isSmallMobile ? "44px" : isMobile ? "48px" : "56px",
-                        backgroundColor: "background.paper",
+                        backgroundColor: "var(--theme-input-bg, #ffffff)",
                       },
                       "& .MuiInputLabel-root": {
                         fontSize: isSmallMobile ? "0.75rem" : isMobile ? "0.8125rem" : "0.875rem",
@@ -1158,7 +1167,7 @@ const Employers: React.FC = () => {
             borderTop: isMobile ? "1px solid rgba(0, 0, 0, 0.12)" : "none",
             position: isMobile ? "sticky" : "relative",
             bottom: 0,
-            backgroundColor: "background.paper",
+            backgroundColor: "var(--theme-card-bg, #ffffff)",
             zIndex: 1,
             boxShadow: isMobile ? "0 -2px 8px rgba(0, 0, 0, 0.1)" : "none",
           }}
@@ -1175,7 +1184,7 @@ const Employers: React.FC = () => {
               fontWeight: isMobile ? 500 : 400,
             }}
           >
-            Cancel
+            {t("pages.users.cancel")}
           </Button>
           <Button
             onClick={handleSaveEdit}
@@ -1191,7 +1200,7 @@ const Employers: React.FC = () => {
               fontWeight: isMobile ? 600 : 500,
             }}
           >
-            {isUpdating ? "Saving..." : "Save Changes"}
+            {isUpdating ? t("pages.users.saving") : t("pages.users.saveChanges")}
           </Button>
         </DialogActions>
       </Dialog>

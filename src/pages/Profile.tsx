@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
 import { getUserProfile, updateUserProfile } from "../services/api/profileApi";
 import { uploadResume } from "../services/api/resumeApi";
@@ -63,6 +64,7 @@ type ActiveSection =
   | "accomplishments";
 
 const Profile: React.FC = () => {
+  const { t } = useTranslation();
   const user = useSelector((state: any) => state.auth.user);
   const role = useSelector((state: any) => state.auth.role);
 
@@ -127,7 +129,7 @@ const Profile: React.FC = () => {
       setError(null);
     } catch (err: any) {
       console.error("Error fetching profile:", err);
-      setError(err?.response?.data?.message || "Failed to load profile");
+      setError(err?.response?.data?.message || t("profile.failedToLoad"));
       setProfileData(null);
     } finally {
       setLoading(false);
@@ -188,12 +190,12 @@ const Profile: React.FC = () => {
 
     const allowedTypes = ["application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "application/rtf"];
     if (!allowedTypes.includes(file.type)) {
-      toast.error("Please upload a valid file (doc, docx, rtf, pdf)");
+      toast.error(t("profile.resumeUploadValidFile"));
       return;
     }
 
     if (file.size > 2 * 1024 * 1024) {
-      toast.error("File size should be less than 2MB");
+      toast.error(t("profile.resumeUploadSize"));
       return;
     }
 
@@ -206,14 +208,14 @@ const Profile: React.FC = () => {
         await updateUserProfile({ resume_url: response.data.resume_url });
       }
       
-      toast.success("Resume uploaded successfully!");
+      toast.success(t("profile.resumeUploadSuccess"));
       // Refetch profile data to get updated resume URL
       await fetchProfile();
       // Also refetch full profile if needed
       refetchFullProfile();
     } catch (error: any) {
       console.error("Error uploading resume:", error);
-      toast.error(error?.response?.data?.message || "Failed to upload resume");
+      toast.error(error?.response?.data?.message || t("profile.resumeUploadFailed"));
     } finally {
       setIsUploadingResume(false);
       // Reset file input
@@ -233,11 +235,11 @@ const Profile: React.FC = () => {
   const handleSaveHeadline = async () => {
     try {
       await updateExtendedProfile({ resume_headline: resumeHeadline });
-      toast.success("Resume headline updated!");
+      toast.success(t("profile.headlineUpdated"));
       setIsEditingHeadline(false);
       refetchFullProfile();
     } catch (error: any) {
-      toast.error(error?.data?.message || "Failed to update headline");
+      toast.error(error?.data?.message || t("profile.headlineUpdateFailed"));
     }
   };
 
@@ -245,11 +247,11 @@ const Profile: React.FC = () => {
   const handleSaveSummary = async () => {
     try {
       await updateExtendedProfile({ profile_summary: profileSummary });
-      toast.success("Profile summary updated!");
+      toast.success(t("profile.summaryUpdated"));
       setIsEditingSummary(false);
       refetchFullProfile();
     } catch (error: any) {
-      toast.error(error?.data?.message || "Failed to update summary");
+      toast.error(error?.data?.message || t("profile.summaryUpdateFailed"));
     }
   };
 
@@ -262,11 +264,11 @@ const Profile: React.FC = () => {
         skill_type: "key_skill" as const,
       }));
       await addBulkSkills({ skills: skillsData });
-      toast.success("Skills updated!");
+      toast.success(t("profile.skillsUpdated"));
       setIsEditingSkills(false);
       refetchFullProfile();
     } catch (error: any) {
-      toast.error(error?.data?.message || "Failed to update skills");
+      toast.error(error?.data?.message || t("profile.skillsUpdateFailed"));
     }
   };
 
@@ -301,11 +303,11 @@ const Profile: React.FC = () => {
     const remainingMonths = months % 12;
 
     let duration = "";
-    if (years > 0) duration += `${years} year${years > 1 ? "s" : ""}`;
-    if (remainingMonths > 0) duration += ` ${remainingMonths} month${remainingMonths > 1 ? "s" : ""}`;
+    if (years > 0) duration += `${years} ${years > 1 ? t("profile.years") : t("profile.year")}`;
+    if (remainingMonths > 0) duration += ` ${remainingMonths} ${remainingMonths > 1 ? t("profile.months") : t("profile.month")}`;
 
     const startStr = start.toLocaleDateString("en-US", { month: "short", year: "numeric" });
-    const endStr = isCurrent ? "Present" : (endDate ? new Date(endDate).toLocaleDateString("en-US", { month: "short", year: "numeric" }) : "Present");
+    const endStr = isCurrent ? t("profile.present") : (endDate ? new Date(endDate).toLocaleDateString("en-US", { month: "short", year: "numeric" }) : t("profile.present"));
 
     return `${startStr} to ${endStr} (${duration.trim()})`;
   };
@@ -337,7 +339,7 @@ const Profile: React.FC = () => {
                 <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-lg">
                   <img
                     src="https://i.pravatar.cc/150?img=3"
-                    alt={userData?.full_name || "User"}
+                    alt={userData?.full_name || t("profile.user")}
                     className="w-full h-full object-cover"
                   />
       </div>
@@ -376,22 +378,22 @@ const Profile: React.FC = () => {
               <p className="text-lg text-gray-700 mb-1">
                 {currentEmployment
                   ? currentEmployment.job_title
-                  : role === "student" ? "Software Developer" : "Professional"}
+                  : role === "student" ? t("profile.softwareDeveloper") : t("profile.professional")}
                 {currentEmployment && (
-                  <span className="text-gray-600"> at {currentEmployment.company_name}</span>
+                  <span className="text-gray-600"> {t("profile.at")} {currentEmployment.company_name}</span>
                 )}
               </p>
 
               <div className="flex flex-wrap gap-4 mt-4 text-sm text-gray-600">
                 <div className="flex items-center gap-2">
                   <MapPinIcon className="w-5 h-5 text-gray-400" />
-                  <span>{userData?.preferred_location || "Location"}</span>
+                  <span>{userData?.preferred_location || t("profile.location")}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <BriefcaseIcon className="w-5 h-5 text-gray-400" />
                   <span>
-                    {extendedProfile?.total_experience_years || 0} Year{(extendedProfile?.total_experience_years || 0) !== 1 ? "s" : ""}{" "}
-                    {extendedProfile?.total_experience_months || 0} Month{(extendedProfile?.total_experience_months || 0) !== 1 ? "s" : ""}
+                    {extendedProfile?.total_experience_years || 0} {(extendedProfile?.total_experience_years || 0) !== 1 ? t("profile.years") : t("profile.year")}{" "}
+                    {extendedProfile?.total_experience_months || 0} {(extendedProfile?.total_experience_months || 0) !== 1 ? t("profile.months") : t("profile.month")}
                   </span>
                 </div>
                 {role === "student" && extendedProfile?.current_salary && (
@@ -407,14 +409,14 @@ const Profile: React.FC = () => {
                   <PhoneIcon className="w-5 h-5 text-gray-400" />
                   <span className="text-gray-700">{userData?.mobile_number || "N/A"}</span>
                   {profileData?.phone_verified ? (
-                    <CheckCircleIcon className="w-5 h-5 text-green-500" title="Phone verified" />
+                    <CheckCircleIcon className="w-5 h-5 text-green-500" title={t("profile.phoneVerified")} />
                   ) : (
                     <button
                       onClick={() => setIsPhoneVerificationModalOpen(true)}
                       className="text-xs text-purple-600 hover:text-purple-700 font-medium underline"
-                      title="Verify phone number"
+                      title={t("profile.verifyPhone")}
                     >
-                      Verify
+                      {t("profile.verify")}
                     </button>
                   )}
                 </div>
@@ -422,45 +424,45 @@ const Profile: React.FC = () => {
                   <EnvelopeIcon className="w-5 h-5 text-gray-400" />
                   <span className="text-gray-700">{userData?.email || "N/A"}</span>
                   {profileData?.email_verified ? (
-                    <CheckCircleIcon className="w-5 h-5 text-green-500" title="Email verified" />
+                    <CheckCircleIcon className="w-5 h-5 text-green-500" title={t("profile.emailVerified")} />
                   ) : (
                     <button
                       onClick={async () => {
                         try {
                           await resendVerificationEmail(userData?.email || "").unwrap();
-                          toast.success("Verification email sent! Please check your inbox.");
+                          toast.success(t("profile.verificationEmailSent"));
                         } catch (error: any) {
-                          toast.error(error?.data?.message || "Failed to send verification email");
+                          toast.error(error?.data?.message || t("profile.verificationEmailFailed"));
                         }
                       }}
                       className="text-xs text-purple-600 hover:text-purple-700 font-medium underline"
-                      title="Verify email"
+                      title={t("profile.verifyEmail")}
                     >
-                      Verify
+                      {t("profile.verify")}
                     </button>
                   )}
                 </div>
                 <div className="flex items-center gap-2">
                   <CalendarIcon className="w-5 h-5 text-gray-400" />
-                  <span className="text-gray-700">{extendedProfile?.notice_period || "15 Days or less notice period"}</span>
+                  <span className="text-gray-700">{extendedProfile?.notice_period || t("profile.noticePeriodDefault")}</span>
                 </div>
                 {role === "student" && (
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => navigate("/dashboard/academic/pending")}
                       className="text-xs text-purple-600 hover:text-purple-700 font-medium underline"
-                      title="Academic Verification"
+                      title={t("profile.academicVerification")}
                     >
-                      Academic Verification
+                      {t("profile.academicVerification")}
                     </button>
                   </div>
                 )}
               </div>
 
               <p className="text-xs text-gray-500 mt-4">
-                Profile last updated - {profileData?.updated_at
+                {t("profile.profileLastUpdated")} - {profileData?.updated_at
                   ? new Date(profileData.updated_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })
-                  : "Recently"}
+                  : t("profile.recently")}
               </p>
             </div>
           </div>
@@ -478,20 +480,20 @@ const Profile: React.FC = () => {
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                   </svg>
-                  Quick Links
+                  {t("profile.quickLinks")}
                 </h3>
               </div>
               <nav className="p-3 space-y-1">
                 {[
-                  { key: "resume", label: "Resume", action: "Update", icon: "📄" },
-                  { key: "resume-headline", label: "Resume headline", icon: "✏️" },
-                  { key: "key-skills", label: "Key skills", icon: "⭐" },
-                  { key: "employment", label: "Employment", action: "Add", icon: "💼" },
-                  { key: "education", label: "Education", action: "Add", icon: "🎓" },
-                  { key: "it-skills", label: "IT skills", icon: "💻" },
-                  { key: "projects", label: "Projects", icon: "🚀" },
-                  { key: "profile-summary", label: "Profile summary", icon: "📝" },
-                  { key: "accomplishments", label: "Accomplishments", icon: "🏆" },
+                  { key: "resume", label: t("profile.resume"), action: t("profile.update"), icon: "📄" },
+                  { key: "resume-headline", label: t("profile.resumeHeadline"), icon: "✏️" },
+                  { key: "key-skills", label: t("profile.keySkills"), icon: "⭐" },
+                  { key: "employment", label: t("profile.employment"), action: t("profile.add"), icon: "💼" },
+                  { key: "education", label: t("profile.education"), action: t("profile.add"), icon: "🎓" },
+                  { key: "it-skills", label: t("profile.itSkills"), icon: "💻" },
+                  { key: "projects", label: t("profile.projects"), icon: "🚀" },
+                  { key: "profile-summary", label: t("profile.profileSummary"), icon: "📝" },
+                  { key: "accomplishments", label: t("profile.accomplishments"), icon: "🏆" },
                 ].map((item) => (
                   <button
                     key={item.key}
@@ -531,7 +533,7 @@ const Profile: React.FC = () => {
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
-                    Resume
+                    {t("profile.resume")}
                   </h2>
                 </div>
                 <div className="p-6">
@@ -546,9 +548,9 @@ const Profile: React.FC = () => {
                         <div>
                           <p className="font-semibold text-gray-900 text-lg">{profileData.resume_url.split("/").pop() || "resume.pdf"}</p>
                           <p className="text-sm text-gray-600 mt-1">
-                            <span className="font-medium">Uploaded on:</span> {profileData.updated_at
+                            <span className="font-medium">{t("profile.uploadedOn")}:</span> {profileData.updated_at
                               ? new Date(profileData.updated_at).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
-                              : "Recently"}
+                              : t("profile.recently")}
                           </p>
                         </div>
                       </div>
@@ -556,13 +558,13 @@ const Profile: React.FC = () => {
                         <button 
                           onClick={handleResumeDownload} 
                           className="p-3 rounded-xl bg-white hover:bg-purple-50 border-2 border-purple-200 transition-all hover:scale-110 shadow-sm hover:shadow-md" 
-                          title="Download Resume"
+                          title={t("profile.downloadResume")}
                         >
                           <ArrowDownTrayIcon className="w-5 h-5 text-purple-600" />
                         </button>
                         <button 
                           className="p-3 rounded-xl bg-white hover:bg-red-50 border-2 border-red-200 transition-all hover:scale-110 shadow-sm hover:shadow-md" 
-                          title="Delete Resume"
+                          title={t("profile.deleteResume")}
                         >
                           <TrashIcon className="w-5 h-5 text-red-600" />
                         </button>
@@ -597,14 +599,14 @@ const Profile: React.FC = () => {
                               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                             </svg>
-                            Uploading...
+                            {t("profile.uploading")}
                           </span>
                         ) : (
-                          "Update Resume"
+                          t("profile.updateResume")
                         )}
                       </button>
-                      <p className="text-sm text-gray-600 mt-4 font-medium">Supported Formats: <span className="text-purple-600">DOC, DOCX, RTF, PDF</span></p>
-                      <p className="text-xs text-gray-500 mt-1">Maximum file size: 2 MB</p>
+                      <p className="text-sm text-gray-600 mt-4 font-medium">{t("profile.supportedFormats")} <span className="text-purple-600">DOC, DOCX, RTF, PDF</span></p>
+                      <p className="text-xs text-gray-500 mt-1">{t("profile.maxFileSize")}</p>
                     </label>
                   </div>
                 </div>
@@ -620,7 +622,7 @@ const Profile: React.FC = () => {
                       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                       </svg>
-                      Resume Headline
+                      {t("profile.resumeHeadline")}
                     </h2>
                     <button 
                       onClick={() => setIsEditingHeadline(!isEditingHeadline)} 
@@ -638,20 +640,20 @@ const Profile: React.FC = () => {
                         onChange={(e) => setResumeHeadline(e.target.value)}
                         className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none transition-all"
                         rows={4}
-                        placeholder="Enter your resume headline (e.g., Software Developer with 5+ years of experience in React, Node.js, and TypeScript)..."
+                        placeholder={t("profile.resumeHeadlinePlaceholder")}
                       />
                       <div className="flex gap-3">
                         <button 
                           onClick={handleSaveHeadline} 
                           className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white px-6 py-2.5 rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
                         >
-                          Save Changes
+                          {t("profile.saveChanges")}
                         </button>
                         <button 
                           onClick={() => setIsEditingHeadline(false)} 
                           className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-2.5 rounded-xl font-semibold transition-all"
                         >
-                          Cancel
+                          {t("profile.cancel")}
                         </button>
                       </div>
                     </div>
@@ -659,7 +661,7 @@ const Profile: React.FC = () => {
                     <div className="p-6 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl border-2 border-blue-100">
                       <p className="text-gray-800 text-lg leading-relaxed">
                         {resumeHeadline || (
-                          <span className="text-gray-500 italic">Add a compelling resume headline to summarize your professional experience and stand out to employers...</span>
+                          <span className="text-gray-500 italic">{t("profile.addHeadlinePlaceholder")}</span>
                         )}
                       </p>
                     </div>
@@ -677,7 +679,7 @@ const Profile: React.FC = () => {
                       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                       </svg>
-                      Key Skills
+                      {t("profile.keySkills")}
                     </h2>
                     <button 
                       onClick={() => setIsEditingSkills(!isEditingSkills)} 
@@ -695,20 +697,20 @@ const Profile: React.FC = () => {
                         onChange={(e) => setSkillsInput(e.target.value)}
                         className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 resize-none transition-all"
                         rows={4}
-                        placeholder="Enter skills separated by commas (e.g., React.js, Node.js, TypeScript, MongoDB, AWS)"
+                        placeholder={t("profile.skillsPlaceholder")}
                       />
                       <div className="flex gap-3">
                         <button 
                           onClick={handleSaveSkills} 
                           className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white px-6 py-2.5 rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
                         >
-                          Save Skills
+                          {t("profile.saveSkills")}
                         </button>
                         <button 
                           onClick={() => setIsEditingSkills(false)} 
                           className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-2.5 rounded-xl font-semibold transition-all"
                         >
-                          Cancel
+                          {t("profile.cancel")}
                         </button>
                       </div>
                     </div>
@@ -725,7 +727,7 @@ const Profile: React.FC = () => {
                         ))
                       ) : (
                         <div className="w-full p-8 text-center bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl border-2 border-dashed border-emerald-200">
-                          <p className="text-gray-600 font-medium">Add your key skills to help employers find you</p>
+                          <p className="text-gray-600 font-medium">{t("profile.addKeySkillsHint")}</p>
                         </div>
                       )}
                     </div>
@@ -741,13 +743,13 @@ const Profile: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <h2 className="text-2xl font-bold text-white flex items-center gap-2">
                       <BriefcaseIcon className="w-6 h-6" />
-                      Employment History
+                      {t("profile.employmentHistory")}
                     </h2>
                     <button
                       onClick={() => { setEditingItem(null); setIsEmploymentModalOpen(true); }}
                       className="bg-white/20 hover:bg-white/30 text-white px-5 py-2.5 rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center gap-2"
                     >
-                      <PlusIcon className="w-5 h-5" /> Add Employment
+                      <PlusIcon className="w-5 h-5" /> {t("profile.addEmployment")}
                     </button>
                   </div>
                 </div>
@@ -766,7 +768,7 @@ const Profile: React.FC = () => {
                                   <div className="flex items-center gap-2 mb-1">
                                     <h3 className="text-xl font-bold text-gray-900">{job.job_title}</h3>
                                     {job.is_current && (
-                                      <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">Current</span>
+                                      <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">{t("profile.current")}</span>
                                     )}
                                   </div>
                                   <p className="text-lg font-semibold text-orange-700">{job.company_name}</p>
@@ -788,20 +790,20 @@ const Profile: React.FC = () => {
                               <button
                                 onClick={() => { setEditingItem(job); setIsEmploymentModalOpen(true); }}
                                 className="p-2 rounded-lg bg-white hover:bg-orange-100 text-orange-600 transition-all shadow-sm hover:shadow-md"
-                                title="Edit"
+                                title={t("profile.edit")}
                               >
                                 <PencilIcon className="w-5 h-5" />
                               </button>
                               <button
                                 onClick={async () => {
-                                  if (window.confirm("Are you sure you want to delete this employment?")) {
+                                  if (window.confirm(t("profile.confirmDeleteEmployment"))) {
                                     await deleteEmployment(job.employment_id);
-                                    toast.success("Employment deleted");
+                                    toast.success(t("profile.employmentDeleted"));
                                     refetchFullProfile();
                                   }
                                 }}
                                 className="p-2 rounded-lg bg-white hover:bg-red-100 text-red-600 transition-all shadow-sm hover:shadow-md"
-                                title="Delete"
+                                title={t("profile.delete")}
                               >
                                 <TrashIcon className="w-5 h-5" />
                               </button>
@@ -814,7 +816,7 @@ const Profile: React.FC = () => {
                           )}
                           {job.key_skills && job.key_skills.length > 0 && (
                             <div className="mt-4">
-                              <p className="text-sm font-semibold text-gray-700 mb-3">Key Skills Used:</p>
+                              <p className="text-sm font-semibold text-gray-700 mb-3">{t("profile.keySkillsUsed")}</p>
                               <div className="flex flex-wrap gap-2">
                                 {job.key_skills.map((skill, idx) => (
                                   <span key={idx} className="px-3 py-1.5 bg-white border border-orange-200 text-orange-700 rounded-full text-xs font-semibold shadow-sm">
@@ -829,8 +831,8 @@ const Profile: React.FC = () => {
                     ) : (
                       <div className="text-center py-12 bg-gradient-to-r from-orange-50 to-red-50 rounded-xl border-2 border-dashed border-orange-200">
                         <BriefcaseIcon className="w-16 h-16 text-orange-300 mx-auto mb-4" />
-                        <p className="text-gray-600 font-medium text-lg mb-2">No employment history yet</p>
-                        <p className="text-gray-500 text-sm">Click "Add Employment" to showcase your work experience</p>
+                        <p className="text-gray-600 font-medium text-lg mb-2">{t("profile.noEmploymentYet")}</p>
+                        <p className="text-gray-500 text-sm">{t("profile.addEmploymentHint")}</p>
                       </div>
                     )}
                   </div>
@@ -849,13 +851,13 @@ const Profile: React.FC = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14v9M5 13.5A11.96 11.96 0 0112 14a11.96 11.96 0 017-1.5" />
                       </svg>
-                      Education
+                      {t("profile.education")}
                     </h2>
                     <button
                       onClick={() => { setEditingItem(null); setIsEducationModalOpen(true); }}
                       className="bg-white/20 hover:bg-white/30 text-white px-5 py-2.5 rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center gap-2"
                     >
-                      <PlusIcon className="w-5 h-5" /> Add Education
+                      <PlusIcon className="w-5 h-5" /> {t("profile.addEducation")}
                     </button>
                   </div>
                 </div>
@@ -875,7 +877,7 @@ const Profile: React.FC = () => {
                                 <div className="flex items-center gap-2 mb-2">
                                   <h3 className="text-xl font-bold text-gray-900">{edu.degree}</h3>
                                   {edu.is_current && (
-                                    <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">Ongoing</span>
+                                    <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">{t("profile.ongoing")}</span>
                                   )}
                                 </div>
                                 <p className="text-lg font-semibold text-violet-700 mb-1">{edu.institution_name}</p>
@@ -883,7 +885,7 @@ const Profile: React.FC = () => {
                                 <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
                                   <span className="flex items-center gap-1">
                                     <CalendarIcon className="w-4 h-4" />
-                                    {edu.start_year} - {edu.is_current ? "Present" : edu.end_year}
+                                    {edu.start_year} - {edu.is_current ? t("profile.present") : edu.end_year}
                                   </span>
                                   {edu.grade && (
                                     <span className="px-3 py-1 bg-white border border-violet-200 text-violet-700 rounded-full font-semibold">
@@ -897,20 +899,20 @@ const Profile: React.FC = () => {
                               <button
                                 onClick={() => { setEditingItem(edu); setIsEducationModalOpen(true); }}
                                 className="p-2 rounded-lg bg-white hover:bg-violet-100 text-violet-600 transition-all shadow-sm hover:shadow-md"
-                                title="Edit"
+                                title={t("profile.edit")}
                               >
                                 <PencilIcon className="w-5 h-5" />
                               </button>
                               <button
                                 onClick={async () => {
-                                  if (window.confirm("Are you sure you want to delete this education?")) {
+                                  if (window.confirm(t("profile.confirmDeleteEducation"))) {
                                     await deleteEducation(edu.education_id);
-                                    toast.success("Education deleted");
+                                    toast.success(t("profile.educationDeleted"));
                                     refetchFullProfile();
                                   }
                                 }}
                                 className="p-2 rounded-lg bg-white hover:bg-red-100 text-red-600 transition-all shadow-sm hover:shadow-md"
-                                title="Delete"
+                                title={t("profile.delete")}
                               >
                                 <TrashIcon className="w-5 h-5" />
                               </button>
@@ -923,8 +925,8 @@ const Profile: React.FC = () => {
                         <svg className="w-16 h-16 text-violet-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                         </svg>
-                        <p className="text-gray-600 font-medium text-lg mb-2">No education added yet</p>
-                        <p className="text-gray-500 text-sm">Click "Add Education" to showcase your academic background</p>
+                        <p className="text-gray-600 font-medium text-lg mb-2">{t("profile.noEducationYet")}</p>
+                        <p className="text-gray-500 text-sm">{t("profile.addEducationHint")}</p>
                       </div>
                     )}
                   </div>
@@ -940,7 +942,7 @@ const Profile: React.FC = () => {
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
                     </svg>
-                    IT Skills
+                    {t("profile.itSkills")}
                   </h2>
                 </div>
                 <div className="p-6">
@@ -959,7 +961,7 @@ const Profile: React.FC = () => {
                       ))
                     ) : (
                       <div className="w-full p-8 text-center bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl border-2 border-dashed border-indigo-200">
-                        <p className="text-gray-600 font-medium">Add your IT skills with proficiency levels</p>
+                        <p className="text-gray-600 font-medium">{t("profile.addItSkillsHint")}</p>
                       </div>
                     )}
                   </div>
@@ -976,13 +978,13 @@ const Profile: React.FC = () => {
                       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                       </svg>
-                      Projects
+                      {t("profile.projects")}
                     </h2>
                     <button
                       onClick={() => { setEditingItem(null); setIsProjectModalOpen(true); }}
                       className="bg-white/20 hover:bg-white/30 text-white px-5 py-2.5 rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center gap-2"
                     >
-                      <PlusIcon className="w-5 h-5" /> Add Project
+                      <PlusIcon className="w-5 h-5" /> {t("profile.addProject")}
                     </button>
                   </div>
                 </div>
@@ -1002,7 +1004,7 @@ const Profile: React.FC = () => {
                                 <div className="flex items-center gap-2 mb-2">
                                   <h3 className="text-xl font-bold text-gray-900">{project.project_title}</h3>
                                   {project.is_ongoing && (
-                                    <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">Ongoing</span>
+                                    <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">{t("profile.ongoing")}</span>
                                   )}
                                 </div>
                                 {project.role_in_project && (
@@ -1018,7 +1020,7 @@ const Profile: React.FC = () => {
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                                     </svg>
-                                    View Project
+                                    {t("profile.viewProject")}
                                   </a>
                                 )}
                               </div>
@@ -1027,20 +1029,20 @@ const Profile: React.FC = () => {
                               <button
                                 onClick={() => { setEditingItem(project); setIsProjectModalOpen(true); }}
                                 className="p-2 rounded-lg bg-white hover:bg-pink-100 text-pink-600 transition-all shadow-sm hover:shadow-md"
-                                title="Edit"
+                                title={t("profile.edit")}
                               >
                                 <PencilIcon className="w-5 h-5" />
                               </button>
                               <button
                                 onClick={async () => {
-                                  if (window.confirm("Are you sure you want to delete this project?")) {
+                                  if (window.confirm(t("profile.confirmDeleteProject"))) {
                                     await deleteProject(project.project_id);
-                                    toast.success("Project deleted");
+                                    toast.success(t("profile.projectDeleted"));
                                     refetchFullProfile();
                                   }
                                 }}
                                 className="p-2 rounded-lg bg-white hover:bg-red-100 text-red-600 transition-all shadow-sm hover:shadow-md"
-                                title="Delete"
+                                title={t("profile.delete")}
                               >
                                 <TrashIcon className="w-5 h-5" />
                               </button>
@@ -1053,7 +1055,7 @@ const Profile: React.FC = () => {
                           )}
                           {project.technologies && project.technologies.length > 0 && (
                             <div className="mt-4">
-                              <p className="text-sm font-semibold text-gray-700 mb-3">Technologies Used:</p>
+                              <p className="text-sm font-semibold text-gray-700 mb-3">{t("profile.technologiesUsed")}</p>
                               <div className="flex flex-wrap gap-2">
                                 {project.technologies.map((tech, idx) => (
                                   <span key={idx} className="px-3 py-1.5 bg-white border border-pink-200 text-pink-700 rounded-full text-xs font-semibold shadow-sm">
@@ -1070,8 +1072,8 @@ const Profile: React.FC = () => {
                         <svg className="w-16 h-16 text-pink-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                         </svg>
-                        <p className="text-gray-600 font-medium text-lg mb-2">No projects added yet</p>
-                        <p className="text-gray-500 text-sm">Click "Add Project" to showcase your work</p>
+                        <p className="text-gray-600 font-medium text-lg mb-2">{t("profile.noProjectsYet")}</p>
+                        <p className="text-gray-500 text-sm">{t("profile.addProjectHint")}</p>
                       </div>
                     )}
                   </div>
@@ -1088,7 +1090,7 @@ const Profile: React.FC = () => {
                       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                       </svg>
-                      Profile Summary
+                      {t("profile.profileSummary")}
                     </h2>
                     <button 
                       onClick={() => setIsEditingSummary(!isEditingSummary)} 
@@ -1106,20 +1108,20 @@ const Profile: React.FC = () => {
                         onChange={(e) => setProfileSummary(e.target.value)}
                         className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 resize-none transition-all"
                         rows={8}
-                        placeholder="Write a compelling profile summary about yourself, your experience, skills, and career goals. This helps employers understand who you are and what you bring to the table..."
+                        placeholder={t("profile.summaryPlaceholder")}
                       />
                       <div className="flex gap-3">
                         <button 
                           onClick={handleSaveSummary} 
                           className="bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-700 hover:to-yellow-700 text-white px-6 py-2.5 rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
                         >
-                          Save Summary
+                          {t("profile.saveSummary")}
                         </button>
                         <button 
                           onClick={() => setIsEditingSummary(false)} 
                           className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-2.5 rounded-xl font-semibold transition-all"
                         >
-                          Cancel
+                          {t("profile.cancel")}
                         </button>
                       </div>
                     </div>
@@ -1127,7 +1129,7 @@ const Profile: React.FC = () => {
                     <div className="p-6 bg-gradient-to-r from-amber-50 to-yellow-50 rounded-xl border-2 border-amber-100">
                       <p className="text-gray-800 text-lg leading-relaxed whitespace-pre-wrap">
                         {profileSummary || (
-                          <span className="text-gray-500 italic">Add a compelling profile summary to tell employers about yourself, your experience, and career goals...</span>
+                          <span className="text-gray-500 italic">{t("profile.addSummaryPlaceholder")}</span>
                         )}
                       </p>
                     </div>
@@ -1145,13 +1147,13 @@ const Profile: React.FC = () => {
                       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
                       </svg>
-                      Accomplishments
+                      {t("profile.accomplishments")}
                     </h2>
                     <button
                       onClick={() => { setEditingItem(null); setIsAccomplishmentModalOpen(true); }}
                       className="bg-white/20 hover:bg-white/30 text-white px-5 py-2.5 rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center gap-2"
                     >
-                      <PlusIcon className="w-5 h-5" /> Add Accomplishment
+                      <PlusIcon className="w-5 h-5" /> {t("profile.addAccomplishment")}
                     </button>
                   </div>
                 </div>
@@ -1201,7 +1203,7 @@ const Profile: React.FC = () => {
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                                     </svg>
-                                    View Credential
+                                    {t("profile.viewCredential")}
                                   </a>
                                 )}
                               </div>
@@ -1209,14 +1211,14 @@ const Profile: React.FC = () => {
                             <div className="flex items-center gap-2 ml-4">
                               <button
                                 onClick={async () => {
-                                  if (window.confirm("Are you sure you want to delete this accomplishment?")) {
+                                  if (window.confirm(t("profile.confirmDeleteAccomplishment"))) {
                                     await deleteAccomplishment(acc.accomplishment_id);
-                                    toast.success("Accomplishment deleted");
+                                    toast.success(t("profile.accomplishmentDeleted"));
                                     refetchFullProfile();
                                   }
                                 }}
                                 className="p-2 rounded-lg bg-white hover:bg-red-100 text-red-600 transition-all shadow-sm hover:shadow-md"
-                                title="Delete"
+                                title={t("profile.delete")}
                               >
                                 <TrashIcon className="w-5 h-5" />
                               </button>
@@ -1234,8 +1236,8 @@ const Profile: React.FC = () => {
                         <svg className="w-16 h-16 text-fuchsia-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
                         </svg>
-                        <p className="text-gray-600 font-medium text-lg mb-2">No accomplishments added yet</p>
-                        <p className="text-gray-500 text-sm">Add certifications, awards, publications, patents, and more</p>
+                        <p className="text-gray-600 font-medium text-lg mb-2">{t("profile.noAccomplishmentsYet")}</p>
+                        <p className="text-gray-500 text-sm">{t("profile.addAccomplishmentsHint")}</p>
                       </div>
                     )}
                   </div>
@@ -1339,6 +1341,7 @@ interface EmploymentModalProps {
 }
 
 const EmploymentModal: React.FC<EmploymentModalProps> = ({ isOpen, onClose, editingItem, onSave }) => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState<CreateEmploymentRequest>({
     job_title: "",
     company_name: "",
@@ -1392,9 +1395,9 @@ const EmploymentModal: React.FC<EmploymentModalProps> = ({ isOpen, onClose, edit
     try {
       const skills = skillsInput.split(",").map(s => s.trim()).filter(s => s);
       await onSave({ ...formData, key_skills: skills });
-      toast.success(editingItem ? "Employment updated!" : "Employment added!");
+      toast.success(editingItem ? t("profile.employmentUpdated") : t("profile.employmentAdded"));
     } catch (error: any) {
-      toast.error(error?.data?.message || "Failed to save employment");
+      toast.error(error?.data?.message || t("profile.employmentSaveFailed"));
     } finally {
       setIsSubmitting(false);
     }
@@ -1406,65 +1409,65 @@ const EmploymentModal: React.FC<EmploymentModalProps> = ({ isOpen, onClose, edit
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-xl font-semibold">{editingItem ? "Edit Employment" : "Add Employment"}</h2>
+          <h2 className="text-xl font-semibold">{editingItem ? t("profile.editEmployment") : t("profile.addEmploymentTitle")}</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><XMarkIcon className="w-6 h-6" /></button>
         </div>
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div className="grid grid-cols-2 gap-4">
           <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Job Title *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t("profile.jobTitle")}</label>
               <input type="text" required value={formData.job_title} onChange={(e) => setFormData({ ...formData, job_title: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" />
           </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Company Name *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t("profile.companyName")}</label>
               <input type="text" required value={formData.company_name} onChange={(e) => setFormData({ ...formData, company_name: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Employment Type *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t("profile.employmentType")}</label>
               <select value={formData.employment_type} onChange={(e) => setFormData({ ...formData, employment_type: e.target.value as any })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
-                <option value="full_time">Full Time</option>
-                <option value="part_time">Part Time</option>
-                <option value="contract">Contract</option>
-                <option value="internship">Internship</option>
-                <option value="freelance">Freelance</option>
+                <option value="full_time">{t("profile.fullTime")}</option>
+                <option value="part_time">{t("profile.partTime")}</option>
+                <option value="contract">{t("profile.contract")}</option>
+                <option value="internship">{t("profile.internship")}</option>
+                <option value="freelance">{t("profile.freelance")}</option>
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t("profile.location")}</label>
               <input type="text" value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Start Date *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t("profile.startDate")}</label>
               <input type="date" required value={formData.start_date} onChange={(e) => setFormData({ ...formData, start_date: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t("profile.endDate")}</label>
               <input type="date" value={formData.end_date} onChange={(e) => setFormData({ ...formData, end_date: e.target.value })} disabled={formData.is_current} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 disabled:bg-gray-100" />
             </div>
           </div>
           <div className="flex items-center gap-2">
             <input type="checkbox" id="is_current" checked={formData.is_current} onChange={(e) => setFormData({ ...formData, is_current: e.target.checked, end_date: "" })} className="rounded border-gray-300 text-purple-600 focus:ring-purple-500" />
-            <label htmlFor="is_current" className="text-sm text-gray-700">I currently work here</label>
+            <label htmlFor="is_current" className="text-sm text-gray-700">{t("profile.iCurrentlyWorkHere")}</label>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Notice Period</label>
-            <input type="text" value={formData.notice_period} onChange={(e) => setFormData({ ...formData, notice_period: e.target.value })} placeholder="e.g., 15 Days or less" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" />
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t("profile.noticePeriod")}</label>
+            <input type="text" value={formData.notice_period} onChange={(e) => setFormData({ ...formData, notice_period: e.target.value })} placeholder={t("profile.noticePeriodPlaceholder")} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-            <textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} rows={4} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" placeholder="Describe your responsibilities and achievements..." />
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t("profile.description")}</label>
+            <textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} rows={4} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" placeholder={t("profile.descriptionPlaceholder")} />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Key Skills (comma separated)</label>
-            <input type="text" value={skillsInput} onChange={(e) => setSkillsInput(e.target.value)} placeholder="React.js, Node.js, TypeScript" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" />
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t("profile.keySkillsComma")}</label>
+            <input type="text" value={skillsInput} onChange={(e) => setSkillsInput(e.target.value)} placeholder={t("profile.keySkillsExample")} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" />
           </div>
           <div className="flex justify-end gap-3 pt-4">
-            <button type="button" onClick={onClose} className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition">Cancel</button>
-            <button type="submit" disabled={isSubmitting} className="px-4 py-2 text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition disabled:opacity-50">{isSubmitting ? "Saving..." : "Save"}</button>
+            <button type="button" onClick={onClose} className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition">{t("profile.cancel")}</button>
+            <button type="submit" disabled={isSubmitting} className="px-4 py-2 text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition disabled:opacity-50">{isSubmitting ? t("profile.saving") : t("profile.save")}</button>
           </div>
         </form>
       </div>
@@ -1480,6 +1483,7 @@ interface EducationModalProps {
 }
 
 const EducationModal: React.FC<EducationModalProps> = ({ isOpen, onClose, editingItem, onSave }) => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState<CreateEducationRequest>({
     degree: "",
     field_of_study: "",
@@ -1526,9 +1530,9 @@ const EducationModal: React.FC<EducationModalProps> = ({ isOpen, onClose, editin
     setIsSubmitting(true);
     try {
       await onSave(formData);
-      toast.success(editingItem ? "Education updated!" : "Education added!");
+      toast.success(editingItem ? t("profile.educationUpdated") : t("profile.educationAdded"));
     } catch (error: any) {
-      toast.error(error?.data?.message || "Failed to save education");
+      toast.error(error?.data?.message || t("profile.educationSaveFailed"));
     } finally {
       setIsSubmitting(false);
     }
@@ -1540,54 +1544,54 @@ const EducationModal: React.FC<EducationModalProps> = ({ isOpen, onClose, editin
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-xl font-semibold">{editingItem ? "Edit Education" : "Add Education"}</h2>
+          <h2 className="text-xl font-semibold">{editingItem ? t("profile.editEducation") : t("profile.addEducationTitle")}</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><XMarkIcon className="w-6 h-6" /></button>
         </div>
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Degree *</label>
-            <input type="text" required value={formData.degree} onChange={(e) => setFormData({ ...formData, degree: e.target.value })} placeholder="e.g., Bachelor of Technology" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" />
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t("profile.degree")}</label>
+            <input type="text" required value={formData.degree} onChange={(e) => setFormData({ ...formData, degree: e.target.value })} placeholder={t("profile.degreePlaceholder")} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Field of Study *</label>
-            <input type="text" required value={formData.field_of_study} onChange={(e) => setFormData({ ...formData, field_of_study: e.target.value })} placeholder="e.g., Computer Science" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" />
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t("profile.fieldOfStudy")}</label>
+            <input type="text" required value={formData.field_of_study} onChange={(e) => setFormData({ ...formData, field_of_study: e.target.value })} placeholder={t("profile.fieldOfStudyPlaceholder")} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Institution Name *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t("profile.institutionName")}</label>
             <input type="text" required value={formData.institution_name} onChange={(e) => setFormData({ ...formData, institution_name: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Start Year *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t("profile.startYear")}</label>
               <input type="number" required min="1950" max="2030" value={formData.start_year} onChange={(e) => setFormData({ ...formData, start_year: parseInt(e.target.value) })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">End Year</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t("profile.endYear")}</label>
               <input type="number" min="1950" max="2030" value={formData.end_year || ""} onChange={(e) => setFormData({ ...formData, end_year: e.target.value ? parseInt(e.target.value) : undefined })} disabled={formData.is_current} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 disabled:bg-gray-100" />
             </div>
           </div>
           <div className="flex items-center gap-2">
             <input type="checkbox" id="is_current_edu" checked={formData.is_current} onChange={(e) => setFormData({ ...formData, is_current: e.target.checked, end_year: undefined })} className="rounded border-gray-300 text-purple-600 focus:ring-purple-500" />
-            <label htmlFor="is_current_edu" className="text-sm text-gray-700">Currently pursuing</label>
+            <label htmlFor="is_current_edu" className="text-sm text-gray-700">{t("profile.currentlyPursuing")}</label>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Grade</label>
-              <input type="text" value={formData.grade} onChange={(e) => setFormData({ ...formData, grade: e.target.value })} placeholder="e.g., 8.5 or 85%" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" />
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t("profile.grade")}</label>
+              <input type="text" value={formData.grade} onChange={(e) => setFormData({ ...formData, grade: e.target.value })} placeholder={t("profile.gradePlaceholder")} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Grade Type</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t("profile.gradeType")}</label>
               <select value={formData.grade_type || ""} onChange={(e) => setFormData({ ...formData, grade_type: e.target.value as any || undefined })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
-                <option value="">Select type</option>
-                <option value="percentage">Percentage</option>
-                <option value="cgpa">CGPA</option>
-                <option value="gpa">GPA</option>
+                <option value="">{t("profile.selectType")}</option>
+                <option value="percentage">{t("profile.percentage")}</option>
+                <option value="cgpa">{t("profile.cgpa")}</option>
+                <option value="gpa">{t("profile.gpa")}</option>
               </select>
             </div>
           </div>
           <div className="flex justify-end gap-3 pt-4">
-            <button type="button" onClick={onClose} className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition">Cancel</button>
-            <button type="submit" disabled={isSubmitting} className="px-4 py-2 text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition disabled:opacity-50">{isSubmitting ? "Saving..." : "Save"}</button>
+            <button type="button" onClick={onClose} className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition">{t("profile.cancel")}</button>
+            <button type="submit" disabled={isSubmitting} className="px-4 py-2 text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition disabled:opacity-50">{isSubmitting ? t("profile.saving") : t("profile.save")}</button>
           </div>
         </form>
       </div>
@@ -1603,6 +1607,7 @@ interface ProjectModalProps {
 }
 
 const ProjectModal: React.FC<ProjectModalProps> = ({ isOpen, onClose, editingItem, onSave }) => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState<CreateProjectRequest>({
     project_title: "",
     project_url: "",
@@ -1650,9 +1655,9 @@ const ProjectModal: React.FC<ProjectModalProps> = ({ isOpen, onClose, editingIte
     try {
       const technologies = techInput.split(",").map(s => s.trim()).filter(s => s);
       await onSave({ ...formData, technologies });
-      toast.success(editingItem ? "Project updated!" : "Project added!");
+      toast.success(editingItem ? t("profile.projectUpdated") : t("profile.projectAdded"));
     } catch (error: any) {
-      toast.error(error?.data?.message || "Failed to save project");
+      toast.error(error?.data?.message || t("profile.projectSaveFailed"));
     } finally {
       setIsSubmitting(false);
     }
@@ -1664,37 +1669,37 @@ const ProjectModal: React.FC<ProjectModalProps> = ({ isOpen, onClose, editingIte
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-xl font-semibold">{editingItem ? "Edit Project" : "Add Project"}</h2>
+          <h2 className="text-xl font-semibold">{editingItem ? t("profile.editProject") : t("profile.addProjectTitle")}</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><XMarkIcon className="w-6 h-6" /></button>
         </div>
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Project Title *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t("profile.projectTitle")}</label>
             <input type="text" required value={formData.project_title} onChange={(e) => setFormData({ ...formData, project_title: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" />
             </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Your Role</label>
-            <input type="text" value={formData.role_in_project} onChange={(e) => setFormData({ ...formData, role_in_project: e.target.value })} placeholder="e.g., Lead Developer" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" />
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t("profile.yourRole")}</label>
+            <input type="text" value={formData.role_in_project} onChange={(e) => setFormData({ ...formData, role_in_project: e.target.value })} placeholder={t("profile.yourRolePlaceholder")} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Project URL</label>
-            <input type="url" value={formData.project_url} onChange={(e) => setFormData({ ...formData, project_url: e.target.value })} placeholder="https://..." className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" />
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t("profile.projectUrl")}</label>
+            <input type="url" value={formData.project_url} onChange={(e) => setFormData({ ...formData, project_url: e.target.value })} placeholder={t("profile.projectUrlPlaceholder")} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" />
         </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-            <textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} rows={4} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" placeholder="Describe the project..." />
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t("profile.description")}</label>
+            <textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} rows={4} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" placeholder={t("profile.describeProject")} />
       </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Technologies (comma separated)</label>
-            <input type="text" value={techInput} onChange={(e) => setTechInput(e.target.value)} placeholder="React, Node.js, MongoDB" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" />
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t("profile.technologiesComma")}</label>
+            <input type="text" value={techInput} onChange={(e) => setTechInput(e.target.value)} placeholder={t("profile.technologiesExample")} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" />
           </div>
           <div className="flex items-center gap-2">
             <input type="checkbox" id="is_ongoing" checked={formData.is_ongoing} onChange={(e) => setFormData({ ...formData, is_ongoing: e.target.checked })} className="rounded border-gray-300 text-purple-600 focus:ring-purple-500" />
-            <label htmlFor="is_ongoing" className="text-sm text-gray-700">Ongoing project</label>
+            <label htmlFor="is_ongoing" className="text-sm text-gray-700">{t("profile.ongoingProject")}</label>
           </div>
           <div className="flex justify-end gap-3 pt-4">
-            <button type="button" onClick={onClose} className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition">Cancel</button>
-            <button type="submit" disabled={isSubmitting} className="px-4 py-2 text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition disabled:opacity-50">{isSubmitting ? "Saving..." : "Save"}</button>
+            <button type="button" onClick={onClose} className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition">{t("profile.cancel")}</button>
+            <button type="submit" disabled={isSubmitting} className="px-4 py-2 text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition disabled:opacity-50">{isSubmitting ? t("profile.saving") : t("profile.save")}</button>
           </div>
         </form>
       </div>
@@ -1710,6 +1715,7 @@ interface AccomplishmentModalProps {
 }
 
 const AccomplishmentModal: React.FC<AccomplishmentModalProps> = ({ isOpen, onClose, editingItem, onSave }) => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState<CreateAccomplishmentRequest>({
     accomplishment_type: "certification",
     title: "",
@@ -1753,9 +1759,9 @@ const AccomplishmentModal: React.FC<AccomplishmentModalProps> = ({ isOpen, onClo
     setIsSubmitting(true);
     try {
       await onSave(formData);
-      toast.success(editingItem ? "Accomplishment updated!" : "Accomplishment added!");
+      toast.success(editingItem ? t("profile.accomplishmentUpdated") : t("profile.accomplishmentAdded"));
     } catch (error: any) {
-      toast.error(error?.data?.message || "Failed to save accomplishment");
+      toast.error(error?.data?.message || t("profile.accomplishmentSaveFailed"));
     } finally {
       setIsSubmitting(false);
     }
@@ -1767,49 +1773,49 @@ const AccomplishmentModal: React.FC<AccomplishmentModalProps> = ({ isOpen, onClo
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-xl font-semibold">{editingItem ? "Edit Accomplishment" : "Add Accomplishment"}</h2>
+          <h2 className="text-xl font-semibold">{editingItem ? t("profile.editAccomplishment") : t("profile.addAccomplishmentTitle")}</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><XMarkIcon className="w-6 h-6" /></button>
         </div>
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Type *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t("profile.type")}</label>
             <select value={formData.accomplishment_type} onChange={(e) => setFormData({ ...formData, accomplishment_type: e.target.value as any })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
-              <option value="certification">Certification</option>
-              <option value="award">Award</option>
-              <option value="publication">Publication</option>
-              <option value="patent">Patent</option>
-              <option value="other">Other</option>
+              <option value="certification">{t("profile.certification")}</option>
+              <option value="award">{t("profile.award")}</option>
+              <option value="publication">{t("profile.publication")}</option>
+              <option value="patent">{t("profile.patent")}</option>
+              <option value="other">{t("profile.other")}</option>
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t("profile.title")}</label>
             <input type="text" required value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Issuing Organization</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t("profile.issuingOrganization")}</label>
             <input type="text" value={formData.issuing_organization} onChange={(e) => setFormData({ ...formData, issuing_organization: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Issue Date</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t("profile.issueDate")}</label>
               <input type="date" value={formData.issue_date} onChange={(e) => setFormData({ ...formData, issue_date: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t("profile.expiryDate")}</label>
               <input type="date" value={formData.expiry_date} onChange={(e) => setFormData({ ...formData, expiry_date: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" />
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Credential URL</label>
-            <input type="url" value={formData.credential_url} onChange={(e) => setFormData({ ...formData, credential_url: e.target.value })} placeholder="https://..." className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" />
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t("profile.credentialUrl")}</label>
+            <input type="url" value={formData.credential_url} onChange={(e) => setFormData({ ...formData, credential_url: e.target.value })} placeholder={t("profile.projectUrlPlaceholder")} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t("profile.description")}</label>
             <textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" />
           </div>
           <div className="flex justify-end gap-3 pt-4">
-            <button type="button" onClick={onClose} className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition">Cancel</button>
-            <button type="submit" disabled={isSubmitting} className="px-4 py-2 text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition disabled:opacity-50">{isSubmitting ? "Saving..." : "Save"}</button>
+            <button type="button" onClick={onClose} className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition">{t("profile.cancel")}</button>
+            <button type="submit" disabled={isSubmitting} className="px-4 py-2 text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition disabled:opacity-50">{isSubmitting ? t("profile.saving") : t("profile.save")}</button>
           </div>
         </form>
       </div>

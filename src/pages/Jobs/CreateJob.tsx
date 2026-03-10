@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useFormik } from "formik";
+import { useTranslation } from "react-i18next";
 import { useCreateJobMutation, useUpdateJobMutation, useGetJobByIdQuery, type JobQuestion } from "../../services/api/jobsApi";
 import { useGetUserProfileQuery } from "../../services/api/authApi";
 import { useGetAllCategoriesQuery } from "../../services/api/jobCategoriesApi";
@@ -27,39 +28,40 @@ interface CreateJobFormValues {
   employer_id?: string; // For superadmin only
 }
 
-const validationSchema = Yup.object({
-  job_title: Yup.string()
-    .min(3, "Job title must be at least 3 characters")
-    .max(255, "Job title must not exceed 255 characters")
-    .required("Job title is required"),
-  category: Yup.string()
-    .required("Category is required")
-    .test("not-empty", "Please select a category", (value) => value !== "" && value !== undefined),
-  budget: Yup.number()
-    .positive("Budget must be a positive number")
-    .required("Budget is required"),
-  duration: Yup.string()
-    .min(2, "Duration must be at least 2 characters")
-    .max(100, "Duration must not exceed 100 characters")
-    .required("Duration is required"),
-  location: Yup.string()
-    .min(2, "Location must be at least 2 characters")
-    .max(255, "Location must not exceed 255 characters")
-    .required("Location is required"),
-  description: Yup.string().optional(),
-  requirements: Yup.string().optional(),
-  skills: Yup.string().optional(),
-  employment_type: Yup.string().optional(),
-  experience_level: Yup.string().optional(),
-  status: Yup.string()
-    .oneOf(["Pending", "Active", "Inactive", "Completed"], "Invalid status")
-    .optional(),
-});
-
 const CreateJob: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const role = useSelector((state: any) => state.auth.role);
+
+  const validationSchema = Yup.object({
+    job_title: Yup.string()
+      .min(3, t("pages.jobs.validationJobTitleMin"))
+      .max(255, t("pages.jobs.validationJobTitleMax"))
+      .required(t("pages.jobs.validationJobTitleRequired")),
+    category: Yup.string()
+      .required(t("pages.jobs.validationCategoryRequired"))
+      .test("not-empty", t("pages.jobs.pleaseSelectCategory"), (value) => value !== "" && value !== undefined),
+    budget: Yup.number()
+      .positive(t("pages.jobs.validationBudgetPositive"))
+      .required(t("pages.jobs.validationBudgetRequired")),
+    duration: Yup.string()
+      .min(2, t("pages.jobs.validationDurationMin"))
+      .max(100, t("pages.jobs.validationDurationMax"))
+      .required(t("pages.jobs.validationDurationRequired")),
+    location: Yup.string()
+      .min(2, t("pages.jobs.validationLocationMin"))
+      .max(255, t("pages.jobs.validationLocationMax"))
+      .required(t("pages.jobs.validationLocationRequired")),
+    description: Yup.string().optional(),
+    requirements: Yup.string().optional(),
+    skills: Yup.string().optional(),
+    employment_type: Yup.string().optional(),
+    experience_level: Yup.string().optional(),
+    status: Yup.string()
+      .oneOf(["Pending", "Active", "Inactive", "Completed"], t("pages.jobs.validationInvalidStatus"))
+      .optional(),
+  });
   useGetUserProfileQuery(undefined);
   const { data: categoriesResponse, isLoading: isLoadingCategories, isError: isCategoriesError } = useGetAllCategoriesQuery();
   const isEditMode = !!id;
@@ -102,23 +104,23 @@ const CreateJob: React.FC = () => {
       try {
         // Additional validation: ensure category is selected
         if (!values.category || values.category.trim() === "") {
-          formik.setFieldError("category", "Please select a category");
+          formik.setFieldError("category", t("pages.jobs.pleaseSelectCategory"));
           formik.setFieldTouched("category", true);
-          toast.error("❌ Category is required to create a job");
+          toast.error(t("pages.jobs.categoryRequiredToast"));
           return;
         }
 
         // Ensure categories are available
         if (categories.length === 0) {
-          toast.error("📋 No categories available. Please create categories first.");
+          toast.error(t("pages.jobs.noCategoriesCreateFirst"));
           return;
         }
 
         // Verify selected category exists in the available categories
         const categoryExists = categories.some((c: any) => c.name === values.category.trim());
         if (!categoryExists) {
-          formik.setFieldError("category", "Selected category is no longer available");
-          toast.error("❌ Selected category is no longer available. Please select another category.");
+          formik.setFieldError("category", t("pages.jobs.selectedCategoryUnavailable"));
+          toast.error(t("pages.jobs.selectAnotherCategory"));
           return;
         }
 
@@ -214,22 +216,22 @@ const CreateJob: React.FC = () => {
         data?: { error?: string; message?: string };
       };
       toast.error(
-        err?.data?.error || err?.data?.message || `Failed to ${isEditMode ? "update" : "create"} job`
+        err?.data?.error || err?.data?.message || (isEditMode ? t("pages.jobs.failedToUpdateJob") : t("pages.jobs.failedToCreateJob"))
       );
     }
-  }, [isCreateError, createError, isUpdateError, updateError, isEditMode]);
+  }, [isCreateError, createError, isUpdateError, updateError, isEditMode, t]);
 
   useEffect(() => {
     const data = isCreateSuccess ? createData : updateData;
     const isSuccess = isCreateSuccess || isUpdateSuccess;
     if (data && isSuccess) {
-      toast.success(data?.message || `Job ${isEditMode ? "updated" : "created"} successfully!`);
+      toast.success(data?.message || (isEditMode ? t("pages.jobs.jobUpdatedSuccess") : t("pages.jobs.jobCreatedSuccess")));
       if (!isEditMode) {
         resetForm();
       }
       navigate("/dashboard/jobs/all");
     }
-  }, [isCreateSuccess, createData, isUpdateSuccess, updateData, isEditMode, resetForm, navigate]);
+  }, [isCreateSuccess, createData, isUpdateSuccess, updateData, isEditMode, resetForm, navigate, t]);
 
   return (
     <Container>
@@ -238,37 +240,37 @@ const CreateJob: React.FC = () => {
           <IconWrapper>
             <BriefcaseIcon className="h-8 w-8 text-purple-600" />
           </IconWrapper>
-          <Title>{isEditMode ? "Edit Job" : "Create Job"}</Title>
+          <Title>{isEditMode ? t("pages.jobs.editJob") : t("pages.jobs.createJob")}</Title>
           <Subtitle>
-            {isEditMode ? "Update job posting details." : "Create a new job posting."} {role === "employer" ? "This job will be associated with your account." : "You can assign this job to any employer."}
+            {isEditMode ? t("pages.jobs.editJobSubtitle") : t("pages.jobs.createJobSubtitle")} {role === "employer" ? t("pages.jobs.createJobEmployerNote") : t("pages.jobs.createJobSuperadminNote")}
           </Subtitle>
         </Header>
 
         {/* Employer ID - Only for superadmin */}
         {role === "superadmin" && (
           <FormGroup>
-            <Label htmlFor="employer_id">Employer ID (Optional)</Label>
+            <Label htmlFor="employer_id">{t("pages.jobs.employerIdOptional")}</Label>
             <Input
               id="employer_id"
               name="employer_id"
-              placeholder="Enter employer user ID (leave empty to assign to yourself)"
+              placeholder={t("pages.jobs.employerIdPlaceholder")}
               value={formik.values.employer_id}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
             />
             <HelperText>
-              Leave empty to create the job for yourself, or enter an employer's user ID
+              {t("pages.jobs.employerIdHelper")}
             </HelperText>
           </FormGroup>
         )}
 
         {/* Job Title */}
         <FormGroup>
-          <Label htmlFor="job_title">Job Title *</Label>
+          <Label htmlFor="job_title">{t("pages.jobs.jobTitleLabel")}</Label>
           <Input
             id="job_title"
             name="job_title"
-            placeholder="e.g., Full Stack Developer"
+            placeholder={t("pages.jobs.jobTitlePlaceholder")}
             value={formik.values.job_title}
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
@@ -282,32 +284,32 @@ const CreateJob: React.FC = () => {
         {/* Category */}
         <FormGroup>
           <Label htmlFor="category">
-            Category *
+            {t("pages.jobs.categoryLabel")}
           </Label>
           {isLoadingCategories ? (
             <div>
               <Select id="category" name="category" disabled>
-                <option value="">Loading categories...</option>
+                <option value="">{t("pages.jobs.loadingCategories")}</option>
               </Select>
-              <HelperText>Please wait while categories are being loaded...</HelperText>
+              <HelperText>{t("pages.jobs.pleaseWaitCategories")}</HelperText>
             </div>
           ) : isCategoriesError ? (
             <div>
               <Select id="category" name="category" disabled>
-                <option value="">Error loading categories</option>
+                <option value="">{t("pages.jobs.errorLoadingCategories")}</option>
               </Select>
-              <ErrorText>⚠️ Failed to load categories. Please try refreshing the page or contact support.</ErrorText>
+              <ErrorText>{t("pages.jobs.failedToLoadCategories")}</ErrorText>
             </div>
           ) : categories.length === 0 ? (
             <div>
               <Select id="category" name="category" disabled style={{background: '#fef2f2', borderColor: '#fca5a5'}}>
-                <option value="">No categories available</option>
+                <option value="">{t("pages.jobs.noCategoriesAvailable")}</option>
               </Select>
               <ErrorText>
-                📋 No categories available. Please create categories first.
+                {t("pages.jobs.noCategoriesCreateFirst")}
               </ErrorText>
               <HelperText>
-                Only superadmins can create job categories. Ask your administrator to set up categories.
+                {t("pages.jobs.onlySuperadminCreateCategories")}
               </HelperText>
             </div>
           ) : (
@@ -318,7 +320,6 @@ const CreateJob: React.FC = () => {
                 value={formik.values.category}
                 onChange={(e) => {
                   formik.handleChange(e);
-                  // Clear error on change
                   if (formik.errors.category) {
                     formik.setFieldTouched("category", true);
                   }
@@ -328,7 +329,7 @@ const CreateJob: React.FC = () => {
                 aria-required="true"
                 aria-describedby={formik.errors.category ? "category-error" : undefined}
               >
-                <option value="">-- Select a category --</option>
+                <option value="">{t("pages.jobs.selectCategory")}</option>
                 {categories.map((category: any) => (
                   <option key={category.category_id} value={category.name}>
                     {category.icon || "💼"} {category.name}
@@ -342,11 +343,11 @@ const CreateJob: React.FC = () => {
               )}
               {!formik.errors.category && formik.values.category && (
                 <HelperText style={{color: '#16a34a', fontWeight: 500}}>
-                  ✓ Category selected
+                  {t("pages.jobs.categorySelected")}
                 </HelperText>
               )}
               <HelperText>
-                Select the category that best describes this job position
+                {t("pages.jobs.selectCategoryHelper")}
               </HelperText>
             </div>
           )}
@@ -355,7 +356,7 @@ const CreateJob: React.FC = () => {
         {/* Status - Only for superadmin */}
         {role === "superadmin" && (
           <FormGroup>
-            <Label htmlFor="status">Status</Label>
+            <Label htmlFor="status">{t("pages.jobs.statusLabel")}</Label>
             <Select
               id="status"
               name="status"
@@ -378,14 +379,14 @@ const CreateJob: React.FC = () => {
         {/* Budget */}
         <InputRow>
         <FormGroup>
-          <Label htmlFor="budget">Budget *</Label>
+          <Label htmlFor="budget">{t("pages.jobs.budgetLabel")}</Label>
           <Input
             id="budget"
             name="budget"
             type="number"
             step="0.01"
             min="0"
-            placeholder="e.g., 5000.00"
+            placeholder={t("pages.jobs.budgetPlaceholder")}
             value={formik.values.budget}
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
@@ -397,11 +398,11 @@ const CreateJob: React.FC = () => {
 
         {/* Duration */}
         <FormGroup>
-          <Label htmlFor="duration">Duration *</Label>
+          <Label htmlFor="duration">{t("pages.jobs.durationLabel")}</Label>
           <Input
             id="duration"
             name="duration"
-            placeholder="e.g., 3 months, 6 months, 1 year"
+            placeholder={t("pages.jobs.durationPlaceholder")}
             value={formik.values.duration}
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
@@ -414,11 +415,11 @@ const CreateJob: React.FC = () => {
 
         {/* Location */}
         <FormGroup>
-          <Label htmlFor="location">Location *</Label>
+          <Label htmlFor="location">{t("pages.jobs.locationLabel")}</Label>
           <Input
             id="location"
             name="location"
-            placeholder="e.g., New York, NY or Remote"
+            placeholder={t("pages.jobs.locationPlaceholder")}
             value={formik.values.location}
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
@@ -430,12 +431,12 @@ const CreateJob: React.FC = () => {
 
         {/* Description */}
         <FormGroup>
-          <Label htmlFor="description">Description (Optional)</Label>
+          <Label htmlFor="description">{t("pages.jobs.descriptionOptional")}</Label>
           <TextArea
             id="description"
             name="description"
             rows={4}
-            placeholder="Enter job description..."
+            placeholder={t("pages.jobs.descriptionPlaceholder")}
             value={formik.values.description}
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
@@ -447,12 +448,12 @@ const CreateJob: React.FC = () => {
 
         {/* Requirements */}
         <FormGroup>
-          <Label htmlFor="requirements">Requirements (Optional)</Label>
+          <Label htmlFor="requirements">{t("pages.jobs.requirementsOptional")}</Label>
           <TextArea
             id="requirements"
             name="requirements"
             rows={3}
-            placeholder="Enter job requirements..."
+            placeholder={t("pages.jobs.requirementsPlaceholder")}
             value={formik.values.requirements}
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
@@ -464,11 +465,11 @@ const CreateJob: React.FC = () => {
 
         {/* Skills */}
         <FormGroup>
-          <Label htmlFor="skills">Skills (Optional)</Label>
+          <Label htmlFor="skills">{t("pages.jobs.skillsOptional")}</Label>
           <Input
             id="skills"
             name="skills"
-            placeholder="e.g., React, Node.js, TypeScript"
+            placeholder={t("pages.jobs.skillsPlaceholder")}
             value={formik.values.skills}
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
@@ -481,7 +482,7 @@ const CreateJob: React.FC = () => {
         {/* Employment Type */}
                 <InputRow>
         <FormGroup>
-          <Label htmlFor="employment_type">Employment Type (Optional)</Label>
+          <Label htmlFor="employment_type">{t("pages.jobs.employmentTypeOptional")}</Label>
           <Select
             id="employment_type"
             name="employment_type"
@@ -489,7 +490,7 @@ const CreateJob: React.FC = () => {
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
           >
-            <option value="">Select employment type</option>
+            <option value="">{t("pages.jobs.selectEmploymentType")}</option>
             <option value="Full-time">Full-time</option>
             <option value="Part-time">Part-time</option>
             <option value="Contract">Contract</option>
@@ -503,7 +504,7 @@ const CreateJob: React.FC = () => {
 
         {/* Experience Level */}
         <FormGroup>
-          <Label htmlFor="experience_level">Experience Level (Optional)</Label>
+          <Label htmlFor="experience_level">{t("pages.jobs.experienceLevelOptional")}</Label>
           <Select
             id="experience_level"
             name="experience_level"
@@ -511,7 +512,7 @@ const CreateJob: React.FC = () => {
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
           >
-            <option value="">Select experience level</option>
+            <option value="">{t("pages.jobs.selectExperienceLevel")}</option>
             <option value="Entry Level">Entry Level</option>
             <option value="Mid Level">Mid Level</option>
             <option value="Senior Level">Senior Level</option>
@@ -526,16 +527,16 @@ const CreateJob: React.FC = () => {
         {/* Questions Section */}
         <QuestionsSection>
           <QuestionsHeader>
-            <Label>Application Questions (Optional)</Label>
+            <Label>{t("pages.jobs.applicationQuestionsOptional")}</Label>
             <HelperText>
-              Add questions that applicants must answer when applying for this job
+              {t("pages.jobs.applicationQuestionsHelper")}
             </HelperText>
           </QuestionsHeader>
           
           {questions.map((question, index) => (
             <QuestionCard key={index}>
               <QuestionHeader>
-                <QuestionNumber>Question {index + 1}</QuestionNumber>
+                <QuestionNumber>{t("pages.jobs.questionNumber", { number: index + 1 })}</QuestionNumber>
                 <DeleteButton
                   type="button"
                   onClick={() => {
@@ -548,7 +549,7 @@ const CreateJob: React.FC = () => {
               </QuestionHeader>
               
               <FormGroup>
-                <Label htmlFor={`question_text_${index}`}>Question Text *</Label>
+                <Label htmlFor={`question_text_${index}`}>{t("pages.jobs.questionText")}</Label>
                 <Input
                   id={`question_text_${index}`}
                   value={question.question_text}
@@ -557,12 +558,12 @@ const CreateJob: React.FC = () => {
                     newQuestions[index].question_text = e.target.value;
                     setQuestions(newQuestions);
                   }}
-                  placeholder="e.g., How many years of experience do you have?"
+                  placeholder={t("pages.jobs.questionTextPlaceholder")}
                 />
               </FormGroup>
 
               <FormGroup>
-                <Label htmlFor={`question_type_${index}`}>Question Type *</Label>
+                <Label htmlFor={`question_type_${index}`}>{t("pages.jobs.questionType")}</Label>
                 <Select
                   id={`question_type_${index}`}
                   value={question.question_type}
@@ -585,7 +586,7 @@ const CreateJob: React.FC = () => {
               {question.question_type === "multiple_choice" && (
                 <FormGroup>
                   <Label htmlFor={`question_options_${index}`}>
-                    Options (comma-separated) *
+                    {t("pages.jobs.optionsCommaSeparated")}
                   </Label>
                   <Input
                     id={`question_options_${index}`}
@@ -599,7 +600,7 @@ const CreateJob: React.FC = () => {
                       newQuestions[index].options = e.target.value;
                       setQuestions(newQuestions);
                     }}
-                    placeholder="e.g., Option 1, Option 2, Option 3"
+                    placeholder={t("pages.jobs.optionsPlaceholder")}
                   />
                 </FormGroup>
               )}
@@ -617,7 +618,7 @@ const CreateJob: React.FC = () => {
                     }}
                   />
                   <Label htmlFor={`question_required_${index}`} style={{ margin: 0, cursor: "pointer" }}>
-                    Required question
+                    {t("pages.jobs.requiredQuestion")}
                   </Label>
                 </CheckboxContainer>
               </FormGroup>
@@ -639,7 +640,7 @@ const CreateJob: React.FC = () => {
             }}
           >
             <PlusIcon className="h-5 w-5" />
-            Add Question
+            {t("pages.jobs.addQuestion")}
           </AddQuestionButton>
         </QuestionsSection>
 
@@ -672,7 +673,8 @@ const Container = styled("div")`
   justify-content: center;
   align-items: flex-start;
   padding: 20px 16px;
-  background: #f9fafb;
+  background: var(--theme-page-bg);
+  transition: background 0.35s ease;
 
   @media (min-width: 640px) {
     padding: 40px 20px;
@@ -683,10 +685,13 @@ const FormContainer = styled("form")`
   max-width: 1200px;
   width: 100%;
   margin: 0 auto;
-  background: white;
+  background: var(--theme-card-bg);
+  color: var(--theme-text-primary);
   border-radius: 12px;
   padding: 32px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--theme-border);
+  transition: background 0.35s ease, color 0.35s ease, border-color 0.35s ease;
 
   @media (min-width: 640px) {
     border-radius: 16px;
@@ -708,8 +713,9 @@ const IconWrapper = styled("div")`
 const Title = styled("h1")`
   font-size: 24px;
   font-weight: 700;
-  color: #111827;
+  color: var(--theme-text-primary);
   margin-bottom: 8px;
+  transition: color 0.35s ease;
 
   @media (min-width: 640px) {
     font-size: 28px;
@@ -718,8 +724,9 @@ const Title = styled("h1")`
 
 const Subtitle = styled("p")`
   font-size: 12px;
-  color: #6b7280;
+  color: var(--theme-text-secondary);
   margin: 0;
+  transition: color 0.35s ease;
 
   @media (min-width: 640px) {
     font-size: 14px;
@@ -736,7 +743,8 @@ const Label = styled("label")`
   margin-bottom: 8px;
   font-size: 14px;
   font-weight: 500;
-  color: #374151;
+  color: var(--theme-text-secondary);
+  transition: color 0.35s ease;
 `;
 
 // Change: Add a grid helper for side-by-side inputs
@@ -755,22 +763,31 @@ const Input = styled("input")`
   height: 40px;
   padding: 8px 12px;
   border-radius: 6px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--theme-border);
   font-size: 14px;
-  transition: border-color 0.2s;
+  background: var(--theme-input-bg);
+  color: var(--theme-text-primary);
+  transition: border-color 0.2s, background 0.35s ease, color 0.35s ease;
 
   &:focus {
     outline: none;
     border-color: #7f56d9;
+  }
+
+  &::placeholder {
+    color: var(--theme-text-secondary);
+    opacity: 0.8;
   }
 `;
 
 const TextArea = styled("textarea")`
   padding: 12px;
   border-radius: 8px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--theme-border);
   font-size: 14px;
-  transition: border-color 0.2s;
+  background: var(--theme-input-bg);
+  color: var(--theme-text-primary);
+  transition: border-color 0.2s, background 0.35s ease, color 0.35s ease;
   resize: vertical;
   font-family: inherit;
 
@@ -778,17 +795,23 @@ const TextArea = styled("textarea")`
     outline: none;
     border-color: #7f56d9;
   }
+
+  &::placeholder {
+    color: var(--theme-text-secondary);
+    opacity: 0.8;
+  }
 `;
 
 const Select = styled("select")`
   height: 40px;
   padding: 0 12px;
   border-radius: 6px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--theme-border);
   font-size: 14px;
-  background: white;
+  background: var(--theme-input-bg);
+  color: var(--theme-text-primary);
   cursor: pointer;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, background 0.35s ease, color 0.35s ease;
   width: 100%;
 
   &:focus {
@@ -798,6 +821,8 @@ const Select = styled("select")`
 
   option {
     padding: 8px;
+    background: var(--theme-card-bg);
+    color: var(--theme-text-primary);
   }
 `;
 
@@ -809,14 +834,16 @@ const ErrorText = styled("div")`
 
 const HelperText = styled("div")`
   font-size: 12px;
-  color: #6b7280;
+  color: var(--theme-text-secondary);
   margin-top: 4px;
+  transition: color 0.35s ease;
 `;
 
 const QuestionsSection = styled("div")`
   margin-top: 32px;
   padding-top: 32px;
-  border-top: 2px solid #e5e7eb;
+  border-top: 2px solid var(--theme-border);
+  transition: border-color 0.35s ease;
 `;
 
 const QuestionsHeader = styled("div")`
@@ -824,11 +851,12 @@ const QuestionsHeader = styled("div")`
 `;
 
 const QuestionCard = styled("div")`
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
+  background: var(--theme-table-header-bg);
+  border: 1px solid var(--theme-border);
   border-radius: 12px;
   padding: 20px;
   margin-bottom: 16px;
+  transition: background 0.35s ease, border-color 0.35s ease;
 `;
 
 const QuestionHeader = styled("div")`
@@ -878,17 +906,16 @@ const AddQuestionButton = styled("button")`
   align-items: center;
   gap: 8px;
   padding: 12px 20px;
-  background: #f3f4f6;
-  border: 2px dashed #d1d5db;
+  background: var(--theme-table-header-bg);
+  border: 2px dashed var(--theme-border);
   border-radius: 8px;
-  color: #6b7280;
+  color: var(--theme-text-secondary);
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
   width: 100%;
 
   &:hover {
-    background: #e5e7eb;
     border-color: #7f56d9;
     color: #7f56d9;
   }
