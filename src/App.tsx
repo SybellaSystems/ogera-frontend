@@ -67,6 +67,7 @@ import Analytics from "./pages/Analytics";
 import Notifications from "./pages/Notifications";
 import Transactions from "./pages/Transactions";
 import Pay from "./pages/Transactions/Pay";
+import MoMoPayments from "./pages/Transactions/MoMoPayments";
 import PaymentCallback from "./pages/PaymentCallback";
 import PaymentCancelled from "./pages/PaymentCancelled";
 
@@ -400,6 +401,16 @@ function App() {
               Component: Pay,
             },
             {
+              path: "transactions/momo-payments",
+              element: <ProtectedRoute allowedRoles={["superadmin", "admin"]} />,
+              children: [
+                {
+                  index: true,
+                  Component: MoMoPayments,
+                },
+              ],
+            },
+            {
               path: "courses/add",
               Component: AddCourse,
             },
@@ -408,8 +419,24 @@ function App() {
               Component: ViewCourse,
             },
             {
-              path: "courses/edit/:id",
-              Component: AddCourse,
+              path: "courses/analytics",
+              element: <ProtectedRoute allowedRoles={["employer", "superadmin", "superAdmin", "admin", "courseAdmin", "CourseAdmin"]} />,
+              children: [
+                {
+                  index: true,
+                  Component: CourseAnalytics,
+                },
+              ],
+            },
+            {
+              path: "courses/analytics/:courseId",
+              element: <ProtectedRoute allowedRoles={["employer", "superadmin", "superAdmin", "admin", "courseAdmin", "CourseAdmin"]} />,
+              children: [
+                {
+                  index: true,
+                  Component: CourseAnalytics,
+                },
+              ],
             },
             {
               path: "courses/:id",

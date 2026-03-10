@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import { useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
 import {
@@ -14,6 +15,8 @@ import { BookmarkIcon as BookmarkSolidIcon } from "@heroicons/react/24/solid";
 import { useGetJobByIdQuery } from "../../services/api/jobsApi";
 import { useGetUserProfileQuery } from "../../services/api/authApi";
 import { useCheckStudentApplicationQuery } from "../../services/api/jobApplicationApi";
+import { useFundJobMutation, useLazyGetMoMoStatusQuery, useApproveWorkAndPayMutation } from "../../services/api/momoApi";
+import { apiSlice } from "../../services/api/apiSlice";
 import ApplyJobModal from "../../components/ApplyJobModal";
 import Loader from "../../components/Loader";
 import { formatRelativeTime } from "../../utils/timeUtils";
@@ -22,21 +25,31 @@ import Button from "../../components/button";
 const JobDetails: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const { id } = useParams<{ id: string }>();
   const role = useSelector((state: any) => state.auth.role);
-  const { data, isLoading, error } = useGetJobByIdQuery(id || "");
+  const { data, isLoading, error, refetch } = useGetJobByIdQuery(id || "");
   const { data: profileData } = useGetUserProfileQuery(undefined);
   const { data: applicationCheck, refetch: refetchApplicationCheck } = useCheckStudentApplicationQuery(id || "", {
     skip: !id || role !== "student",
   });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [savedJobs, setSavedJobs] = useState<Set<string>>(new Set());
-  
-  const hasApplied = applicationCheck?.data?.hasApplied || false;
+  const [momoError, setMomoError] = useState("");
+  const [payError, setPayError] = useState("");
+  const [fundJob, { isLoading: isFunding }] = useFundJobMutation();
+  const [getMoMoStatus] = useLazyGetMoMoStatusQuery();
+  const [approveWorkAndPay, { isLoading: isPaying }] = useApproveWorkAndPayMutation();
 
-  const job = data?.data;
+   const job = data?.data;
   const currentUserId = profileData?.data?.user_id;
-  const isSaved = id ? savedJobs.has(id) : false;
+    const isSaved = id ? savedJobs.has(id) : false;
+
+  const hasApplied = applicationCheck?.data?.hasApplied || false;
+  const fundingStatus = job?.funding_status || "Unfunded";
+  const isEmployerView = (role === "employer" || role === "superadmin") && currentUserId && job?.employer_id === currentUserId;
+
+  
 
   const toggleSaveJob = (jobId: string) => {
     setSavedJobs((prev) => {
@@ -134,6 +147,30 @@ const JobDetails: React.FC = () => {
             >
               {job.status}
             </span>
+            {(job.funding_status === "Funded" ||
+              job.funding_status === "Pending" ||
+              job.funding_status === "Paid") && (
+              <span
+                className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                  job.funding_status === "Paid"
+                    ? "bg-emerald-100 text-emerald-700"
+                    : job.funding_status === "Funded"
+                    ? "bg-green-100 text-green-700"
+                    : "bg-amber-100 text-amber-700"
+                }`}
+              >
+                {job.funding_status === "Paid"
+                  ? "Paid"
+                  : job.funding_status === "Funded"
+                  ? "Funded"
+                  : "Payment pending"}
+              </span>
+            )}
+            {role === "student" && job.funding_status === "Paid" && job.amount_received_by_you != null && (
+              <span className="px-3 py-1 rounded-full text-sm font-semibold bg-emerald-100 text-emerald-700">
+                You received {(job.amount_received_by_you as number).toLocaleString()} for this job
+              </span>
+            )}
             {role === "student" && (
               <button
                 onClick={() => id && toggleSaveJob(id)}
@@ -223,6 +260,95 @@ const JobDetails: React.FC = () => {
                 </span>
               </div>
             </div>
+
+            {/* Student: amount received for this job (when Paid) */}
+            {role === "student" && job.funding_status === "Paid" && job.amount_received_by_you != null && (
+              <div className="p-4 bg-emerald-50 rounded-lg border border-emerald-200">
+                <p className="text-sm font-medium text-emerald-800">Amount you received from Ogera</p>
+                <p className="text-xl font-bold text-emerald-900 mt-1">
+                  {(job.amount_received_by_you as number).toLocaleString()} (paid to your MoMo)
+                </p>
+              </div>
+            )}
+
+            {/* Fund with MoMo (employer only) */}
+            {/* Approve work & pay student (employer, job Funded, not yet Paid) */}
+            {isEmployerView && fundingStatus === "Funded" && (
+              <div className="mt-4 p-4 bg-emerald-50 rounded-lg border border-emerald-200">
+                <h3 className="text-lg font-semibold text-emerald-900 mb-2">Approve work & pay student</h3>
+                <p className="text-sm text-emerald-700 mb-3">
+                  When the student has completed the work, click below to pay them the job budget via MoMo. The student must have a mobile number in their profile.
+                </p>
+                {payError && (
+                  <div className="mb-3 p-2 bg-red-100 text-red-700 rounded text-sm">{payError}</div>
+                )}
+                <Button
+                  backgroundcolor="#059669"
+                  text={isPaying ? "Paying…" : "Approve work & pay student"}
+                  onClick={async () => {
+                    setPayError("");
+                    try {
+                      await approveWorkAndPay({ jobId: id! }).unwrap();
+                      refetch();
+                    } catch (e: unknown) {
+                      const err = e as { data?: { message?: string }; message?: string };
+                      setPayError(err?.data?.message || err?.message || "Failed to pay student.");
+                    }
+                  }}
+                  disabled={isPaying}
+                />
+              </div>
+            )}
+
+            {isEmployerView && fundingStatus !== "Funded" && fundingStatus !== "Paid" && (
+              <div className="mt-4 p-4 bg-purple-50 rounded-lg border border-purple-200">
+                <h3 className="text-lg font-semibold text-purple-900 mb-2">Fund job with MoMo</h3>
+                <p className="text-sm text-purple-700 mb-3">
+                  Pay the job budget via MTN Mobile Money. A payment request will be sent to your MoMo number (from your profile). Approve on your phone to fund this job.
+                </p>
+                {momoError && (
+                  <div className="mb-3 p-2 bg-red-100 text-red-700 rounded text-sm">{momoError}</div>
+                )}
+                {fundingStatus === "Pending" ? (
+                  <p className="text-amber-700 font-medium">
+                    Payment request sent. Approve on your MoMo app. This page will update when payment is confirmed (wait up to 2 minutes).
+                  </p>
+                ) : (
+                  <Button
+                    backgroundcolor="#7c3aed"
+                    text={isFunding ? "Sending request…" : "Fund with MoMo"}
+                    onClick={async () => {
+                      setMomoError("");
+                      try {
+                        const res = await fundJob({ jobId: id! }).unwrap();
+                        if (res.success && res.data?.referenceId) {
+                          const refId = res.data.referenceId;
+                          const interval = setInterval(async () => {
+                            try {
+                              const statusRes = await getMoMoStatus(refId).unwrap();
+                              const status = statusRes.data?.status;
+                              if (status === "SUCCESSFUL") {
+                                clearInterval(interval);
+                                dispatch(apiSlice.util.invalidateTags(["MoMoPayments"]));
+                                refetch();
+                              }
+                            } catch {
+                              // ignore poll errors
+                            }
+                          }, 20000);
+                          setTimeout(() => clearInterval(interval), 120000);
+                          refetch();
+                        }
+                      } catch (e: unknown) {
+                        const err = e as { data?: { message?: string }; message?: string };
+                        setMomoError(err?.data?.message || err?.message || "Failed to send payment request.");
+                      }
+                    }}
+                    disabled={isFunding}
+                  />
+                )}
+              </div>
+            )}
 
             {/* Category and Tags */}
             <div className="flex flex-wrap gap-2">

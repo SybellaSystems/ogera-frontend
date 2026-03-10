@@ -1,42 +1,24 @@
 import { apiSlice } from "./apiSlice";
 import api from "./axiosInstance";
 
-/** SRS: Micro-courses – video, quizzes, resources. */
-export type CourseStepType =
-  | "video"
-  | "link"
-  | "pdf"
-  | "image"
-  | "text"
-  | "quiz";
-
 export interface CourseStep {
   step_id?: string;
-  step_type: CourseStepType;
+  step_type: "video" | "link" | "pdf" | "image" | "text";
   step_content: string;
   step_title?: string;
   step_order: number;
 }
 
-export interface UploadedVideoMeta {
-  path: string;
-  storageType: "local" | "s3";
+export interface CourseFileUploadResponse {
+  success: boolean;
+  status: number;
+  data: {
+    file_url: string;
+    path: string;
+    storageType: string;
+  };
+  message: string;
 }
-
-/** SRS: Free core skills vs paid (RWF 2,000–10,000). Category = trending topics. */
-export const COURSE_CATEGORIES = [
-  "Digital Marketing",
-  "Data Entry/Analysis",
-  "Graphic Design",
-  "Virtual Assistance",
-  "Coding Basics",
-  "Customer Service",
-  "Content Writing",
-  "Academic Research Skills",
-  "Digital Literacy",
-  "CV Writing",
-  "Other",
-] as const;
 
 export interface Course {
   course_id: string;
@@ -44,14 +26,6 @@ export interface Course {
   type: string;
   tag: string;
   description?: string;
-  estimated_hours?: number | null;
-  category?: string | null;
-  is_free: boolean;
-  price_amount?: number | null;
-  price_currency?: string | null;
-  discount_trust_score_min?: number | null;
-  discount_percent?: number | null;
-  created_by?: string | null;
   steps?: CourseStep[];
   created_at: string;
   updated_at: string;
@@ -62,13 +36,6 @@ export interface CreateCourseRequest {
   type: string;
   tag: string;
   description?: string;
-  estimated_hours?: number | null;
-  category?: string | null;
-  is_free?: boolean;
-  price_amount?: number | null;
-  price_currency?: string | null;
-  discount_trust_score_min?: number | null;
-  discount_percent?: number | null;
   steps?: CourseStep[];
 }
 
@@ -77,47 +44,7 @@ export interface UpdateCourseRequest {
   type?: string;
   tag?: string;
   description?: string;
-  estimated_hours?: number | null;
-  category?: string | null;
-  is_free?: boolean;
-  price_amount?: number | null;
-  price_currency?: string | null;
-  discount_trust_score_min?: number | null;
-  discount_percent?: number | null;
   steps?: CourseStep[];
-}
-
-/** SRS: Complete → admin review → certificate. Employers see completed courses (certificate view gated). */
-export type CertificateStatus =
-  | "none"
-  | "pending_payment"
-  | "pending_review"
-  | "approved";
-
-export interface CourseEnrollment {
-  enrollment_id: string;
-  user_id: string;
-  course_id: string;
-  enrolled_at: string;
-  completed_at?: string | null;
-  certificate_status: CertificateStatus;
-  amount_due?: number | null;
-  amount_paid?: number | null;
-  funded?: boolean | null;
-  course?: Course;
-  created_at: string;
-  updated_at: string;
-}
-
-/** Course chat message (real-time + history). One thread per student (conversation_user_id). */
-export interface CourseChatMessage {
-  message_id: string;
-  course_id: string;
-  user_id: string;
-  role: string;
-  content: string;
-  conversation_user_id?: string | null;
-  created_at: string;
 }
 
 export interface CourseResponse {
@@ -245,19 +172,13 @@ export const coursesApi = apiSlice.injectEndpoints({
     }),
 
     // Update course
-    updateCourse: builder.mutation<
-      CourseResponse,
-      { id: string; data: UpdateCourseRequest }
-    >({
+    updateCourse: builder.mutation<CourseResponse, { id: string; data: UpdateCourseRequest }>({
       query: ({ id, data }) => ({
         url: `/courses/${id}`,
         method: "PUT",
         body: data,
       }),
-      invalidatesTags: (result, error, { id }) => [
-        { type: "Course", id },
-        "Course",
-      ],
+      invalidatesTags: (_result, _error, { id }) => [{ type: "Course", id }, "Course"],
     }),
 
     // Delete course
@@ -266,154 +187,87 @@ export const coursesApi = apiSlice.injectEndpoints({
         url: `/courses/${id}`,
         method: "DELETE",
       }),
-      invalidatesTags: (result, error, id) => [
-        { type: "Course", id },
-        "Course",
-      ],
+      invalidatesTags: (_result, _error, id) => [{ type: "Course", id }, "Course"],
     }),
 
-    // ---------- Enrollments (SRS: enroll → complete → admin review) ----------
-    enrollCourse: builder.mutation<
-      { data: CourseEnrollment; message: string },
-      string
-    >({
-      query: (courseId) => ({
-        url: `/courses/${courseId}/enroll`,
+    // Get course progress
+    getCourseProgress: builder.query<CourseProgressResponse, string>({
+      query: (course_id) => ({
+        url: `/courses/${course_id}/progress`,
+        method: "GET",
+      }),
+      providesTags: (_result, _error, course_id) => [{ type: "CourseProgress", id: course_id }],
+    }),
+
+    // Get course completion
+    getCourseCompletion: builder.query<CourseCompletionResponse, string>({
+      query: (course_id) => ({
+        url: `/courses/${course_id}/completion`,
+        method: "GET",
+      }),
+      providesTags: (_result, _error, course_id) => [{ type: "CourseCompletion", id: course_id }],
+    }),
+
+    // Mark step as complete
+    markStepComplete: builder.mutation<{ success: boolean; data: CourseProgress; message: string }, MarkStepCompleteRequest>({
+      query: (data) => ({
+        url: "/courses/progress/complete",
         method: "POST",
+        body: data,
       }),
-      invalidatesTags: ["Course", "Enrollment"],
-    }),
-
-    getMyEnrollments: builder.query<
-      { data: CourseEnrollment[]; message: string },
-      void
-    >({
-      query: () => ({
-        url: "/courses/my-enrollments",
-        method: "GET",
-      }),
-      providesTags: ["Enrollment"],
-    }),
-
-    getEnrollment: builder.query<
-      { data: CourseEnrollment; message: string },
-      string
-    >({
-      query: (courseId) => ({
-        url: `/courses/${courseId}/enrollment`,
-        method: "GET",
-      }),
-      providesTags: (result, error, courseId) => [
-        { type: "Enrollment", id: courseId },
+      invalidatesTags: (_result, _error, { course_id }) => [
+        { type: "CourseProgress", id: course_id },
+        { type: "CourseCompletion", id: course_id },
       ],
     }),
 
-    completeCourse: builder.mutation<
-      { data: CourseEnrollment; message: string },
-      string
-    >({
-      query: (courseId) => ({
-        url: `/courses/${courseId}/complete`,
+    // Mark step as incomplete
+    markStepIncomplete: builder.mutation<{ success: boolean; data: CourseProgress | null; message: string }, MarkStepCompleteRequest>({
+      query: (data) => ({
+        url: "/courses/progress/incomplete",
         method: "POST",
+        body: data,
       }),
-      invalidatesTags: ["Course", "Enrollment"],
-    }),
-
-    getEnrollmentsPendingReview: builder.query<
-      { data: CourseEnrollment[]; message: string },
-      void
-    >({
-      query: () => ({
-        url: "/courses/enrollments/pending-review",
-        method: "GET",
-      }),
-      providesTags: ["Enrollment"],
-    }),
-
-    updateCertificateStatus: builder.mutation<
-      { data: CourseEnrollment; message: string },
-      {
-        enrollmentId: string;
-        certificate_status: "pending_review" | "approved";
-        funded?: boolean;
-      }
-    >({
-      query: ({ enrollmentId, certificate_status, funded }) => ({
-        url: `/courses/enrollments/${enrollmentId}/certificate`,
-        method: "PUT",
-        body: { certificate_status, funded },
-      }),
-      invalidatesTags: ["Enrollment"],
-    }),
-    uploadCourseVideo: builder.mutation<
-      { data: UploadedVideoMeta; message: string },
-      File
-    >({
-      query: (file) => {
-        const formData = new FormData();
-        formData.append("video", file);
-        return {
-          url: "/courses/upload-video",
-          method: "POST",
-          body: formData,
-        };
-      },
-    }),
-
-    getCourseChatHistory: builder.query<
-      {
-        data: CourseChatMessage[] | { messages: CourseChatMessage[]; participants: { user_id: string; full_name: string }[] };
-        message: string;
-      },
-      string
-    >({
-      query: (courseId) => ({
-        url: `/courses/${courseId}/chat`,
-        method: "GET",
-      }),
-      providesTags: (result, error, courseId) => [
-        { type: "Course", id: `chat-${courseId}` },
+      invalidatesTags: (_result, _error, { course_id }) => [
+        { type: "CourseProgress", id: course_id },
+        { type: "CourseCompletion", id: course_id },
       ],
     }),
 
-    // Course statistics (overview)
-    getCourseStatistics: builder.query<
-      { data: CourseStatistics; message: string },
-      void
-    >({
+    // Check if course is started
+    checkCourseStarted: builder.query<{ success: boolean; data: { started: boolean; started_at: string | null }; message: string }, string>({
+      query: (course_id) => ({
+        url: `/courses/${course_id}/started`,
+        method: "GET",
+      }),
+      providesTags: (_result, _error, course_id) => [{ type: "CourseStarted", id: course_id }],
+    }),
+
+    // Get students enrolled in a course (for employers/admins)
+    getCourseStudents: builder.query<{ success: boolean; data: CourseStudent[]; message: string }, string>({
+      query: (course_id) => ({
+        url: `/courses/${course_id}/students`,
+        method: "GET",
+      }),
+      providesTags: (_result, _error, course_id) => [{ type: "CourseStudents", id: course_id }],
+    }),
+
+    // Get overall course statistics
+    getCourseStatistics: builder.query<{ success: boolean; data: CourseStatistics; message: string }, void>({
       query: () => ({
         url: "/courses/statistics/overview",
         method: "GET",
       }),
-      providesTags: ["Course"],
+      providesTags: ["CourseStatistics"],
     }),
 
-    // Course-specific statistics (per course)
-    getCourseSpecificStatistics: builder.query<
-      { data: CourseSpecificStatistics; message: string },
-      string
-    >({
-      query: (courseId) => ({
-        url: `/courses/${courseId}/statistics`,
+    // Get statistics for a specific course
+    getCourseSpecificStatistics: builder.query<{ success: boolean; data: CourseSpecificStatistics; message: string }, string>({
+      query: (course_id) => ({
+        url: `/courses/${course_id}/statistics`,
         method: "GET",
       }),
-      providesTags: (result, error, courseId) => [
-        { type: "Course", id: `stats-${courseId}` },
-      ],
-    }),
-
-    // Students enrolled in a course (with progress)
-    getCourseStudents: builder.query<
-      { data: CourseStudent[]; message: string },
-      string
-    >({
-      query: (courseId) => ({
-        url: `/courses/${courseId}/students`,
-        method: "GET",
-      }),
-      providesTags: (result, error, courseId) => [
-        { type: "Course", id: `students-${courseId}` },
-      ],
+      providesTags: (_result, _error, course_id) => [{ type: "CourseStatistics", id: course_id }],
     }),
   }),
 });
@@ -424,17 +278,14 @@ export const {
   useCreateCourseMutation,
   useUpdateCourseMutation,
   useDeleteCourseMutation,
-  useEnrollCourseMutation,
-  useGetMyEnrollmentsQuery,
-  useGetEnrollmentQuery,
-  useCompleteCourseMutation,
-  useGetEnrollmentsPendingReviewQuery,
-  useUpdateCertificateStatusMutation,
-  useUploadCourseVideoMutation,
-  useGetCourseChatHistoryQuery,
+  useGetCourseProgressQuery,
+  useGetCourseCompletionQuery,
+  useMarkStepCompleteMutation,
+  useMarkStepIncompleteMutation,
+  useCheckCourseStartedQuery,
+  useGetCourseStudentsQuery,
   useGetCourseStatisticsQuery,
   useGetCourseSpecificStatisticsQuery,
-  useGetCourseStudentsQuery,
 } = coursesApi;
 
 /**

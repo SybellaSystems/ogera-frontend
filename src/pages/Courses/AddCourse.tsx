@@ -1,28 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useFormik } from "formik";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import {
-  BookOpenIcon,
-  PlusIcon,
-  TrashIcon,
-  CloudArrowUpIcon,
-} from "@heroicons/react/24/outline";
+import { BookOpenIcon, PlusIcon, TrashIcon, CloudArrowUpIcon } from "@heroicons/react/24/outline";
 import { styled } from "@mui/material/styles";
 import Button from "../../components/button";
-import Loader from "../../components/Loader";
 import * as Yup from "yup";
-import {
-  useCreateCourseMutation,
-  useUpdateCourseMutation,
-  useGetCourseByIdQuery,
-  useUploadCourseVideoMutation,
-  type CourseStep,
-  type UploadedVideoMeta,
-  COURSE_CATEGORIES,
-  uploadCourseContent,
-} from "../../services/api/coursesApi";
+import { useCreateCourseMutation, type CourseStep, uploadCourseContent } from "../../services/api/coursesApi";
 import type { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 
 interface AddCourseFormValues {
@@ -30,13 +15,6 @@ interface AddCourseFormValues {
   type: string;
   tag: string;
   description: string;
-  estimated_hours: string;
-  category: string;
-  is_free: boolean;
-  price_amount: string;
-  price_currency: string;
-  discount_trust_score_min: string;
-  discount_percent: string;
   steps: CourseStep[];
 }
 
@@ -45,7 +23,8 @@ const validationSchema = Yup.object({
     .min(3, "Course name must be at least 3 characters")
     .max(255, "Course name must not exceed 255 characters")
     .required("Course name is required"),
-  type: Yup.string().required("Course type is required"),
+  type: Yup.string()
+    .required("Course type is required"),
   tag: Yup.string()
     .min(2, "Tag must be at least 2 characters")
     .max(100, "Tag must not exceed 100 characters")
@@ -53,159 +32,33 @@ const validationSchema = Yup.object({
   description: Yup.string()
     .max(2000, "Description must not exceed 2000 characters")
     .optional(),
-  estimated_hours: Yup.number()
-    .min(2, "SRS: Micro-courses 2–10 hours")
-    .max(10)
-    .nullable()
-    .transform((v) =>
-      v === "" || v === undefined || isNaN(Number(v)) ? undefined : Number(v),
-    )
-    .optional(),
-  category: Yup.string().optional(),
-  is_free: Yup.boolean().required(),
-  price_amount: Yup.number()
-    .min(0)
-    .nullable()
-    .transform((v) => (v === "" || isNaN(v) ? undefined : v))
-    .optional(),
-  price_currency: Yup.string().optional(),
-  discount_trust_score_min: Yup.number()
-    .min(0)
-    .nullable()
-    .transform((v) => (v === "" || isNaN(v) ? undefined : v))
-    .optional(),
-  discount_percent: Yup.number()
-    .min(0)
-    .max(100)
-    .nullable()
-    .transform((v) => (v === "" || isNaN(v) ? undefined : v))
-    .optional(),
 });
 
-const isUploadedVideo = (content: string): boolean => {
-  if (!content?.trim()) return false;
-  try {
-    const parsed = JSON.parse(content);
-    return !!parsed?.path && !!parsed?.storageType;
-  } catch {
-    return false;
-  }
-};
-
-const VideoStepInput: React.FC<{
-  step: CourseStep;
-  index: number;
-  steps: CourseStep[];
-  setSteps: React.Dispatch<React.SetStateAction<CourseStep[]>>;
-  uploadVideo: (file: File) => Promise<any>;
+interface StepUploadState {
+  inputType: "url" | "upload"; // Whether using URL or file upload
+  file: File | null;
   isUploading: boolean;
-}> = ({ step, index, steps, setSteps, uploadVideo, isUploading }) => {
-  const youtubeUrl = !isUploadedVideo(step.step_content)
-    ? step.step_content
-    : "";
-  const hasUpload = isUploadedVideo(step.step_content);
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    try {
-      const result = await uploadVideo(file);
-      const meta = (result as any)?.data?.data as UploadedVideoMeta;
-      if (meta?.path && meta?.storageType) {
-        const newSteps = [...steps];
-        newSteps[index].step_content = JSON.stringify(meta);
-        setSteps(newSteps);
-      }
-    } catch (err: any) {
-      toast.error(err?.data?.message || "Video upload failed");
-    }
-    e.target.value = "";
-  };
-  return (
-    <VideoInputWrapper>
-      <Input
-        type="url"
-        value={youtubeUrl}
-        onChange={(e) => {
-          const newSteps = [...steps];
-          newSteps[index].step_content = e.target.value;
-          setSteps(newSteps);
-        }}
-        placeholder="e.g., https://www.youtube.com/watch?v=..."
-      />
-      <UploadDivider>— or upload from computer —</UploadDivider>
-      <UploadArea>
-        <input
-          type="file"
-          id={`video-upload-${index}`}
-          accept="video/mp4,video/webm,video/ogg,video/quicktime,.mp4,.webm,.ogg,.mov"
-          onChange={handleFileChange}
-          style={{ display: "none" }}
-          disabled={isUploading}
-        />
-        <label htmlFor={`video-upload-${index}`}>
-          <CloudArrowUpIcon className="h-6 w-6" />
-          {hasUpload
-            ? "Replace video"
-            : isUploading
-              ? "Uploading..."
-              : "Choose video file"}
-        </label>
-      </UploadArea>
-      {hasUpload && <UploadedBadge>✓ Video uploaded</UploadedBadge>}
-    </VideoInputWrapper>
-  );
-};
+  uploadError: string | null;
+}
 
 const AddCourse: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { id: courseId } = useParams<{ id: string }>();
-  const isEditMode = !!courseId;
-
-  const { data: courseResponse, isLoading: isLoadingCourse } =
-    useGetCourseByIdQuery(courseId!, { skip: !courseId });
-  const course = courseResponse?.data;
-
   const [steps, setSteps] = useState<CourseStep[]>([]);
-  const [stepUploadStates, setStepUploadStates] = useState<
-    Record<
-      number,
-      {
-        inputType: "url" | "upload";
-        file: File | null;
-        isUploading: boolean;
-        uploadError: string | null;
-      }
-    >
-  >({});
-  const [createCourse, { isLoading: isCreating, isSuccess: isCreateSuccess, data: createData }] =
-    useCreateCourseMutation();
-  const [updateCourse, { isLoading: isUpdating, isSuccess: isUpdateSuccess, data: updateData }] =
-    useUpdateCourseMutation();
-  const [uploadVideo, { isLoading: isUploadingVideo }] =
-    useUploadCourseVideoMutation();
-
-  const isSubmitting = isCreating || isUpdating;
+  const [stepUploadStates, setStepUploadStates] = useState<Record<number, StepUploadState>>({});
+  const [createCourse, { isLoading: isSubmitting, isSuccess, data }] = useCreateCourseMutation();
 
   const initialValues: AddCourseFormValues = {
     course_name: "",
     type: "",
     tag: "",
     description: "",
-    estimated_hours: "",
-    category: "",
-    is_free: true,
-    price_amount: "",
-    price_currency: "RWF",
-    discount_trust_score_min: "",
-    discount_percent: "",
     steps: [],
   };
 
   const formik = useFormik<AddCourseFormValues>({
     initialValues,
     validationSchema,
-    enableReinitialize: true,
     onSubmit: async (values) => {
       try {
         const payload = {
@@ -213,119 +66,35 @@ const AddCourse: React.FC = () => {
           type: values.type,
           tag: values.tag,
           description: values.description || undefined,
-          estimated_hours: values.estimated_hours
-            ? Number(values.estimated_hours)
-            : undefined,
-          category: values.category || undefined,
-          is_free: values.is_free,
-          price_amount:
-            !values.is_free && values.price_amount
-              ? Number(values.price_amount)
-              : undefined,
-          price_currency: values.price_currency || "RWF",
-          discount_trust_score_min: values.discount_trust_score_min
-            ? Number(values.discount_trust_score_min)
-            : undefined,
-          discount_percent: values.discount_percent
-            ? Number(values.discount_percent)
-            : undefined,
-          steps:
-            steps.length > 0
-              ? steps.map((step, index) => ({
-                  step_type: step.step_type,
-                  step_content: step.step_content,
-                  step_title: step.step_title || undefined,
-                  step_order: index + 1,
-                }))
-              : undefined,
+          steps: steps.length > 0 ? steps.map((step, index) => ({
+            step_type: step.step_type,
+            step_content: step.step_content,
+            step_title: step.step_title || undefined,
+            step_order: index + 1,
+          })) : undefined,
         };
-
-        if (isEditMode && courseId) {
-          await updateCourse({ id: courseId, data: payload }).unwrap();
-        } else {
-          await createCourse(payload).unwrap();
-        }
+        
+        await createCourse(payload).unwrap();
       } catch (error: any) {
-        console.error(isEditMode ? "Update course error:" : "Create course error:", error);
+        console.error("Create course error:", error);
         const err = error as FetchBaseQueryError & {
           data?: { message?: string };
         };
-        toast.error(err?.data?.message || (isEditMode ? "Failed to update course" : "Failed to create course"));
+        toast.error(err?.data?.message || t("courses.failedToCreateCourse"));
       }
     },
   });
 
-  // Prefill form when editing and course data is loaded
+  // Handle success/error states
   useEffect(() => {
-    if (!isEditMode || !course) return;
-    formik.setValues({
-      course_name: course.course_name ?? "",
-      type: course.type ?? "",
-      tag: course.tag ?? "",
-      description: course.description ?? "",
-      estimated_hours: course.estimated_hours != null ? String(course.estimated_hours) : "",
-      category: course.category ?? "",
-      is_free: course.is_free ?? true,
-      price_amount:
-        course.price_amount != null && course.price_amount > 0
-          ? String(course.price_amount)
-          : "",
-      price_currency: course.price_currency ?? "RWF",
-      discount_trust_score_min:
-        course.discount_trust_score_min != null
-          ? String(course.discount_trust_score_min)
-          : "",
-      discount_percent:
-        course.discount_percent != null ? String(course.discount_percent) : "",
-      steps: [],
-    });
-    const sortedSteps = [...(course.steps || [])].sort(
-      (a, b) => (a.step_order ?? 0) - (b.step_order ?? 0)
-    );
-    setSteps(
-      sortedSteps.map((s) => ({
-        step_id: s.step_id,
-        step_type: s.step_type,
-        step_content: s.step_content,
-        step_title: s.step_title,
-        step_order: s.step_order ?? 0,
-      }))
-    );
-  }, [isEditMode, course]);
-
-  // Handle success states
-  useEffect(() => {
-    if (isCreateSuccess && createData) {
-      toast.success(createData?.message || "Course created successfully!");
+    if (isSuccess && data) {
+      toast.success(data?.message || t("courses.courseCreatedSuccess"));
       formik.resetForm();
       setSteps([]);
+      setStepUploadStates({});
+      // Stay on the same page instead of navigating
     }
-  }, [isCreateSuccess, createData]);
-
-  useEffect(() => {
-    if (isUpdateSuccess && updateData) {
-      toast.success(updateData?.message || "Course updated successfully!");
-    }
-  }, [isUpdateSuccess, updateData]);
-
-  if (isEditMode && isLoadingCourse) {
-    return <Loader />;
-  }
-
-  if (isEditMode && !course) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[200px] text-gray-600">
-        <p>Course not found.</p>
-        <button
-          type="button"
-          onClick={() => navigate("/dashboard/courses/view")}
-          className="mt-2 text-purple-600 hover:underline"
-        >
-          Back to courses
-        </button>
-      </div>
-    );
-  }
+  }, [isSuccess, data]);
 
   // Initialize upload state for a step
   const initializeStepUploadState = (index: number) => {
@@ -435,12 +204,8 @@ const AddCourse: React.FC = () => {
           <IconWrapper>
             <BookOpenIcon className="h-8 w-8 text-purple-600" />
           </IconWrapper>
-          <Title>{isEditMode ? "Edit Course" : "Add Course"}</Title>
-          <Subtitle>
-            {isEditMode
-              ? "Update the course details below."
-              : "Create a new course with all the necessary details."}
-          </Subtitle>
+          <Title>{t("courses.addTitle")}</Title>
+          <Subtitle>{t("courses.addSubtitle")}</Subtitle>
         </Header>
 
         {/* Course Name */}
@@ -494,123 +259,12 @@ const AddCourse: React.FC = () => {
             onBlur={formik.handleBlur}
           />
           <HelperText>
-            Enter a tag to categorize this course (e.g., Technology, Design,
-            Business)
+            {t("courses.tagHelper")}
           </HelperText>
           {formik.touched.tag && formik.errors.tag && (
             <ErrorText>{formik.errors.tag}</ErrorText>
           )}
         </FormGroup>
-
-        {/* Category - SRS: Trending topics Rwanda */}
-        <FormGroup>
-          <Label htmlFor="category">Category (Trending topics)</Label>
-          <Select
-            id="category"
-            name="category"
-            value={formik.values.category}
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-          >
-            <option value="">Select category</option>
-            {COURSE_CATEGORIES.map((cat) => (
-              <option key={cat} value={cat}>
-                {cat}
-              </option>
-            ))}
-          </Select>
-          <HelperText>
-            e.g. Digital Marketing, Data Entry/Analysis, CV Writing (free hook)
-          </HelperText>
-        </FormGroup>
-
-        {/* Estimated hours - SRS: Micro-courses 2–10 hours */}
-        <FormGroup>
-          <Label htmlFor="estimated_hours">Estimated hours (2–10)</Label>
-          <Input
-            id="estimated_hours"
-            name="estimated_hours"
-            type="number"
-            min={2}
-            max={10}
-            placeholder="e.g., 5"
-            value={formik.values.estimated_hours}
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-          />
-          <HelperText>Micro-courses: 2–10 hours total</HelperText>
-          {formik.touched.estimated_hours && formik.errors.estimated_hours && (
-            <ErrorText>{formik.errors.estimated_hours}</ErrorText>
-          )}
-        </FormGroup>
-
-        {/* Pricing - SRS: Free vs paid RWF 2,000–10,000 */}
-        <FormGroup>
-          <Label>
-            <input
-              type="checkbox"
-              name="is_free"
-              checked={formik.values.is_free}
-              onChange={(e) =>
-                formik.setFieldValue("is_free", e.target.checked)
-              }
-            />
-            <span style={{ marginLeft: 8 }}>Free course</span>
-          </Label>
-          <HelperText>
-            Free: Digital Literacy, CV Writing. Paid: RWF 2,000–10,000 (e.g.
-            Data Analysis, Digital Marketing)
-          </HelperText>
-        </FormGroup>
-
-        {!formik.values.is_free && (
-          <>
-            <FormGroup>
-              <Label htmlFor="price_amount">Price amount (RWF) *</Label>
-              <Input
-                id="price_amount"
-                name="price_amount"
-                type="number"
-                min={2000}
-                max={100000}
-                placeholder="e.g., 5000"
-                value={formik.values.price_amount}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-              />
-              {formik.touched.price_amount && formik.errors.price_amount && (
-                <ErrorText>{formik.errors.price_amount}</ErrorText>
-              )}
-            </FormGroup>
-            <FormGroup>
-              <Label htmlFor="discount_trust_score_min">
-                Discount: TrustScore ≥ (e.g. 500)
-              </Label>
-              <Input
-                id="discount_trust_score_min"
-                name="discount_trust_score_min"
-                type="number"
-                min={0}
-                placeholder="500"
-                value={formik.values.discount_trust_score_min}
-                onChange={formik.handleChange}
-              />
-            </FormGroup>
-            <FormGroup>
-              <Label htmlFor="discount_percent">Discount % (e.g. 50)</Label>
-              <Input
-                id="discount_percent"
-                name="discount_percent"
-                type="number"
-                min={0}
-                max={100}
-                placeholder="50"
-                value={formik.values.discount_percent}
-                onChange={formik.handleChange}
-              />
-            </FormGroup>
-          </>
-        )}
 
         {/* Description */}
         <FormGroup>
@@ -625,8 +279,7 @@ const AddCourse: React.FC = () => {
             onBlur={formik.handleBlur}
           />
           <HelperText>
-            Provide a detailed description of what students will learn in this
-            course.
+            {t("courses.descriptionHelper")}
           </HelperText>
           {formik.touched.description && formik.errors.description && (
             <ErrorText>{formik.errors.description}</ErrorText>
@@ -638,77 +291,42 @@ const AddCourse: React.FC = () => {
           <StepsHeader>
             <Label>{t("courses.courseStepsLabel")}</Label>
             <HelperText>
-              Add learning steps for this course. Each step can be a video,
-              link, PDF, image, or text content.
+              {t("courses.courseStepsHelper")}
             </HelperText>
           </StepsHeader>
+          
+          {steps.map((step, index) => {
+            // Initialize upload state if not exists
+            if (!stepUploadStates[index]) {
+              initializeStepUploadState(index);
+            }
+            const uploadState = stepUploadStates[index] || { inputType: "url" as const, file: null, isUploading: false, uploadError: null };
+            const supportsFileUpload = step.step_type === "pdf" || step.step_type === "image";
 
-          {steps.map((step, index) => (
-            <StepCard key={index}>
-              <StepHeader>
-                <StepNumber>Step {index + 1}</StepNumber>
-                <DeleteStepButton
-                  type="button"
-                  onClick={() => {
-                    const newSteps = steps.filter((_, i) => i !== index);
-                    setSteps(newSteps);
-                  }}
-                >
-                  <TrashIcon className="h-5 w-5" />
-                </DeleteStepButton>
-              </StepHeader>
-
-              <FormGroup>
-                <Label htmlFor={`step_title_${index}`}>
-                  Step Title (Optional)
-                </Label>
-                <Input
-                  id={`step_title_${index}`}
-                  value={step.step_title || ""}
-                  onChange={(e) => {
-                    const newSteps = [...steps];
-                    newSteps[index].step_title = e.target.value;
-                    setSteps(newSteps);
-                  }}
-                  placeholder="e.g., Introduction to HTML"
-                />
-              </FormGroup>
-
-              <FormGroup>
-                <Label htmlFor={`step_type_${index}`}>Step Type *</Label>
-                <Select
-                  id={`step_type_${index}`}
-                  value={step.step_type}
-                  onChange={(e) => {
-                    const newSteps = [...steps];
-                    newSteps[index].step_type = e.target
-                      .value as CourseStep["step_type"];
-                    newSteps[index].step_content = ""; // Reset content when type changes
-                    setSteps(newSteps);
-                  }}
-                >
-                  <option value="video">Video (YouTube or upload)</option>
-                  <option value="quiz">Quiz</option>
-                  <option value="link">Read Link</option>
-                  <option value="pdf">Read PDF</option>
-                  <option value="image">View Image</option>
-                  <option value="text">Read Text</option>
-                </Select>
-              </FormGroup>
-
-              <FormGroup>
-                <Label htmlFor={`step_content_${index}`}>
-                  {step.step_type === "video" && "Video source *"}
-                  {step.step_type === "link" && "Link URL *"}
-                  {step.step_type === "pdf" && "PDF URL *"}
-                  {step.step_type === "image" && "Image URL *"}
-                  {step.step_type === "text" && "Text Content *"}
-                </Label>
-                {step.step_type === "text" ? (
-                  <TextArea
-                    id={`step_content_${index}`}
-                    rows={4}
-                    value={step.step_content}
+            return (
+              <StepCard key={index}>
+                <StepHeader>
+                  <StepNumber>Step {index + 1}</StepNumber>
+                  <DeleteStepButton
+                    type="button"
+                    onClick={() => {
+                      const newSteps = steps.filter((_, i) => i !== index);
+                      setSteps(newSteps);
+                      // Clean up upload state
+                      const newUploadStates = { ...stepUploadStates };
+                      delete newUploadStates[index];
+                      setStepUploadStates(newUploadStates);
+                    }}
+                  >
+                    <TrashIcon className="h-5 w-5" />
+                  </DeleteStepButton>
+                </StepHeader>
+                
+                <FormGroup>
+                  <Label htmlFor={`step_title_${index}`}>Step Title (Optional)</Label>
+                  <Input
+                    id={`step_title_${index}`}
+                    value={step.step_title || ""}
                     onChange={(e) => {
                       const newSteps = [...steps];
                       newSteps[index].step_title = e.target.value;
@@ -716,20 +334,13 @@ const AddCourse: React.FC = () => {
                     }}
                     placeholder="e.g., Introduction to HTML"
                   />
-                ) : step.step_type === "video" ? (
-                  <VideoStepInput
-                    step={step}
-                    index={index}
-                    steps={steps}
-                    setSteps={setSteps}
-                    uploadVideo={uploadVideo}
-                    isUploading={isUploadingVideo}
-                  />
-                ) : (
-                  <Input
-                    id={`step_content_${index}`}
-                    type="url"
-                    value={step.step_content}
+                </FormGroup>
+
+                <FormGroup>
+                  <Label htmlFor={`step_type_${index}`}>Step Type *</Label>
+                  <Select
+                    id={`step_type_${index}`}
+                    value={step.step_type}
                     onChange={(e) => {
                       const newSteps = [...steps];
                       newSteps[index].step_type = e.target.value as CourseStep["step_type"];
@@ -746,27 +357,142 @@ const AddCourse: React.FC = () => {
                         },
                       }));
                     }}
-                    placeholder={
-                      step.step_type === "link"
-                        ? "e.g., https://example.com/article"
-                        : step.step_type === "pdf"
+                  >
+                    <option value="video">Watch YouTube Video</option>
+                    <option value="link">Read Link</option>
+                    <option value="pdf">Read PDF</option>
+                    <option value="image">View Image</option>
+                    <option value="text">Read Text</option>
+                  </Select>
+                </FormGroup>
+
+                {/* Input Type Selection (URL or Upload) - Only for PDF and Image */}
+                {supportsFileUpload && (
+                  <FormGroup>
+                    <Label>Content Source *</Label>
+                    <InputTypeContainer>
+                      <InputTypeOption>
+                        <input
+                          type="radio"
+                          id={`input_type_url_${index}`}
+                          name={`input_type_${index}`}
+                          checked={uploadState.inputType === "url"}
+                          onChange={() => handleInputTypeChange(index, "url")}
+                        />
+                        <label htmlFor={`input_type_url_${index}`}>Enter URL</label>
+                      </InputTypeOption>
+                      <InputTypeOption>
+                        <input
+                          type="radio"
+                          id={`input_type_upload_${index}`}
+                          name={`input_type_${index}`}
+                          checked={uploadState.inputType === "upload"}
+                          onChange={() => handleInputTypeChange(index, "upload")}
+                        />
+                        <label htmlFor={`input_type_upload_${index}`}>Upload from Computer</label>
+                      </InputTypeOption>
+                    </InputTypeContainer>
+                  </FormGroup>
+                )}
+
+                <FormGroup>
+                  <Label htmlFor={`step_content_${index}`}>
+                    {step.step_type === "video" && "YouTube Video URL *"}
+                    {step.step_type === "link" && "Link URL *"}
+                    {step.step_type === "pdf" && uploadState.inputType === "url" && "PDF URL *"}
+                    {step.step_type === "pdf" && uploadState.inputType === "upload" && "PDF File *"}
+                    {step.step_type === "image" && uploadState.inputType === "url" && "Image URL *"}
+                    {step.step_type === "image" && uploadState.inputType === "upload" && "Image File *"}
+                    {step.step_type === "text" && "Text Content *"}
+                  </Label>
+                  {step.step_type === "text" ? (
+                    <TextArea
+                      id={`step_content_${index}`}
+                      rows={4}
+                      value={step.step_content}
+                      onChange={(e) => {
+                        const newSteps = [...steps];
+                        newSteps[index].step_content = e.target.value;
+                        setSteps(newSteps);
+                      }}
+                      placeholder="Enter text content for this step..."
+                    />
+                  ) : supportsFileUpload && uploadState.inputType === "upload" ? (
+                    <FileUploadContainer>
+                      <FileInput
+                        id={`step_content_${index}`}
+                        type="file"
+                        accept={step.step_type === "pdf" ? "application/pdf" : "image/*"}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0] || null;
+                          handleFileChange(index, file, step.step_type);
+                        }}
+                        disabled={uploadState.isUploading}
+                      />
+                      <FileUploadLabel htmlFor={`step_content_${index}`}>
+                        {uploadState.isUploading ? (
+                          <>
+                            <CloudArrowUpIcon className="h-5 w-5 animate-pulse" />
+                            Uploading...
+                          </>
+                        ) : uploadState.file ? (
+                          <>
+                            <CloudArrowUpIcon className="h-5 w-5" />
+                            {uploadState.file.name}
+                          </>
+                        ) : (
+                          <>
+                            <CloudArrowUpIcon className="h-5 w-5" />
+                            Choose file to upload
+                          </>
+                        )}
+                      </FileUploadLabel>
+                      {uploadState.file && !uploadState.isUploading && (
+                        <FileInfo>
+                          {(uploadState.file.size / 1024 / 1024).toFixed(2)} MB
+                        </FileInfo>
+                      )}
+                      {uploadState.uploadError && (
+                        <ErrorText>{uploadState.uploadError}</ErrorText>
+                      )}
+                      {step.step_content && !uploadState.isUploading && (
+                        <SuccessText>✓ File uploaded successfully</SuccessText>
+                      )}
+                    </FileUploadContainer>
+                  ) : (
+                    <Input
+                      id={`step_content_${index}`}
+                      type="url"
+                      value={step.step_content}
+                      onChange={(e) => {
+                        const newSteps = [...steps];
+                        newSteps[index].step_content = e.target.value;
+                        setSteps(newSteps);
+                      }}
+                      placeholder={
+                        step.step_type === "video" 
+                          ? "e.g., https://www.youtube.com/watch?v=..." 
+                          : step.step_type === "link"
+                          ? "e.g., https://example.com/article"
+                          : step.step_type === "pdf"
                           ? "e.g., https://example.com/document.pdf"
                           : "e.g., https://example.com/image.jpg"
-                    }
-                  />
-                )}
-                <HelperText>
-                  {step.step_type === "video" &&
-                    "Enter a YouTube URL or upload a video file (MP4, WebM, OGG, MOV)"}
-                  {step.step_type === "link" && "Enter a web page URL"}
-                  {step.step_type === "pdf" && "Enter a PDF document URL"}
-                  {step.step_type === "image" && "Enter an image URL"}
-                  {step.step_type === "text" &&
-                    "Enter the text content for this step"}
-                </HelperText>
-              </FormGroup>
-            </StepCard>
-          ))}
+                      }
+                    />
+                  )}
+                  <HelperText>
+                    {step.step_type === "video" && "Enter a YouTube video URL"}
+                    {step.step_type === "link" && "Enter a web page URL"}
+                    {step.step_type === "pdf" && uploadState.inputType === "url" && "Enter a PDF document URL"}
+                    {step.step_type === "pdf" && uploadState.inputType === "upload" && "Upload a PDF file from your computer (max 10MB)"}
+                    {step.step_type === "image" && uploadState.inputType === "url" && "Enter an image URL"}
+                    {step.step_type === "image" && uploadState.inputType === "upload" && "Upload an image file from your computer (max 10MB)"}
+                    {step.step_type === "text" && "Enter the text content for this step"}
+                  </HelperText>
+                </FormGroup>
+              </StepCard>
+            );
+          })}
 
           <AddStepButton
             type="button"
@@ -830,9 +556,9 @@ const FormContainer = styled("form")`
   color: var(--theme-text-primary);
   border-radius: 12px;
   padding: 32px;
-  box-shadow:
-    0 1px 3px 0 rgba(0, 0, 0, 0.1),
-    0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  border: 1px solid var(--theme-border);
+  transition: background 0.35s ease, color 0.35s ease, border-color 0.35s ease;
 
   @media (min-width: 640px) {
     padding: 40px;
@@ -980,7 +706,7 @@ const ButtonContainer = styled("div")`
 
   @media (max-width: 640px) {
     flex-direction: column-reverse;
-
+    
     button {
       width: 100%;
     }
@@ -1034,46 +760,6 @@ const DeleteStepButton = styled("button")`
   &:hover {
     background: #fecaca;
   }
-`;
-
-const VideoInputWrapper = styled("div")`
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-`;
-
-const UploadDivider = styled("span")`
-  font-size: 12px;
-  color: #9ca3af;
-  text-align: center;
-`;
-
-const UploadArea = styled("div")`
-  label {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 12px 16px;
-    background: #f3f4f6;
-    border: 2px dashed #d1d5db;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 14px;
-    color: #6b7280;
-    transition: all 0.2s;
-  }
-  label:hover {
-    background: #e5e7eb;
-    border-color: #7f56d9;
-    color: #7f56d9;
-  }
-`;
-
-const UploadedBadge = styled("span")`
-  font-size: 12px;
-  color: #059669;
-  font-weight: 500;
 `;
 
 const AddStepButton = styled("button")`

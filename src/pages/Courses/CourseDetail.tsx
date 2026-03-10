@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import {
@@ -9,95 +9,58 @@ import {
   PhotoIcon,
   DocumentTextIcon,
   ArrowLeftIcon,
-  ChatBubbleLeftRightIcon,
-  CheckCircleIcon,
-  AcademicCapIcon,
 } from "@heroicons/react/24/outline";
-import {
-  useGetCourseByIdQuery,
-  useGetEnrollmentQuery,
-  useEnrollCourseMutation,
-  useCompleteCourseMutation,
-  type CourseStep,
+import { 
+  useGetCourseByIdQuery, 
+  useGetCourseCompletionQuery,
+  useGetCourseProgressQuery,
+  useMarkStepCompleteMutation,
+  useMarkStepIncompleteMutation,
+  type CourseStep 
 } from "../../services/api/coursesApi";
 import Loader from "../../components/Loader";
-import { CourseChatPanel } from "../../components/CourseChat/CourseChatPanel";
 import { formatRelativeTime } from "../../utils/timeUtils";
-import toast from "react-hot-toast";
-import { useSelector } from "react-redux";
-import {
-  useGetUnreadCourseChatCountQuery,
-  useMarkCourseChatAsReadMutation,
-} from "../../services/api/notificationApi";
+import api from "../../services/api/axiosInstance";
+import { CheckCircleIcon } from "@heroicons/react/24/solid";
+import { CheckCircleIcon as CheckCircleIconOutline } from "@heroicons/react/24/outline";
+
+const BASE_URL = import.meta.env.VITE_API_URL;
 
 const CourseDetail: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const role = useSelector((state: any) => state.auth.role);
-  const accessToken = useSelector((state: any) => state.auth.accessToken);
-  const user = useSelector((state: any) => state.auth.user);
-  const [chatOpen, setChatOpen] = useState(false);
   const { data, isLoading, error } = useGetCourseByIdQuery(id || "");
-  const { data: enrollmentData } = useGetEnrollmentQuery(id || "", {
+  const { data: completionData, refetch: refetchCompletion } = useGetCourseCompletionQuery(id || "", {
     skip: !id,
   });
-  const [enroll, { isLoading: isEnrolling }] = useEnrollCourseMutation();
-  const [complete, { isLoading: isCompleting }] = useCompleteCourseMutation();
-  const { data: unreadChatData } = useGetUnreadCourseChatCountQuery(id || "", {
+  const { data: progressData, refetch: refetchProgress } = useGetCourseProgressQuery(id || "", {
     skip: !id,
-    pollingInterval: 15000,
-    refetchOnFocus: true,
   });
-  const [markCourseChatAsRead] = useMarkCourseChatAsReadMutation();
+  const [markStepComplete] = useMarkStepCompleteMutation();
+  const [markStepIncomplete] = useMarkStepIncompleteMutation();
 
   const course = data?.data;
-  const unreadCourseChatCount = Number(unreadChatData?.data?.count ?? 0) || 0;
+  const completion = completionData?.data || { completed: 0, total: 0, percentage: 0, started: false, started_at: null };
+  const completedStepIds = new Set(
+    progressData?.data?.progress
+      ?.filter((p) => p.completed)
+      .map((p) => p.step_id) || []
+  );
 
-  useEffect(() => {
-    if (chatOpen && id) {
-      markCourseChatAsRead(id);
-    }
-  }, [chatOpen, id]);
-  const enrollment = enrollmentData?.data;
-  const isStudent = role === "student";
-
-  const formatPrice = () => {
-    if (!course) return "Free";
-    if (
-      course.is_free !== false &&
-      (course.price_amount == null || Number(course.price_amount) === 0)
-    )
-      return "Free";
-    const amount = Number(course.price_amount);
-    const currency = course.price_currency || "RWF";
-    return `${currency} ${amount.toLocaleString()}`;
-  };
-
-  const handleEnroll = async () => {
+  const handleToggleStepComplete = async (step_id: string, isCompleted: boolean) => {
     if (!id) return;
+    
     try {
-      await enroll(id).unwrap();
-      toast.success("Enrolled! You can start learning.");
-    } catch (e: any) {
-      const msg =
-        e?.data?.message ||
-        (e?.error?.status === "FETCH_ERROR" || e?.status === "FETCH_ERROR"
-          ? "Cannot reach server. Is the backend running?"
-          : "Enrollment failed");
-      toast.error(msg);
-    }
-  };
-
-  const handleComplete = async () => {
-    if (!id) return;
-    try {
-      await complete(id).unwrap();
-      toast.success(
-        "Course marked complete. Certificate will be reviewed by admin.",
-      );
-    } catch (e: any) {
-      toast.error(e?.data?.message || "Failed to complete");
+      if (isCompleted) {
+        await markStepIncomplete({ course_id: id, step_id }).unwrap();
+      } else {
+        await markStepComplete({ course_id: id, step_id }).unwrap();
+      }
+      refetchCompletion();
+      refetchProgress();
+    } catch (error) {
+      console.error('Error toggling step completion:', error);
     }
   };
 
@@ -105,8 +68,6 @@ const CourseDetail: React.FC = () => {
     switch (stepType) {
       case "video":
         return <VideoCameraIcon className="h-5 w-5 text-purple-600" />;
-      case "quiz":
-        return <AcademicCapIcon className="h-5 w-5 text-amber-600" />;
       case "link":
         return <LinkIcon className="h-5 w-5 text-blue-600" />;
       case "pdf":
@@ -123,9 +84,7 @@ const CourseDetail: React.FC = () => {
   const getStepTypeLabel = (stepType: string) => {
     switch (stepType) {
       case "video":
-        return "Video";
-      case "quiz":
-        return "Quiz";
+        return t("courses.video");
       case "link":
         return t("courses.externalLink");
       case "pdf":
@@ -154,9 +113,7 @@ const CourseDetail: React.FC = () => {
     let videoId = "";
 
     // Regular YouTube watch URL: https://www.youtube.com/watch?v=VIDEO_ID
-    const watchMatch = url.match(
-      /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/,
-    );
+    const watchMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/);
     if (watchMatch) {
       videoId = watchMatch[1].split("&")[0]; // Remove any additional parameters
     }
@@ -170,62 +127,54 @@ const CourseDetail: React.FC = () => {
     return url;
   };
 
-  const isYouTubeUrl = (url: string) =>
-    url.includes("youtube.com") || url.includes("youtu.be");
+  const handlePdfDownload = async (filePath: string, _fileName: string) => {
+    try {
+      // Check if it's already a full URL (S3)
+      if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
+        window.open(filePath, '_blank');
+        return;
+      }
 
-  const videoPlaybackUrl = (url: string) => {
-    if (!url) return url;
-    if (isYouTubeUrl(url)) return url;
-    if (!url.includes("/videos/stream")) return url;
-    const apiBase = import.meta.env.VITE_API_URL || "";
-    const origin = apiBase ? new URL(apiBase).origin : window.location.origin;
-    const fullUrl = url.startsWith("http")
-      ? url
-      : `${origin}${url.startsWith("/") ? url : `/${url}`}`;
-    const sep = fullUrl.includes("?") ? "&" : "?";
-    return accessToken
-      ? `${fullUrl}${sep}token=${encodeURIComponent(accessToken)}`
-      : fullUrl;
+      // Use API endpoint with authentication
+      const response = await api.get(
+        `/courses/content/download?path=${encodeURIComponent(filePath)}`,
+        {
+          responseType: 'blob',
+        }
+      );
+
+      // Create a blob URL and open it
+      const blob = new Blob([response.data as BlobPart], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
+      alert(t("courses.failedToOpenPdf"));
+    }
   };
 
   const renderStepContent = (step: CourseStep) => {
     switch (step.step_type) {
-      case "video": {
-        const videoSrc = step.step_content || "";
-        const isOurStream = videoSrc.includes("/videos/stream");
-        const isHttpVideo = videoSrc.startsWith("http");
-        if (isHttpVideo || isOurStream) {
-          if (isHttpVideo && isYouTubeUrl(videoSrc)) {
-            const embedUrl = convertToEmbedUrl(videoSrc);
-            return (
-              <div className="mt-4">
-                <div
-                  className="relative w-full"
-                  style={{ paddingBottom: "56.25%" }}
-                >
-                  <iframe
-                    src={embedUrl}
-                    className="absolute top-0 left-0 w-full h-full rounded-lg"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                    frameBorder="0"
-                  ></iframe>
-                </div>
-              </div>
-            );
-          }
+      case "video":
+        if (step.step_content.startsWith("http")) {
+          const embedUrl = convertToEmbedUrl(step.step_content);
           return (
             <div className="mt-4">
-              <div
-                className="relative w-full rounded-lg overflow-hidden bg-black"
-                style={{ paddingBottom: "56.25%" }}
-              >
-                <video
-                  src={videoPlaybackUrl(videoSrc)}
-                  controls
-                  className="absolute top-0 left-0 w-full h-full"
-                  playsInline
-                />
+              <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
+                <iframe
+                  src={embedUrl}
+                  className="absolute top-0 left-0 w-full h-full rounded-lg"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  frameBorder="0"
+                ></iframe>
               </div>
             </div>
           );
@@ -235,7 +184,6 @@ const CourseDetail: React.FC = () => {
             <p className="text-gray-700">{step.step_content}</p>
           </div>
         );
-      }
       case "link":
         return (
           <div className="mt-4">
@@ -303,18 +251,7 @@ const CourseDetail: React.FC = () => {
       case "text":
         return (
           <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-            <p className="text-gray-700 whitespace-pre-wrap">
-              {step.step_content}
-            </p>
-          </div>
-        );
-      case "quiz":
-        return (
-          <div className="mt-4 p-4 bg-amber-50 rounded-lg border border-amber-200">
-            <p className="text-amber-800 text-sm font-medium mb-2">Quiz</p>
-            <p className="text-gray-700 whitespace-pre-wrap">
-              {step.step_content}
-            </p>
+            <p className="text-gray-700 whitespace-pre-wrap">{step.step_content}</p>
           </div>
         );
       default:
@@ -352,15 +289,6 @@ const CourseDetail: React.FC = () => {
     ? [...course.steps].sort((a, b) => a.step_order - b.step_order)
     : [];
 
-  // Basic completion summary for UI (placeholder until per-step tracking is wired)
-  const completion = {
-    completed: 0,
-    total: sortedSteps.length,
-    percentage: sortedSteps.length > 0 ? 0 : 0,
-    started: !!enrollment,
-    started_at: enrollment?.enrolled_at ?? null,
-  };
-
   return (
     <div className="space-y-6 animate-fadeIn">
       {/* Header */}
@@ -386,27 +314,6 @@ const CourseDetail: React.FC = () => {
             <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
               {course.tag}
             </span>
-            {course.category && (
-              <span className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-sm font-medium">
-                {course.category}
-              </span>
-            )}
-            <span
-              className={`px-3 py-1 rounded-full text-sm font-medium ${
-                course.is_free !== false &&
-                (course.price_amount == null ||
-                  Number(course.price_amount) === 0)
-                  ? "bg-green-100 text-green-700"
-                  : "bg-amber-100 text-amber-700"
-              }`}
-            >
-              {formatPrice()}
-            </span>
-            {course.estimated_hours != null && (
-              <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm">
-                {course.estimated_hours} hours
-              </span>
-            )}
             <span className="text-xs text-gray-500">
               {t("courses.created")} {formatRelativeTime(course.created_at)}
             </span>
@@ -442,82 +349,7 @@ const CourseDetail: React.FC = () => {
             </div>
           )}
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            className="relative flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 text-sm font-medium"
-            onClick={() => setChatOpen(true)}
-          >
-            <ChatBubbleLeftRightIcon className="h-5 w-5" />
-            Course Support
-            {unreadCourseChatCount > 0 ? (
-              <span className="absolute -top-0.5 -right-0.5 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1.5 text-xs font-bold text-white ring-2 ring-white shadow">
-                {unreadCourseChatCount > 99 ? "99+" : unreadCourseChatCount}
-              </span>
-            ) : null}
-          </button>
-          {chatOpen && id && course && (
-            <CourseChatPanel
-              courseId={id}
-              courseName={course.course_name}
-              accessToken={accessToken}
-              currentUserId={user?.user_id ?? user?.id ?? null}
-              currentUserRole={role}
-              onClose={() => setChatOpen(false)}
-            />
-          )}
-          {isStudent && enrollment && (
-            <span className="flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-lg text-sm">
-              {enrollment.completed_at ? (
-                <>
-                  <CheckCircleIcon className="h-5 w-5 text-green-600" />
-                  <span>Completed</span>
-                  <span className="text-gray-500">
-                    ({enrollment.certificate_status})
-                  </span>
-                </>
-              ) : (
-                <>
-                  <AcademicCapIcon className="h-5 w-5 text-purple-600" />
-                  Enrolled
-                </>
-              )}
-            </span>
-          )}
-        </div>
       </div>
-
-      {/* Student actions: Enroll / Complete */}
-      {isStudent && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex flex-wrap gap-3">
-          {!enrollment ? (
-            <button
-              type="button"
-              onClick={handleEnroll}
-              disabled={isEnrolling}
-              className="flex items-center gap-2 px-5 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium disabled:opacity-50"
-            >
-              {isEnrolling ? "Enrolling..." : "Enroll in this course"}
-            </button>
-          ) : !enrollment.completed_at ? (
-            <button
-              type="button"
-              onClick={handleComplete}
-              disabled={isCompleting}
-              className="flex items-center gap-2 px-5 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium disabled:opacity-50"
-            >
-              {isCompleting ? "Submitting..." : "Mark as complete"}
-            </button>
-          ) : (
-            <p className="text-gray-600 text-sm">
-              Certificate status:{" "}
-              <strong>{enrollment.certificate_status}</strong>
-              {enrollment.certificate_status === "pending_payment" &&
-                " – Payment will be deducted when you complete a job."}
-            </p>
-          )}
-        </div>
-      )}
 
       {/* Description */}
       {course.description && (
@@ -535,8 +367,7 @@ const CourseDetail: React.FC = () => {
       {sortedSteps.length > 0 ? (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6">
           <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-4">
-            Course Content ({sortedSteps.length}{" "}
-            {sortedSteps.length === 1 ? "step" : "steps"})
+            {t("courses.courseContent", { count: sortedSteps.length })}
           </h3>
           <div className="space-y-6">
             {sortedSteps.map((step, index) => (
@@ -585,3 +416,4 @@ const CourseDetail: React.FC = () => {
 };
 
 export default CourseDetail;
+
