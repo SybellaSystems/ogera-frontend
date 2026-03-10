@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useFormik } from "formik";
 import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
@@ -20,6 +21,7 @@ import {
   type CourseStep,
   type UploadedVideoMeta,
   COURSE_CATEGORIES,
+  uploadCourseContent,
 } from "../../services/api/coursesApi";
 import type { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 
@@ -165,6 +167,17 @@ const AddCourse: React.FC = () => {
   const course = courseResponse?.data;
 
   const [steps, setSteps] = useState<CourseStep[]>([]);
+  const [stepUploadStates, setStepUploadStates] = useState<
+    Record<
+      number,
+      {
+        inputType: "url" | "upload";
+        file: File | null;
+        isUploading: boolean;
+        uploadError: string | null;
+      }
+    >
+  >({});
   const [createCourse, { isLoading: isCreating, isSuccess: isCreateSuccess, data: createData }] =
     useCreateCourseMutation();
   const [updateCourse, { isLoading: isUpdating, isSuccess: isUpdateSuccess, data: updateData }] =

@@ -375,6 +375,46 @@ export const coursesApi = apiSlice.injectEndpoints({
         { type: "Course", id: `chat-${courseId}` },
       ],
     }),
+
+    // Course statistics (overview)
+    getCourseStatistics: builder.query<
+      { data: CourseStatistics; message: string },
+      void
+    >({
+      query: () => ({
+        url: "/courses/statistics/overview",
+        method: "GET",
+      }),
+      providesTags: ["Course"],
+    }),
+
+    // Course-specific statistics (per course)
+    getCourseSpecificStatistics: builder.query<
+      { data: CourseSpecificStatistics; message: string },
+      string
+    >({
+      query: (courseId) => ({
+        url: `/courses/${courseId}/statistics`,
+        method: "GET",
+      }),
+      providesTags: (result, error, courseId) => [
+        { type: "Course", id: `stats-${courseId}` },
+      ],
+    }),
+
+    // Students enrolled in a course (with progress)
+    getCourseStudents: builder.query<
+      { data: CourseStudent[]; message: string },
+      string
+    >({
+      query: (courseId) => ({
+        url: `/courses/${courseId}/students`,
+        method: "GET",
+      }),
+      providesTags: (result, error, courseId) => [
+        { type: "Course", id: `students-${courseId}` },
+      ],
+    }),
   }),
 });
 
@@ -392,6 +432,9 @@ export const {
   useUpdateCertificateStatusMutation,
   useUploadCourseVideoMutation,
   useGetCourseChatHistoryQuery,
+  useGetCourseStatisticsQuery,
+  useGetCourseSpecificStatisticsQuery,
+  useGetCourseStudentsQuery,
 } = coursesApi;
 
 /**

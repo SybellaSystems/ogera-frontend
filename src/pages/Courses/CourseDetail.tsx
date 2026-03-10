@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   BookOpenIcon,
@@ -351,6 +352,15 @@ const CourseDetail: React.FC = () => {
     ? [...course.steps].sort((a, b) => a.step_order - b.step_order)
     : [];
 
+  // Basic completion summary for UI (placeholder until per-step tracking is wired)
+  const completion = {
+    completed: 0,
+    total: sortedSteps.length,
+    percentage: sortedSteps.length > 0 ? 0 : 0,
+    started: !!enrollment,
+    started_at: enrollment?.enrolled_at ?? null,
+  };
+
   return (
     <div className="space-y-6 animate-fadeIn">
       {/* Header */}
@@ -546,25 +556,6 @@ const CourseDetail: React.FC = () => {
                       <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
                         {getStepTypeLabel(step.step_type)}
                       </span>
-                      {step.step_id && (
-                        <button
-                          onClick={() => handleToggleStepComplete(step.step_id!, completedStepIds.has(step.step_id!))}
-                          className="ml-auto flex items-center gap-1 text-sm text-gray-600 hover:text-green-600 transition-colors"
-                          title={completedStepIds.has(step.step_id!) ? t("courses.markIncomplete") : t("courses.markComplete")}
-                        >
-                          {completedStepIds.has(step.step_id!) ? (
-                            <>
-                              <CheckCircleIcon className="h-5 w-5 text-green-600" />
-                              <span className="text-xs text-green-600 font-medium">{t("courses.completed")}</span>
-                            </>
-                          ) : (
-                            <>
-                              <CheckCircleIconOutline className="h-5 w-5" />
-                              <span className="text-xs">{t("courses.markComplete")}</span>
-                            </>
-                          )}
-                        </button>
-                      )}
                     </div>
                     {step.step_title && (
                       <h4 className="text-lg font-semibold text-gray-900 mb-2">
