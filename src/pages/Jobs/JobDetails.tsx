@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
 import {
   BriefcaseIcon,
