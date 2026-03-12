@@ -28,6 +28,11 @@ interface DashboardMetrics {
   totalEarnings: number;
 }
 
+type ChartRow = {
+  day: string;
+  [key: string]: string | number;
+};
+
 const Dashboard: React.FC = () => {
   const { t } = useTranslation();
   const user = useSelector((state: any) => state.auth.user);
@@ -435,7 +440,7 @@ const Dashboard: React.FC = () => {
           <h2 className="text-xs font-semibold mb-2 text-gray-800">{chartConfig.title}</h2>
           <div className="h-44">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartConfig.data} barGap={3}>
+            <BarChart data={chartConfig.data as ChartRow[]} barGap={3}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
                 <XAxis
                   dataKey="day"
