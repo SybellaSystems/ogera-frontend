@@ -13,16 +13,11 @@ import {
 import { 
   useGetCourseByIdQuery, 
   useGetCourseCompletionQuery,
-  useGetCourseProgressQuery,
-  useMarkStepCompleteMutation,
-  useMarkStepIncompleteMutation,
   type CourseStep 
 } from "../../services/api/coursesApi";
 import Loader from "../../components/Loader";
 import { formatRelativeTime } from "../../utils/timeUtils";
 import api from "../../services/api/axiosInstance";
-import { CheckCircleIcon } from "@heroicons/react/24/solid";
-import { CheckCircleIcon as CheckCircleIconOutline } from "@heroicons/react/24/outline";
 
 const BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -31,38 +26,12 @@ const CourseDetail: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { data, isLoading, error } = useGetCourseByIdQuery(id || "");
-  const { data: completionData, refetch: refetchCompletion } = useGetCourseCompletionQuery(id || "", {
+  const { data: completionData } = useGetCourseCompletionQuery(id || "", {
     skip: !id,
   });
-  const { data: progressData, refetch: refetchProgress } = useGetCourseProgressQuery(id || "", {
-    skip: !id,
-  });
-  const [markStepComplete] = useMarkStepCompleteMutation();
-  const [markStepIncomplete] = useMarkStepIncompleteMutation();
 
   const course = data?.data;
   const completion = completionData?.data || { completed: 0, total: 0, percentage: 0, started: false, started_at: null };
-  const completedStepIds = new Set(
-    progressData?.data?.progress
-      ?.filter((p) => p.completed)
-      .map((p) => p.step_id) || []
-  );
-
-  const handleToggleStepComplete = async (step_id: string, isCompleted: boolean) => {
-    if (!id) return;
-    
-    try {
-      if (isCompleted) {
-        await markStepIncomplete({ course_id: id, step_id }).unwrap();
-      } else {
-        await markStepComplete({ course_id: id, step_id }).unwrap();
-      }
-      refetchCompletion();
-      refetchProgress();
-    } catch (error) {
-      console.error('Error toggling step completion:', error);
-    }
-  };
 
   const getStepTypeIcon = (stepType: string) => {
     switch (stepType) {
