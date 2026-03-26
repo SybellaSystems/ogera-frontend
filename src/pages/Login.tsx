@@ -1,6 +1,5 @@
 import { styled } from "@mui/material/styles";
 import { useTranslation } from "react-i18next";
-import loginImage from "../assets/login.png";
 import logo from "../assets/Logo.png";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import IconButton from "@mui/material/IconButton";
@@ -21,6 +20,7 @@ import { setCredentials } from "../features/auth/authSlice";
 import axios from "axios";
 import LostAuthenticatorModal from "../components/LostAuthenticatorModal";
 
+
 const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
 
 const Login = () => {
@@ -38,11 +38,8 @@ const Login = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  // Load reCAPTCHA script only if a valid site key is provided
   useEffect(() => {
-    if (!RECAPTCHA_SITE_KEY) {
-      return; // Don't load reCAPTCHA if no key is configured
-    }
+    if (!RECAPTCHA_SITE_KEY) return;
 
     const script = document.createElement('script');
     script.src = 'https://www.google.com/recaptcha/api.js';
@@ -64,7 +61,6 @@ const Login = () => {
     const role = decoded.role;
     const user = { id: decoded.user_id };
 
-    // Fetch user data including permissions immediately after login
     const BASE_URL = import.meta.env.VITE_API_URL;
     try {
       const userRes = await axios.get(`${BASE_URL}/auth/me`, {
@@ -74,7 +70,6 @@ const Login = () => {
 
       const userData = (userRes.data as any).user;
 
-      // Update Redux with complete user data including permissions
       dispatch(
         setCredentials({
           user: userData,
@@ -84,8 +79,7 @@ const Login = () => {
         })
       );
     } catch (error: any) {
-      console.error("⚠️ [LOGIN] Failed to fetch user data, using basic info:", error);
-      // Fallback: store basic info without permissions (will be fetched on page load)
+      console.error("⚠️ [LOGIN] Failed to fetch user data:", error);
       dispatch(
         setCredentials({
           user,
@@ -98,12 +92,10 @@ const Login = () => {
     toast.success(t("login.loggedInSuccess"));
     formik.resetForm();
 
-    // Reset reCAPTCHA widget after successful login
     if (RECAPTCHA_SITE_KEY && (window as any).grecaptcha && reCaptchaRef.current) {
       (window as any).grecaptcha.reset();
     }
 
-    // Allow navigation for all roles (including custom admin roles)
     navigate("/dashboard");
   };
 
@@ -118,7 +110,6 @@ const Login = () => {
       try {
         setLoading(true);
 
-        // Get CAPTCHA token from the checkbox widget (only if reCAPTCHA is enabled)
         if (RECAPTCHA_SITE_KEY && !twoFactorRequired) {
           if ((window as any).grecaptcha) {
             const token = (window as any).grecaptcha.getResponse();
@@ -128,8 +119,6 @@ const Login = () => {
               return;
             }
             values.captchaToken = token;
-          } else {
-            console.warn('reCAPTCHA not loaded');
           }
         }
 
@@ -141,7 +130,7 @@ const Login = () => {
           if (!isLostAuthenticatorClicked) {
             toast(t("login.enter2FACode"));
           }
-          setIsLostAuthenticatorClicked(false); // Reset after use
+          setIsLostAuthenticatorClicked(false);
           return;
         }
 
@@ -152,25 +141,12 @@ const Login = () => {
 
         await finishLogin(accessToken);
       } catch (error: any) {
-        // Log error details for debugging
-        console.log("🔍 Login error:", error);
-        console.log("🔍 Error response:", error?.response);
-        console.log("🔍 Error status:", error?.response?.status);
-        console.log("🔍 Error message:", error?.response?.data?.message);
-        console.log("🔍 Error payload:", error?.payload);
-        console.log("🔍 Error type:", error?.type);
-        
         const errorMessage = error?.response?.data?.message || error?.payload?.message || error?.message || "";
-
-        // Suppress reCAPTCHA client error when 2FA step is active
-        const isNoRecaptchaClientsError =
-          typeof errorMessage === "string" &&
-          errorMessage.toLowerCase().includes("no recaptcha clients exist");
+        const isNoRecaptchaClientsError = typeof errorMessage === "string" && errorMessage.toLowerCase().includes("no recaptcha clients exist");
 
         if (!(twoFactorRequired && isNoRecaptchaClientsError)) {
           toast.error(errorMessage || t("login.loginFailed"));
         }
-        // Reset CAPTCHA on error
         if (RECAPTCHA_SITE_KEY && (window as any).grecaptcha) {
           (window as any).grecaptcha.reset();
         }
@@ -199,18 +175,9 @@ const Login = () => {
       setTwoFactorCode("");
       await finishLogin(accessToken);
     } catch (error: any) {
-      const msg =
-        error?.response?.data?.message ||
-        error?.message ||
-        t("login.twoFAVerificationFailed");
-
-      const isNoRecaptchaClientsError =
-        typeof msg === "string" &&
-        msg.toLowerCase().includes("no recaptcha clients exist");
-
-      if (!isNoRecaptchaClientsError) {
-        toast.error(msg);
-      }
+      const msg = error?.response?.data?.message || error?.message || t("login.twoFAVerificationFailed");
+      const isNoRecaptchaClientsError = typeof msg === "string" && msg.toLowerCase().includes("no recaptcha clients exist");
+      if (!isNoRecaptchaClientsError) toast.error(msg);
     } finally {
       setVerifying2FA(false);
     }
@@ -219,20 +186,15 @@ const Login = () => {
   return (
     <>
       <LoginMainContainer>
-        {/* Left Section */}
         <LoginLeftContainer>
           <LeftContent>
             <Logo />
-
             <WelcomeTextContainer>
               <Heading>{t("login.welcome")}</Heading>
-              <SubHeading>
-                {t("login.signInSubtext")}
-              </SubHeading>
+              <SubHeading>{t("login.signInSubtext")}</SubHeading>
             </WelcomeTextContainer>
 
             <LoginFormContainer as="form" onSubmit={formik.handleSubmit}>
-              {/* Email */}
               <FormGroup>
                 <Label htmlFor="email">{t("login.emailAddress")}</Label>
                 <Input
@@ -249,7 +211,6 @@ const Login = () => {
                 )}
               </FormGroup>
 
-              {/* Password */}
               <FormGroup>
                 <Label htmlFor="password">{t("login.password")}</Label>
                 <TextField
@@ -283,7 +244,6 @@ const Login = () => {
                 {t("login.forgotPassword")}
               </ForgotPassword>
 
-              {/* 2FA Step (only when required) */}
               {twoFactorRequired && (
                 <FormGroup>
                   <Label htmlFor="twoFactorCode">{t("login.twoFactorCode")}</Label>
@@ -315,9 +275,6 @@ const Login = () => {
                 </FormGroup>
               )}
 
-              {/* <ForgotPassword href="/auth/forgot-password">Forgot Password?</ForgotPassword> */}
-
-              {/* reCAPTCHA */}
               {!twoFactorRequired && RECAPTCHA_SITE_KEY && (
                 <RecaptchaContainer>
                   <div
@@ -336,7 +293,6 @@ const Login = () => {
                     text={loading ? t("login.pleaseWait") : t("login.signIn")}
                     disabled={loading}
                   />
-
                   <SignUpText>
                     {t("login.dontHaveAccount")}{" "}
                     <a href="/auth/register">{t("login.signUp")}</a>
@@ -346,24 +302,8 @@ const Login = () => {
             </LoginFormContainer>
           </LeftContent>
         </LoginLeftContainer>
-
-        {/* Right Section */}
-        <LoginRightContainer>
-          <Overlay />
-          <RightContent>
-            <RightCard>
-              <h2>{t("login.empoweringAfrica")}</h2>
-              <p>{t("login.ogeraDescription")}</p>
-            </RightCard>
-
-            <BottomText>
-              {t("login.ogeraDedicated")}
-            </BottomText>
-          </RightContent>
-        </LoginRightContainer>
       </LoginMainContainer>
       
-      {/* Lost Authenticator Modal */}
       <LostAuthenticatorModal
         isOpen={showLostAuthenticatorModal}
         onClose={() => setShowLostAuthenticatorModal(false)}
@@ -376,44 +316,31 @@ const Login = () => {
 
 export default Login;
 
-/* ---------------- Theme-aware styles (dark mode supported via CSS variables) ---------------- */
-
 const LoginMainContainer = styled("div")`
   width: 100%;
-  max-width: 100vw;
   min-height: 100vh;
   display: flex;
-  flex-direction: row;
   font-family: Inter, sans-serif;
-  overflow: hidden;
   background: var(--theme-page-bg);
-  transition: background 0.35s ease;
-  @media (max-width: 600px) {
-    flex-direction: column;
-  }
 `;
 
 const LoginLeftContainer = styled("div")`
-  width: 50vw;
+  width: 100%;
   min-height: 100vh;
   background-color: var(--theme-card-bg);
   color: var(--theme-text-primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 0.35s ease, color 0.35s ease;
-  @media (max-width: 600px) {
-    width: 100%;
-    min-height: 100vh;
-    padding: 20px;
-  }
 `;
 
 const LeftContent = styled("div")`
-  width: 70%;
+  width: 100%;
+  max-width: 400px;
   display: flex;
   flex-direction: column;
   gap: 30px;
+  padding: 20px;
 `;
 
 const Logo = styled("div")`
@@ -421,13 +348,14 @@ const Logo = styled("div")`
   background-size: contain;
   height: 40px;
   width: 120px;
-  margin-bottom: 20px;
+  margin: 0 auto 20px auto;
 `;
 
 const WelcomeTextContainer = styled("div")`
   display: flex;
   flex-direction: column;
   gap: 10px;
+  text-align: center;
 `;
 
 const Heading = styled("p")`
@@ -467,7 +395,6 @@ const Input = styled("input")`
   outline: none;
   background-color: var(--theme-input-bg);
   color: var(--theme-text-primary);
-  transition: border-color 0.2s ease, background-color 0.35s ease, color 0.35s ease;
   &:focus {
     border-color: #7f56d9;
   }
@@ -488,10 +415,6 @@ const RecaptchaContainer = styled("div")`
   display: flex;
   justify-content: center;
   margin: 10px 0;
-  & .g-recaptcha {
-    transform: scale(0.9);
-    transform-origin: 0 0;
-  }
 `;
 
 const SignUpText = styled("p")`
@@ -503,66 +426,7 @@ const SignUpText = styled("p")`
     color: #7f56d9;
     text-decoration: none;
     font-weight: 500;
-    &:hover {
-      text-decoration: underline;
-    }
   }
-`;
-
-const LoginRightContainer = styled("div")`
-  width: 50vw;
-  min-height: 100vh;
-  position: relative;
-  background: url(${loginImage}) no-repeat center center;
-  background-size: cover;
-  border-top-left-radius: 30px;
-  border-bottom-left-radius: 30px;
-  overflow: hidden;
-  @media (max-width: 600px) {
-    display: none;
-  }
-`;
-
-const Overlay = styled("div")`
-  position: absolute;
-  inset: 0;
-  background: #7f56d9;
-  opacity: 0.5;
-`;
-
-const RightContent = styled("div")`
-  position: relative;
-  color: white;
-  padding: 60px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
-`;
-
-const RightCard = styled("div")`
-  background: rgba(0, 0, 0, 0.3);
-  padding: 20px;
-  border-radius: 10px;
-  max-width: 450px;
-  margin: 0 auto;
-  h2 {
-    font-size: 30px;
-    font-weight: 900;
-    margin-bottom: 10px;
-  }
-  p {
-    font-size: 14px;
-    line-height: 1.5;
-  }
-`;
-
-const BottomText = styled("p")`
-  margin: 0 auto;
-  margin-top: 20px;
-  font-size: 14px;
-  opacity: 0.7;
 `;
 
 const ErrorText = styled("div")`
@@ -576,7 +440,6 @@ const LostAuthenticatorLink = styled("button")`
   color: #7f56d9;
   cursor: pointer;
   align-self: flex-start;
-  text-decoration: none;
   margin-bottom: 8px;
   background: none;
   border: none;
@@ -585,5 +448,3 @@ const LostAuthenticatorLink = styled("button")`
     text-decoration: underline;
   }
 `;
-
-
