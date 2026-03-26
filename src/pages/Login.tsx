@@ -75,6 +75,19 @@ const Login = () => {
     } catch (error: any) {
       console.error("⚠️ [LOGIN] Failed to fetch user data:", error);
       dispatch(setCredentials({ user, accessToken, role }));
+     // User-friendly fallback message
+  toast.error(
+    t("login.partialSuccess") || "Login successful, but we couldn't load your full profile. Please refresh."
+  );
+
+  // Safe fallback authentication state
+  dispatch(
+    setCredentials({
+      user,
+      accessToken,
+      role,
+    })
+  );
     }
     toast.success(t("login.loggedInSuccess"));
     formik.resetForm();
