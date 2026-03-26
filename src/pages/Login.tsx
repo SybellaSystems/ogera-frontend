@@ -20,7 +20,6 @@ import { setCredentials } from "../features/auth/authSlice";
 import axios from "axios";
 import LostAuthenticatorModal from "../components/LostAuthenticatorModal";
 
-
 const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
 
 const Login = () => {
@@ -67,9 +66,7 @@ const Login = () => {
         headers: { Authorization: `Bearer ${accessToken}` },
         withCredentials: true,
       });
-
       const userData = (userRes.data as any).user;
-
       dispatch(
         setCredentials({
           user: userData,
@@ -88,14 +85,11 @@ const Login = () => {
         })
       );
     }
-
     toast.success(t("login.loggedInSuccess"));
     formik.resetForm();
-
     if (RECAPTCHA_SITE_KEY && (window as any).grecaptcha && reCaptchaRef.current) {
       (window as any).grecaptcha.reset();
     }
-
     navigate("/dashboard");
   };
 
@@ -109,7 +103,6 @@ const Login = () => {
     onSubmit: async (values) => {
       try {
         setLoading(true);
-
         if (RECAPTCHA_SITE_KEY && !twoFactorRequired) {
           if ((window as any).grecaptcha) {
             const token = (window as any).grecaptcha.getResponse();
@@ -121,9 +114,7 @@ const Login = () => {
             values.captchaToken = token;
           }
         }
-
         const result: any = await dispatch<any>(loginApi(values));
-
         if (result?.data?.requires2FA) {
           setTwoFactorRequired(true);
           setTwoFactorToken(result.data.twoFactorToken || "");
@@ -133,17 +124,14 @@ const Login = () => {
           setIsLostAuthenticatorClicked(false);
           return;
         }
-
         const accessToken = result?.data?.accessToken;
         if (!accessToken) {
           throw new Error("Login failed: access token missing");
         }
-
         await finishLogin(accessToken);
       } catch (error: any) {
         const errorMessage = error?.response?.data?.message || error?.payload?.message || error?.message || "";
         const isNoRecaptchaClientsError = typeof errorMessage === "string" && errorMessage.toLowerCase().includes("no recaptcha clients exist");
-
         if (!(twoFactorRequired && isNoRecaptchaClientsError)) {
           toast.error(errorMessage || t("login.loginFailed"));
         }
@@ -195,6 +183,7 @@ const Login = () => {
             </WelcomeTextContainer>
 
             <LoginFormContainer as="form" onSubmit={formik.handleSubmit}>
+              {/* Email */}
               <FormGroup>
                 <Label htmlFor="email">{t("login.emailAddress")}</Label>
                 <Input
@@ -211,6 +200,7 @@ const Login = () => {
                 )}
               </FormGroup>
 
+              {/* Password */}
               <FormGroup>
                 <Label htmlFor="password">{t("login.password")}</Label>
                 <TextField
@@ -244,6 +234,7 @@ const Login = () => {
                 {t("login.forgotPassword")}
               </ForgotPassword>
 
+              {/* 2FA Step (only when required) */}
               {twoFactorRequired && (
                 <FormGroup>
                   <Label htmlFor="twoFactorCode">{t("login.twoFactorCode")}</Label>
@@ -316,22 +307,24 @@ const Login = () => {
 
 export default Login;
 
+/* Updated styles to match landing page design */
+
 const LoginMainContainer = styled("div")`
   width: 100%;
   min-height: 100vh;
   display: flex;
   font-family: Inter, sans-serif;
-  background: var(--theme-page-bg);
+  background-color: #0f111a; /* dark background matching landing page */
 `;
 
 const LoginLeftContainer = styled("div")`
   width: 100%;
   min-height: 100vh;
-  background-color: var(--theme-card-bg);
-  color: var(--theme-text-primary);
+  background-color: #1f2233; /* slightly lighter dark for card background */
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 40px 20px;
 `;
 
 const LeftContent = styled("div")`
@@ -340,7 +333,10 @@ const LeftContent = styled("div")`
   display: flex;
   flex-direction: column;
   gap: 30px;
-  padding: 20px;
+  background-color: #2a2e3b; /* card background color */
+  padding: 40px;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
 `;
 
 const Logo = styled("div")`
@@ -361,12 +357,12 @@ const WelcomeTextContainer = styled("div")`
 const Heading = styled("p")`
   font-size: 26px;
   font-weight: 600;
-  color: var(--theme-text-primary);
+  color: #ffffff; /* white text for contrast */
 `;
 
 const SubHeading = styled("p")`
   font-size: 15px;
-  color: var(--theme-text-secondary);
+  color: #cccccc; /* softer text */
 `;
 
 const LoginFormContainer = styled("form")`
@@ -384,19 +380,21 @@ const FormGroup = styled("div")`
 const Label = styled("label")`
   font-size: 13px;
   font-weight: 500;
-  color: var(--theme-text-primary);
+  color: #cccccc;
 `;
 
 const Input = styled("input")`
   padding: 12px 15px;
   border-radius: 8px;
-  border: 1px solid var(--theme-border);
+  border: 1px solid #444654;
   font-size: 14px;
   outline: none;
-  background-color: var(--theme-input-bg);
-  color: var(--theme-text-primary);
+  background-color: #3a3f4f;
+  color: #ffffff;
+  transition: border-color 0.2s ease, background-color 0.35s ease, color 0.35s ease;
   &:focus {
-    border-color: #7f56d9;
+    border-color: #7f56d9; /* accent color on focus */
+    background-color: #4a4f5f;
   }
 `;
 
@@ -421,7 +419,7 @@ const SignUpText = styled("p")`
   font-size: 13px;
   margin: 0 auto;
   margin-top: 10px;
-  color: var(--theme-text-secondary);
+  color: #cccccc;
   & a {
     color: #7f56d9;
     text-decoration: none;
