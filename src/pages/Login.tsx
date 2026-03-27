@@ -289,7 +289,7 @@ const LoginMainContainer = styled("div")`
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #2b6cb0 0%, #1a365d 100%);
+  background: linear-gradient(135deg, #0c0a18; 0%, #1a365d 100%);
   font-family: 'Inter', sans-serif;
 `;
 
