@@ -289,7 +289,7 @@ const LoginMainContainer = styled("div")`
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #ffffff;
+  background: linear-gradient(180deg, #ffffff 0%, #f4f6fb 100%);
   font-family: 'Inter', sans-serif;
 `;
 
@@ -297,11 +297,11 @@ const GlassCard = styled("form")`
   width: 100%;
   max-width: 450px;
   padding: 40px;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(16px);
   border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(0, 0, 0, 0.5);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -317,7 +317,7 @@ const Logo = styled("div")`
 
 const WelcomeTextContainer = styled("div")`
   text-align: center;
-  color: #ffffff;
+  color: #1a1a1a;
 `;
 
 const Heading = styled("h1")`
@@ -346,7 +346,7 @@ const FormGroup = styled("div")`
 
 const Label = styled("label")`
   font-size: 13px;
-  color: #ffffff;
+  color: #1a1a1a;
   font-weight: 500;
 `;
 
@@ -362,7 +362,7 @@ const StyledInput = styled("input")`
 
 const ForgotPassword = styled("a")`
   font-size: 12px;
-  color: #ffffff;
+  color: #1a1a1a;
   text-align: right;
   text-decoration: none;
   opacity: 0.8;
@@ -377,10 +377,10 @@ const RecaptchaContainer = styled("div")`
 
 const SignUpText = styled("p")`
   font-size: 13px;
-  color: #ffffff;
+  color: #1a1a1a;
   text-align: center;
   margin-top: 10px;
-  & a { color: #ffffff; font-weight: 700; text-decoration: underline; }
+  & a { color: #1a1a1a; font-weight: 700; text-decoration: underline; }
 `;
 
 const ErrorText = styled("div")`
@@ -391,7 +391,7 @@ const ErrorText = styled("div")`
 
 const LostAuthenticatorLink = styled("button")`
   font-size: 12px;
-  color: #ffffff;
+  color: #1a1a1a;
   cursor: pointer;
   align-self: flex-start;
   margin-bottom: 8px;
