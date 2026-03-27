@@ -297,7 +297,7 @@ const GlassCard = styled("form")`
   width: 100%;
   max-width: 450px;
   padding: 40px;
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(12, 10, 24, 0.85);
   backdrop-filter: blur(16px);
   border-radius: 20px;
   border: 1px solid rgba(0, 0, 0, 0.5);
