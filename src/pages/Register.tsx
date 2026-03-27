@@ -28,8 +28,8 @@ const Register = () => {
 
   const [registerUser, { data, isError, isLoading, isSuccess, error }] = useRegisterUserMutation();
 
-  const [countryCode, setCountryCode] = useState("+1");
-  const [expectedDigitMessage, setExpectedDigitMessage] = useState<string>("Enter phone number");
+  const [countryCode, setCountryCode] = useState("+250");
+  const [expectedDigitMessage, setExpectedDigitMessage] = useState<string>("");
   const [hasStartedTyping, setHasStartedTyping] = useState(false);
 
   const handleCountryCodeChange = (newDialCode: string) => {
@@ -50,13 +50,14 @@ const Register = () => {
       national_id_number: "",
       businessId: "",
       mobile_number: "",
-      countryCode: getCountryCodeFromDialCode("+1") || "",
+      countryCode: getCountryCodeFromDialCode("+250") || "RW",
       terms: false,
       privacy: false,
     },
     validationSchema: registerValidationSchema,
     onSubmit: async (values) => {
       try {
+        // EXAM TIP: Payload keys must match backend DB columns exactly
         const payload = {
           full_name: values.full_name,
           email: values.email,
@@ -70,7 +71,7 @@ const Register = () => {
         };
         await registerUser(payload).unwrap();
       } catch (err) {
-        console.error("Registration error:", err);
+        console.error("Backend connection failed:", err);
       }
     },
   });
@@ -163,7 +164,34 @@ const Register = () => {
               ),
             }}
           />
+          {formik.touched.password && formik.errors.password && <ErrorText>{formik.errors.password}</ErrorText>}
         </FormGroup>
+
+        {formik.values.accountType === "student" ? (
+          <FormGroup>
+            <Label>{t("register.nationalIdNumber")}</Label>
+            <StyledInput
+              name="national_id_number"
+              placeholder={t("register.enterNationalId")}
+              value={formik.values.national_id_number}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+            />
+            {formik.touched.national_id_number && formik.errors.national_id_number && <ErrorText>{formik.errors.national_id_number}</ErrorText>}
+          </FormGroup>
+        ) : (
+          <FormGroup>
+            <Label>{t("register.businessRegistrationId")}</Label>
+            <StyledInput
+              name="businessId"
+              placeholder={t("register.enterBusinessId")}
+              value={formik.values.businessId}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+            />
+            {formik.touched.businessId && formik.errors.businessId && <ErrorText>{formik.errors.businessId}</ErrorText>}
+          </FormGroup>
+        )}
 
         <FormGroup>
           <Label>{t("register.mobileNumber")}</Label>
@@ -182,13 +210,27 @@ const Register = () => {
             />
           </PhoneRow>
           {!hasStartedTyping && <InfoText>{expectedDigitMessage}</InfoText>}
+          {formik.touched.mobile_number && formik.errors.mobile_number && <ErrorText>{formik.errors.mobile_number}</ErrorText>}
         </FormGroup>
 
         <TermsContainer>
           <TermsItem>
             <input type="checkbox" name="terms" checked={formik.values.terms} onChange={formik.handleChange} />
-            <label>{t("register.agreeToTerms")} <span onClick={() => setOpenTerms(true)}>{t("register.termsOfService")}</span></label>
+            <label>
+              {t("register.agreeToTerms")}{" "}
+              <span onClick={() => setOpenTerms(true)}>{t("register.termsOfService")}</span>
+            </label>
           </TermsItem>
+          {formik.touched.terms && formik.errors.terms && <ErrorText>{formik.errors.terms}</ErrorText>}
+          
+          <TermsItem>
+            <input type="checkbox" name="privacy" checked={formik.values.privacy} onChange={formik.handleChange} />
+            <label>
+              {t("register.agreeToPrivacy")}{" "}
+              <span onClick={() => setOpenPrivacy(true)}>{t("register.privacyPolicy")}</span>
+            </label>
+          </TermsItem>
+          {formik.touched.privacy && formik.errors.privacy && <ErrorText>{formik.errors.privacy}</ErrorText>}
         </TermsContainer>
 
         <Button
@@ -207,6 +249,7 @@ const Register = () => {
 
 export default Register;
 
+// --- STYLES ---
 const RegisterMainContainer = styled("div")`
   width: 100%;
   min-height: 100vh;
