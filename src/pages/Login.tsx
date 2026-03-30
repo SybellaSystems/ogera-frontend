@@ -299,63 +299,74 @@ const Login = () => {
                 </>
               )}
             </LoginFormContainer>
-          </LeftContent>
-        </LoginLeftContainer>
+            </GlassCard>
+            </LoginMainContainer>
 
-        {/* Right Section */}
-        <LoginRightContainer>
-          <Overlay />
-          <RightContent>
-            <RightCard>
-              <h2>{t("login.empoweringAfrica")}</h2>
-              <p>{t("login.ogeraDescription")}</p>
-            </RightCard>
-
-            <BottomText>
-              {t("login.ogeraDedicated")}
-            </BottomText>
-          </RightContent>
-        </LoginRightContainer>
-                </LostAuthenticatorLink>
-                <ReuseButton
-                  backgroundcolor="#16a34a"
-                  type="button"
-                  text={verifying2FA ? t("login.verifying") : t("login.verifyAndContinue")}
-                  onClick={handleVerify2FALogin as any}
-                />
-              </FormGroup>
-            )}
-
-            {!twoFactorRequired && RECAPTCHA_SITE_KEY && (
-              <RecaptchaContainer>
-                <div ref={reCaptchaRef} className="g-recaptcha" data-sitekey={RECAPTCHA_SITE_KEY}></div>
-              </RecaptchaContainer>
-            )}
-
-            {!twoFactorRequired && (
-              <>
-                <ReuseButton
-                  backgroundcolor="#7f56d9"
-                  type="submit"
-                  text={loading ? t("login.pleaseWait") : t("login.signIn")}
-                  disabled={loading}
-                />
-                <SignUpText>
-                  {t("login.dontHaveAccount")} <a href="/auth/register">{t("login.signUp")}</a>
-                </SignUpText>
-              </>
-            )}
-          </LoginFormContainer>
-        </GlassCard>
-      </LoginMainContainer>
-      
-      <LostAuthenticatorModal
+              <LostAuthenticatorModal
         isOpen={showLostAuthenticatorModal}
         onClose={() => setShowLostAuthenticatorModal(false)}
         userEmail={formik.values.email}
         userPassword={formik.values.password}
       />
     </>
+
+    //       </LeftContent>
+    //     </LoginLeftContainer>
+
+    //     {/* Right Section */}
+    //     <LoginRightContainer>
+    //       <Overlay />
+    //       <RightContent>
+    //         <RightCard>
+    //           <h2>{t("login.empoweringAfrica")}</h2>
+    //           <p>{t("login.ogeraDescription")}</p>
+    //         </RightCard>
+
+    //         <BottomText>
+    //           {t("login.ogeraDedicated")}
+    //         </BottomText>
+    //       </RightContent>
+    //     </LoginRightContainer>
+    //             </LostAuthenticatorLink>
+    //             <ReuseButton
+    //               backgroundcolor="#16a34a"
+    //               type="button"
+    //               text={verifying2FA ? t("login.verifying") : t("login.verifyAndContinue")}
+    //               onClick={handleVerify2FALogin as any}
+    //             />
+    //           </FormGroup>
+    //         )}
+
+    //         {!twoFactorRequired && RECAPTCHA_SITE_KEY && (
+    //           <RecaptchaContainer>
+    //             <div ref={reCaptchaRef} className="g-recaptcha" data-sitekey={RECAPTCHA_SITE_KEY}></div>
+    //           </RecaptchaContainer>
+    //         )}
+
+    //         {!twoFactorRequired && (
+    //           <>
+    //             <ReuseButton
+    //               backgroundcolor="#7f56d9"
+    //               type="submit"
+    //               text={loading ? t("login.pleaseWait") : t("login.signIn")}
+    //               disabled={loading}
+    //             />
+    //             <SignUpText>
+    //               {t("login.dontHaveAccount")} <a href="/auth/register">{t("login.signUp")}</a>
+    //             </SignUpText>
+    //           </>
+    //         )}
+    //       </LoginFormContainer>
+    //     </GlassCard>
+    //   </LoginMainContainer>
+      
+    //   <LostAuthenticatorModal
+    //     isOpen={showLostAuthenticatorModal}
+    //     onClose={() => setShowLostAuthenticatorModal(false)}
+    //     userEmail={formik.values.email}
+    //     userPassword={formik.values.password}
+    //   />
+    // </>
   );
 };
 
