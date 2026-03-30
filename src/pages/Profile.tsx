@@ -182,7 +182,7 @@ const Profile: React.FC = () => {
     if (isAccountVerified) return;
     if (!verificationEmail) return;
     localStorage.setItem("pendingVerificationEmail", verificationEmail);
-    navigate(`/auth/verification?email=${encodeURIComponent(verificationEmail)}`);
+    navigate("/auth/verification");
   };
 
   // Get data from full profile

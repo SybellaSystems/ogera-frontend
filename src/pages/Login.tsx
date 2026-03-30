@@ -10,7 +10,7 @@ import { useEffect, useState, useRef } from "react";
 import { loginValidationSchema } from "../validation/Index";
 import type { LoginFormValues } from "../type/Index";
 import ReuseButton from "../components/button";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useDispatch } from "react-redux";
 import { loginApi } from "../services/api/loginApi";
@@ -36,7 +36,7 @@ const Login = () => {
   const [showVerifyAccount, setShowVerifyAccount] = useState(false);
 
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const location = useLocation();
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -53,16 +53,25 @@ const Login = () => {
     };
   }, []);
 
-  // Show "Verify account" button if registration left pending verification context.
+  // Show "Verify account" button only when redirected after successful registration.
   useEffect(() => {
-    const fromRegistration = searchParams.get("fromRegistration") === "1";
+    const shouldShowFromRedirect = Boolean(
+      (location.state as any)?.showVerifyAccountButton
+    );
+
+    if (!shouldShowFromRedirect) {
+      setShowVerifyAccount(false);
+      return;
+    }
+
     const hasPending = Boolean(localStorage.getItem("pendingVerificationEmail"));
     const emailVerified = localStorage.getItem("pendingVerificationEmailVerified") === "true";
     const phoneVerified = localStorage.getItem("pendingVerificationPhoneVerified") === "true";
+
     setShowVerifyAccount(
-      fromRegistration && hasPending && !(emailVerified && phoneVerified)
+      hasPending && !(emailVerified && phoneVerified)
     );
-  }, [searchParams]);
+  }, [location.state]);
 
   const handleClickShowPassword = () => setShowPassword((prev) => !prev);
 
@@ -286,7 +295,7 @@ const Login = () => {
                 <ReuseButton
                   backgroundcolor="#111827"
                   type="button"
-                  text="Verify account"
+                  text="Verify Account"
                   disabled={loading}
                   onClick={() => navigate("/auth/verification")}
                 />
@@ -310,63 +319,7 @@ const Login = () => {
       />
     </>
 
-    //       </LeftContent>
-    //     </LoginLeftContainer>
-
-    //     {/* Right Section */}
-    //     <LoginRightContainer>
-    //       <Overlay />
-    //       <RightContent>
-    //         <RightCard>
-    //           <h2>{t("login.empoweringAfrica")}</h2>
-    //           <p>{t("login.ogeraDescription")}</p>
-    //         </RightCard>
-
-    //         <BottomText>
-    //           {t("login.ogeraDedicated")}
-    //         </BottomText>
-    //       </RightContent>
-    //     </LoginRightContainer>
-    //             </LostAuthenticatorLink>
-    //             <ReuseButton
-    //               backgroundcolor="#16a34a"
-    //               type="button"
-    //               text={verifying2FA ? t("login.verifying") : t("login.verifyAndContinue")}
-    //               onClick={handleVerify2FALogin as any}
-    //             />
-    //           </FormGroup>
-    //         )}
-
-    //         {!twoFactorRequired && RECAPTCHA_SITE_KEY && (
-    //           <RecaptchaContainer>
-    //             <div ref={reCaptchaRef} className="g-recaptcha" data-sitekey={RECAPTCHA_SITE_KEY}></div>
-    //           </RecaptchaContainer>
-    //         )}
-
-    //         {!twoFactorRequired && (
-    //           <>
-    //             <ReuseButton
-    //               backgroundcolor="#7f56d9"
-    //               type="submit"
-    //               text={loading ? t("login.pleaseWait") : t("login.signIn")}
-    //               disabled={loading}
-    //             />
-    //             <SignUpText>
-    //               {t("login.dontHaveAccount")} <a href="/auth/register">{t("login.signUp")}</a>
-    //             </SignUpText>
-    //           </>
-    //         )}
-    //       </LoginFormContainer>
-    //     </GlassCard>
-    //   </LoginMainContainer>
-      
-    //   <LostAuthenticatorModal
-    //     isOpen={showLostAuthenticatorModal}
-    //     onClose={() => setShowLostAuthenticatorModal(false)}
-    //     userEmail={formik.values.email}
-    //     userPassword={formik.values.password}
-    //   />
-    // </>
+    
   );
 };
 
