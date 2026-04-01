@@ -29,12 +29,14 @@ import {
   type CreateProjectRequest,
   type CreateAccomplishmentRequest,
 } from "../services/api/extendedProfileApi";
+import { setup2FA, verify2FA, disable2FA } from "../services/api/twoFactorApi";
 import ChangePasswordModal from "../components/ChangePasswordModal";
 import EditProfileModal from "../components/EditProfileModal";
 import TrustScoreCard from "../components/TrustScoreCard";
 import PhoneVerificationModal from "../components/PhoneVerificationModal";
 import { useResendVerificationEmailMutation, useSendPhoneVerificationOTPMutation } from "../services/api/authApi";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "../contexts/ThemeContext";
 import {
   PencilIcon,
   CloudArrowUpIcon,
@@ -63,10 +65,19 @@ type ActiveSection =
   | "profile-summary"
   | "accomplishments";
 
+type SuperAdminSection =
+  | "basic-info"
+  | "account-settings"
+  | "permissions"
+  | "platform-stats"
+  | "audit-security";
+
 const Profile: React.FC = () => {
   const { t } = useTranslation();
+  const { theme } = useTheme();
   const user = useSelector((state: any) => state.auth.user);
   const role = useSelector((state: any) => state.auth.role);
+  const permissions = useSelector((state: any) => state.auth.permissions);
 
   const [profileData, setProfileData] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -76,7 +87,8 @@ const Profile: React.FC = () => {
   const [isPhoneVerificationModalOpen, setIsPhoneVerificationModalOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<ActiveSection>("resume");
   const [isUploadingResume, setIsUploadingResume] = useState(false);
-
+  const [isToggling2FA, setIsToggling2FA] = useState(false);
+  const [superAdminSection, setSuperAdminSection] = useState<SuperAdminSection>("basic-info");
   // Modal states
   const [isEmploymentModalOpen, setIsEmploymentModalOpen] = useState(false);
   const [isEducationModalOpen, setIsEducationModalOpen] = useState(false);
@@ -169,6 +181,8 @@ const Profile: React.FC = () => {
 
   const userData = profileData || user;
   const userRole = profileData?.role?.roleName || role;
+  const normalizedRole = String(userRole || role || "").toLowerCase().trim();
+  const isSuperAdmin = normalizedRole === "superadmin";
 
   // Get data from full profile
   const extendedProfile = fullProfileData?.data?.extendedProfile;
@@ -316,6 +330,357 @@ const Profile: React.FC = () => {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-purple-600"></div>
+      </div>
+    );
+  }
+
+  const superAdminMockStats = {
+    users: {
+      students: 1240,
+      employers: 215,
+      total: 1455,
+    },
+    recentLogins: [
+      { name: "System Admin", time: "2026-04-01 08:15" },
+      { name: "Alexis", time: "2026-04-01 07:42" },
+      { name: "Support Admin", time: "2026-03-31 19:10" },
+      { name: "Ops Admin", time: "2026-03-31 16:35" },
+      { name: "Audit Admin", time: "2026-03-31 14:03" },
+    ],
+    alerts: [
+      "Role update pending review",
+      "2 failed admin login attempts detected",
+      "Permission change requires audit note",
+    ],
+    securityLogs: [
+      "Policy changed: role.permission.update",
+      "Admin login from new device",
+      "Manual account status review completed",
+    ],
+    actions: [
+      "Review pending role change requests",
+      "Validate newly created employer accounts",
+      "Monitor suspicious login attempts",
+    ],
+  };
+
+  const handleEnable2FA = async () => {
+    try {
+      setIsToggling2FA(true);
+      await setup2FA();
+      const otp = window.prompt("Enter the 6-digit OTP from your authenticator app to enable 2FA:") || "";
+      if (!otp.trim()) {
+        toast.error("2FA verification cancelled");
+        return;
+      }
+      await verify2FA(otp.trim());
+      toast.success("Two-factor authentication enabled");
+      await fetchProfile();
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Failed to enable 2FA");
+    } finally {
+      setIsToggling2FA(false);
+    }
+  };
+
+  const handleDisable2FA = async () => {
+    try {
+      const password = window.prompt("Enter your current password to disable 2FA:") || "";
+      if (!password.trim()) {
+        toast.error("Password is required");
+        return;
+      }
+      const otp = window.prompt("Enter your current 2FA token (if required):") || undefined;
+      setIsToggling2FA(true);
+      await disable2FA(password.trim(), otp?.trim() || undefined);
+      toast.success("Two-factor authentication disabled");
+      await fetchProfile();
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Failed to disable 2FA");
+    } finally {
+      setIsToggling2FA(false);
+    }
+  };
+
+  if (isSuperAdmin) {
+    const isDarkMode = theme === "dark";
+    const tr = (key: string, fallback: string) => t(key, { defaultValue: fallback });
+
+    const quickLinks: { key: SuperAdminSection; label: string; hint: string }[] = [
+      { key: "basic-info", label: tr("superAdminProfile.basicInfo", "Basic Info"), hint: tr("superAdminProfile.basicInfoHint", "Identity and contact") },
+      { key: "account-settings", label: tr("superAdminProfile.accountSettings", "Account Settings"), hint: tr("superAdminProfile.accountSettingsHint", "Security and credentials") },
+      { key: "permissions", label: tr("superAdminProfile.permissions", "Permissions"), hint: tr("superAdminProfile.permissionsHint", "Roles and access matrix") },
+      { key: "platform-stats", label: tr("superAdminProfile.platformStats", "Platform Stats"), hint: tr("superAdminProfile.platformStatsHint", "Users and activity") },
+      { key: "audit-security", label: tr("superAdminProfile.auditSecurity", "Audit and Security"), hint: tr("superAdminProfile.auditSecurityHint", "Logs and alerts") },
+    ];
+
+    return (
+      <div
+        className={`min-h-screen p-4 md:p-6 lg:p-8 transition-colors duration-300 ${
+          isDarkMode ? "bg-[#0F172A]" : "bg-[#F5F7FA]"
+        }`}
+      >
+        <div className="max-w-7xl mx-auto space-y-6">
+          <div
+            className={`border rounded-2xl shadow-sm p-6 transition-colors duration-300 ${
+              isDarkMode ? "bg-[#111827] border-[#253044]" : "bg-white border-[#E6E8EE]"
+            }`}
+          >
+            <div className="flex flex-col lg:flex-row gap-6 items-start lg:items-center">
+              <div className="relative shrink-0">
+                <img
+                  src="https://i.pravatar.cc/150?img=12"
+                  alt={userData?.full_name || "SuperAdmin"}
+                  className="w-28 h-28 rounded-full object-cover border-4 border-white shadow-md"
+                />
+                <div className="absolute -bottom-2 -right-2 w-12 h-12 rounded-full bg-[#27AE60] text-white text-xs font-semibold flex items-center justify-center border-4 border-white shadow-sm">
+                  92%
+                </div>
+              </div>
+
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-wrap items-center gap-3 mb-2">
+                  <h1 className={`text-3xl font-bold leading-tight ${isDarkMode ? "text-[#F9FAFB]" : "text-[#2B2D42]"}`}>
+                    {(userData?.full_name || "Super Admin").toUpperCase()}
+                  </h1>
+                  <button
+                    onClick={() => setIsEditProfileModalOpen(true)}
+                    className="text-[#8F96A8] hover:text-[#7C3AED] transition-colors"
+                    title="Edit profile"
+                  >
+                    <PencilIcon className="w-5 h-5" />
+                  </button>
+                </div>
+                <p className={`text-xl font-medium ${isDarkMode ? "text-[#E5E7EB]" : "text-[#2B2D42]"}`}>{tr("superAdminProfile.platformSuperAdmin", "Platform SuperAdmin")}</p>
+
+                <div className={`mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm ${isDarkMode ? "text-[#CBD5E1]" : "text-[#5C6475]"}`}>
+                  <span className="flex items-center gap-2">
+                    <PhoneIcon className="w-4 h-4" /> {userData?.mobile_number || tr("superAdminProfile.noPhone", "No phone set")}
+                  </span>
+                  <span className="flex items-center gap-2">
+                    <EnvelopeIcon className="w-4 h-4" /> {userData?.email || tr("common.na", "N/A")}
+                  </span>
+                  <span className="flex items-center gap-2">
+                    <CalendarIcon className="w-4 h-4" />
+                    {tr("superAdminProfile.joined", "Joined")} {profileData?.created_at ? new Date(profileData.created_at).toLocaleDateString() : tr("common.na", "N/A")}
+                  </span>
+                </div>
+
+                <p className={`mt-4 text-xs ${isDarkMode ? "text-[#94A3B8]" : "text-[#8F96A8]"}`}>
+                  {tr("superAdminProfile.profileLastUpdated", "Profile last updated")} {profileData?.updated_at ? new Date(profileData.updated_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : tr("profile.recently", "recently")}
+                </p>
+              </div>
+
+              <div className={`rounded-xl border p-4 min-w-[220px] transition-colors duration-300 ${isDarkMode ? "bg-[#1F2937] border-[#334155]" : "bg-[#FAFBFF] border-[#E6E8EE]"}`}>
+                <p className={`text-xs uppercase tracking-wide ${isDarkMode ? "text-[#94A3B8]" : "text-[#8F96A8]"}`}>{tr("superAdminProfile.accountStatus", "Account status")}</p>
+                <p className="mt-1 inline-flex items-center gap-2 text-sm font-semibold text-[#27AE60]">
+                  <CheckCircleIcon className="w-4 h-4" /> {tr("common.active", "Active")}
+                </p>
+                <p className={`text-xs mt-2 ${isDarkMode ? "text-[#CBD5E1]" : "text-[#5C6475]"}`}>
+                  {tr("superAdminProfile.roleType", "Role type")}: <span className={`font-semibold ${isDarkMode ? "text-[#F9FAFB]" : "text-[#2B2D42]"}`}>superAdmin</span>
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <aside className="lg:col-span-1">
+              <div className="rounded-2xl overflow-hidden shadow-lg sticky top-4 border border-[#1D2740]">
+                <div className="px-5 py-4 bg-gradient-to-r from-[#101828] to-[#0B1E42] text-white">
+                  <p className="text-xl font-bold">{tr("profile.quickLinks", "Quick Links")}</p>
+                </div>
+                <div className="bg-[#111827] p-3 space-y-2">
+                  {quickLinks.map((item) => {
+                    const active = superAdminSection === item.key;
+                    return (
+                      <button
+                        key={item.key}
+                        onClick={() => setSuperAdminSection(item.key)}
+                        className={`w-full text-left rounded-xl px-4 py-3 transition-all ${
+                          active
+                            ? "bg-gradient-to-r from-[#9333EA] to-[#4F46E5] text-white shadow-md"
+                            : "text-[#D1D5DB] hover:bg-white/10"
+                        }`}
+                      >
+                        <p className="font-semibold text-sm">{item.label}</p>
+                        <p className={`text-xs mt-1 ${active ? "text-white/85" : "text-[#9CA3AF]"}`}>{item.hint}</p>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </aside>
+
+            <section className={`lg:col-span-3 rounded-2xl border shadow-sm overflow-hidden transition-colors duration-300 ${isDarkMode ? "bg-[#111827] border-[#253044]" : "bg-white border-[#E6E8EE]"}`}>
+              <div className="bg-gradient-to-r from-[#8B2CF5] to-[#4F46E5] px-6 py-4">
+                <h2 className="text-2xl font-bold text-white">
+                  {quickLinks.find((q) => q.key === superAdminSection)?.label}
+                </h2>
+              </div>
+
+              <div className={`p-6 md:p-8 transition-colors duration-300 ${isDarkMode ? "bg-[#0F172A]" : "bg-[#FCFCFF]"}`}>
+                {superAdminSection === "basic-info" && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className={`rounded-xl border p-4 transition-colors duration-300 ${isDarkMode ? "bg-[#1F2937] border-[#334155]" : "bg-white border-[#E6E8EE]"}`}>
+                      <p className={`text-xs uppercase tracking-wide ${isDarkMode ? "text-[#94A3B8]" : "text-[#8F96A8]"}`}>{tr("register.fullName", "Full name")}</p>
+                      <p className={`mt-1 font-semibold ${isDarkMode ? "text-[#F9FAFB]" : "text-[#2B2D42]"}`}>{userData?.full_name || tr("common.na", "N/A")}</p>
+                    </div>
+                    <div className={`rounded-xl border p-4 transition-colors duration-300 ${isDarkMode ? "bg-[#1F2937] border-[#334155]" : "bg-white border-[#E6E8EE]"}`}>
+                      <p className={`text-xs uppercase tracking-wide ${isDarkMode ? "text-[#94A3B8]" : "text-[#8F96A8]"}`}>{tr("register.emailAddress", "Email address")}</p>
+                      <p className={`mt-1 font-semibold ${isDarkMode ? "text-[#F9FAFB]" : "text-[#2B2D42]"}`}>{userData?.email || tr("common.na", "N/A")}</p>
+                    </div>
+                    <div className={`rounded-xl border p-4 transition-colors duration-300 ${isDarkMode ? "bg-[#1F2937] border-[#334155]" : "bg-white border-[#E6E8EE]"}`}>
+                      <p className={`text-xs uppercase tracking-wide ${isDarkMode ? "text-[#94A3B8]" : "text-[#8F96A8]"}`}>{tr("superAdminProfile.roleType", "Role type")}</p>
+                      <p className="mt-1 text-[#0077B6] font-semibold">superAdmin</p>
+                    </div>
+                    <div className={`rounded-xl border p-4 transition-colors duration-300 ${isDarkMode ? "bg-[#1F2937] border-[#334155]" : "bg-white border-[#E6E8EE]"}`}>
+                      <p className={`text-xs uppercase tracking-wide ${isDarkMode ? "text-[#94A3B8]" : "text-[#8F96A8]"}`}>{tr("register.mobileNumber", "Mobile number")}</p>
+                      <p className={`mt-1 font-semibold ${isDarkMode ? "text-[#F9FAFB]" : "text-[#2B2D42]"}`}>{userData?.mobile_number || tr("superAdminProfile.mobileOptional", "Optional / not set")}</p>
+                    </div>
+                  </div>
+                )}
+
+                {superAdminSection === "account-settings" && (
+                  <div className="space-y-4">
+                    <div className="rounded-xl border border-[#E6E8EE] bg-white p-5 flex flex-wrap items-center justify-between gap-3">
+                      <div>
+                        <p className="font-semibold text-[#2B2D42]">Credentials</p>
+                        <p className="text-sm text-[#5C6475]">Change your password and secure account credentials.</p>
+                      </div>
+                      <button
+                        onClick={() => setIsChangePasswordModalOpen(true)}
+                        className="px-4 py-2 rounded-lg bg-gradient-to-r from-[#8B2CF5] to-[#4F46E5] text-white font-semibold hover:opacity-95"
+                      >
+                        Change Password
+                      </button>
+                    </div>
+
+                    <div className="rounded-xl border border-[#E6E8EE] bg-white p-5 flex flex-wrap items-center justify-between gap-3">
+                      <div>
+                        <p className="font-semibold text-[#2B2D42]">Two-factor authentication</p>
+                        <p className="text-sm text-[#5C6475]">
+                          Status: {profileData?.two_fa_enabled ? "Enabled" : "Disabled"}
+                        </p>
+                      </div>
+                      {profileData?.two_fa_enabled ? (
+                        <button
+                          onClick={handleDisable2FA}
+                          disabled={isToggling2FA}
+                          className="px-4 py-2 rounded-lg bg-[#E63946] text-white font-semibold disabled:opacity-60"
+                        >
+                          {isToggling2FA ? "Please wait..." : "Disable 2FA"}
+                        </button>
+                      ) : (
+                        <button
+                          onClick={handleEnable2FA}
+                          disabled={isToggling2FA}
+                          className="px-4 py-2 rounded-lg bg-[#27AE60] text-white font-semibold disabled:opacity-60"
+                        >
+                          {isToggling2FA ? "Please wait..." : "Enable 2FA"}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {superAdminSection === "permissions" && (
+                  <div className="space-y-4">
+                    <div className="flex flex-wrap gap-3">
+                      <button onClick={() => navigate("/dashboard/role/create")} className="px-4 py-2 rounded-lg bg-[#0077B6] text-white font-semibold">Create Role</button>
+                      <button onClick={() => navigate("/dashboard/role/view")} className="px-4 py-2 rounded-lg bg-[#F4A261] text-[#2B2D42] font-semibold">View Roles</button>
+                      <button onClick={() => navigate("/dashboard/permission/view")} className="px-4 py-2 rounded-lg bg-[#2B2D42] text-white font-semibold">View Permissions</button>
+                    </div>
+
+                    <div className="rounded-xl border border-[#E6E8EE] bg-white p-4">
+                      <p className="text-sm font-semibold text-[#2B2D42] mb-2">Permissions JSON</p>
+                      <pre className="text-xs text-[#2B2D42] bg-[#F5F7FA] border border-[#E6E8EE] rounded-lg p-3 overflow-auto max-h-72 whitespace-pre-wrap break-words">
+                        {JSON.stringify(permissions || { note: "No explicit permission payload (superAdmin bypass)" }, null, 2)}
+                      </pre>
+                    </div>
+                  </div>
+                )}
+
+                {superAdminSection === "platform-stats" && (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div className="rounded-xl bg-[#FFFFFF] border border-[#E6E8EE] p-4">
+                        <p className="text-xs text-[#8F96A8]">Students</p>
+                        <p className="text-2xl font-bold text-[#4F46E5]">{superAdminMockStats.users.students}</p>
+                      </div>
+                      <div className="rounded-xl bg-[#FFFFFF] border border-[#E6E8EE] p-4">
+                        <p className="text-xs text-[#8F96A8]">Employers</p>
+                        <p className="text-2xl font-bold text-[#F4A261]">{superAdminMockStats.users.employers}</p>
+                      </div>
+                      <div className="rounded-xl bg-[#FFFFFF] border border-[#E6E8EE] p-4">
+                        <p className="text-xs text-[#8F96A8]">Total Users</p>
+                        <p className="text-2xl font-bold text-[#27AE60]">{superAdminMockStats.users.total}</p>
+                      </div>
+                    </div>
+
+                    <div className="rounded-xl border border-[#E6E8EE] bg-white p-4">
+                      <p className="text-sm font-semibold text-[#2B2D42] mb-2">Recent user activity (last 5 logins)</p>
+                      <ul className="space-y-2">
+                        {superAdminMockStats.recentLogins.map((item, index) => (
+                          <li key={`${item.name}-${index}`} className="flex items-center justify-between rounded-lg bg-[#F5F7FA] px-3 py-2 text-sm text-[#2B2D42]">
+                            <span>{item.name}</span>
+                            <span className="text-[#6B7280]">{item.time}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                )}
+
+                {superAdminSection === "audit-security" && (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="rounded-xl border border-[#E6E8EE] bg-white p-4">
+                        <p className="text-xs text-[#8F96A8] uppercase tracking-wide">Last login</p>
+                        <p className="mt-1 font-semibold text-[#2B2D42]">2026-04-01 08:15</p>
+                      </div>
+                      <div className="rounded-xl border border-[#E6E8EE] bg-white p-4">
+                        <p className="text-xs text-[#8F96A8] uppercase tracking-wide">Account created</p>
+                        <p className="mt-1 font-semibold text-[#2B2D42]">{profileData?.created_at ? new Date(profileData.created_at).toLocaleString() : "N/A"}</p>
+                      </div>
+                    </div>
+
+                    <div className="rounded-xl border border-[#E6E8EE] bg-white p-4">
+                      <p className="text-sm font-semibold text-[#2B2D42] mb-2">Admin-level security logs</p>
+                      <ul className="space-y-2 text-sm text-[#2B2D42]">
+                        {superAdminMockStats.securityLogs.map((log, index) => (
+                          <li key={`${log}-${index}`} className="rounded-lg bg-[#F5F7FA] border-l-4 border-[#4F46E5] px-3 py-2">{log}</li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div className="rounded-xl border border-[#E63946]/30 bg-[#E63946]/5 p-4">
+                      <p className="text-sm font-semibold text-[#E63946] mb-2">Alerts and pending admin actions</p>
+                      <ul className="list-disc pl-5 text-sm text-[#2B2D42] space-y-1">
+                        {[...superAdminMockStats.alerts, ...superAdminMockStats.actions].map((alert, index) => (
+                          <li key={`${alert}-${index}`}>{alert}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </section>
+          </div>
+
+          <ChangePasswordModal
+            isOpen={isChangePasswordModalOpen}
+            onClose={() => setIsChangePasswordModalOpen(false)}
+            userEmail={userData?.email || ""}
+          />
+
+          <EditProfileModal
+            isOpen={isEditProfileModalOpen}
+            onClose={() => setIsEditProfileModalOpen(false)}
+            profileData={profileData}
+            onUpdateSuccess={handleProfileUpdateSuccess}
+            userRole={userRole || ""}
+          />
+        </div>
       </div>
     );
   }
