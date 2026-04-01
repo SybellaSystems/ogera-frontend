@@ -163,7 +163,38 @@ const Register = () => {
               ),
             }}
           />
+          {formik.touched.password && formik.errors.password && <ErrorText>{formik.errors.password}</ErrorText>}
         </FormGroup>
+
+        {formik.values.accountType === "student" && (
+          <FormGroup>
+            <Label>{t("register.nationalId")}</Label>
+            <StyledInput
+              name="national_id_number"
+              placeholder={t("register.enterNationalId")}
+              value={formik.values.national_id_number}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+            />
+            {formik.touched.national_id_number && formik.errors.national_id_number && (
+              <ErrorText>{formik.errors.national_id_number}</ErrorText>
+            )}
+          </FormGroup>
+        )}
+
+        {formik.values.accountType === "employer" && (
+          <FormGroup>
+            <Label>{t("register.businessId")}</Label>
+            <StyledInput
+              name="businessId"
+              placeholder={t("register.enterBusinessId")}
+              value={formik.values.businessId}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+            />
+            {formik.touched.businessId && formik.errors.businessId && <ErrorText>{formik.errors.businessId}</ErrorText>}
+          </FormGroup>
+        )}
 
         <FormGroup>
           <Label>{t("register.mobileNumber")}</Label>
@@ -179,9 +210,11 @@ const Register = () => {
                 formik.setFieldValue("mobile_number", cleaned);
                 if (cleaned) setHasStartedTyping(true);
               }}
+              onBlur={() => formik.setFieldTouched("mobile_number", true)}
             />
           </PhoneRow>
           {!hasStartedTyping && <InfoText>{expectedDigitMessage}</InfoText>}
+          {formik.touched.mobile_number && formik.errors.mobile_number && <ErrorText>{formik.errors.mobile_number}</ErrorText>}
         </FormGroup>
 
         <TermsContainer>
@@ -189,6 +222,13 @@ const Register = () => {
             <input type="checkbox" name="terms" checked={formik.values.terms} onChange={formik.handleChange} />
             <label>{t("register.agreeToTerms")} <span onClick={() => setOpenTerms(true)}>{t("register.termsOfService")}</span></label>
           </TermsItem>
+          {formik.touched.terms && formik.errors.terms && <ErrorText>{formik.errors.terms}</ErrorText>}
+
+          <TermsItem>
+            <input type="checkbox" name="privacy" checked={formik.values.privacy} onChange={formik.handleChange} />
+            <label>{t("register.agreeToPrivacy")} <span onClick={() => setOpenPrivacy(true)}>{t("register.privacyPolicy")}</span></label>
+          </TermsItem>
+          {formik.touched.privacy && formik.errors.privacy && <ErrorText>{formik.errors.privacy}</ErrorText>}
         </TermsContainer>
 
         <Button
