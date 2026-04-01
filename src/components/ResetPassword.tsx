@@ -1,7 +1,7 @@
 import React from "react";
 import { styled } from "@mui/material/styles";
 import logo from "../assets/Logo.png";
-import Button from "../components/button";
+import loginImage from "../assets/login.png";
 
 type InputField = {
   label?: string;
@@ -26,6 +26,7 @@ interface RestPasswordTemplateProps {
   buttonText?: string;
   showResend?: boolean;
   disabled?: boolean;
+  secondaryAction?: React.ReactNode;
 }
 
 const RestPasswordTemplate: React.FC<RestPasswordTemplateProps> = ({
@@ -35,6 +36,7 @@ const RestPasswordTemplate: React.FC<RestPasswordTemplateProps> = ({
   buttonText = "Submit",
   showResend = false,
   disabled = false,
+  secondaryAction,
 }) => {
   return (
     <PassMainContainer>
@@ -84,18 +86,19 @@ const RestPasswordTemplate: React.FC<RestPasswordTemplateProps> = ({
           </DynamicBox>
         ))}
 
-        <Button
-          backgroundcolor="#7f56d9"
-          type="submit"
-          text={buttonText}
-          disabled={disabled}
-        />
+        <SubmitButton type="submit" disabled={disabled}>
+          {buttonText}
+        </SubmitButton>
+
+        {!!secondaryAction && secondaryAction}
 
         {showResend && (
           <ResendClick>
             If you don't receive a code! <span>Resend</span>
           </ResendClick>
         )}
+
+        <BackToLogin href="/auth/login">Back to Sign In</BackToLogin>
       </BoxContainer>
     </PassMainContainer>
   );
@@ -103,36 +106,60 @@ const RestPasswordTemplate: React.FC<RestPasswordTemplateProps> = ({
 
 export default RestPasswordTemplate;
 
-/* styles */
-const PassMainContainer = styled("div")(({ theme }) => ({
-  width: "100%",
-  maxWidth: "100vw",
-  minHeight: "100vh",
-  height: "100vh",
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
-  background: `linear-gradient(to right, ${theme.palette.primary.main}, ${theme.palette.secondary.main}, ${theme.palette.info.main})`,
-  overflow: "hidden",
-  padding: "20px",
-  boxSizing: "border-box",
-}));
+/* ==================== Styled Components ==================== */
 
-const BoxContainer = styled("div")(({ theme }) => ({
-  width: "100%",
-  maxWidth: "450px",
-  backgroundColor: theme.palette.background.paper,
-  borderRadius: "20px",
-  display: "flex",
-  flexDirection: "column",
-  padding: "20px",
-  gap: "15px",
-  boxSizing: "border-box",
-  [theme.breakpoints.down("sm")]: {
-    width: "100%",
-    maxWidth: "100%",
-  },
-}));
+const PassMainContainer = styled("div")`
+  width: 100%;
+  min-height: 100vh;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: url(${loginImage}) no-repeat center center;
+  background-size: cover;
+  position: relative;
+  overflow: hidden;
+  padding: 20px;
+  box-sizing: border-box;
+  font-family: "Nunito", Inter, sans-serif;
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      180deg,
+      rgba(45, 27, 78, 0.6) 0%,
+      rgba(26, 16, 37, 0.9) 100%
+    );
+  }
+  @media (max-width: 480px) {
+    padding: 12px;
+  }
+`;
+
+const BoxContainer = styled("div")`
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 450px;
+  background-color: #ffffff;
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  padding: 32px;
+  gap: 16px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+  @media (max-width: 768px) {
+    max-width: 100%;
+    padding: 24px 20px;
+    border-radius: 16px;
+  }
+  @media (max-width: 480px) {
+    padding: 20px 16px;
+    gap: 14px;
+    border-radius: 14px;
+  }
+`;
 
 const Logo = styled("div")`
   background: url(${logo}) no-repeat center;
@@ -140,72 +167,145 @@ const Logo = styled("div")`
   height: 40px;
   width: 120px;
   align-self: center;
+  margin-bottom: 4px;
 `;
 
-const Heading = styled("h1")(({ theme }) => ({
-  fontSize: "16px",
-  fontWeight: 700,
-  color: theme.palette.text.primary,
-}));
+const Heading = styled("h1")`
+  font-size: 22px;
+  font-weight: 700;
+  color: #7f56d9;
+  margin: 0;
+  @media (max-width: 480px) {
+    font-size: 20px;
+  }
+`;
 
-const SubHeading = styled("h2")(({ theme }) => ({
-  fontSize: "14px",
-  fontWeight: 400,
-  color: theme.palette.text.secondary,
-}));
+const SubHeading = styled("p")`
+  font-size: 14px;
+  font-weight: 400;
+  color: #6b6580;
+  line-height: 1.5;
+  margin: 0;
+`;
 
-const DynamicBox = styled("div")({
-  display: "flex",
-  flexDirection: "column",
-  gap: "10px",
-});
+const DynamicBox = styled("div")`
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+`;
 
-const Label = styled("label")(({ theme }) => ({
-  fontSize: "13px",
-  color: theme.palette.text.primary,
-}));
+const Label = styled("label")`
+  font-size: 13px;
+  font-weight: 600;
+  color: #2d2252;
+`;
 
-const Input = styled("input")(({ theme }) => ({
-  padding: "12px",
-  borderRadius: "8px",
-  border: `1px solid ${theme.palette.divider}`,
-  fontSize: "14px",
-}));
+const Input = styled("input")`
+  padding: 12px 15px;
+  border-radius: 10px;
+  border: 1px solid #e0d8f0;
+  font-size: 14px;
+  outline: none;
+  background-color: #f9f9ff;
+  color: #2d2252;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  &:focus {
+    border-color: #7f56d9;
+    box-shadow: 0 0 0 3px rgba(127, 86, 217, 0.15);
+  }
+  &::placeholder {
+    color: #8a8599;
+  }
+`;
 
-const OtpContainer = styled("div")({
-  display: "flex",
-  gap: "12px",
-  justifyContent: "center",
-});
+const OtpContainer = styled("div")`
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  @media (max-width: 480px) {
+    gap: 8px;
+  }
+`;
 
-const OtpInput = styled("input")(({ theme }) => ({
-  width: "50px",
-  height: "50px",
-  fontSize: "18px",
-  textAlign: "center",
-  borderRadius: "8px",
-  border: `2px solid ${theme.palette.divider}`,
-  outline: "none",
-  transition: "border-color 0.2s",
-  "&:focus": {
-    borderColor: theme.palette.primary.main,
-    borderWidth: "2px",
-  },
-}));
+const OtpInput = styled("input")`
+  width: 50px;
+  height: 50px;
+  font-size: 18px;
+  text-align: center;
+  border-radius: 10px;
+  border: 2px solid #e0d8f0;
+  outline: none;
+  background: #f9f9ff;
+  color: #2d2252;
+  transition: border-color 0.2s;
+  &:focus {
+    border-color: #7f56d9;
+    box-shadow: 0 0 0 3px rgba(127, 86, 217, 0.15);
+  }
+  @media (max-width: 480px) {
+    width: 42px;
+    height: 42px;
+    font-size: 16px;
+    border-radius: 8px;
+  }
+`;
 
-const ResendClick = styled("div")(({ theme }) => ({
-  textAlign: "center",
-  fontSize: "14px",
-  color: theme.palette.text.secondary,
-  marginTop: "10px",
-  "& span": {
-    color: theme.palette.primary.main,
-    cursor: "pointer",
-  },
-}));
+const SubmitButton = styled("button")`
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #7f56d9 0%, #5b3ba5 100%);
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px rgba(127, 86, 217, 0.3);
+  margin-top: 4px;
+  &:hover {
+    box-shadow: 0 6px 20px rgba(127, 86, 217, 0.45);
+    transform: translateY(-1px);
+  }
+  &:active {
+    transform: translateY(0);
+  }
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+`;
 
-const ErrorText = styled("div")(({ theme }) => ({
-  color: theme.palette.error.main,
-  fontSize: "12px",
-  marginTop: "4px",
-}));
+const BackToLogin = styled("a")`
+  font-size: 13px;
+  color: #7f56d9;
+  text-align: center;
+  text-decoration: none;
+  font-weight: 600;
+  &:hover {
+    text-decoration: underline;
+    color: #5b3ba5;
+  }
+`;
+
+const ResendClick = styled("div")`
+  text-align: center;
+  font-size: 14px;
+  color: #6b6580;
+  & span {
+    color: #7f56d9;
+    cursor: pointer;
+    font-weight: 600;
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+`;
+
+const ErrorText = styled("div")`
+  font-size: 12px;
+  color: #ef4444;
+  margin-top: 2px;
+`;

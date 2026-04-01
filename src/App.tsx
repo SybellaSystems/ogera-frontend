@@ -12,11 +12,11 @@ import StudentLayout from "./layouts/StudentLayout";
 import EmployerLayout from "./layouts/EmployerLayout";
 
 import Login from "./pages/Login";
-import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import VerifyOtp from "./pages/VerifyOtp";
 import VerifyEmail from "./pages/VerifyEmail";
+import Verification from "./pages/Verification";
 import ChangePassword from "./pages/ChangePassword";
 import TestRefresh from "./pages/TestRefresh";
 import Dashboard from "./pages/Dashboard";
@@ -136,12 +136,13 @@ function App() {
     },
     {
       path: "/auth/register",
-      element: role ? <Navigate to="/dashboard" replace /> : <Register />,
+      element: role ? <Navigate to="/dashboard" replace /> : <Login initialView="register" />,
     },
     { path: "/auth/forgot-password", Component: ForgotPassword },
     { path: "/auth/reset-password", Component: ResetPassword },
     { path: "/auth/verify-otp", Component: VerifyOtp },
     { path: "/auth/verify-email", Component: VerifyEmail },
+    { path: "/auth/verification", Component: Verification },
     { path: "/auth/change-password", Component: ChangePassword },
     { path: "/auth/me", Component: TestRefresh },
 

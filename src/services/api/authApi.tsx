@@ -45,7 +45,8 @@ export const authApi = apiSlice.injectEndpoints({
 
     verifyEmail: builder.mutation({
       query: (token) => ({
-        url: `/auth/verify-email?token=${token}`,
+        // Token contains URL-sensitive characters; always encode.
+        url: `/auth/verify-email?token=${encodeURIComponent(token)}`,
         method: "GET",
       }),
     }),
@@ -58,10 +59,11 @@ export const authApi = apiSlice.injectEndpoints({
       }),
     }),
 
-    sendPhoneVerificationOTP: builder.mutation<any, void>({
-      query: () => ({
+    sendPhoneVerificationOTP: builder.mutation<any, { email: string }>({
+      query: (values) => ({
         url: "/auth/send-phone-verification-otp",
         method: "POST",
+        body: { email: values.email },
       }),
     }),
 
@@ -72,6 +74,13 @@ export const authApi = apiSlice.injectEndpoints({
         body: { otp },
       }),
       invalidatesTags: ["User", "TrustScore"],
+    }),
+    verifyAccount: builder.mutation<any, { email: string; otp: string }>({
+      query: (values) => ({
+        url: "/auth/verify-account",
+        method: "POST",
+        body: values,
+      }),
     }),
 
     logout: builder.mutation({
@@ -94,5 +103,6 @@ export const {
   useResendVerificationEmailMutation,
   useSendPhoneVerificationOTPMutation,
   useVerifyPhoneMutation,
+  useVerifyAccountMutation,
   useLogoutMutation,
 } = authApi;

@@ -11,3 +11,13 @@ export const otpValidation = Yup.object({
   otp3: otpField,
   otp4: otpField,
 });
+
+// Phone verification OTP (SMS) uses 6 digits.
+export const phoneOtpValidation = Yup.object({
+  otp1: otpField,
+  otp2: otpField,
+  otp3: otpField,
+  otp4: otpField,
+  otp5: otpField,
+  otp6: otpField,
+});

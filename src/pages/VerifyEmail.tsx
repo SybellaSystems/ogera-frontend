@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import type { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import { styled } from "@mui/material/styles";
 import logo from "../assets/logoWhite.png";
+import { jwtDecode } from "jwt-decode";
 
 const VerifyEmail: React.FC = () => {
   const navigate = useNavigate();
@@ -19,6 +20,19 @@ const VerifyEmail: React.FC = () => {
 
   useEffect(() => {
     if (token) {
+      // Keep token so /auth/verification can retry email verification
+      // (prevents the "Email not verified yet" issue if auto-verify fails).
+      localStorage.setItem("pendingEmailVerificationToken", token);
+      // Keep email in localStorage so the signup verification page can verify the phone OTP.
+      try {
+        const decoded: any = jwtDecode(token);
+        if (decoded?.email) {
+          localStorage.setItem("pendingVerificationEmail", String(decoded.email));
+          setEmail(String(decoded.email));
+        }
+      } catch {
+        // ignore decoding issues; verification page will fallback to localStorage
+      }
       handleVerifyEmail();
     }
   }, [token]);
@@ -30,9 +44,11 @@ const VerifyEmail: React.FC = () => {
       setIsLoading(true);
       await verifyEmail(token).unwrap();
       setIsVerified(true);
+      localStorage.setItem("pendingVerificationEmailVerified", "true");
+      localStorage.removeItem("pendingEmailVerificationToken");
       toast.success("Email verified successfully!");
       setTimeout(() => {
-        navigate("/auth/login");
+        navigate("/auth/verification");
       }, 2000);
     } catch (err) {
       const error = err as FetchBaseQueryError & { data?: { message?: string } };
@@ -92,6 +108,13 @@ const VerifyEmail: React.FC = () => {
                 Verify Email
               </Button>
             )}
+
+            <Message style={{ marginTop: 16 }}>
+              Didn't work? Resend the verification email.
+            </Message>
+            <Button onClick={handleResendEmail} disabled={isResending || !email}>
+              {isResending ? "Sending..." : "Resend Verification Email"}
+            </Button>
           </>
         ) : (
           <>

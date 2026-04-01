@@ -11,6 +11,7 @@ interface PhoneVerificationModalProps {
   onClose: () => void;
   onSuccess?: () => void;
   phoneNumber?: string;
+  email?: string;
 }
 
 const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
@@ -18,6 +19,7 @@ const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
   onClose,
   onSuccess,
   phoneNumber,
+  email,
 }) => {
   const [otp, setOtp] = useState("");
   const [step, setStep] = useState<"request" | "verify">("request");
@@ -29,7 +31,12 @@ const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
 
   const handleSendOTP = async () => {
     try {
-      const result = await sendOTP().unwrap();
+      if (!email) {
+        toast.error("Email is required to request phone OTP");
+        return;
+      }
+
+      const result = await sendOTP({ email }).unwrap();
       toast.success("OTP sent successfully!");
       
       // In development, show the OTP if available
