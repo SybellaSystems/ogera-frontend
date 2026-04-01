@@ -524,8 +524,6 @@ const Register = ({ formOnly, onRoleChange }: RegisterProps = {}) => {
                     <ErrorText>{formik.errors.mobile_number}</ErrorText>
                   )}
               </FormGroup>
->>>>>>> 83dd049381b009020eb0e2ddf861351c1aee95a3
-
               {/* Terms & Privacy */}
               <TermsItem>
                 <input
