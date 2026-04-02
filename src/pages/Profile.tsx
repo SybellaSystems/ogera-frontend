@@ -580,8 +580,6 @@ const Profile: React.FC = () => {
       setTwoFAInput("");
     }
   };
-
-  // === SUPERADMIN PROFILE START ===
   if (isSuperAdmin) {
     return (
       <SuperAdminProfile
@@ -604,10 +602,6 @@ const Profile: React.FC = () => {
       />
     );
   }
-  // === SUPERADMIN PROFILE END ===
-  // === SUPERADMIN PROFILE END ===
-
-  // === REGULAR USER PROFILE START ===
   return (
     <div className="min-h-screen bg-gray-50 animate-fadeIn pb-8">
       {/* Error Message */}
@@ -2202,11 +2196,7 @@ const Profile: React.FC = () => {
       )}
     </div>
   );
-  // === REGULAR USER PROFILE END ===
 };
-
-// ====================== MODAL COMPONENTS ======================
-
 interface EmploymentModalProps {
   isOpen: boolean;
   onClose: () => void;
