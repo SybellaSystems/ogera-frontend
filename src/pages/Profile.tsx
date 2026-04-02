@@ -482,7 +482,10 @@ const Profile: React.FC = () => {
         try {
           if (!otp.trim()) {
             toast.error(
-              t("profile.2faVerificationCancelled", "2FA verification cancelled"),
+              t(
+                "profile.2faVerificationCancelled",
+                "2FA verification cancelled",
+              ),
             );
             return;
           }

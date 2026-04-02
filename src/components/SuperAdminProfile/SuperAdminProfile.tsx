@@ -174,10 +174,7 @@ export const SuperAdminProfile: React.FC<SuperAdminProfileProps> = ({
     {
       key: "permissions",
       label: tr("superAdminProfile.permissions", "Permissions"),
-      hint: tr(
-        "superAdminProfile.permissionsHint",
-        "Roles and access matrix",
-      ),
+      hint: tr("superAdminProfile.permissionsHint", "Roles and access matrix"),
       icon: (
         <svg
           className="w-5 h-5"
@@ -358,9 +355,7 @@ export const SuperAdminProfile: React.FC<SuperAdminProfileProps> = ({
                     <span>
                       {tr("superAdminProfile.joined", "Joined")}{" "}
                       {profileData?.created_at
-                        ? new Date(
-                            profileData.created_at,
-                          ).toLocaleDateString()
+                        ? new Date(profileData.created_at).toLocaleDateString()
                         : tr("common.na", "N/A")}
                     </span>
                   </div>
@@ -420,10 +415,11 @@ export const SuperAdminProfile: React.FC<SuperAdminProfileProps> = ({
                 "Profile last updated",
               )}{" "}
               {profileData?.updated_at
-                ? new Date(profileData.updated_at).toLocaleDateString(
-                    "en-US",
-                    { month: "short", day: "numeric", year: "numeric" },
-                  )
+                ? new Date(profileData.updated_at).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })
                 : tr("profile.recently", "recently")}
             </p>
           </div>
@@ -528,10 +524,7 @@ const SuperAdminSidebar: React.FC<SuperAdminSidebarProps> = ({
       </p>
     </div>
 
-    <div
-      className="p-3 space-y-1"
-      style={{ background: colors.bgSidebar }}
-    >
+    <div className="p-3 space-y-1" style={{ background: colors.bgSidebar }}>
       {quickLinks.map((item) => {
         const active = activeSection === item.key;
         return (
@@ -640,10 +633,7 @@ const SuperAdminContent: React.FC<SuperAdminContentProps> = ({
       </div>
 
       {/* Section Content */}
-      <div
-        className="p-6 md:p-8"
-        style={{ background: colors.bgPrimary }}
-      >
+      <div className="p-6 md:p-8" style={{ background: colors.bgPrimary }}>
         {activeSection === "basic-info" && (
           <BasicInfoSection colors={colors} userData={userData} tr={tr} />
         )}
@@ -658,10 +648,7 @@ const SuperAdminContent: React.FC<SuperAdminContentProps> = ({
           />
         )}
         {activeSection === "permissions" && (
-          <PermissionsSection
-            colors={colors}
-            permissions={permissions}
-          />
+          <PermissionsSection colors={colors} permissions={permissions} />
         )}
         {activeSection === "platform-stats" && (
           <PlatformStatsSection
@@ -803,10 +790,7 @@ const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
             >
               {tr("account.credentials", "Credentials")}
             </p>
-            <p
-              className="text-sm"
-              style={{ color: colors.textSecondary }}
-            >
+            <p className="text-sm" style={{ color: colors.textSecondary }}>
               {tr(
                 "account.credentialsDesc",
                 "Change your password and secure account credentials.",
@@ -1108,10 +1092,7 @@ const PlatformStatsSection: React.FC<PlatformStatsSectionProps> = ({
                 >
                   {item.name}
                 </span>
-                <span
-                  className="text-sm"
-                  style={{ color: colors.textMuted }}
-                >
+                <span className="text-sm" style={{ color: colors.textMuted }}>
                   {item.time}
                 </span>
               </li>
@@ -1149,10 +1130,7 @@ const AuditSecuritySection: React.FC<AuditSecuritySectionProps> = ({
         >
           Last login
         </p>
-        <p
-          className="text-lg font-bold"
-          style={{ color: colors.textPrimary }}
-        >
+        <p className="text-lg font-bold" style={{ color: colors.textPrimary }}>
           2026-04-01 08:15
         </p>
       </div>
@@ -1169,10 +1147,7 @@ const AuditSecuritySection: React.FC<AuditSecuritySectionProps> = ({
         >
           Account created
         </p>
-        <p
-          className="text-lg font-bold"
-          style={{ color: colors.textPrimary }}
-        >
+        <p className="text-lg font-bold" style={{ color: colors.textPrimary }}>
           {profileData?.created_at
             ? new Date(profileData.created_at).toLocaleString()
             : "N/A"}
