@@ -209,68 +209,260 @@ const Register = ({ formOnly, onRoleChange }: RegisterProps = {}) => {
 
             <FormGroup>
               <Label htmlFor="full_name">{t("register.fullName")}</Label>
-              <TextField id="full_name" name="full_name" placeholder={t("register.enterFullName")} variant="outlined" fullWidth size="small" inputProps={{ maxLength: 20 }} value={formik.values.full_name} onChange={formik.handleChange} onBlur={formik.handleBlur}
-                InputProps={{ style: inputStyle, startAdornment: <InputAdornment position="start"><PersonOutline style={{ color: "#8a8599", fontSize: 20 }} /></InputAdornment> }} sx={inputSx} />
-              {formik.touched.full_name && formik.errors.full_name && <ErrorText>{formik.errors.full_name}</ErrorText>}
+              <TextField
+                id="full_name"
+                name="full_name"
+                placeholder={t("register.enterFullName")}
+                variant="outlined"
+                fullWidth
+                size="small"
+                inputProps={{ maxLength: 20 }}
+                value={formik.values.full_name}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                InputProps={{
+                  style: inputStyle,
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <PersonOutline
+                        style={{ color: "#8a8599", fontSize: 20 }}
+                      />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={inputSx}
+              />
+              {formik.touched.full_name && formik.errors.full_name && (
+                <ErrorText>{formik.errors.full_name}</ErrorText>
+              )}
             </FormGroup>
 
             <FormGroup>
               <Label htmlFor="email">{t("register.emailAddress")}</Label>
-              <TextField id="email" name="email" type="email" placeholder={t("register.enterEmail")} variant="outlined" fullWidth size="small" value={formik.values.email} onChange={formik.handleChange} onBlur={formik.handleBlur}
-                InputProps={{ style: inputStyle, startAdornment: <InputAdornment position="start"><EmailOutlined style={{ color: "#8a8599", fontSize: 20 }} /></InputAdornment> }} sx={inputSx} />
-              {formik.touched.email && formik.errors.email && <ErrorText>{formik.errors.email}</ErrorText>}
+              <TextField
+                id="email"
+                name="email"
+                type="email"
+                placeholder={t("register.enterEmail")}
+                variant="outlined"
+                fullWidth
+                size="small"
+                value={formik.values.email}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                InputProps={{
+                  style: inputStyle,
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <EmailOutlined
+                        style={{ color: "#8a8599", fontSize: 20 }}
+                      />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={inputSx}
+              />
+              {formik.touched.email && formik.errors.email && (
+                <ErrorText>{formik.errors.email}</ErrorText>
+              )}
             </FormGroup>
 
             <FormGroup>
               <Label htmlFor="password">{t("register.password")}</Label>
-              <TextField id="password" name="password" type={showPassword ? "text" : "password"} placeholder={t("register.createPassword")} variant="outlined" fullWidth size="small" value={formik.values.password} onChange={formik.handleChange} onBlur={formik.handleBlur}
-                InputProps={{ style: inputStyle, startAdornment: <InputAdornment position="start"><LockOutlined style={{ color: "#8a8599", fontSize: 20 }} /></InputAdornment>, endAdornment: <InputAdornment position="end"><IconButton onClick={handleClickShowPassword} edge="end" type="button">{showPassword ? <VisibilityOff style={{ color: "#8a8599" }} /> : <Visibility style={{ color: "#8a8599" }} />}</IconButton></InputAdornment> }} sx={inputSx} />
-              {formik.touched.password && formik.errors.password && <ErrorText>{formik.errors.password}</ErrorText>}
+              <TextField
+                id="password"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                placeholder={t("register.createPassword")}
+                variant="outlined"
+                fullWidth
+                size="small"
+                value={formik.values.password}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                InputProps={{
+                  style: inputStyle,
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <LockOutlined
+                        style={{ color: "#8a8599", fontSize: 20 }}
+                      />
+                    </InputAdornment>
+                  ),
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={handleClickShowPassword}
+                        edge="end"
+                        type="button"
+                      >
+                        {showPassword ? (
+                          <VisibilityOff style={{ color: "#8a8599" }} />
+                        ) : (
+                          <Visibility style={{ color: "#8a8599" }} />
+                        )}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+                sx={inputSx}
+              />
+              {formik.touched.password && formik.errors.password && (
+                <ErrorText>{formik.errors.password}</ErrorText>
+              )}
             </FormGroup>
 
             {isStudent ? (
               <FormGroup>
-                <Label htmlFor="national_id_number">{t("register.nationalIdNumber")}</Label>
-                <TextField id="national_id_number" name="national_id_number" placeholder={t("register.enterNationalId")} variant="outlined" fullWidth size="small" inputProps={{ maxLength: 15 }} value={formik.values.national_id_number} onChange={formik.handleChange} onBlur={formik.handleBlur}
-                  InputProps={{ style: inputStyle, startAdornment: <InputAdornment position="start"><BadgeOutlined style={{ color: "#8a8599", fontSize: 20 }} /></InputAdornment> }} sx={inputSx} />
-                {formik.touched.national_id_number && formik.errors.national_id_number && <ErrorText>{formik.errors.national_id_number}</ErrorText>}
+                <Label htmlFor="national_id_number">
+                  {t("register.nationalIdNumber")}
+                </Label>
+                <TextField
+                  id="national_id_number"
+                  name="national_id_number"
+                  placeholder={t("register.enterNationalId")}
+                  variant="outlined"
+                  fullWidth
+                  size="small"
+                  inputProps={{ maxLength: 15 }}
+                  value={formik.values.national_id_number}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  InputProps={{
+                    style: inputStyle,
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <BadgeOutlined
+                          style={{ color: "#8a8599", fontSize: 20 }}
+                        />
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={inputSx}
+                />
+                {formik.touched.national_id_number &&
+                  formik.errors.national_id_number && (
+                    <ErrorText>{formik.errors.national_id_number}</ErrorText>
+                  )}
               </FormGroup>
             ) : (
               <FormGroup>
-                <Label htmlFor="businessId">{t("register.businessRegistrationId")}</Label>
-                <TextField id="businessId" name="businessId" placeholder={t("register.enterBusinessId")} variant="outlined" fullWidth size="small" inputProps={{ maxLength: 15 }} value={formik.values.businessId} onChange={formik.handleChange} onBlur={formik.handleBlur}
-                  InputProps={{ style: inputStyle, startAdornment: <InputAdornment position="start"><BusinessOutlined style={{ color: "#8a8599", fontSize: 20 }} /></InputAdornment> }} sx={inputSx} />
-                {formik.touched.businessId && formik.errors.businessId && <ErrorText>{formik.errors.businessId}</ErrorText>}
+                <Label htmlFor="businessId">
+                  {t("register.businessRegistrationId")}
+                </Label>
+                <TextField
+                  id="businessId"
+                  name="businessId"
+                  placeholder={t("register.enterBusinessId")}
+                  variant="outlined"
+                  fullWidth
+                  size="small"
+                  inputProps={{ maxLength: 15 }}
+                  value={formik.values.businessId}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  InputProps={{
+                    style: inputStyle,
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <BusinessOutlined
+                          style={{ color: "#8a8599", fontSize: 20 }}
+                        />
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={inputSx}
+                />
+                {formik.touched.businessId && formik.errors.businessId && (
+                  <ErrorText>{formik.errors.businessId}</ErrorText>
+                )}
               </FormGroup>
             )}
 
             <FormGroup>
-              <Label htmlFor="mobile_number">{t("register.mobileNumber")}</Label>
+              <Label htmlFor="mobile_number">
+                {t("register.mobileNumber")}
+              </Label>
               <PhoneInputContainer>
-                <CountryCodeSelector value={countryCode} onChange={handleCountryCodeChange} />
-                <PhoneTextField id="mobile_number" name="mobile_number" type="tel" placeholder={t("register.enterMobileNumber")} variant="outlined" fullWidth size="small" value={formik.values.mobile_number} onBlur={formik.handleBlur}
-                  onChange={(e) => { const cleaned = e.target.value.replace(/[^0-9]/g, ""); formik.setFieldValue("mobile_number", cleaned); if (cleaned) setHasStartedTyping(true); }}
-                  InputProps={{ style: { ...inputStyle, borderTopLeftRadius: 0, borderBottomLeftRadius: 0 } }} sx={inputSx} />
+                <CountryCodeSelector
+                  value={countryCode}
+                  onChange={handleCountryCodeChange}
+                />
+                <PhoneTextField
+                  id="mobile_number"
+                  name="mobile_number"
+                  type="tel"
+                  placeholder={t("register.enterMobileNumber")}
+                  variant="outlined"
+                  fullWidth
+                  size="small"
+                  value={formik.values.mobile_number}
+                  onBlur={formik.handleBlur}
+                  onChange={(e) => {
+                    const cleaned = e.target.value.replace(/[^0-9]/g, "");
+                    formik.setFieldValue("mobile_number", cleaned);
+                    if (cleaned) setHasStartedTyping(true);
+                  }}
+                  InputProps={{
+                    style: {
+                      ...inputStyle,
+                      borderTopLeftRadius: 0,
+                      borderBottomLeftRadius: 0,
+                    },
+                  }}
+                  sx={inputSx}
+                />
               </PhoneInputContainer>
-              {!hasStartedTyping && !formik.errors.mobile_number && <InfoText>{expectedDigitMessage}</InfoText>}
-              {formik.touched.mobile_number && formik.errors.mobile_number && <ErrorText>{formik.errors.mobile_number}</ErrorText>}
+              {!hasStartedTyping && !formik.errors.mobile_number && (
+                <InfoText>{expectedDigitMessage}</InfoText>
+              )}
+              {formik.touched.mobile_number && formik.errors.mobile_number && (
+                <ErrorText>{formik.errors.mobile_number}</ErrorText>
+              )}
             </FormGroup>
 
             <TermsItem>
-              <input type="checkbox" id="terms" checked={formik.values.terms && formik.values.privacy}
-                onChange={(e) => { const checked = e.target.checked; formik.setFieldValue("terms", checked); formik.setFieldValue("privacy", checked); }} />
-              <label htmlFor="terms">I agree to the{" "}<ModalLinkText onClick={() => setOpenTerms(true)}>{t("register.termsOfService")}</ModalLinkText>{" & "}<ModalLinkText onClick={() => setOpenPrivacy(true)}>{t("register.privacyPolicy")}</ModalLinkText></label>
+              <input
+                type="checkbox"
+                id="terms"
+                checked={formik.values.terms && formik.values.privacy}
+                onChange={(e) => {
+                  const checked = e.target.checked;
+                  formik.setFieldValue("terms", checked);
+                  formik.setFieldValue("privacy", checked);
+                }}
+              />
+              <label htmlFor="terms">
+                I agree to the{" "}
+                <ModalLinkText onClick={() => setOpenTerms(true)}>
+                  {t("register.termsOfService")}
+                </ModalLinkText>
+                {" & "}
+                <ModalLinkText onClick={() => setOpenPrivacy(true)}>
+                  {t("register.privacyPolicy")}
+                </ModalLinkText>
+              </label>
             </TermsItem>
-            {((formik.touched.terms && formik.errors.terms) || (formik.touched.privacy && formik.errors.privacy)) && <ErrorText>You must agree to the terms and privacy policy</ErrorText>}
+            {((formik.touched.terms && formik.errors.terms) ||
+              (formik.touched.privacy && formik.errors.privacy)) && (
+              <ErrorText>
+                You must agree to the terms and privacy policy
+              </ErrorText>
+            )}
 
             <CreateAccountButton type="submit" disabled={isLoading}>
-              {isLoading ? t("common.loading") : t("register.createAccountButton")}
+              {isLoading
+                ? t("common.loading")
+                : t("register.createAccountButton")}
             </CreateAccountButton>
           </RegisterFormContainer>
         </LeftFormContent>
 
         <TermsModal open={openTerms} onClose={() => setOpenTerms(false)} />
-        <PrivacyModal open={openPrivacy} onClose={() => setOpenPrivacy(false)} />
+        <PrivacyModal
+          open={openPrivacy}
+          onClose={() => setOpenPrivacy(false)}
+        />
       </FormOnlyWrapper>
     );
   }
@@ -367,7 +559,6 @@ const Register = ({ formOnly, onRoleChange }: RegisterProps = {}) => {
                   <ErrorText>{formik.errors.email}</ErrorText>
                 )}
               </FormGroup>
-
               {/* Password */}
               <FormGroup>
                 <Label htmlFor="password">{t("register.password")}</Label>
@@ -551,7 +742,9 @@ const Register = ({ formOnly, onRoleChange }: RegisterProps = {}) => {
               </TermsItem>
               {((formik.touched.terms && formik.errors.terms) ||
                 (formik.touched.privacy && formik.errors.privacy)) && (
-                <ErrorText>You must agree to the terms and privacy policy</ErrorText>
+                <ErrorText>
+                  You must agree to the terms and privacy policy
+                </ErrorText>
               )}
 
               <CreateAccountButton type="submit" disabled={isLoading}>
@@ -559,7 +752,6 @@ const Register = ({ formOnly, onRoleChange }: RegisterProps = {}) => {
                   ? t("common.loading")
                   : t("register.createAccountButton")}
               </CreateAccountButton>
-
             </RegisterFormContainer>
           </LeftFormContent>
         </RegisterLeftContainer>
@@ -569,7 +761,9 @@ const Register = ({ formOnly, onRoleChange }: RegisterProps = {}) => {
           <Overlay />
           <RightContent>
             <RightHeading>
-              {isStudent ? "Start Your Career Journey" : "Find Top Student Talent"}
+              {isStudent
+                ? "Start Your Career Journey"
+                : "Find Top Student Talent"}
             </RightHeading>
             <RightSubText>
               {isStudent
@@ -638,9 +832,6 @@ const Register = ({ formOnly, onRoleChange }: RegisterProps = {}) => {
 
 export default Register;
 
-/* ==================== Styled Components ==================== */
-
-
 const BackButton = styled(Link)`
   display: flex;
   align-items: center;
@@ -685,8 +876,6 @@ const RegisterMainContainer = styled("div")`
     min-height: 100vh;
   }
 `;
-
-/* --- Left Panel (White form area) --- */
 
 const RegisterLeftContainer = styled("div")`
   width: 50%;
@@ -752,8 +941,6 @@ const SubHeading = styled("p")`
     font-size: 13px;
   }
 `;
-
-/* --- Right Panel (Dark purple with image + dynamic content) --- */
 
 const RegisterRightContainer = styled("div")`
   width: 50%;
@@ -841,8 +1028,6 @@ const BenefitItem = styled("div")`
     font-weight: 500;
   }
 `;
-
-/* --- Form Components --- */
 
 const RegisterFormContainer = styled("form")`
   display: flex;

@@ -169,14 +169,19 @@ npm install
 
 ### 3️⃣ Set Up Environment Variables
 
-Create a `.env` file in the root directory:
+Copy the provided template to create your local environment configuration:
 
 ```bash
-# Create .env file manually or copy from example if available
-touch .env
+# Copy the example file to create your local .env.local
+cp .env.local.example .env.local
+
+# Or use this if .env.local doesn't exist
+cp .env.local.example .env
 ```
 
-Then configure your environment variables (see [Environment Variables](#-environment-variables))
+Then update the variables as needed (see [Environment Variables](#-environment-variables)).
+
+> **Note:** The `.env.local` file is git-ignored and will not be committed. Never commit sensitive information like API keys or tokens.
 
 ### 4️⃣ Start Development Server
 
@@ -190,7 +195,13 @@ The application will be available at `http://localhost:5173` (or the port specif
 
 ## 🔑 Environment Variables
 
-Create a `.env` file in the root directory with the following variables:
+A template file (`.env.local.example`) is provided in the repository. To set up your environment:
+
+1. **Copy the template:** `cp .env.local.example .env.local`
+2. **Edit the values:** Update `.env.local` with your specific configuration
+3. **Never commit:** The `.env.local` file is git-ignored for security
+
+### Configuration Variables:
 
 ```env
 # API Configuration
@@ -201,11 +212,16 @@ VITE_API_URL=http://localhost:5000/api
 # VITE_APP_VERSION=1.0.0
 ```
 
-### Variable Descriptions:
+### Variable Reference:
 
-| Variable       | Description          | Required |
-| -------------- | -------------------- | -------- |
-| `VITE_API_URL` | Backend API base URL | ✅ Yes   |
+| Variable       | Description          | Required | Default                      |
+| -------------- | -------------------- | -------- | ----------------------------- |
+| `VITE_API_URL` | Backend API base URL | ✅ Yes   | `http://localhost:5000/api`  |
+
+**Environment File Precedence:**
+- Vite loads environment variables from `.env.local` (highest priority)
+- Falls back to `.env` if `.env.local` doesn't exist
+- Local files (`.env.local`) are git-ignored to protect sensitive data
 
 > **Note:** All Vite environment variables must be prefixed with `VITE_` to be exposed to the client.
 
