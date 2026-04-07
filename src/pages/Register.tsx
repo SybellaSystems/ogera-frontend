@@ -670,6 +670,9 @@ const FormOnlyWrapper = styled("div")`
   &::-webkit-scrollbar {
     display: none;
   }
+  @media (max-width: 768px) {
+    padding: 16px;
+  }
 `;
 
 const RegisterMainContainer = styled("div")`

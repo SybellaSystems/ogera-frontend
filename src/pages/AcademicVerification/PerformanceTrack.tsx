@@ -38,7 +38,7 @@ const PerformanceTrack: React.FC = () => {
     <div className="academic-page theme-page-bg space-y-6 animate-fadeIn p-4 min-h-full">
       <div>
         <h1 className="text-4xl font-extrabold text-gray-900 dark:text-[var(--theme-text-primary)] flex items-center gap-3">
-          <ChartBarIcon className="h-10 w-10 text-purple-600 dark:text-purple-400" />
+          <ChartBarIcon className="h-10 w-10 text-[#7f56d9] dark:text-purple-400" />
           {t("pages.academic.performanceTrack")}
         </h1>
         <p className="text-gray-500 dark:text-[var(--theme-text-secondary)] mt-2">
@@ -55,7 +55,7 @@ const PerformanceTrack: React.FC = () => {
           <p className="text-sm text-green-700 font-medium">{t("pages.academic.totalJobs")}</p>
           <p className="text-3xl font-bold text-green-900 mt-2">1,245</p>
         </div>
-        <div className="bg-purple-50 rounded-xl p-6 border border-purple-200">
+        <div className="bg-[#f5f3ff] rounded-xl p-6 border border-[#e0d8f0]">
           <p className="text-sm text-purple-700 font-medium">{t("pages.academic.completionRate")}</p>
           <p className="text-3xl font-bold text-purple-900 mt-2">94%</p>
         </div>
@@ -97,7 +97,7 @@ const PerformanceTrack: React.FC = () => {
               <tr key={student.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-semibold">
+                    <div className="h-10 w-10 rounded-full bg-[#f5f3ff] flex items-center justify-center text-[#7f56d9] font-semibold">
                       {student.name.charAt(0)}
                     </div>
                     <span className="font-medium text-gray-900">
@@ -130,7 +130,7 @@ const PerformanceTrack: React.FC = () => {
                   {student.earnings}
                 </td>
                 <td className="px-6 py-4">
-                  <button className="text-purple-600 hover:text-purple-800 font-medium text-sm">
+                  <button className="text-[#7f56d9] hover:text-[#5b3ba5] font-medium text-sm">
                     {t("pages.academic.viewReport")}
                   </button>
                 </td>

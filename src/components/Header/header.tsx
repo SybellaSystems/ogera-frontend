@@ -32,6 +32,8 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const role = useSelector((state: any) => state.auth.role);
+  const user = useSelector((state: any) => state.auth.user);
+  const userInitials = (user?.full_name || "U").split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase();
   
   // Get unread notification count for employers/superadmins and students
   const { data: unreadCountData, refetch: refetchUnreadCount } = useGetUnreadNotificationCountQuery(undefined, {
@@ -401,11 +403,19 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
             aria-label="User menu"
             type="button"
           >
-            <img
-              src="https://i.pravatar.cc/100?img=3"
-              alt="User avatar"
-              className="h-full w-full rounded-full object-cover"
-            />
+            {user?.profile_image_url ? (
+              <>
+                <img
+                  src={user.profile_image_url.startsWith("/") ? `${(import.meta.env.VITE_API_URL || "http://localhost:5000/api").replace("/api", "")}${user.profile_image_url}` : user.profile_image_url}
+                  alt={user.full_name || "User"}
+                  className="h-full w-full rounded-full object-cover"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                />
+                <span className="text-white text-sm font-bold select-none absolute inset-0 flex items-center justify-center" style={{ zIndex: -1 }}>{userInitials}</span>
+              </>
+            ) : (
+              <span className="text-white text-sm font-bold select-none">{userInitials}</span>
+            )}
           </button>
 
           {/* Dropdown menu */}

@@ -6,8 +6,13 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles }) => {
-  const role = useSelector((state: any) => state.auth.role);
+  const roleRaw = useSelector((state: any) => state.auth.role);
   const user = useSelector((state: any) => state.auth.user);
+
+  // Safely extract role as string — could be object { roleName, roleType } or string
+  const role = typeof roleRaw === 'object'
+    ? (roleRaw?.roleType || roleRaw?.roleName || '')
+    : (typeof roleRaw === 'string' ? roleRaw : '');
 
   // If no user is logged in, redirect to login
   if (!user || !role) {

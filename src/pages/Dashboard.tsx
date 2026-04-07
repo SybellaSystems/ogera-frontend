@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
+import { ProfileMilestones, ProfileCompletionWizard } from "../components/ProfileCompletion";
+import { useProfileCompletion } from "../components/ProfileCompletion/useProfileCompletion";
 import {
   UserGroupIcon,
   BriefcaseIcon,
@@ -91,6 +93,9 @@ const Dashboard: React.FC = () => {
   const accessToken = useSelector((state: any) => state.auth.accessToken);
   const role = roleRaw ? String(roleRaw).toLowerCase().trim() : undefined;
   const isAdminDashboardRole = role === "superadmin" || Boolean(role?.includes("admin"));
+  const [isWizardOpen, setIsWizardOpen] = useState(false);
+  const showProfileCompletion = role === "student" || role === "employer";
+  const { profileCompletion, userId: profileUserId } = useProfileCompletion();
   const hour = new Date().getHours();
   const greeting =
     hour < 12
@@ -323,8 +328,8 @@ const Dashboard: React.FC = () => {
           change: appsChange !== null && appsChange !== undefined ? (appsChange >= 0 ? `+${appsChange}` : String(appsChange)) : undefined,
           trending: appsChange !== null && appsChange !== undefined ? (appsChange >= 0 ? 'up' as const : 'down' as const) : 'up' as const,
           icon: <BriefcaseIcon className="h-4 w-4" />,
-          color: 'text-indigo-600',
-          bg: 'bg-indigo-50',
+          color: 'text-[#7f56d9]',
+          bg: 'bg-[#f5f3ff]',
           changeBg: 'bg-green-50 text-green-700',
         },
         {
@@ -333,8 +338,8 @@ const Dashboard: React.FC = () => {
           change: undefined,
           trending: 'up' as const,
           icon: <AcademicCapIcon className="h-4 w-4" />,
-          color: 'text-emerald-600',
-          bg: 'bg-emerald-50',
+          color: 'text-[#7f56d9]',
+          bg: 'bg-[#f5f3ff]',
           changeBg: 'bg-green-50 text-green-700',
         },
         {
@@ -352,8 +357,8 @@ const Dashboard: React.FC = () => {
               ? 'down' as const
               : 'up' as const,
           icon: <UserGroupIcon className="h-4 w-4" />,
-          color: 'text-orange-600',
-          bg: 'bg-orange-50',
+          color: 'text-[#7f56d9]',
+          bg: 'bg-[#f5f3ff]',
           changeBg: 'bg-green-50 text-green-700',
         },
         {
@@ -363,7 +368,7 @@ const Dashboard: React.FC = () => {
           trending: 'up' as const,
           icon: <ChartBarIcon className="h-4 w-4" />,
           color: 'text-[#7F56D9]',
-          bg: 'bg-purple-50',
+          bg: 'bg-[#f5f3ff]',
           changeBg: 'bg-green-50 text-green-700',
         },
       ];
@@ -386,8 +391,8 @@ const Dashboard: React.FC = () => {
           change: formatChange(jobsPostedChange),
           trending: (jobsPostedChange ?? 0) >= 0 ? "up" as const : "down" as const,
           icon: <BriefcaseIcon className="h-4 w-4" />,
-          color: "text-indigo-600",
-          bg: "bg-indigo-50",
+          color: "text-[#7f56d9]",
+          bg: "bg-[#f5f3ff]",
           changeBg: (jobsPostedChange ?? 0) >= 0 ? "bg-green-50 text-green-700" : "bg-red-50 text-red-600",
         },
         {
@@ -396,8 +401,8 @@ const Dashboard: React.FC = () => {
           change: formatChange(applicationsReceivedChange),
           trending: (applicationsReceivedChange ?? 0) >= 0 ? "up" as const : "down" as const,
           icon: <UserGroupIcon className="h-4 w-4" />,
-          color: "text-emerald-600",
-          bg: "bg-emerald-50",
+          color: "text-[#7f56d9]",
+          bg: "bg-[#f5f3ff]",
           changeBg: (applicationsReceivedChange ?? 0) >= 0 ? "bg-green-50 text-green-700" : "bg-red-50 text-red-600",
         },
         {
@@ -406,8 +411,8 @@ const Dashboard: React.FC = () => {
           change: formatChange(activeHiresChange),
           trending: (activeHiresChange ?? 0) >= 0 ? "up" as const : "down" as const,
           icon: <AcademicCapIcon className="h-4 w-4" />,
-          color: "text-orange-600",
-          bg: "bg-orange-50",
+          color: "text-[#7f56d9]",
+          bg: "bg-[#f5f3ff]",
           changeBg: (activeHiresChange ?? 0) >= 0 ? "bg-green-50 text-green-700" : "bg-red-50 text-red-600",
         },
         {
@@ -417,7 +422,7 @@ const Dashboard: React.FC = () => {
           trending: (totalSpentChange ?? 0) >= 0 ? "up" as const : "down" as const,
           icon: <ChartBarIcon className="h-4 w-4" />,
           color: "text-[#7F56D9]",
-          bg: "bg-purple-50",
+          bg: "bg-[#f5f3ff]",
           changeBg: (totalSpentChange ?? 0) >= 0 ? "bg-green-50 text-green-700" : "bg-red-50 text-red-600",
         },
       ];
@@ -430,8 +435,8 @@ const Dashboard: React.FC = () => {
         change: undefined,
         trending: "up" as const,
         icon: <UserGroupIcon className="h-4 w-4" />,
-        color: "text-indigo-600",
-        bg: "bg-indigo-50",
+        color: "text-[#7f56d9]",
+        bg: "bg-[#f5f3ff]",
         changeBg: "bg-green-50 text-green-700",
       },
       {
@@ -440,8 +445,8 @@ const Dashboard: React.FC = () => {
         change: undefined,
         trending: "up" as const,
         icon: <AcademicCapIcon className="h-4 w-4" />,
-        color: "text-emerald-600",
-        bg: "bg-emerald-50",
+        color: "text-[#7f56d9]",
+        bg: "bg-[#f5f3ff]",
         changeBg: "bg-green-50 text-green-700",
       },
       {
@@ -450,8 +455,8 @@ const Dashboard: React.FC = () => {
         change: undefined,
         trending: "up" as const,
         icon: <BriefcaseIcon className="h-4 w-4" />,
-        color: "text-orange-600",
-        bg: "bg-orange-50",
+        color: "text-[#7f56d9]",
+        bg: "bg-[#f5f3ff]",
         changeBg: "bg-red-50 text-red-600",
       },
       {
@@ -461,7 +466,7 @@ const Dashboard: React.FC = () => {
         trending: "up" as const,
         icon: <ChartBarIcon className="h-4 w-4" />,
         color: "text-[#7F56D9]",
-        bg: "bg-purple-50",
+        bg: "bg-[#f5f3ff]",
         changeBg: "bg-green-50 text-green-700",
       },
     ];
@@ -470,25 +475,25 @@ const Dashboard: React.FC = () => {
   const getQuickStats = () => {
     if (role === "student") {
       return [
-        { color: "text-green-600", hoverBg: "hover:bg-green-50", text: t("dashboard.applicationsShortlisted") },
-        { color: "text-blue-600", hoverBg: "hover:bg-blue-50", text: t("dashboard.jobsInProgress") },
-        { color: "text-orange-600", hoverBg: "hover:bg-orange-50", text: t("dashboard.interviewScheduled") },
-        { color: "text-purple-600", hoverBg: "hover:bg-purple-50", text: t("dashboard.newJobMatches") },
+        { color: "text-[#7f56d9]", hoverBg: "hover:bg-[#f5f3ff]", text: t("dashboard.applicationsShortlisted") },
+        { color: "text-[#7f56d9]", hoverBg: "hover:bg-[#f5f3ff]", text: t("dashboard.jobsInProgress") },
+        { color: "text-[#7f56d9]", hoverBg: "hover:bg-[#f5f3ff]", text: t("dashboard.interviewScheduled") },
+        { color: "text-[#7f56d9]", hoverBg: "hover:bg-[#f5f3ff]", text: t("dashboard.newJobMatches") },
       ];
     }
     if (role === "employer") {
       return [
-        { color: "text-green-600", hoverBg: "hover:bg-green-50", text: t("dashboard.newApplicantsThisWeek") },
-        { color: "text-blue-600", hoverBg: "hover:bg-blue-50", text: t("dashboard.positionsFilledThisMonth") },
-        { color: "text-orange-600", hoverBg: "hover:bg-orange-50", text: t("dashboard.interviewsPending") },
-        { color: "text-red-600", hoverBg: "hover:bg-red-50", text: t("dashboard.contractsExpiringSoon") },
+        { color: "text-[#7f56d9]", hoverBg: "hover:bg-[#f5f3ff]", text: t("dashboard.newApplicantsThisWeek") },
+        { color: "text-[#7f56d9]", hoverBg: "hover:bg-[#f5f3ff]", text: t("dashboard.positionsFilledThisMonth") },
+        { color: "text-[#7f56d9]", hoverBg: "hover:bg-[#f5f3ff]", text: t("dashboard.interviewsPending") },
+        { color: "text-[#7f56d9]", hoverBg: "hover:bg-[#f5f3ff]", text: t("dashboard.contractsExpiringSoon") },
       ];
     }
     return [
-      { color: "text-green-600", hoverBg: "hover:bg-green-50", text: t("dashboard.newStudentsThisWeek") },
-      { color: "text-blue-600", hoverBg: "hover:bg-blue-50", text: t("dashboard.jobsPostedThisWeek") },
-      { color: "text-orange-600", hoverBg: "hover:bg-orange-50", text: t("dashboard.academicVerificationsPending") },
-      { color: "text-red-600", hoverBg: "hover:bg-red-50", text: t("dashboard.disputesResolved") },
+      { color: "text-[#7f56d9]", hoverBg: "hover:bg-[#f5f3ff]", text: t("dashboard.newStudentsThisWeek") },
+      { color: "text-[#7f56d9]", hoverBg: "hover:bg-[#f5f3ff]", text: t("dashboard.jobsPostedThisWeek") },
+      { color: "text-[#7f56d9]", hoverBg: "hover:bg-[#f5f3ff]", text: t("dashboard.academicVerificationsPending") },
+      { color: "text-[#7f56d9]", hoverBg: "hover:bg-[#f5f3ff]", text: t("dashboard.disputesResolved") },
     ];
   };
 
@@ -612,14 +617,26 @@ const Dashboard: React.FC = () => {
   return (
     <div className="space-y-3 animate-fadeIn max-w-full overflow-x-hidden">
       {/* Welcome Section */}
-      <div className="bg-gradient-to-r from-[#7F56D9] to-[#6941C6] rounded-lg p-3 text-white shadow-sm">
+      <div className="bg-[#7f56d9] rounded-lg p-3 text-white shadow-sm">
         <h1 className="text-sm md:text-base font-bold">
           {greeting}, {user?.full_name || t("dashboard.user")}
         </h1>
-        <p className="text-[11px] text-purple-200 mt-0.5">
+        <p className="text-[11px] text-white/70 mt-0.5">
           {subtitle}
         </p>
       </div>
+
+      {/* Profile Completion */}
+      {showProfileCompletion && (
+        <ProfileMilestones profileCompletion={profileCompletion} userId={profileUserId} onStartWizard={() => setIsWizardOpen(true)} />
+      )}
+      {showProfileCompletion && (
+        <ProfileCompletionWizard
+          isOpen={isWizardOpen}
+          onClose={() => setIsWizardOpen(false)}
+          onComplete={() => setIsWizardOpen(false)}
+        />
+      )}
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-2">
@@ -701,7 +718,7 @@ const Dashboard: React.FC = () => {
 
           {/* Student Rating */}
           {role === "student" && (
-            <div className="mb-2 p-2 rounded bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-100">
+            <div className="mb-2 p-2 rounded bg-[#f5f3ff] border border-[#e0d8f0]">
               <p className="text-[10px] text-gray-500 mb-0.5">{t("dashboard.yourRating")}</p>
               <div className="flex items-center gap-1.5">
                 <div className="flex items-center gap-px">
@@ -737,9 +754,9 @@ const Dashboard: React.FC = () => {
           {recentActivity.map((activity, index) => (
             <li
               key={index}
-              className="pb-1.5 border-b last:border-none text-[11px] text-gray-600 hover:text-purple-600 transition-colors duration-200 flex items-center gap-1.5 group cursor-pointer"
+              className="pb-1.5 border-b last:border-none text-[11px] text-gray-600 hover:text-[#7f56d9] transition-colors duration-200 flex items-center gap-1.5 group cursor-pointer"
             >
-              <span className="w-1 h-1 rounded-full bg-purple-400 group-hover:bg-purple-600 transition-colors shrink-0"></span>
+              <span className="w-1 h-1 rounded-full bg-[#7f56d9] group-hover:bg-[#5b3ba5] transition-colors shrink-0"></span>
               <span>{activity}</span>
             </li>
           ))}
@@ -759,7 +776,7 @@ const Dashboard: React.FC = () => {
               </div>
               <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-[#7F56D9] to-[#9E77ED] rounded-full transition-all duration-500"
+                  className="h-full bg-[#7f56d9] rounded-full transition-all duration-500"
                   style={{ width: "75%" }}
                 />
               </div>
@@ -770,11 +787,11 @@ const Dashboard: React.FC = () => {
             <div className="space-y-1">
               <div className="flex items-center justify-between">
                 <span className="text-[11px] text-gray-600">Job Completion</span>
-                <span className="text-[11px] font-bold text-emerald-600">85%</span>
+                <span className="text-[11px] font-bold text-[#7f56d9]">85%</span>
               </div>
               <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full transition-all duration-500"
+                  className="h-full bg-[#7f56d9] rounded-full transition-all duration-500"
                   style={{ width: "85%" }}
                 />
               </div>
@@ -785,11 +802,11 @@ const Dashboard: React.FC = () => {
             <div className="space-y-1">
               <div className="flex items-center justify-between">
                 <span className="text-[11px] text-gray-600">{t("dashboard.applicationSuccess")}</span>
-                <span className="text-[11px] font-bold text-orange-600">42%</span>
+                <span className="text-[11px] font-bold text-[#7f56d9]">42%</span>
               </div>
               <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-orange-500 to-orange-400 rounded-full transition-all duration-500"
+                  className="h-full bg-[#7f56d9] rounded-full transition-all duration-500"
                   style={{ width: "42%" }}
                 />
               </div>
