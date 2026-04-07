@@ -9,21 +9,16 @@ import {
   reviewAcademicVerification,
 } from "../../services/api/academicVerificationApi";
 import api from "../../services/api/axiosInstance";
-
-interface RootState {
-  auth: {
-    role: string;
-  };
-}
+import toast from "react-hot-toast";
 
 const PendingReviews: React.FC = () => {
   const { t } = useTranslation();
-  const role = useSelector((state: RootState) => state.auth.role);
+  const roleRaw = useSelector((state: any) => state.auth.role);
+  const role = (typeof roleRaw === 'object' ? (roleRaw?.roleType || roleRaw?.roleName || '') : (typeof roleRaw === 'string' ? roleRaw : '')).toLowerCase();
 
   // -------- student state --------
-  const [myVerification, setMyVerification] = useState<
-    AcademicVerification | null
-  >(null);
+  const [myVerifications, setMyVerifications] = useState<AcademicVerification[]>([]);
+  const [loadingStudent, setLoadingStudent] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [studentError, setStudentError] = useState<string | null>(null);
   const [studentSuccess, setStudentSuccess] = useState<string | null>(null);
@@ -44,12 +39,14 @@ const PendingReviews: React.FC = () => {
   // ---------- helpers ----------
   const loadMyVerification = async () => {
     try {
+      setLoadingStudent(true);
       setStudentError(null);
       const res = await getMyAcademicVerification();
-      setMyVerification(res.data);
+      const data = res.data;
+      const all = Array.isArray(data) ? data : data ? [data] : [];
+      setMyVerifications(all.filter((d: any) => d.status === "pending"));
     } catch (err: any) {
-      // If not found, keep null
-      setMyVerification(null);
+      setMyVerifications([]);
       const data = err?.response?.data;
       const raw =
         (typeof data?.message === "string" ? data.message : null) ||
@@ -60,6 +57,8 @@ const PendingReviews: React.FC = () => {
       setStudentError(
         raw ? getTranslatedErrorMessage(raw) : t("pages.academic.failedToFetch")
       );
+    } finally {
+      setLoadingStudent(false);
     }
   };
 
@@ -106,7 +105,7 @@ const PendingReviews: React.FC = () => {
   useEffect(() => {
     if (role === "student") {
       void loadMyVerification();
-    } else if (role === "admin" || role === "superadmin" || role === "verifyDocAdmin") {
+    } else if (role === "admin" || role === "superadmin" || role === "verifydocadmin" || role?.includes("admin")) {
       void loadPendingForAdmin();
     }
   }, [role]);
@@ -123,24 +122,12 @@ const PendingReviews: React.FC = () => {
       setStudentError(null);
       setStudentSuccess(null);
 
-      // Decide whether to upload new or re-upload based on status
-      if (
-        myVerification &&
-        (myVerification.status === "rejected" ||
-          myVerification.status === "resubmission_required")
-      ) {
-        const { reuploadAcademicVerification } = await import(
-          "../../services/api/academicVerificationApi"
-        );
-        await reuploadAcademicVerification(myVerification.id, file);
-        setStudentSuccess(t("pages.academic.documentReuploadedSuccess"));
-      } else {
-        const { uploadAcademicVerification } = await import(
-          "../../services/api/academicVerificationApi"
-        );
-        await uploadAcademicVerification(file);
-        setStudentSuccess(t("pages.academic.documentUploadedSuccess"));
-      }
+      // Always upload as a new document
+      const { uploadAcademicVerification } = await import(
+        "../../services/api/academicVerificationApi"
+      );
+      await uploadAcademicVerification(file);
+      setStudentSuccess(t("pages.academic.documentUploadedSuccess"));
 
       await loadMyVerification();
     } catch (err: any) {
@@ -179,6 +166,11 @@ const PendingReviews: React.FC = () => {
       }
 
       await reviewAcademicVerification({ id, status, rejection_reason });
+      toast.success(
+        status === "accepted" ? "Verification approved successfully" :
+        status === "rejected" ? "Verification rejected" :
+        "Resubmission requested"
+      );
       await loadPendingForAdmin();
     } catch (err: any) {
       const data = err?.response?.data;
@@ -283,98 +275,158 @@ const PendingReviews: React.FC = () => {
   if (role === "student") {
     return (
       <div className="academic-page theme-page-bg p-3 min-h-full">
-        <div className="max-w-3xl mx-auto space-y-3">
-          {/* Header */}
-          <div className="text-center space-y-1">
-            <div className="inline-flex items-center justify-center w-10 h-10 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-full shadow-lg">
-              <DocumentCheckIcon className="h-5 w-5 text-white" />
+        <div className="max-w-4xl mx-auto space-y-4">
+          {/* Header + Upload */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-lg font-bold text-gray-800">{t("pages.academic.title")}</h1>
+              <p className="text-gray-500 text-xs">{t("pages.academic.subtitle")}</p>
             </div>
-            <h1 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
-              {t("pages.academic.title")}
-            </h1>
-            <p className="text-gray-600 text-xs">{t("pages.academic.subtitle")}</p>
-          </div>
-
-          {/* Status Card */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-3">
-            <h2 className="text-base font-bold text-gray-800 mb-2">{t("pages.academic.status")}</h2>
-            {myVerification ? (
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-gray-700 text-sm">{t("pages.academic.current")}:</span>
-                  <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${
-                    myVerification.status === "accepted"
-                      ? "bg-green-100 text-green-700"
-                      : myVerification.status === "rejected" || myVerification.status === "resubmission_required"
-                      ? "bg-red-100 text-red-700"
-                      : "bg-yellow-100 text-yellow-700"
-                  }`}>
-                    {myVerification.status === "accepted"
-                      ? t("pages.academic.approved")
-                      : myVerification.status === "rejected"
-                      ? t("pages.academic.rejected")
-                      : myVerification.status === "resubmission_required"
-                      ? t("pages.academic.resubmissionRequired")
-                      : t("pages.academic.pending")}
-                  </span>
-                </div>
-                {myVerification.rejection_reason && (
-                  <div className="bg-red-50 border-l-4 border-red-400 p-2 rounded-r">
-                    <p className="text-red-700 text-xs font-medium">{t("pages.academic.reason")}:</p>
-                    <p className="text-red-600 text-xs">{getTranslatedErrorMessage(myVerification.rejection_reason)}</p>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <p className="text-gray-500 text-sm">{t("pages.academic.noDocumentUploaded")}</p>
-            )}
-          </div>
-
-          {/* Upload Card */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-3">
-            <h2 className="text-base font-bold text-gray-800 mb-2">
-              {myVerification?.status === "rejected" || myVerification?.status === "resubmission_required"
-                ? t("pages.academic.reupload")
-                : t("pages.academic.upload")}
-            </h2>
-
-            <div className="bg-purple-50 border border-purple-200 rounded-lg p-2 mb-2">
-              <p className="text-purple-600 text-xs">{t("pages.academic.fileTypesHint")}</p>
-            </div>
-
-            {studentError && (
-              <div className="bg-red-50 border-l-4 border-red-400 p-2 rounded-r mb-2">
-                <p className="text-red-600 text-xs">{studentError}</p>
-              </div>
-            )}
-
-            {studentSuccess && (
-              <div className="bg-green-50 border-l-4 border-green-400 p-2 rounded-r mb-2">
-                <p className="text-green-600 text-xs">{studentSuccess}</p>
-              </div>
-            )}
-
-            <label className={`inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-lg font-medium cursor-pointer transition-all shadow-md hover:shadow-lg ${
+            <label className={`inline-flex items-center gap-2 px-4 py-2 bg-[#7f56d9] hover:bg-[#5b3ba5] text-white rounded-lg font-medium cursor-pointer transition-all text-sm ${
               uploading ? 'opacity-75 cursor-not-allowed' : ''
             }`}>
               {uploading ? (
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
               ) : (
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
               )}
-              <span>{uploading ? t("pages.academic.uploading") : t("pages.academic.chooseFile")}</span>
+              <span>{uploading ? t("pages.academic.uploading") : "Upload Document"}</span>
               <input type="file" className="hidden" onChange={handleFileChange} disabled={uploading} />
             </label>
+          </div>
 
-            {myVerification?.status === "pending" && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-2 mt-3 text-center">
-                <p className="text-yellow-600 text-xs">{t("pages.academic.underReview")}</p>
+          {studentError && (
+            <div className="bg-red-50 border-l-4 border-red-400 p-2 rounded-r">
+              <p className="text-red-600 text-xs">{studentError}</p>
+            </div>
+          )}
+
+          {studentSuccess && (
+            <div className="bg-green-50 border-l-4 border-green-400 p-2 rounded-r">
+              <p className="text-green-600 text-xs">{studentSuccess}</p>
+            </div>
+          )}
+
+          {/* Documents Table */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
+              <h2 className="text-sm font-semibold text-gray-700">
+                Submitted Documents ({myVerifications.length})
+              </h2>
+            </div>
+
+            {loadingStudent ? (
+              <div className="flex items-center justify-center py-10">
+                <div className="w-5 h-5 border-2 border-[#e0d8f0] border-t-[#7f56d9] rounded-full animate-spin mr-2"></div>
+                <p className="text-gray-500 text-sm">Loading documents...</p>
+              </div>
+            ) : myVerifications.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-100">
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">#</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Document</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Uploaded</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Status</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Feedback</th>
+                      <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {myVerifications.map((doc, index) => (
+                      <tr key={doc.id} className="border-b border-gray-50 hover:bg-[#f5f3ff]/50 transition-colors">
+                        <td className="px-4 py-3 text-gray-500 text-xs">{index + 1}</td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 bg-[#f5f3ff] rounded-lg flex items-center justify-center flex-shrink-0">
+                              <DocumentCheckIcon className="w-4 h-4 text-[#7f56d9]" />
+                            </div>
+                            <span className="font-medium text-gray-800 truncate max-w-[200px]">
+                              {(doc.document_path?.split('/').pop() || "Document").replace(/^\d+-/, '')}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">
+                          {new Date(doc.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                          {" - "}
+                          {new Date(doc.created_at).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${
+                            doc.status === "accepted" ? "bg-green-100 text-green-700"
+                            : doc.status === "rejected" || doc.status === "resubmission_required" ? "bg-red-100 text-red-700"
+                            : "bg-yellow-100 text-yellow-700"
+                          }`}>
+                            {doc.status === "accepted" ? t("pages.academic.approved")
+                            : doc.status === "rejected" ? t("pages.academic.rejected")
+                            : doc.status === "resubmission_required" ? t("pages.academic.resubmissionRequired")
+                            : t("pages.academic.pending")}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-xs text-gray-500 max-w-[200px] truncate">
+                          {doc.rejection_reason ? (
+                            <span className="text-red-600">{getTranslatedErrorMessage(doc.rejection_reason)}</span>
+                          ) : (
+                            <span className="text-gray-400">—</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <button
+                            onClick={() => handleViewDocument(doc)}
+                            className="cursor-pointer px-3 py-1.5 bg-[#7f56d9] hover:bg-[#5b3ba5] text-white rounded-lg text-xs font-medium transition-all"
+                          >
+                            View
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="text-center py-10">
+                <DocumentCheckIcon className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+                <p className="text-gray-500 text-sm">{t("pages.academic.noDocumentUploaded")}</p>
+                <p className="text-gray-400 text-xs mt-1">Upload your academic documents to get verified</p>
               </div>
             )}
           </div>
+
+          {/* File types hint */}
+          <div className="bg-[#f5f3ff] border border-[#e0d8f0] rounded-lg p-2">
+            <p className="text-[#7f56d9] text-xs">{t("pages.academic.fileTypesHint")}</p>
+          </div>
         </div>
+
+        {/* Document Viewer Modal */}
+        {showViewer && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 backdrop-blur-sm">
+            <div className="fixed inset-0 bg-black/40" onClick={closeViewer} />
+            <div className="relative bg-white rounded-lg shadow-lg max-w-4xl w-full max-h-[85vh] z-60 flex flex-col overflow-hidden border border-gray-200">
+              <div className="flex items-center justify-between p-3 border-b">
+                <h3 className="text-lg font-bold text-gray-800">{t("pages.academic.documentViewer")}</h3>
+                <div className="flex items-center gap-2">
+                  <button className="cursor-pointer px-3 py-1 text-sm bg-[#7f56d9] text-white rounded" onClick={downloadViewer}>{t("pages.academic.download")}</button>
+                  <button className="cursor-pointer px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded" onClick={closeViewer}>{t("pages.academic.close")}</button>
+                </div>
+              </div>
+              <div className="flex-1 overflow-y-auto p-2 sm:p-4">
+                {viewerUrl ? (
+                  viewerContentType?.startsWith('image/') ? (
+                    <img src={viewerUrl} alt="document" className="mx-auto max-h-full w-auto object-contain" />
+                  ) : (
+                    <iframe src={viewerUrl} className="w-full h-full border-0 min-h-[500px]" title="Document" />
+                  )
+                ) : (
+                  <div className="text-center p-8 text-gray-500">{t("pages.academic.noDocumentToDisplay")}</div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -385,10 +437,10 @@ const PendingReviews: React.FC = () => {
       <div className="max-w-6xl mx-auto space-y-3">
         {/* Header */}
         <div className="text-center space-y-1">
-          <div className="inline-flex items-center justify-center w-10 h-10 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-full shadow-lg">
+          <div className="inline-flex items-center justify-center w-10 h-10 bg-[#7f56d9] rounded-full shadow-lg">
             <DocumentCheckIcon className="h-5 w-5 text-white" />
           </div>
-          <h1 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+          <h1 className="text-xl font-bold text-[#7f56d9]">
             {t("pages.academic.pendingReviews")}
           </h1>
           <p className="text-gray-600 text-xs">{t("pages.academic.awaitingReview")}</p>
@@ -398,12 +450,12 @@ const PendingReviews: React.FC = () => {
         <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-3 max-w-xs mx-auto">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-purple-600 font-bold text-xs uppercase">{t("pages.academic.pending")}</p>
-              <p className="text-xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+              <p className="text-[#7f56d9] font-bold text-xs uppercase">{t("pages.academic.pending")}</p>
+              <p className="text-xl font-bold text-[#7f56d9]">
                 {pending.length}
               </p>
             </div>
-            <DocumentCheckIcon className="h-5 w-5 text-purple-600" />
+            <DocumentCheckIcon className="h-5 w-5 text-[#7f56d9]" />
           </div>
         </div>
 
@@ -416,7 +468,7 @@ const PendingReviews: React.FC = () => {
         {loadingAdmin ? (
           <div className="flex items-center justify-center py-8">
             <div className="flex items-center gap-2">
-              <div className="w-5 h-5 border-2 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
+              <div className="w-5 h-5 border-2 border-[#e0d8f0] border-t-[#7f56d9] rounded-full animate-spin"></div>
               <p className="text-gray-600 text-sm">{t("pages.academic.loading")}</p>
             </div>
           </div>
@@ -433,29 +485,30 @@ const PendingReviews: React.FC = () => {
                   <div className="flex-1 space-y-2">
                     {/* User Info */}
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-100 to-indigo-100 flex items-center justify-center flex-shrink-0">
-                        <span className="text-purple-600 font-bold text-xs">
-                          {item.user_id.charAt(0).toUpperCase()}
+                      <div className="w-8 h-8 rounded-full bg-[#7f56d9] flex items-center justify-center flex-shrink-0">
+                        <span className="text-white font-bold text-xs">
+                          {(item.user?.full_name || item.user_id).split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
                         </span>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-bold text-gray-800 text-sm truncate">ID: {item.user_id}</h3>
+                        <h3 className="font-bold text-gray-800 text-sm truncate">{item.user?.full_name || item.user_id}</h3>
                         <p className="text-gray-500 text-xs">
-                          {new Date(item.created_at).toLocaleDateString()}
+                          {item.user?.email && <span className="mr-2">{item.user.email}</span>}
+                          {new Date(item.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })} - {new Date(item.created_at).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })}
                         </p>
                       </div>
-                      <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs font-bold flex-shrink-0">
+                      <span className="bg-[#f5f3ff] text-[#5b3ba5] px-2 py-1 rounded text-xs font-bold flex-shrink-0">
                         {item.storage_type.toUpperCase()}
                       </span>
                     </div>
 
                     {/* Review reason (required for reject/resubmission required) */}
                     <div>
-                      <label className="block text-gray-700 font-medium text-xs mb-1">
+                      <label className="cursor-pointer block text-gray-700 font-medium text-xs mb-1">
                         {t("pages.academic.reviewReason")} <span className="text-red-500">*</span>
                       </label>
                       <textarea
-                        className="w-full rounded-lg border border-gray-200 px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-purple-500 resize-none"
+                        className="w-full rounded-lg border border-gray-200 px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-[#7f56d9] focus:border-[#7f56d9] resize-none"
                         rows={2}
                         placeholder={t("pages.academic.reviewReasonPlaceholder")}
                         value={rejectionNotes[item.id] || ""}
@@ -472,13 +525,13 @@ const PendingReviews: React.FC = () => {
                   {/* Actions */}
                   <div className="flex lg:flex-col gap-2 lg:min-w-[130px] flex-shrink-0">
                     <button
-                      className={`flex-1 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-all text-xs disabled:opacity-50`}
+                      className={`cursor-pointer flex-1 px-3 py-2 bg-[#7f56d9] hover:bg-[#5b3ba5] text-white rounded-lg font-medium transition-all text-xs disabled:opacity-50`}
                       onClick={() => handleViewDocument(item)}
                     >
                       {t("pages.academic.view")}
                     </button>
                     <button
-                      className={`flex-1 px-3 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition-all text-xs disabled:opacity-50 ${
+                      className={`cursor-pointer flex-1 px-3 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition-all text-xs disabled:opacity-50 ${
                         reviewLoadingId === item.id ? 'animate-pulse' : ''
                       }`}
                       disabled={reviewLoadingId === item.id}
@@ -488,7 +541,7 @@ const PendingReviews: React.FC = () => {
                     </button>
                     
                     <button
-                      className={`flex-1 px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-all text-xs disabled:opacity-50 ${
+                      className={`cursor-pointer flex-1 px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-all text-xs disabled:opacity-50 ${
                         reviewLoadingId === item.id ? 'animate-pulse' : ''
                       }`}
                       disabled={reviewLoadingId === item.id}
@@ -497,7 +550,7 @@ const PendingReviews: React.FC = () => {
                       {reviewLoadingId === item.id ? t("pages.academic.rejecting") : t("pages.academic.reject")}
                     </button>
                     <button
-                      className={`flex-1 px-3 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-medium transition-all text-xs disabled:opacity-50 ${
+                      className={`cursor-pointer flex-1 px-3 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-medium transition-all text-xs disabled:opacity-50 ${
                         reviewLoadingId === item.id ? 'animate-pulse' : ''
                       }`}
                       disabled={reviewLoadingId === item.id}
@@ -520,8 +573,8 @@ const PendingReviews: React.FC = () => {
               <div className="flex items-center justify-between p-3 sm:p-4 border-b flex-shrink-0">
                 <h3 className="text-lg font-bold">{t("pages.academic.documentViewer")}</h3>
                 <div className="flex items-center gap-2">
-                  <button className="px-3 py-1 text-sm bg-green-500 rounded" onClick={downloadViewer}>{t("pages.academic.download")}</button>
-                  <button className="px-3 py-1 text-sm bg-red-400 rounded" onClick={closeViewer}>{t("pages.academic.close")}</button>
+                  <button className="px-3 py-1 text-sm bg-[#7f56d9] text-white rounded cursor-pointer" onClick={downloadViewer}>{t("pages.academic.download")}</button>
+                  <button className="px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded cursor-pointer" onClick={closeViewer}>{t("pages.academic.close")}</button>
                 </div>
               </div>
               <div className="flex-1 overflow-y-auto p-2 sm:p-4">
