@@ -10,6 +10,7 @@ export interface UserProfile {
   resume_url?: string;
   cover_letter?: string;
   preferred_location?: string;
+  profile_image_url?: string;
   email_verified?: boolean;
   phone_verified?: boolean;
   two_fa_enabled: boolean;

@@ -91,11 +91,21 @@ const Login = ({ initialView }: LoginProps = {}) => {
         withCredentials: true,
       });
       const userData = (userRes.data as any).user;
+      // Resolve relative profile image URL to full URL
+      if (userData?.profile_image_url && userData.profile_image_url.startsWith("/")) {
+        const baseUrl = (BASE_URL || "http://localhost:5000/api").replace("/api", "");
+        userData.profile_image_url = `${baseUrl}${userData.profile_image_url}`;
+      }
+      // Extract role string — could be an object { roleName, roleType } or a string
+      const userRole = typeof userData.role === 'object'
+        ? (userData.role?.roleType || userData.role?.roleName || userData.role_type)
+        : (userData.role || userData.role_type);
+
       dispatch(
         setCredentials({
           user: userData,
           accessToken,
-          role: userData.role,
+          role: userRole,
           permissions: userData.permissions || null,
         })
       );
@@ -211,15 +221,25 @@ const Login = ({ initialView }: LoginProps = {}) => {
 
   return (
     <AuthContainer>
+      {/* Mobile tab toggle */}
+      <MobileTabToggle>
+        <MobileTab $active={isLogin} onClick={() => { setIsLogin(true); window.history.replaceState(null, "", "/auth/login"); }}>
+          Sign In
+        </MobileTab>
+        <MobileTab $active={!isLogin} onClick={() => { setIsLogin(false); window.history.replaceState(null, "", "/auth/register"); }}>
+          Sign Up
+        </MobileTab>
+      </MobileTabToggle>
+
       {/* Forms layer — signup left, login right */}
       <FormsWrapper>
         {/* Signup form — left half */}
-        <FormPanel style={{ opacity: isLogin ? 0 : 1, pointerEvents: isLogin ? "none" : "auto", transition: "opacity 0.4s ease 0.2s" }}>
+        <FormPanel className={isLogin ? "inactive" : "active"} style={{ opacity: isLogin ? 0 : 1, pointerEvents: isLogin ? "none" : "auto", transition: "opacity 0.4s ease 0.2s" }}>
           <Register formOnly onRoleChange={setSignupRole} />
         </FormPanel>
 
         {/* Login form — right half */}
-        <FormPanel style={{ opacity: isLogin ? 1 : 0, pointerEvents: isLogin ? "auto" : "none", transition: "opacity 0.4s ease 0.2s" }}>
+        <FormPanel className={isLogin ? "active" : "inactive"} style={{ opacity: isLogin ? 1 : 0, pointerEvents: isLogin ? "auto" : "none", transition: "opacity 0.4s ease 0.2s" }}>
           <FormInner>
             <BackButton to="/">
               <ChevronLeft style={{ fontSize: 20 }} />
@@ -364,10 +384,38 @@ const AuthContainer = styled("div")`
   font-family: "Nunito", Inter, sans-serif;
 `;
 
+const MobileTabToggle = styled("div")`
+  display: none;
+  @media (max-width: 768px) {
+    display: flex;
+    padding: 4px;
+    background: #f0ecfa;
+    border-radius: 12px;
+    margin: 12px 16px 0;
+  }
+`;
+
+const MobileTab = styled("button")<{ $active: boolean }>`
+  flex: 1;
+  padding: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  border-radius: 10px;
+  transition: all 0.3s;
+  font-family: inherit;
+  background: ${(p) => (p.$active ? "#7f56d9" : "transparent")};
+  color: ${(p) => (p.$active ? "#fff" : "#6b6580")};
+`;
+
 const FormsWrapper = styled("div")`
   display: flex;
   width: 100%;
   height: 100%;
+  @media (max-width: 768px) {
+    height: calc(100vh - 60px);
+  }
 `;
 
 const FormPanel = styled("div")`
@@ -381,7 +429,17 @@ const FormPanel = styled("div")`
   scrollbar-width: none;
   &::-webkit-scrollbar { display: none; }
   @media (max-width: 768px) {
+    position: absolute;
     width: 100%;
+    top: 60px;
+    bottom: 0;
+    height: auto;
+    &.inactive {
+      display: none;
+    }
+    &.active {
+      display: flex;
+    }
   }
 `;
 
@@ -393,6 +451,10 @@ const FormInner = styled("div")`
   gap: 8px;
   padding: 40px;
   margin: auto 0;
+  @media (max-width: 768px) {
+    padding: 24px 20px;
+    max-width: 100%;
+  }
   @media (max-width: 480px) {
     padding: 20px 16px;
   }
@@ -412,6 +474,9 @@ const BackButton = styled(Link)`
   &:hover {
     color: #7f56d9;
   }
+  @media (max-width: 768px) {
+    display: none;
+  }
 `;
 
 const FormLogo = styled("div")`
@@ -420,6 +485,9 @@ const FormLogo = styled("div")`
   height: 36px;
   width: 110px;
   margin-bottom: 16px;
+  @media (max-width: 768px) {
+    display: none;
+  }
 `;
 
 /* --- Sliding Overlay Panel --- */
