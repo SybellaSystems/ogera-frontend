@@ -27,11 +27,10 @@ interface UserProfileProps {
   setIsEditProfileModalOpen?: (open: boolean) => void;
   employments?: any[];
   educations?: any[];
-  projects?: any[];
-  keySkills?: any[];
-  trustScoreResponse?: any;
-  isTrustScoreLoading?: boolean;
-  [key: string]: any;
+  profileData: unknown;
+  user: unknown;
+  userRole: string;
+  loading: boolean;
 }
 
 const UserProfile: React.FC<UserProfileProps> = ({
