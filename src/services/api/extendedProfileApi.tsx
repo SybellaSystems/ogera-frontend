@@ -217,6 +217,11 @@ export const extendedProfileApi = createApi({
       providesTags: ["FullProfile"],
     }),
 
+    getOtherUserFullProfile: builder.query<ApiResponse<FullProfile>, string>({
+      query: (userId) => `/profile/full/${userId}`,
+      providesTags: ["FullProfile"],
+    }),
+
     // ====================== EXTENDED PROFILE ======================
     getExtendedProfile: builder.query<ApiResponse<ExtendedProfile>, void>({
       query: () => "/profile/extended",
@@ -412,6 +417,7 @@ export const extendedProfileApi = createApi({
 export const {
   // Full Profile
   useGetFullProfileQuery,
+  useGetOtherUserFullProfileQuery,
   // Extended Profile
   useGetExtendedProfileQuery,
   useUpdateExtendedProfileMutation,

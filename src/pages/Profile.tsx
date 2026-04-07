@@ -7,6 +7,9 @@ import { uploadResume } from "../services/api/resumeApi";
 import { uploadProfileImage } from "../services/api/profileImageApi";
 import type { UserProfile } from "../services/api/profileApi";
 import { useGetMyTrustScoreQuery } from "../services/api/trustScoreApi";
+import { useGetDashboardMetricsQuery } from "../services/api/dashboardApi";
+import { useListJobPaymentsQuery, useGetWalletBalanceQuery } from "../services/api/momoApi";
+import { useGetAllUsersQuery } from "../services/api/usersApi";
 import {
   useGetFullProfileQuery,
   useUpdateExtendedProfileMutation,
@@ -128,6 +131,12 @@ const Profile: React.FC = () => {
   const [resendVerificationEmail] = useResendVerificationEmailMutation();
   const navigate = useNavigate();
 
+  // Determine user role early for conditional hooks
+  const userData = profileData || user;
+  const userRole = userData?.role?.roleName || role;
+  const normalizedUserRole = (userRole || "").toString().toLowerCase();
+  const isSuperAdmin = normalizedUserRole === "superadmin";
+
   // Fetch TrustScore
   const {
     data: trustScoreResponse,
@@ -135,6 +144,36 @@ const Profile: React.FC = () => {
     refetch: refetchTrustScore,
   } = useGetMyTrustScoreQuery(undefined, {
     skip: !profileData,
+  });
+
+  // Fetch Dashboard Metrics (for superadmin)
+  const {
+    data: dashboardMetricsData,
+    isLoading: isDashboardMetricsLoading,
+  } = useGetDashboardMetricsQuery(undefined, {
+    skip: !isSuperAdmin,
+  });
+
+  // Fetch Job Payments (for superadmin - transactions)
+  const {
+    data: jobPaymentsData,
+    isLoading: isJobPaymentsLoading,
+  } = useListJobPaymentsQuery(undefined, {
+    skip: !isSuperAdmin,
+  });
+
+  // Fetch Wallet Balance (for superadmin)
+  const {
+    data: _walletBalanceData,
+  } = useGetWalletBalanceQuery(undefined, {
+    skip: !isSuperAdmin,
+  });
+
+  // Fetch All Users (for superadmin - user counts)
+  const {
+    data: _allUsersData,
+  } = useGetAllUsersQuery({ page: 1, limit: 1 }, {
+    skip: !isSuperAdmin,
   });
 
   // Fetch user profile from API
@@ -159,14 +198,16 @@ const Profile: React.FC = () => {
 
   // Update local state when full profile data loads
   useEffect(() => {
-    if (fullProfileData?.data) {
-      const ext = fullProfileData.data.extendedProfile;
+    const profileToUse = fullProfileData?.data;
+    
+    if (profileToUse) {
+      const ext = profileToUse.extendedProfile;
       if (ext) {
         setResumeHeadline(ext.resume_headline || "");
         setProfileSummary(ext.profile_summary || "");
       }
       // Set skills input
-      const keySkills = fullProfileData.data.skills
+      const keySkills = profileToUse.skills
         .filter(s => s.skill_type === "key_skill")
         .map(s => s.skill_name);
       setSkillsInput(keySkills.join(", "));
@@ -184,9 +225,6 @@ const Profile: React.FC = () => {
     refetchTrustScore();
   };
 
-  const userData = profileData || user;
-  const userRole = profileData?.role?.roleName || role;
-  const normalizedUserRole = (userRole || "").toString().toLowerCase();
   const shouldShowVerifyAccountButton =
     normalizedUserRole !== "admin" && normalizedUserRole !== "superadmin";
 
@@ -204,14 +242,15 @@ const Profile: React.FC = () => {
   };
 
   // Get data from full profile
-  const extendedProfile = fullProfileData?.data?.extendedProfile;
-  const skills = fullProfileData?.data?.skills || [];
+  const currentProfileData = fullProfileData?.data;
+  const extendedProfile = currentProfileData?.extendedProfile;
+  const skills = currentProfileData?.skills || [];
   const keySkills = skills.filter(s => s.skill_type === "key_skill");
   const itSkills = skills.filter(s => s.skill_type === "it_skill");
-  const employments = fullProfileData?.data?.employments || [];
-  const educations = fullProfileData?.data?.educations || [];
-  const projects = fullProfileData?.data?.projects || [];
-  const accomplishments = fullProfileData?.data?.accomplishments || [];
+  const employments = currentProfileData?.employments || [];
+  const educations = currentProfileData?.educations || [];
+  const projects = currentProfileData?.projects || [];
+  const accomplishments = currentProfileData?.accomplishments || [];
 
   // Get current employment (is_current = true) or most recent employment
   const currentEmployment = employments.find(emp => emp.is_current) || employments[0];
@@ -595,9 +634,208 @@ const Profile: React.FC = () => {
 
       {/* Main Content Layout */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Left Sidebar - Quick Links */}
-          <div className="lg:col-span-1">
+        {isSuperAdmin ? (
+          // SuperAdmin Dashboard
+          <div className="space-y-8">
+            {/* Welcome Section */}
+            <div className="bg-gradient-to-r from-[#7f56d9] to-[#5b3ba5] rounded-xl shadow-xl p-8 text-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-4xl font-bold mb-2">{t("profile.welcome")} 👋</h2>
+                  <p className="text-lg opacity-90">{t("profile.adminPanelDescription") || "Manage system settings and user oversight"}</p>
+                </div>
+                <div className="w-24 h-24 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+                  <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            {/* System Overview Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-all cursor-default">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.856-1.487M15 10a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  </div>
+                  <span className="text-2xl font-bold text-blue-600">
+                    {isDashboardMetricsLoading ? "..." : dashboardMetricsData?.data?.totalUsers || 0}
+                  </span>
+                </div>
+                <h3 className="font-semibold text-gray-900 mb-1">{t("profile.totalUsers") || "Total Users"}</h3>
+                <p className="text-sm text-gray-600">{t("profile.activeInSystem") || "Active in system"}</p>
+              </div>
+
+              <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-all cursor-default">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                    <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                    </svg>
+                  </div>
+                  <span className="text-2xl font-bold text-green-600">92%</span>
+                </div>
+                <h3 className="font-semibold text-gray-900 mb-1">{t("profile.systemHealth") || "System Health"}</h3>
+                <p className="text-sm text-gray-600">{t("profile.allOperational") || "All systems operational"}</p>
+              </div>
+
+              <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-all cursor-default">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                  </div>
+                  <span className="text-2xl font-bold text-purple-600">
+                    {isDashboardMetricsLoading ? "..." : dashboardMetricsData?.data?.activeJobs || 0}
+                  </span>
+                </div>
+                <h3 className="font-semibold text-gray-900 mb-1">{t("profile.activeJobs") || "Active Jobs"}</h3>
+                <p className="text-sm text-gray-600">{t("profile.hiringSoon") || "Hiring soon"}</p>
+              </div>
+
+              <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-all cursor-default">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                    <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <span className="text-2xl font-bold text-orange-600">
+                    {isJobPaymentsLoading ? "..." : (jobPaymentsData?.data?.length || 0)}
+                  </span>
+                </div>
+                <h3 className="font-semibold text-gray-900 mb-1">{t("profile.transactions") || "Transactions"}</h3>
+                <p className="text-sm text-gray-600">{t("profile.thisMonth") || "This month"}</p>
+              </div>
+            </div>
+
+            {/* Admin Controls Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* System Settings */}
+              <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+                <div className="bg-[#7f56d9] px-6 py-4">
+                  <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    {t("profile.systemSettings") || "System Settings"}
+                  </h3>
+                </div>
+                <div className="p-6">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-4 bg-[#f5f3ff] rounded-lg">
+                      <div>
+                        <p className="font-semibold text-gray-900">{t("profile.maintenanceMode") || "Maintenance Mode"}</p>
+                        <p className="text-sm text-gray-600">{t("profile.toggleMaintenance") || "Toggle site maintenance"}</p>
+                      </div>
+                      <button className="cursor-pointer relative inline-flex h-8 w-14 items-center rounded-full bg-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-[#7f56d9] focus:ring-offset-2">
+                        <span className="inline-block h-6 w-6 transform rounded-full bg-white shadow transition-transform translate-x-1"></span>
+                      </button>
+                    </div>
+                    <div className="flex items-center justify-between p-4 bg-[#f5f3ff] rounded-lg">
+                      <div>
+                        <p className="font-semibold text-gray-900">{t("profile.backupDB") || "Database Backup"}</p>
+                        <p className="text-sm text-gray-600">{t("profile.lastBackup") || "Last backup: 2 hours ago"}</p>
+                      </div>
+                      <button className="cursor-pointer px-4 py-2 bg-[#7f56d9] hover:bg-[#5b3ba5] text-white rounded-lg font-semibold transition-all">
+                        {t("profile.backup") || "Backup"}
+                      </button>
+                    </div>
+                    <div className="flex items-center justify-between p-4 bg-[#f5f3ff] rounded-lg">
+                      <div>
+                        <p className="font-semibold text-gray-900">{t("profile.emailLogs") || "Email Logs"}</p>
+                        <p className="text-sm text-gray-600">{t("profile.viewEmailHistory") || "View email history"}</p>
+                      </div>
+                      <button className="cursor-pointer px-4 py-2 border-2 border-[#7f56d9] text-[#7f56d9] rounded-lg font-semibold hover:bg-[#f5f3ff] transition-all">
+                        {t("profile.view") || "View"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* User Management */}
+              <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+                <div className="bg-[#7f56d9] px-6 py-4">
+                  <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.856-1.487M15 10a3 3 0 11-6 0 3 3 0 016 0zM9 20H4v-2a3 3 0 014-3h2a3 3 0 014 3v2z" />
+                    </svg>
+                    {t("profile.userManagement") || "User Management"}
+                  </h3>
+                </div>
+                <div className="p-6">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-4 bg-[#f5f3ff] rounded-lg">
+                      <div>
+                        <p className="font-semibold text-gray-900">{t("profile.verifyUsers") || "Verify Users"}</p>
+                        <p className="text-sm text-gray-600">{t("profile.pendingVerification") || "12 pending"}</p>
+                      </div>
+                      <button className="cursor-pointer px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-all">
+                        {t("profile.review") || "Review"}
+                      </button>
+                    </div>
+                    <div className="flex items-center justify-between p-4 bg-[#f5f3ff] rounded-lg">
+                      <div>
+                        <p className="font-semibold text-gray-900">{t("profile.suspendUsers") || "Suspend/Ban Users"}</p>
+                        <p className="text-sm text-gray-600">{t("profile.manageBanned") || "Manage banned accounts"}</p>
+                      </div>
+                      <button className="cursor-pointer px-4 py-2 border-2 border-[#7f56d9] text-[#7f56d9] rounded-lg font-semibold hover:bg-[#f5f3ff] transition-all">
+                        {t("profile.manage") || "Manage"}
+                      </button>
+                    </div>
+                    <div className="flex items-center justify-between p-4 bg-[#f5f3ff] rounded-lg">
+                      <div>
+                        <p className="font-semibold text-gray-900">{t("profile.updateUserRoles") || "Role Assignments"}</p>
+                        <p className="text-sm text-gray-600">{t("profile.assign") || "Assign roles to users"}</p>
+                      </div>
+                      <button className="cursor-pointer px-4 py-2 border-2 border-[#7f56d9] text-[#7f56d9] rounded-lg font-semibold hover:bg-[#f5f3ff] transition-all">
+                        {t("profile.assign") || "Assign"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Reports & Analytics */}
+            <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+              <div className="bg-[#7f56d9] px-6 py-4">
+                <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                  {t("profile.reportsAnalytics") || "Reports & Analytics"}
+                </h3>
+              </div>
+              <div className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <button className="cursor-pointer p-4 border-2 border-[#e0d8f0] rounded-lg hover:border-[#7f56d9] hover:shadow-lg transition-all text-left">
+                    <p className="font-semibold text-gray-900 mb-1">{t("profile.userActivity") || "User Activity Report"}</p>
+                    <p className="text-sm text-gray-600">{t("profile.lastWeek") || "View last week's activity"}</p>
+                  </button>
+                  <button className="cursor-pointer p-4 border-2 border-[#e0d8f0] rounded-lg hover:border-[#7f56d9] hover:shadow-lg transition-all text-left">
+                    <p className="font-semibold text-gray-900 mb-1">{t("profile.jobPostings") || "Job Postings Report"}</p>
+                    <p className="text-sm text-gray-600">{t("profile.postingMetrics") || "View posting metrics"}</p>
+                  </button>
+                  <button className="cursor-pointer p-4 border-2 border-[#e0d8f0] rounded-lg hover:border-[#7f56d9] hover:shadow-lg transition-all text-left">
+                    <p className="font-semibold text-gray-900 mb-1">{t("profile.transactionReport") || "Transaction Report"}</p>
+                    <p className="text-sm text-gray-600">{t("profile.paymentMetrics") || "View payment metrics"}</p>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          // Regular User Profile Layout
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            {/* Left Sidebar - Quick Links */}
+            <div className="lg:col-span-1">
             <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden sticky top-4">
               <div className="bg-[#5b3ba5] px-4 py-3">
                 <h3 className="font-bold text-white text-lg flex items-center gap-2">
@@ -1415,10 +1653,11 @@ const Profile: React.FC = () => {
             )}
           </div>
         </div>
+        )}
       </div>
 
       {/* TrustScore Section */}
-      {trustScoreResponse?.data && (
+      {!isSuperAdmin && trustScoreResponse?.data && (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
           <TrustScoreCard trustScore={trustScoreResponse.data} isLoading={isTrustScoreLoading} />
         </div>
