@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { XCircleIcon, EyeIcon, CalendarIcon, UserIcon, ClockIcon } from "@heroicons/react/24/outline";
+import { XCircleIcon } from "@heroicons/react/24/outline";
 import type { AcademicVerification } from "../../services/api/academicVerificationApi";
 import { getAcademicVerificationsByStatus } from "../../services/api/academicVerificationApi";
 import api from "../../services/api/axiosInstance";
@@ -137,168 +137,130 @@ const Rejected: React.FC = () => {
   };
 
   return (
-    <div className="academic-page theme-page-bg p-4 min-h-full">
-      <div className="max-w-7xl mx-auto space-y-4">
+    <div className="academic-page theme-page-bg p-3 min-h-full">
+      <div className="max-w-5xl mx-auto space-y-4">
         {/* Header */}
-        <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-r from-red-500 to-rose-500 rounded-full shadow-lg">
-            <XCircleIcon className="h-6 w-6 text-white" />
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-lg font-bold text-gray-800">{t("pages.academic.rejectedVerifications")}</h1>
+            <p className="text-gray-500 text-xs">{t("pages.academic.rejectedSubtitle")}</p>
           </div>
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-red-600 to-rose-600 bg-clip-text text-transparent">
-            {t("pages.academic.rejectedVerifications")}
-          </h1>
-          <p className="text-gray-600 text-sm">{t("pages.academic.rejectedSubtitle")}</p>
-        </div>
-
-        {/* Stats Card */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-4 max-w-xs mx-auto">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-red-600 font-bold text-xs uppercase">{t("pages.academic.rejected")}</p>
-              <p className="text-2xl font-bold bg-gradient-to-r from-red-600 to-rose-600 bg-clip-text text-transparent">
-                {rejected.length}
-              </p>
-            </div>
-            <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
-              <XCircleIcon className="h-5 w-5 text-red-600" />
-            </div>
+          <div className="flex items-center gap-2 bg-red-50 px-3 py-1.5 rounded-lg border border-red-200">
+            <XCircleIcon className="w-4 h-4 text-red-600" />
+            <span className="text-red-700 font-bold text-sm">{rejected.length} Rejected</span>
           </div>
         </div>
 
         {error && (
-          <div className="bg-red-50 border-l-4 border-red-400 p-3 rounded-r">
-            <div className="flex items-center gap-2">
-              <svg className="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <p className="text-red-600 text-sm">{error}</p>
-            </div>
+          <div className="bg-red-50 border-l-4 border-red-400 p-2 rounded-r">
+            <p className="text-red-600 text-xs">{error}</p>
           </div>
         )}
 
-        {loading ? (
-          <div className="flex items-center justify-center py-8">
-            <div className="flex items-center gap-2">
-              <div className="w-5 h-5 border-2 border-red-200 border-t-red-600 rounded-full animate-spin"></div>
-              <p className="text-gray-600 text-sm">{t("pages.academic.loadingRejected")}</p>
+        {/* Table */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          {loading ? (
+            <div className="flex items-center justify-center py-10">
+              <div className="w-5 h-5 border-2 border-[#e0d8f0] border-t-[#7f56d9] rounded-full animate-spin mr-2"></div>
+              <p className="text-gray-500 text-sm">{t("pages.academic.loadingRejected")}</p>
             </div>
-          </div>
-        ) : rejected.length === 0 ? (
-          <div className="text-center py-8">
-            <XCircleIcon className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-            <p className="text-gray-500">{t("pages.academic.noRejectedYet")}</p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {rejected.map((item) => (
-              <div key={item.id} className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-4 hover:shadow-xl transition-all">
-                <div className="flex flex-col lg:flex-row gap-4">
-                  <div className="flex-1 space-y-3">
-                    {/* User Info */}
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-r from-red-100 to-rose-100 flex items-center justify-center">
-                        <span className="text-red-600 font-bold text-sm">
-                          {item.user?.full_name?.charAt(0)?.toUpperCase() || item.user_id.charAt(0).toUpperCase()}
-                        </span>
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-bold text-gray-800">
-                          {item.user?.full_name || `User ${item.user_id.slice(0, 8)}`}
-                        </h3>
-                        <div className="flex items-center gap-4 text-xs text-gray-500">
-                          <div className="flex items-center gap-1">
-                            <UserIcon className="w-3 h-3" />
-                            <span>{item.user?.email || "N/A"}</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <CalendarIcon className="w-3 h-3" />
-                            <span>
-                              {item.reviewed_at ? new Date(item.reviewed_at).toLocaleDateString() : "N/A"}
+          ) : rejected.length === 0 ? (
+            <div className="text-center py-10">
+              <XCircleIcon className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+              <p className="text-gray-500 text-sm">{t("pages.academic.noRejectedYet")}</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-100 bg-gray-50">
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">#</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Student</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Document</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Reason</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Reviewed By</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Status</th>
+                    <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rejected.map((item, index) => (
+                    <tr key={item.id} className="border-b border-gray-50 hover:bg-[#f5f3ff]/50 transition-colors">
+                      <td className="px-4 py-3 text-gray-500 text-xs">{index + 1}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <div className="w-7 h-7 bg-[#7f56d9] rounded-full flex items-center justify-center flex-shrink-0">
+                            <span className="text-white font-bold text-[10px]">
+                              {(item.user?.full_name || "U").split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
                             </span>
                           </div>
+                          <div>
+                            <p className="font-medium text-gray-800 text-sm">{item.user?.full_name || "Unknown"}</p>
+                            <p className="text-gray-400 text-[10px]">{item.user?.email || ""}</p>
+                          </div>
                         </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1">
-                          <XCircleIcon className="w-3 h-3" />
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="text-gray-700 text-xs truncate max-w-[150px] block">
+                          {(item.document_path?.split('/').pop() || "Document").replace(/^\d+-/, '')}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-xs max-w-[200px]">
+                        {item.rejection_reason ? (
+                          <span className="text-red-600">{getTranslatedRejectionReason(item.rejection_reason, t)}</span>
+                        ) : (
+                          <span className="text-gray-400">—</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-gray-600 text-xs">{item.reviewer?.full_name || "—"}</td>
+                      <td className="px-4 py-3">
+                        <span className="px-2 py-1 rounded-full text-[10px] font-bold uppercase bg-red-100 text-red-700">
                           {t("pages.academic.rejected")}
                         </span>
-                      </div>
-                    </div>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <button
+                          onClick={() => handleViewDocument(item)}
+                          className="cursor-pointer px-3 py-1.5 bg-[#7f56d9] hover:bg-[#5b3ba5] text-white rounded-lg text-xs font-medium transition-all"
+                        >
+                          View
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
 
-                    {/* Rejection Reason */}
-                    {item.rejection_reason && (
-                      <div className="bg-red-50 border-l-4 border-red-400 p-2 rounded-r">
-                        <div className="flex items-center gap-1 text-red-600 mb-1">
-                          <span className="font-medium text-xs">{t("pages.academic.rejectionReasonLabel")}</span>
-                        </div>
-                        <p className="text-red-700 text-sm">{getTranslatedRejectionReason(item.rejection_reason, t)}</p>
-                      </div>
-                    )}
-
-                    {/* Details */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                      <div className="bg-gray-50 rounded-lg p-2">
-                        <div className="flex items-center gap-1 text-gray-600 mb-1">
-                          <ClockIcon className="w-3 h-3" />
-                          <span className="font-medium">{t("pages.academic.reviewedBy")}</span>
-                        </div>
-                        <p className="text-gray-800">{item.reviewer?.full_name || "N/A"}</p>
-                      </div>
-                      <div className="bg-gray-50 rounded-lg p-2">
-                        <div className="flex items-center gap-1 text-gray-600 mb-1">
-                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                          </svg>
-                          <span className="font-medium">{t("pages.academic.storageType")}</span>
-                        </div>
-                        <p className="text-gray-800 uppercase">{item.storage_type}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex lg:flex-col gap-2 lg:min-w-[120px]">
-                    <button 
-                      onClick={() => handleViewDocument(item)}
-                      className="flex-1 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-all text-sm flex items-center justify-center gap-1">
-                      <EyeIcon className="w-4 h-4" />
-                      <span>{t("pages.academic.view")}</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-        {showViewer && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 backdrop-blur-sm">
-            <div className="fixed inset-0 bg-black/40" onClick={closeViewer} />
-            <div className="relative bg-white rounded-lg shadow-lg max-w-4xl w-full max-h-[85vh] sm:max-h-[90vh] z-60 flex flex-col overflow-hidden theme-modal border border-gray-200">
-              <div className="flex items-center justify-between p-3 sm:p-4 border-b flex-shrink-0">
-                <h3 className="text-lg font-bold">{t("pages.academic.documentViewer")}</h3>
-                <div className="flex items-center gap-2">
-                  <button className="px-3 py-1 text-sm bg-green-500 rounded" onClick={downloadViewer}>{t("pages.academic.download")}</button>
-                  <button className="px-3 py-1 text-sm bg-red-400 rounded" onClick={closeViewer}>{t("pages.academic.close")}</button>
-                </div>
-              </div>
-              <div className="flex-1 overflow-y-auto p-2 sm:p-4">
-                {viewerUrl ? (
-                  viewerContentType?.startsWith('image/') ? (
-                    <img src={viewerUrl} alt="document" className="mx-auto max-h-full w-auto object-contain" />
-                  ) : viewerContentType === 'application/pdf' || viewerUrl.toLowerCase().endsWith('.pdf') ? (
-                    <iframe src={viewerUrl} className="w-full h-full border-0 min-h-[500px] sm:min-h-[600px]" title="Document" />
-                  ) : (
-                    <iframe src={viewerUrl} className="w-full h-full border-0 min-h-[500px] sm:min-h-[600px]" title="Document" />
-                  )
-                ) : (
-                  <div className="text-center p-8">{t("pages.academic.noDocumentToDisplay")}</div>
-                )}
+      {/* Document Viewer Modal */}
+      {showViewer && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 backdrop-blur-sm">
+          <div className="fixed inset-0 bg-black/40" onClick={closeViewer} />
+          <div className="relative bg-white rounded-lg shadow-lg max-w-4xl w-full max-h-[85vh] z-60 flex flex-col overflow-hidden border border-gray-200">
+            <div className="flex items-center justify-between p-3 border-b">
+              <h3 className="text-lg font-bold text-gray-800">{t("pages.academic.documentViewer")}</h3>
+              <div className="flex items-center gap-2">
+                <button className="cursor-pointer px-3 py-1 text-sm bg-[#7f56d9] text-white rounded" onClick={downloadViewer}>{t("pages.academic.download")}</button>
+                <button className="cursor-pointer px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded" onClick={closeViewer}>{t("pages.academic.close")}</button>
               </div>
             </div>
+            <div className="flex-1 overflow-y-auto p-2 sm:p-4">
+              {viewerUrl ? (
+                viewerContentType?.startsWith('image/') ? (
+                  <img src={viewerUrl} alt="document" className="mx-auto max-h-full w-auto object-contain" />
+                ) : (
+                  <iframe src={viewerUrl} className="w-full h-full border-0 min-h-[500px]" title="Document" />
+                )
+              ) : (
+                <div className="text-center p-8 text-gray-500">{t("pages.academic.noDocumentToDisplay")}</div>
+              )}
+            </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };
