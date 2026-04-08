@@ -95,6 +95,7 @@ const Profile: React.FC = () => {
   const [isPhoneVerificationModalOpen, setIsPhoneVerificationModalOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<ActiveSection>("resume");
   const [isUploadingResume, setIsUploadingResume] = useState(false);
+  const [superAdminActiveTab, setSuperAdminActiveTab] = useState<"overview" | "account" | "permissions" | "stats" | "security">("overview");
 
   // Modal states
   const [isEmploymentModalOpen, setIsEmploymentModalOpen] = useState(false);
@@ -631,201 +632,332 @@ const Profile: React.FC = () => {
       {/* Main Content Layout */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {isSuperAdmin ? (
-          // SuperAdmin Dashboard
-          <div className="space-y-8">
-            {/* Welcome Section */}
-            <div className="bg-gradient-to-r from-[#7f56d9] to-[#5b3ba5] rounded-xl shadow-xl p-8 text-white">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-4xl font-bold mb-2">{t("profile.welcome")} 👋</h2>
-                  <p className="text-lg opacity-90">{t("profile.adminPanelDescription")}</p>
+          // SUPERADMIN DASHBOARD WITH SIDEBAR - PREMIUM MODERN DESIGN
+          <div className="flex flex-col lg:flex-row gap-6 py-8">
+
+            {/* LEFT SIDEBAR - Navigation */}
+            <div className="lg:w-72 flex-shrink-0">
+              <div className="bg-white rounded-3xl shadow-lg border border-gray-100/50 overflow-hidden sticky top-4 h-fit backdrop-blur-sm">
+                <div className="bg-gradient-to-br from-[#7f56d9] via-[#6d46ba] to-[#5b3ba5] px-6 py-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-white/15 rounded-xl flex items-center justify-center backdrop-blur-md">
+                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-white text-lg">{t("profile.dashboard", { defaultValue: "Dashboard" })}</h3>
+                      <p className="text-white/70 text-xs">{t("profile.adminPanel", { defaultValue: "Administration" })}</p>
+                    </div>
+                  </div>
                 </div>
-                <div className="w-24 h-24 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-sm">
-                  <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                </div>
+                <nav className="p-4 space-y-2">
+                  {[
+                    { 
+                      key: "overview", 
+                      label: t("profile.dashboardOverview", { defaultValue: "Overview" }),
+                      icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>,
+                      color: "bg-blue-100 group-hover:bg-blue-200"
+                    },
+                    { 
+                      key: "account", 
+                      label: t("profile.dashboardAccountSettings", { defaultValue: "Account Settings" }),
+                      icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /></svg>,
+                      color: "bg-purple-100 group-hover:bg-purple-200"
+                    },
+                    { 
+                      key: "permissions", 
+                      label: t("profile.dashboardPermissions", { defaultValue: "Permissions" }),
+                      icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
+                      color: "bg-green-100 group-hover:bg-green-200"
+                    },
+                    { 
+                      key: "stats", 
+                      label: t("profile.dashboardPlatformStats", { defaultValue: "Platform Stats" }),
+                      icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" /></svg>,
+                      color: "bg-orange-100 group-hover:bg-orange-200"
+                    },
+                    { 
+                      key: "security", 
+                      label: t("profile.dashboardAuditSecurity", { defaultValue: "Audit & Security" }),
+                      icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>,
+                      color: "bg-red-100 group-hover:bg-red-200"
+                    },
+                  ].map((item) => (
+                    <button
+                      key={item.key}
+                      onClick={() => setSuperAdminActiveTab(item.key as any)}
+                      className={`group w-full text-left px-4 py-3.5 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center gap-3 transform hover:scale-105 ${
+                        superAdminActiveTab === item.key
+                          ? "bg-gradient-to-r from-[#7f56d9] to-[#5b3ba5] text-white shadow-lg shadow-purple-500/30"
+                          : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                      }`}
+                    >
+                      <span className={`p-2 rounded-lg transition-all ${superAdminActiveTab === item.key ? "bg-white/20" : item.color}`}>
+                        {item.icon}
+                      </span>
+                      <span className="flex-1">{item.label}</span>
+                      {superAdminActiveTab === item.key && (
+                        <span className="w-2 h-2 bg-white rounded-full"></span>
+                      )}
+                    </button>
+                  ))}
+                </nav>
               </div>
             </div>
 
-            {/* System Overview Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-all cursor-default">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.856-1.487M15 10a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
+            {/* RIGHT CONTENT AREA */}
+            <div className="flex-1 space-y-6">
+
+              {/* PREMIUM IDENTITY HEADER - Always Visible */}
+              <div className="bg-white rounded-3xl shadow-lg border border-gray-100/50 overflow-hidden transform hover:shadow-xl transition-all duration-300">
+                <div className="bg-gradient-to-br from-[#7f56d9] via-[#6d46ba] to-[#5b3ba5] px-8 py-12 text-white relative overflow-hidden">
+                  <div className="absolute inset-0 opacity-10">
+                    <svg className="absolute -right-12 -top-12 w-40 h-40 text-white" fill="currentColor" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" /></svg>
                   </div>
-                  <span className="text-2xl font-bold text-blue-600">
-                    {isDashboardMetricsLoading ? "..." : dashboardMetricsData?.data?.totalUsers || 0}
-                  </span>
+                  <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-4 mb-4 flex-wrap">
+                        <h1 className="text-4xl md:text-3xl font-bold tracking-tight">{profileData?.full_name || t("profile.loading", { defaultValue: "Loading..." })}</h1>
+                        <div className="flex gap-2">
+                          <span className="inline-flex items-center px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-xs font-bold border border-white/30 hover:bg-white/30 transition-all">
+                            <span className="w-2 h-2 bg-emerald-400 rounded-full mr-2 animate-pulse"></span>
+                            {t("profile.superAdminBadge", { defaultValue: "SuperAdmin" })}
+                          </span>
+                          <span className="inline-flex items-center px-4 py-2 bg-emerald-400/20 backdrop-blur-sm rounded-full text-xs font-bold border border-emerald-400/30 text-emerald-100">
+                            <CheckCircleIcon className="w-4 h-4 mr-1.5" />
+                            {t("profile.accountActive", { defaultValue: "Active" })}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <p className="text-white/95 flex items-center gap-2 text-sm md:text-base">
+                          <EnvelopeIcon className="w-5 h-5" />
+                          {profileData?.email || t("profile.loading", { defaultValue: "Loading..." })}
+                        </p>
+                        <p className="text-white/80 text-sm">
+                          {t("profile.lastLogin", { defaultValue: "Last login" })}: <span className="font-semibold text-white">{profileData?.updated_at ? new Date(profileData.updated_at).toLocaleDateString('en-US', {weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'}) : "..."}</span>
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-20 h-20 bg-white/15 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 hover:bg-white/20 transition-all">
+                        <div className="relative">
+                          <div className="absolute inset-0 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-xl blur opacity-75"></div>
+                          <UserIcon className="w-12 h-12 text-white/80 relative" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-1">{t("profile.totalUsers")}</h3>
-                <p className="text-sm text-gray-600">{t("profile.activeInSystem")}</p>
               </div>
 
-              <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-all cursor-default">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                    <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-                    </svg>
-                  </div>
-                  <span className="text-2xl font-bold text-green-600" title="Demo metric - system health monitoring coming soon">98%</span>
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-1">{t("profile.systemHealth")}</h3>
-                <p className="text-sm text-gray-600"><span className="text-xs italic text-gray-400">[Demo]</span> {t("profile.allOperational")}</p>
-              </div>
-
-              <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-all cursor-default">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
-                  </div>
-                  <span className="text-2xl font-bold text-purple-600">
-                    {isDashboardMetricsLoading ? "..." : dashboardMetricsData?.data?.activeJobs || 0}
-                  </span>
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-1">{t("profile.activeJobs")}</h3>
-                <p className="text-sm text-gray-600">{t("profile.hiringSoon")}</p>
-              </div>
-
-              <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-all cursor-default">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                    <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <span className="text-2xl font-bold text-orange-600">
-                    {isJobPaymentsLoading ? "..." : (jobPaymentsData?.data?.length || 0)}
-                  </span>
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-1">{t("profile.transactions")}</h3>
-                <p className="text-sm text-gray-600">{t("profile.thisMonth")}</p>
-              </div>
-            </div>
-
-            {/* Admin Controls Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* System Settings */}
-              <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-                <div className="bg-[#7f56d9] px-6 py-4">
-                  <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    {t("profile.systemSettings")}
-                  </h3>
-                </div>
-                <div className="p-6">
+              {/* TAB 1: OVERVIEW */}
+              {superAdminActiveTab === "overview" && (
+                <div className="space-y-8 animate-fadeIn">
+                  {/* System Overview Cards */}
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between p-4 bg-[#f5f3ff] rounded-lg opacity-60">
-                      <div>
-                        <p className="font-semibold text-gray-900">{t("profile.maintenanceMode")}</p>
-                        <p className="text-sm text-gray-600"><span className="text-xs italic text-gray-400">[Demo]</span> {t("profile.toggleMaintenance")}</p>
-                      </div>
-                      <button disabled className="relative inline-flex h-8 w-14 items-center rounded-full bg-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-[#7f56d9] focus:ring-offset-2 cursor-not-allowed" title="Coming soon">
-                        <span className="inline-block h-6 w-6 transform rounded-full bg-white shadow transition-transform translate-x-1"></span>
-                      </button>
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-3xl font-bold text-gray-900">{t("profile.systemOverview", { defaultValue: "System Overview" })}</h2>
+                      <span className="text-xs font-semibold text-gray-500 bg-gray-100 px-3 py-1 rounded-full">{t("profile.realtime", { defaultValue: "Real-time" })}</span>
                     </div>
-                    <div className="flex items-center justify-between p-4 bg-[#f5f3ff] rounded-lg">
-                      <div>
-                        <p className="font-semibold text-gray-900">{t("profile.backupDB")}</p>
-                        <p className="text-sm text-gray-600"><span className="text-xs italic text-gray-400">[Demo]</span> {t("profile.lastBackup")}</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                      {/* Total Users Card */}
+                      <div className="bg-white rounded-2xl border border-gray-100/50 p-6 shadow-md hover:shadow-xl hover:border-blue-200/50 transition-all duration-300 transform hover:scale-105 group relative overflow-hidden">
+                        <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
+                        <div className="relative z-10">
+                          <div className="flex items-start justify-between mb-4">
+                            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30">
+                              <UserIcon className="w-6 h-6 text-white" />
+                            </div>
+                            <span className="text-xs font-bold text-blue-600 bg-blue-100 px-2.5 py-1 rounded-lg">+12%</span>
+                          </div>
+                          <h3 className="font-bold text-gray-900 text-sm mb-1">{t("profile.totalUsers", { defaultValue: "Total Users" })}</h3>
+                          <div className="flex items-end justify-between">
+                            <span className="text-3xl font-bold text-blue-600">{isDashboardMetricsLoading ? "..." : (dashboardMetricsData?.data?.totalUsers ?? "0")}</span>
+                          </div>
+                          <p className="text-xs text-gray-600 mt-2 flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
+                            {t("profile.registeredUsers", { defaultValue: "Registered users" })}
+                          </p>
+                        </div>
                       </div>
-                      <button className="cursor-pointer px-4 py-2 bg-[#7f56d9] hover:bg-[#5b3ba5] text-white rounded-lg font-semibold transition-all">
-                        {t("profile.backup")}
-                      </button>
-                    </div>
-                    <div className="flex items-center justify-between p-4 bg-[#f5f3ff] rounded-lg">
-                      <div>
-                        <p className="font-semibold text-gray-900">{t("profile.emailLogs")}</p>
-                        <p className="text-sm text-gray-600">{t("profile.viewEmailHistory")}</p>
+                      {/* Total Students Card */}
+                      <div className="bg-white rounded-2xl border border-gray-100/50 p-6 shadow-md hover:shadow-xl hover:border-green-200/50 transition-all duration-300 transform hover:scale-105 group relative overflow-hidden">
+                        <div className="absolute inset-0 bg-gradient-to-br from-green-50 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
+                        <div className="relative z-10">
+                          <div className="flex items-start justify-between mb-4">
+                            <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg shadow-green-500/30">
+                              <CheckCircleIcon className="w-6 h-6 text-white" />
+                            </div>
+                            <span className="text-xs font-bold text-green-600 bg-green-100 px-2.5 py-1 rounded-lg">+8%</span>
+                          </div>
+                          <h3 className="font-bold text-gray-900 text-sm mb-1">{t("profile.totalStudents", { defaultValue: "Total Students" })}</h3>
+                          <div className="flex items-end justify-between">
+                            <span className="text-3xl font-bold text-green-600">{isDashboardMetricsLoading ? "..." : (dashboardMetricsData?.data?.totalStudents ?? "0")}</span>
+                          </div>
+                          <p className="text-xs text-gray-600 mt-2 flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
+                            {t("profile.studentCount", { defaultValue: "Enrolled students" })}
+                          </p>
+                        </div>
                       </div>
-                      <button className="cursor-pointer px-4 py-2 border-2 border-[#7f56d9] text-[#7f56d9] rounded-lg font-semibold hover:bg-[#f5f3ff] transition-all">
-                        {t("profile.view")}
-                      </button>
+                      {/* Active Jobs Card */}
+                      <div className="bg-white rounded-2xl border border-gray-100/50 p-6 shadow-md hover:shadow-xl hover:border-purple-200/50 transition-all duration-300 transform hover:scale-105 group relative overflow-hidden">
+                        <div className="absolute inset-0 bg-gradient-to-br from-purple-50 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
+                        <div className="relative z-10">
+                          <div className="flex items-start justify-between mb-4">
+                            <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/30">
+                              <BriefcaseIcon className="w-6 h-6 text-white" />
+                            </div>
+                            <span className="text-xs font-bold text-purple-600 bg-purple-100 px-2.5 py-1 rounded-lg">+5%</span>
+                          </div>
+                          <h3 className="font-bold text-gray-900 text-sm mb-1">{t("profile.activeJobs", { defaultValue: "Active Jobs" })}</h3>
+                          <div className="flex items-end justify-between">
+                            <span className="text-3xl font-bold text-purple-600">{isDashboardMetricsLoading ? "..." : (dashboardMetricsData?.data?.activeJobs ?? "0")}</span>
+                          </div>
+                          <p className="text-xs text-gray-600 mt-2 flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 bg-purple-500 rounded-full"></span>
+                            {t("profile.openPositions", { defaultValue: "Open positions" })}
+                          </p>
+                        </div>
+                      </div>
+                      {/* Transactions Card */}
+                      <div className="bg-white rounded-2xl border border-gray-100/50 p-6 shadow-md hover:shadow-xl hover:border-orange-200/50 transition-all duration-300 transform hover:scale-105 group relative overflow-hidden">
+                        <div className="absolute inset-0 bg-gradient-to-br from-orange-50 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
+                        <div className="relative z-10">
+                          <div className="flex items-start justify-between mb-4">
+                            <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/30">
+                              <CurrencyDollarIcon className="w-6 h-6 text-white" />
+                            </div>
+                            <span className="text-xs font-bold text-orange-600 bg-orange-100 px-2.5 py-1 rounded-lg">+3%</span>
+                          </div>
+                          <h3 className="font-bold text-gray-900 text-sm mb-1">{t("profile.transactions", { defaultValue: "Transactions" })}</h3>
+                          <div className="flex items-end justify-between">
+                            <span className="text-3xl font-bold text-orange-600">{isJobPaymentsLoading ? "..." : (jobPaymentsData?.data?.length ?? 0)}</span>
+                          </div>
+                          <p className="text-xs text-gray-600 mt-2 flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 bg-orange-500 rounded-full"></span>
+                            {t("profile.recentTransactions", { defaultValue: "Recent transactions" })}
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
 
-              {/* User Management */}
-              <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-                <div className="bg-[#7f56d9] px-6 py-4">
-                  <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.856-1.487M15 10a3 3 0 11-6 0 3 3 0 016 0zM9 20H4v-2a3 3 0 014-3h2a3 3 0 014 3v2z" />
-                    </svg>
-                    {t("profile.userManagement")}
-                  </h3>
-                </div>
-                <div className="p-6">
+                  {/* Quick Controls Section */}
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between p-4 bg-[#f5f3ff] rounded-lg">
-                      <div>
-                        <p className="font-semibold text-gray-900">{t("profile.verifyUsers")}</p>
-                        <p className="text-sm text-gray-600"><span className="text-xs italic text-gray-400">[Demo]</span> {t("profile.pendingVerification")}</p>
+                    <h2 className="text-3xl font-bold text-gray-900">{t("profile.quickControls", { defaultValue: "Quick Controls" })}</h2>
+                    <div className="bg-white rounded-2xl border border-gray-100/50 p-8 shadow-md">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        {[
+                          { label: t("profile.maintenance", { defaultValue: "Maintenance" }), icon: <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /></svg>, color: "from-amber-500 to-orange-500", bgLight: "bg-amber-50" },
+                          { label: t("profile.registrations", { defaultValue: "Registrations" }), icon: <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>, color: "from-blue-500 to-cyan-500", bgLight: "bg-blue-50" },
+                          { label: t("profile.broadcast", { defaultValue: "Broadcast" }), icon: <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 001-5.868m-5.423 8.813a3.37 3.37 0 01-4.1-3.445" /></svg>, color: "from-pink-500 to-rose-500", bgLight: "bg-pink-50" },
+                          { label: t("profile.logoutAll", { defaultValue: "Logout All" }), icon: <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>, color: "from-red-500 to-pink-500", bgLight: "bg-red-50" },
+                        ].map((control, idx) => (
+                          <button
+                            key={idx}
+                            disabled
+                            className={`group relative p-6 rounded-2xl text-center border-2 border-gray-200 hover:border-gray-300 transition-all hover:shadow-lg disabled:opacity-60 cursor-not-allowed overflow-hidden`}
+                          >
+                            <div className={`absolute inset-0 ${control.bgLight} opacity-0 group-hover:opacity-100 transition-all duration-300`}></div>
+                            <div className="relative z-10 flex flex-col items-center gap-3">
+                              <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${control.color} flex items-center justify-center text-white shadow-lg transform group-hover:scale-110 transition-transform`}>
+                                {control.icon}
+                              </div>
+                              <span className="text-sm font-semibold text-gray-900 group-hover:text-gray-700 transition-colors">{control.label}</span>
+                            </div>
+                          </button>
+                        ))}
                       </div>
-                      <button className="cursor-pointer px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-all">
-                        {t("profile.review")}
-                      </button>
                     </div>
-                    <div className="flex items-center justify-between p-4 bg-[#f5f3ff] rounded-lg">
-                      <div>
-                        <p className="font-semibold text-gray-900">{t("profile.suspendUsers")}</p>
-                        <p className="text-sm text-gray-600">{t("profile.manageBanned")}</p>
-                      </div>
-                      <button className="cursor-pointer px-4 py-2 border-2 border-[#7f56d9] text-[#7f56d9] rounded-lg font-semibold hover:bg-[#f5f3ff] transition-all">
-                        {t("profile.manage")}
-                      </button>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 2: ACCOUNT SETTINGS */}
+              {superAdminActiveTab === "account" && (
+                <div className="space-y-8">
+                  <h2 className="text-2xl font-bold text-gray-900">{t("profile.dashboardPersonalSettings", { defaultValue: "Personal Settings" })}</h2>
+                  <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
+                    <div className="bg-gradient-to-r from-[#7f56d9] to-[#5b3ba5] px-6 py-5">
+                      <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /></svg>
+                        {t("profile.dashboardPersonalSettings", { defaultValue: "Personal Settings" })}
+                      </h3>
                     </div>
-                    <div className="flex items-center justify-between p-4 bg-[#f5f3ff] rounded-lg">
-                      <div>
-                        <p className="font-semibold text-gray-900">{t("profile.updateUserRoles")}</p>
-                        <p className="text-sm text-gray-600">{t("profile.assign")}</p>
-                      </div>
-                      <button className="cursor-pointer px-4 py-2 border-2 border-[#7f56d9] text-[#7f56d9] rounded-lg font-semibold hover:bg-[#f5f3ff] transition-all">
-                        {t("profile.assign") || "Assign"}
+                    <div className="p-6 space-y-3">
+                      <button onClick={() => setIsEditProfileModalOpen(true)} className="w-full p-4 border-2 border-[#e0d8f0] rounded-xl hover:border-[#7f56d9] hover:bg-[#f5f3ff] transition-all text-left font-semibold text-gray-900 flex items-center justify-between">
+                        <span className="flex items-center gap-2"><PencilIcon className="w-5 h-5 text-[#7f56d9]" />{t("profile.editProfile", { defaultValue: "Edit Profile" })}</span>
+                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                      </button>
+                      <button disabled className="w-full p-4 border-2 border-gray-300 rounded-xl text-gray-600 text-left font-semibold flex items-center justify-between disabled:opacity-50 cursor-not-allowed">
+                        <span className="flex items-center gap-2"><svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 00.948-.684l1.498-4.493a1 1 0 011.502 0l1.498 4.493a1 1 0 00.948.684H19a2 2 0 012 2v2a2 2 0 01-2 2H5a2 2 0 01-2-2V5z" /></svg>{t("profile.language", { defaultValue: "Language" })}</span>
+                        <span className="text-xs font-semibold text-gray-400">{t("profile.comingSoon", { defaultValue: "Coming soon" })}</span>
                       </button>
                     </div>
                   </div>
                 </div>
-              </div>
+              )}
+
+              {/* TAB 3: PERMISSIONS */}
+              {superAdminActiveTab === "permissions" && (
+                <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
+                  <div className="bg-gradient-to-r from-[#7f56d9] to-[#5b3ba5] px-8 py-8 text-white">
+                    <h2 className="text-2xl font-bold">{t("profile.dashboardPermissionsManagement", { defaultValue: "Permissions Management" })}</h2>
+                    <p className="text-white/80 mt-2">{t("profile.permissionsManagementDesc", { defaultValue: "Permissions management interface will be available soon." })}</p>
+                  </div>
+                  <div className="p-8 text-center">
+                    <p className="text-gray-500">{t("profile.permissionsManagementDesc", { defaultValue: "Permissions management interface will be available soon." })}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 4: PLATFORM STATS */}
+              {superAdminActiveTab === "stats" && (
+                <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
+                  <div className="bg-gradient-to-r from-[#7f56d9] to-[#5b3ba5] px-8 py-8 text-white">
+                    <h2 className="text-2xl font-bold">{t("profile.dashboardPlatformStatistics", { defaultValue: "Platform Statistics" })}</h2>
+                    <p className="text-white/80 mt-2">{t("profile.analyticsComingSoon", { defaultValue: "Detailed analytics and reporting" })}</p>
+                  </div>
+                  <div className="p-8 text-center">
+                    <p className="text-gray-500">{t("profile.analyticsComingSoon", { defaultValue: "Advanced analytics dashboard coming soon." })}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 5: AUDIT & SECURITY */}
+              {superAdminActiveTab === "security" && (
+                <div className="space-y-8">
+                  <h2 className="text-2xl font-bold text-gray-900">{t("profile.dashboardSecuritySettings", { defaultValue: "Security Settings" })}</h2>
+                  <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
+                    <div className="bg-gradient-to-r from-[#7f56d9] to-[#5b3ba5] px-6 py-5">
+                      <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                        {t("profile.dashboardSecuritySettings", { defaultValue: "Security Settings" })}
+                      </h3>
+                    </div>
+                    <div className="p-6 space-y-3">
+                      <button onClick={() => setIsChangePasswordModalOpen(true)} className="w-full p-4 border-2 border-[#e0d8f0] rounded-xl hover:border-[#7f56d9] hover:bg-[#f5f3ff] transition-all text-left font-semibold text-gray-900 flex items-center justify-between">
+                        <span className="flex items-center gap-2"><svg className="w-5 h-5 text-[#7f56d9]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.192 5.978A6 6 0 1115 7z" /></svg>{t("profile.changePassword", { defaultValue: "Change Password" })}</span>
+                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                      </button>
+                      <button disabled className="w-full p-4 border-2 border-gray-300 rounded-xl text-gray-600 text-left font-semibold flex items-center justify-between disabled:opacity-50 cursor-not-allowed">
+                        <span className="flex items-center gap-2"><svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>{t("profile.twoFactorAuth", { defaultValue: "Two-Factor Auth" })}</span>
+                        <span className="text-xs font-semibold text-gray-400">{t("profile.comingSoon", { defaultValue: "Coming soon" })}</span>
+                      </button>
+                      <button disabled className="w-full p-4 border-2 border-gray-300 rounded-xl text-gray-600 text-left font-semibold flex items-center justify-between disabled:opacity-50 cursor-not-allowed">
+                        <span className="flex items-center gap-2"><svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m7 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>{t("profile.activeSessions", { defaultValue: "Active Sessions" })}</span>
+                        <span className="text-xs font-semibold text-gray-400">{t("profile.comingSoon", { defaultValue: "Coming soon" })}</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
             </div>
 
-            {/* Reports & Analytics */}
-            <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-              <div className="bg-[#7f56d9] px-6 py-4">
-                <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                  </svg>
-                  {t("profile.reportsAnalytics")}
-                </h3>
-              </div>
-              <div className="p-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <button className="cursor-pointer p-4 border-2 border-[#e0d8f0] rounded-lg hover:border-[#7f56d9] hover:shadow-lg transition-all text-left">
-                    <p className="font-semibold text-gray-900 mb-1">{t("profile.userActivity")}</p>
-                    <p className="text-sm text-gray-600">{t("profile.lastWeek")}</p>
-                  </button>
-                  <button className="cursor-pointer p-4 border-2 border-[#e0d8f0] rounded-lg hover:border-[#7f56d9] hover:shadow-lg transition-all text-left">
-                    <p className="font-semibold text-gray-900 mb-1">{t("profile.jobPostings")}</p>
-                    <p className="text-sm text-gray-600">{t("profile.postingMetrics")}</p>
-                  </button>
-                  <button className="cursor-pointer p-4 border-2 border-[#e0d8f0] rounded-lg hover:border-[#7f56d9] hover:shadow-lg transition-all text-left">
-                    <p className="font-semibold text-gray-900 mb-1">{t("profile.transactionReport")}</p>
-                    <p className="text-sm text-gray-600">{t("profile.paymentMetrics")}</p>
-                  </button>
-                </div>
-              </div>
-            </div>
           </div>
         ) : (
           // Regular User Profile Layout
