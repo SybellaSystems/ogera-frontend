@@ -39,6 +39,8 @@ import EditProfileModal from "../components/EditProfileModal";
 import TrustScoreCard from "../components/TrustScoreCard";
 import PhoneVerificationModal from "../components/PhoneVerificationModal";
 import PermissionsManagement from "../components/PermissionsManagement";
+import PlatformStatistics from "../components/PlatformStatistics";
+import ActiveSessions from "../components/ActiveSessions";
 import { useResendVerificationEmailMutation } from "../services/api/authApi";
 import { useNavigate } from "react-router-dom";
 import {
@@ -918,15 +920,7 @@ const Profile: React.FC = () => {
 
               {/* TAB 4: PLATFORM STATS */}
               {superAdminActiveTab === "stats" && (
-                <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
-                  <div className="bg-gradient-to-r from-[#7f56d9] to-[#5b3ba5] px-8 py-8 text-white">
-                    <h2 className="text-2xl font-bold">{t("profile.dashboardPlatformStatistics", { defaultValue: "Platform Statistics" })}</h2>
-                    <p className="text-white/80 mt-2">{t("profile.analyticsComingSoon", { defaultValue: "Detailed analytics and reporting" })}</p>
-                  </div>
-                  <div className="p-8 text-center">
-                    <p className="text-gray-500">{t("profile.analyticsComingSoon", { defaultValue: "Advanced analytics dashboard coming soon." })}</p>
-                  </div>
-                </div>
+                <PlatformStatistics />
               )}
 
               {/* TAB 5: AUDIT & SECURITY */}
@@ -1123,35 +1117,7 @@ const Profile: React.FC = () => {
 
               {/* Active Sessions Tab */}
               {superAdminActiveTab === "activeSessions" && (
-                <div className="space-y-8 animate-fadeIn">
-                  <h2 className="text-2xl font-bold text-gray-900">{t("profile.activeSessions", { defaultValue: "Active Sessions" })}</h2>
-                  <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
-                    <div className="bg-gradient-to-r from-sky-600 to-sky-700 px-6 py-5">
-                      <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.856-1.487M15 10a3 3 0 11-6 0 3 3 0 016 0zM6 20h12a6 6 0 00-6-6 6 6 0 00-6 6z" /></svg>
-                        {t("profile.activeSessions", { defaultValue: "Active Sessions" })}
-                      </h3>
-                    </div>
-                    <div className="p-6">
-                      <p className="text-gray-600 mb-6">{t("profile.activeSessionsDescription", { defaultValue: "View and manage active user sessions" })}</p>
-                      <div className="space-y-3">
-                        <div className="p-4 border-2 border-sky-200 rounded-xl bg-sky-50">
-                          <div className="flex items-center justify-between mb-3">
-                            <h4 className="font-semibold text-gray-900">{t("profile.currentSession", { defaultValue: "Current Session" })}</h4>
-                            <span className="text-xs font-bold bg-emerald-500 text-white px-3 py-1 rounded-full">{t("profile.active", { defaultValue: "Active" })}</span>
-                          </div>
-                          <div className="text-sm text-gray-600 space-y-1">
-                            <p><span className="font-semibold">{t("profile.device", { defaultValue: "Device" })}:</span> Desktop</p>
-                            <p><span className="font-semibold">{t("profile.lastActive", { defaultValue: "Last Active" })}:</span> Now</p>
-                          </div>
-                        </div>
-                        <button className="w-full p-3 border-2 border-sky-200 hover:border-sky-400 hover:bg-sky-50 text-gray-700 rounded-xl transition-all font-semibold text-sm">
-                          {t("profile.noOtherSessions", { defaultValue: "No other active sessions" })}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <ActiveSessions />
               )}
 
             </div>
