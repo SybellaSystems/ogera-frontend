@@ -7,7 +7,6 @@ import {
 } from "../services/api/sessionsApi";
 import {
   CheckCircleIcon,
-  XMarkIcon,
   ComputerDesktopIcon,
   DevicePhoneMobileIcon,
   EyeIcon,
