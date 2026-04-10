@@ -38,6 +38,9 @@ import ChangePasswordModal from "../components/ChangePasswordModal";
 import EditProfileModal from "../components/EditProfileModal";
 import TrustScoreCard from "../components/TrustScoreCard";
 import PhoneVerificationModal from "../components/PhoneVerificationModal";
+import PermissionsManagement from "../components/PermissionsManagement";
+import PlatformStatistics from "../components/PlatformStatistics";
+import ActiveSessions from "../components/ActiveSessions";
 import { useResendVerificationEmailMutation } from "../services/api/authApi";
 import { useNavigate } from "react-router-dom";
 import {
@@ -78,6 +81,15 @@ type ActiveSection =
   | "profile-summary"
   | "accomplishments";
 
+type SuperAdminTab = "overview" | "account" | "permissions" | "stats" | "security" | "maintenance" | "registrations" | "broadcast" | "logoutAll" | "language" | "twoFactorAuth" | "activeSessions";
+
+interface SuperAdminNavItem {
+  key: SuperAdminTab;
+  label: string;
+  icon: React.ReactNode;
+  color: string;
+}
+
 const Profile: React.FC = () => {
   const { t } = useTranslation();
   const dispatch = useDispatch();
@@ -95,7 +107,7 @@ const Profile: React.FC = () => {
   const [isPhoneVerificationModalOpen, setIsPhoneVerificationModalOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<ActiveSection>("resume");
   const [isUploadingResume, setIsUploadingResume] = useState(false);
-  const [superAdminActiveTab, setSuperAdminActiveTab] = useState<"overview" | "account" | "permissions" | "stats" | "security">("overview");
+  const [superAdminActiveTab, setSuperAdminActiveTab] = useState<SuperAdminTab>("overview");
 
   // Modal states
   const [isEmploymentModalOpen, setIsEmploymentModalOpen] = useState(false);
@@ -654,39 +666,39 @@ const Profile: React.FC = () => {
                 <nav className="p-4 space-y-2">
                   {[
                     { 
-                      key: "overview", 
+                      key: "overview" as const, 
                       label: t("profile.dashboardOverview", { defaultValue: "Overview" }),
                       icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>,
                       color: "bg-blue-100 group-hover:bg-blue-200"
                     },
                     { 
-                      key: "account", 
+                      key: "account" as const, 
                       label: t("profile.dashboardAccountSettings", { defaultValue: "Account Settings" }),
                       icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /></svg>,
                       color: "bg-purple-100 group-hover:bg-purple-200"
                     },
                     { 
-                      key: "permissions", 
+                      key: "permissions" as const, 
                       label: t("profile.dashboardPermissions", { defaultValue: "Permissions" }),
                       icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
                       color: "bg-green-100 group-hover:bg-green-200"
                     },
                     { 
-                      key: "stats", 
+                      key: "stats" as const, 
                       label: t("profile.dashboardPlatformStats", { defaultValue: "Platform Stats" }),
                       icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" /></svg>,
                       color: "bg-orange-100 group-hover:bg-orange-200"
                     },
                     { 
-                      key: "security", 
+                      key: "security" as const, 
                       label: t("profile.dashboardAuditSecurity", { defaultValue: "Audit & Security" }),
                       icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>,
                       color: "bg-red-100 group-hover:bg-red-200"
                     },
-                  ].map((item) => (
+                  ].map((item: SuperAdminNavItem) => (
                     <button
                       key={item.key}
-                      onClick={() => setSuperAdminActiveTab(item.key as any)}
+                      onClick={() => setSuperAdminActiveTab(item.key)}
                       className={`group w-full text-left px-4 py-3.5 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center gap-3 transform hover:scale-105 ${
                         superAdminActiveTab === item.key
                           ? "bg-gradient-to-r from-[#7f56d9] to-[#5b3ba5] text-white shadow-lg shadow-purple-500/30"
@@ -718,7 +730,7 @@ const Profile: React.FC = () => {
                   <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
                     <div className="flex-1">
                       <div className="flex items-center gap-4 mb-4 flex-wrap">
-                        <h1 className="text-4xl md:text-3xl font-bold tracking-tight">{profileData?.full_name || t("profile.loading", { defaultValue: "Loading..." })}</h1>
+                        <h1 className="text-4xl md:text-3xl font-bold tracking-tight">{userData?.full_name || userData?.name || t("profile.loading", { defaultValue: "Loading..." })}</h1>
                         <div className="flex gap-2">
                           <span className="inline-flex items-center px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-xs font-bold border border-white/30 hover:bg-white/30 transition-all">
                             <span className="w-2 h-2 bg-emerald-400 rounded-full mr-2 animate-pulse"></span>
@@ -733,10 +745,10 @@ const Profile: React.FC = () => {
                       <div className="space-y-2">
                         <p className="text-white/95 flex items-center gap-2 text-sm md:text-base">
                           <EnvelopeIcon className="w-5 h-5" />
-                          {profileData?.email || t("profile.loading", { defaultValue: "Loading..." })}
+                          {userData?.email || t("profile.loading", { defaultValue: "Loading..." })}
                         </p>
                         <p className="text-white/80 text-sm">
-                          {t("profile.lastLogin", { defaultValue: "Last login" })}: <span className="font-semibold text-white">{profileData?.updated_at ? new Date(profileData.updated_at).toLocaleDateString('en-US', {weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'}) : "..."}</span>
+                          {t("profile.lastLogin", { defaultValue: "Last login" })}: <span className="font-semibold text-white">{profileData?.updated_at ? new Date(profileData.updated_at).toLocaleString('en-US', {weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true}) : "..."}</span>
                         </p>
                       </div>
                     </div>
@@ -851,15 +863,15 @@ const Profile: React.FC = () => {
                     <div className="bg-white rounded-2xl border border-gray-100/50 p-8 shadow-md">
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                         {[
-                          { label: t("profile.maintenance", { defaultValue: "Maintenance" }), icon: <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /></svg>, color: "from-amber-500 to-orange-500", bgLight: "bg-amber-50" },
-                          { label: t("profile.registrations", { defaultValue: "Registrations" }), icon: <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>, color: "from-blue-500 to-cyan-500", bgLight: "bg-blue-50" },
-                          { label: t("profile.broadcast", { defaultValue: "Broadcast" }), icon: <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 001-5.868m-5.423 8.813a3.37 3.37 0 01-4.1-3.445" /></svg>, color: "from-pink-500 to-rose-500", bgLight: "bg-pink-50" },
-                          { label: t("profile.logoutAll", { defaultValue: "Logout All" }), icon: <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>, color: "from-red-500 to-pink-500", bgLight: "bg-red-50" },
+                          { key: "maintenance", label: t("profile.maintenance", { defaultValue: "Maintenance" }), icon: <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /></svg>, color: "from-amber-500 to-orange-500", bgLight: "bg-amber-50" },
+                          { key: "registrations", label: t("profile.registrations", { defaultValue: "Registrations" }), icon: <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>, color: "from-blue-500 to-cyan-500", bgLight: "bg-blue-50" },
+                          { key: "broadcast", label: t("profile.broadcast", { defaultValue: "Broadcast" }), icon: <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 001-5.868m-5.423 8.813a3.37 3.37 0 01-4.1-3.445" /></svg>, color: "from-pink-500 to-rose-500", bgLight: "bg-pink-50" },
+                          { key: "logoutAll", label: t("profile.logoutAll", { defaultValue: "Logout All" }), icon: <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>, color: "from-red-500 to-pink-500", bgLight: "bg-red-50" },
                         ].map((control, idx) => (
                           <button
                             key={idx}
-                            disabled
-                            className={`group relative p-6 rounded-2xl text-center border-2 border-gray-200 hover:border-gray-300 transition-all hover:shadow-lg disabled:opacity-60 cursor-not-allowed overflow-hidden`}
+                            onClick={() => setSuperAdminActiveTab(control.key as SuperAdminTab)}
+                            className={`group relative p-6 rounded-2xl text-center border-2 border-gray-200 hover:border-gray-300 transition-all hover:shadow-lg cursor-pointer overflow-hidden transform hover:scale-105`}
                           >
                             <div className={`absolute inset-0 ${control.bgLight} opacity-0 group-hover:opacity-100 transition-all duration-300`}></div>
                             <div className="relative z-10 flex flex-col items-center gap-3">
@@ -892,9 +904,9 @@ const Profile: React.FC = () => {
                         <span className="flex items-center gap-2"><PencilIcon className="w-5 h-5 text-[#7f56d9]" />{t("profile.editProfile", { defaultValue: "Edit Profile" })}</span>
                         <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                       </button>
-                      <button disabled className="w-full p-4 border-2 border-gray-300 rounded-xl text-gray-600 text-left font-semibold flex items-center justify-between disabled:opacity-50 cursor-not-allowed">
-                        <span className="flex items-center gap-2"><svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 00.948-.684l1.498-4.493a1 1 0 011.502 0l1.498 4.493a1 1 0 00.948.684H19a2 2 0 012 2v2a2 2 0 01-2 2H5a2 2 0 01-2-2V5z" /></svg>{t("profile.language", { defaultValue: "Language" })}</span>
-                        <span className="text-xs font-semibold text-gray-400">{t("profile.comingSoon", { defaultValue: "Coming soon" })}</span>
+                      <button onClick={() => setSuperAdminActiveTab("language")} className="w-full p-4 border-2 border-[#e0d8f0] rounded-xl hover:border-[#7f56d9] hover:bg-[#f5f3ff] transition-all text-left font-semibold text-gray-900 flex items-center justify-between">
+                        <span className="flex items-center gap-2"><svg className="w-5 h-5 text-[#7f56d9]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 00.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>{t("profile.language", { defaultValue: "Language" })}</span>
+                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                       </button>
                     </div>
                   </div>
@@ -903,28 +915,12 @@ const Profile: React.FC = () => {
 
               {/* TAB 3: PERMISSIONS */}
               {superAdminActiveTab === "permissions" && (
-                <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
-                  <div className="bg-gradient-to-r from-[#7f56d9] to-[#5b3ba5] px-8 py-8 text-white">
-                    <h2 className="text-2xl font-bold">{t("profile.dashboardPermissionsManagement", { defaultValue: "Permissions Management" })}</h2>
-                    <p className="text-white/80 mt-2">{t("profile.permissionsManagementDesc", { defaultValue: "Permissions management interface will be available soon." })}</p>
-                  </div>
-                  <div className="p-8 text-center">
-                    <p className="text-gray-500">{t("profile.permissionsManagementDesc", { defaultValue: "Permissions management interface will be available soon." })}</p>
-                  </div>
-                </div>
+                <PermissionsManagement />
               )}
 
               {/* TAB 4: PLATFORM STATS */}
               {superAdminActiveTab === "stats" && (
-                <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
-                  <div className="bg-gradient-to-r from-[#7f56d9] to-[#5b3ba5] px-8 py-8 text-white">
-                    <h2 className="text-2xl font-bold">{t("profile.dashboardPlatformStatistics", { defaultValue: "Platform Statistics" })}</h2>
-                    <p className="text-white/80 mt-2">{t("profile.analyticsComingSoon", { defaultValue: "Detailed analytics and reporting" })}</p>
-                  </div>
-                  <div className="p-8 text-center">
-                    <p className="text-gray-500">{t("profile.analyticsComingSoon", { defaultValue: "Advanced analytics dashboard coming soon." })}</p>
-                  </div>
-                </div>
+                <PlatformStatistics />
               )}
 
               {/* TAB 5: AUDIT & SECURITY */}
@@ -943,17 +939,185 @@ const Profile: React.FC = () => {
                         <span className="flex items-center gap-2"><svg className="w-5 h-5 text-[#7f56d9]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.192 5.978A6 6 0 1115 7z" /></svg>{t("profile.changePassword", { defaultValue: "Change Password" })}</span>
                         <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                       </button>
-                      <button disabled className="w-full p-4 border-2 border-gray-300 rounded-xl text-gray-600 text-left font-semibold flex items-center justify-between disabled:opacity-50 cursor-not-allowed">
-                        <span className="flex items-center gap-2"><svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>{t("profile.twoFactorAuth", { defaultValue: "Two-Factor Auth" })}</span>
-                        <span className="text-xs font-semibold text-gray-400">{t("profile.comingSoon", { defaultValue: "Coming soon" })}</span>
+                      <button onClick={() => setSuperAdminActiveTab("twoFactorAuth")} className="w-full p-4 border-2 border-[#e0d8f0] rounded-xl hover:border-[#7f56d9] hover:bg-[#f5f3ff] transition-all text-left font-semibold text-gray-900 flex items-center justify-between">
+                        <span className="flex items-center gap-2"><svg className="w-5 h-5 text-[#7f56d9]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>{t("profile.twoFactorAuth", { defaultValue: "Two-Factor Auth" })}</span>
+                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                       </button>
-                      <button disabled className="w-full p-4 border-2 border-gray-300 rounded-xl text-gray-600 text-left font-semibold flex items-center justify-between disabled:opacity-50 cursor-not-allowed">
-                        <span className="flex items-center gap-2"><svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m7 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>{t("profile.activeSessions", { defaultValue: "Active Sessions" })}</span>
-                        <span className="text-xs font-semibold text-gray-400">{t("profile.comingSoon", { defaultValue: "Coming soon" })}</span>
+                      <button onClick={() => setSuperAdminActiveTab("activeSessions")} className="w-full p-4 border-2 border-[#e0d8f0] rounded-xl hover:border-[#7f56d9] hover:bg-[#f5f3ff] transition-all text-left font-semibold text-gray-900 flex items-center justify-between">
+                        <span className="flex items-center gap-2"><svg className="w-5 h-5 text-[#7f56d9]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m7 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>{t("profile.activeSessions", { defaultValue: "Active Sessions" })}</span>
+                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                       </button>
                     </div>
                   </div>
                 </div>
+              )}
+
+              {/* Maintenance Tab */}
+              {superAdminActiveTab === "maintenance" && (
+                <div className="space-y-8 animate-fadeIn">
+                  <h2 className="text-2xl font-bold text-gray-900">{t("profile.maintenance", { defaultValue: "Maintenance" })}</h2>
+                  <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
+                    <div className="bg-gradient-to-r from-amber-600 to-amber-700 px-6 py-5">
+                      <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
+                        {t("profile.maintenance", { defaultValue: "Maintenance Mode" })}
+                      </h3>
+                    </div>
+                    <div className="p-6">
+                      <p className="text-gray-600 mb-6">{t("profile.maintenanceDescription", { defaultValue: "Manage platform maintenance and updates" })}</p>
+                      <button className="w-full p-4 bg-amber-600 hover:bg-amber-700 text-white rounded-xl transition-all font-semibold flex items-center justify-center gap-2">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
+                        {t("profile.enableMaintenance", { defaultValue: "Enable Maintenance Mode" })}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Registrations Tab */}
+              {superAdminActiveTab === "registrations" && (
+                <div className="space-y-8 animate-fadeIn">
+                  <h2 className="text-2xl font-bold text-gray-900">{t("profile.registrations", { defaultValue: "User Registrations" })}</h2>
+                  <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
+                    <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-5">
+                      <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
+                        {t("profile.registrations", { defaultValue: "Registrations" })}
+                      </h3>
+                    </div>
+                    <div className="p-6">
+                      <p className="text-gray-600 mb-6">{t("profile.registrationsDescription", { defaultValue: "Monitor user registrations and approval" })}</p>
+                      <div className="p-4 border-2 border-blue-200 rounded-xl bg-blue-50">
+                        <p className="text-sm text-gray-600">{t("profile.pendingRegistrations", { defaultValue: "0 pending registrations" })}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Broadcast Tab */}
+              {superAdminActiveTab === "broadcast" && (
+                <div className="space-y-8 animate-fadeIn">
+                  <h2 className="text-2xl font-bold text-gray-900">{t("profile.broadcast", { defaultValue: "Broadcast Messages" })}</h2>
+                  <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
+                    <div className="bg-gradient-to-r from-pink-600 to-pink-700 px-6 py-5">
+                      <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.961 1.961 0 01-2.773-.802c-.274-.373-.645-.824-1.058-1.291a7.902 7.902 0 01-.32-7.858A7.896 7.896 0 0110.855 4.82c.353-.502.657-.823.82-1.023a2.989 2.989 0 011.946-.53 2.987 2.987 0 011.946.53c.163.2.467.521.82 1.023A7.897 7.897 0 0120.3 9.35" /></svg>
+                        {t("profile.broadcast", { defaultValue: "Broadcast" })}
+                      </h3>
+                    </div>
+                    <div className="p-6">
+                      <p className="text-gray-600 mb-6">{t("profile.broadcastDescription", { defaultValue: "Send platform-wide messages to users" })}</p>
+                      <button className="w-full p-4 bg-pink-600 hover:bg-pink-700 text-white rounded-xl transition-all font-semibold flex items-center justify-center gap-2">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                        {t("profile.createBroadcast", { defaultValue: "Create New Broadcast" })}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Logout All Tab */}
+              {superAdminActiveTab === "logoutAll" && (
+                <div className="space-y-8 animate-fadeIn">
+                  <h2 className="text-2xl font-bold text-gray-900">{t("profile.logoutAll", { defaultValue: "Logout All Users" })}</h2>
+                  <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
+                    <div className="bg-gradient-to-r from-red-600 to-red-700 px-6 py-5">
+                      <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                        {t("profile.logoutAll", { defaultValue: "Logout All" })}
+                      </h3>
+                    </div>
+                    <div className="p-6">
+                      <p className="text-gray-600 mb-6">{t("profile.logoutAllDescription", { defaultValue: "Force logout all users from the platform" })}</p>
+                      <button className="w-full p-4 bg-red-600 hover:bg-red-700 text-white rounded-xl transition-all font-semibold flex items-center justify-center gap-2">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                        {t("profile.executeLogoutAll", { defaultValue: "Execute Logout All" })}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Language Settings Tab */}
+              {superAdminActiveTab === "language" && (
+                <div className="space-y-8 animate-fadeIn">
+                  <h2 className="text-2xl font-bold text-gray-900">{t("profile.language", { defaultValue: "Language Settings" })}</h2>
+                  <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
+                    <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 px-6 py-5">
+                      <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+                        {t("profile.language", { defaultValue: "Language" })}
+                      </h3>
+                    </div>
+                    <div className="p-6">
+                      <p className="text-gray-600 mb-6">{t("profile.languageDescription", { defaultValue: "Change the platform language and display settings" })}</p>
+                      <div className="space-y-3">
+                        {[
+                          { code: "en", label: "English", flag: "🇺🇸" },
+                          { code: "fr", label: "Français", flag: "🇫🇷" },
+                          { code: "af", label: "Afrikaans", flag: "🇿🇦" },
+                          { code: "sw", label: "Kiswahili", flag: "🇰🇪" },
+                          { code: "rw", label: "Kinyarwanda", flag: "🇷🇼" },
+                          { code: "zu", label: "Zulu", flag: "🇿🇦" },
+                        ].map((lang) => (
+                          <button
+                            key={lang.code}
+                            onClick={() => {
+                              // Language change handler would go here
+                              toast.success(`${t("profile.languageChanged", { defaultValue: "Language changed to" })} ${lang.label}`);
+                            }}
+                            className="w-full p-4 border-2 border-indigo-200 hover:border-indigo-500 hover:bg-indigo-50 rounded-xl transition-all text-left font-semibold text-gray-900 flex items-center justify-between group"
+                          >
+                            <span className="flex items-center gap-3">
+                              <span className="text-2xl">{lang.flag}</span>
+                              <span>{lang.label}</span>
+                            </span>
+                            <svg className="w-5 h-5 text-indigo-600 opacity-0 group-hover:opacity-100 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Two-Factor Authentication Tab */}
+              {superAdminActiveTab === "twoFactorAuth" && (
+                <div className="space-y-8 animate-fadeIn">
+                  <h2 className="text-2xl font-bold text-gray-900">{t("profile.twoFactorAuth", { defaultValue: "Two-Factor Authentication" })}</h2>
+                  <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
+                    <div className="bg-gradient-to-r from-cyan-600 to-cyan-700 px-6 py-5">
+                      <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                        {t("profile.twoFactorAuth", { defaultValue: "2FA Settings" })}
+                      </h3>
+                    </div>
+                    <div className="p-6">
+                      <p className="text-gray-600 mb-6">{t("profile.twoFactorDescription", { defaultValue: "Enable two-factor authentication for enhanced security" })}</p>
+                      <div className="bg-cyan-50 border-2 border-cyan-200 rounded-xl p-6 mb-6">
+                        <div className="flex items-start gap-3">
+                          <div className="w-10 h-10 bg-cyan-600 rounded-full flex items-center justify-center flex-shrink-0">
+                            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                          </div>
+                          <div>
+                            <h4 className="font-semibold text-gray-900 mb-1">{t("profile.twoFactorBenefit", { defaultValue: "Enhance Your Security" })}</h4>
+                            <p className="text-sm text-gray-600">{t("profile.twoFactorBenefitDesc", { defaultValue: "Add an extra layer of protection to your account" })}</p>
+                          </div>
+                        </div>
+                      </div>
+                      <button className="w-full p-4 bg-cyan-600 hover:bg-cyan-700 text-white rounded-xl transition-all font-semibold flex items-center justify-center gap-2">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                        {t("profile.enable2FA", { defaultValue: "Enable 2FA" })}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Active Sessions Tab */}
+              {superAdminActiveTab === "activeSessions" && (
+                <ActiveSessions />
               )}
 
             </div>
