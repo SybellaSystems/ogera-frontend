@@ -107,21 +107,23 @@ const ActiveJobs: React.FC = () => {
   }
 
   return (
-    <div className="space-y-3 animate-fadeIn p-1">
+    <div className="space-y-6 animate-fadeIn">
       {/* Header */}
-      <div>
-        <h1 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-          <CheckBadgeIcon className="h-5 w-5 text-green-600" />
-          {t("pages.jobs.activeJobsTitle")}
-        </h1>
-        <p className="text-gray-500 text-xs mt-0.5">
-          {t("pages.jobs.jobsFound", { count: filteredJobs.length })}
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+            <CheckBadgeIcon className="h-8 w-8 text-green-600" />
+            {t("pages.jobs.activeJobsTitle")}
+          </h1>
+          <p className="text-gray-600 mt-1">
+            {t("pages.jobs.jobsFound", { count: filteredJobs.length })}
+          </p>
+        </div>
       </div>
 
       {/* Search and Filter Bar */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-3 md:p-4">
-        <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <div className="flex flex-col md:flex-row gap-4">
           {/* Search Input */}
           <div className="flex-1 relative">
             <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -130,17 +132,17 @@ const ActiveJobs: React.FC = () => {
               placeholder={t("pages.jobs.searchPlaceholderActive")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 md:py-3 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all outline-none hover:border-gray-300"
+              className="w-full pl-10 pr-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
 
           {/* Location Filter */}
-          <div className="relative sm:w-56">
-            <MapPinIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
+          <div className="relative md:w-64">
+            <MapPinIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
             <select
               value={selectedLocation}
               onChange={(e) => setSelectedLocation(e.target.value)}
-              className="w-full pl-10 pr-3 py-2.5 md:py-3 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent appearance-none bg-white cursor-pointer transition-all outline-none hover:border-gray-300"
+              className="w-full pl-10 pr-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white"
             >
               <option value="">{t("pages.jobs.allLocations")}</option>
               {locations.map((location: string) => (
@@ -149,45 +151,27 @@ const ActiveJobs: React.FC = () => {
                 </option>
               ))}
             </select>
-            <div className="pointer-events-none absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-              </svg>
-            </div>
           </div>
         </div>
       </div>
 
       {/* Jobs List */}
       {filteredJobs.length === 0 ? (
-        <div className="bg-white rounded-xl p-12 shadow-sm border border-gray-200 text-center">
-          <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6">
-            <CheckBadgeIcon className="h-10 w-10 text-green-600" />
-          </div>
+        <div className="bg-white rounded-xl p-12 shadow-md border border-gray-100 text-center">
+          <CheckBadgeIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
           <h3 className="text-xl font-semibold text-gray-900 mb-2">
             {searchQuery || selectedLocation
               ? t("pages.jobs.noJobsMatching")
               : t("pages.jobs.noActiveJobsAvailable")}
           </h3>
-          <p className="text-gray-500 text-sm mb-6 max-w-sm mx-auto">
+          <p className="text-gray-600">
             {searchQuery || selectedLocation
               ? t("pages.jobs.tryAdjusting")
               : t("pages.jobs.noActiveCheckBack")}
           </p>
-          {(searchQuery || selectedLocation) && (
-            <button
-              onClick={() => {
-                setSearchQuery("");
-                setSelectedLocation("");
-              }}
-              className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition text-sm"
-            >
-              Clear Filters
-            </button>
-          )}
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-4">
           {filteredJobs.map((job: any) => {
             const employerName = job.employer?.full_name || t("pages.jobs.unknownEmployer");
             const companyInitial = employerName.charAt(0).toUpperCase();
@@ -199,108 +183,106 @@ const ActiveJobs: React.FC = () => {
             return (
               <div
                 key={job.job_id}
-                className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-lg hover:border-green-200 transition-all duration-300 p-4 md:p-5 cursor-pointer group"
+                className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 p-5"
               >
-                <div className="flex gap-3 md:gap-4">
+                <div className="flex gap-2">
                   {/* Company Logo */}
                   <div className="flex-shrink-0">
-                    <div className="h-12 w-12 md:h-14 md:w-14 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white font-bold text-base md:text-lg shadow-md group-hover:shadow-lg transition-all">
+                    <div className="h-12 w-16 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-xl shadow-md">
                       {companyInitial}
                     </div>
                   </div>
 
                   {/* Job Details */}
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between mb-2 gap-2">
-                      <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex-1">
                         <h3
                           onClick={() => navigate(`/dashboard/jobs/${job.job_id}`)}
-                          className="text-base font-semibold text-gray-800 hover:text-green-600 cursor-pointer mb-1 transition-colors"
+                          className="text-lg font-semibold text-blue-600 hover:text-blue-800 cursor-pointer mb-1"
                         >
                           {job.job_title}
                         </h3>
-                        <p className="text-xs md:text-sm text-gray-600 font-medium mb-2 truncate">
+                        <p className="text-gray-700 font-medium mb-2">
                           {employerName}
                         </p>
                       </div>
                       <button
                         onClick={() => toggleSaveJob(job.job_id)}
-                        className="flex-shrink-0 p-2 hover:bg-green-50 rounded-full transition-all"
+                        className="flex-shrink-0 ml-4 p-2 hover:bg-gray-100 rounded-full transition"
                         title={isSaved ? t("pages.jobs.removeFromSaved") : t("pages.jobs.saveJob")}
                       >
                         {isSaved ? (
-                          <BookmarkSolidIcon className="h-5 w-5 text-green-600" />
+                          <BookmarkSolidIcon className="h-5 w-5 text-blue-600" />
                         ) : (
-                          <BookmarkIcon className="h-5 w-5 text-gray-400 hover:text-green-400" />
+                          <BookmarkIcon className="h-5 w-5 text-gray-400" />
                         )}
                       </button>
                     </div>
 
                     {/* Job Info Row */}
-                    <div className="flex flex-wrap gap-3 text-xs text-gray-600 mb-3">
-                      <span className="flex items-center gap-1.5">
-                        <MapPinIcon className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                        <span className="truncate">{job.location}</span>
+                    <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-3">
+                      <span className="flex items-center gap-1">
+                        <MapPinIcon className="h-4 w-4" />
+                        {job.location}
                       </span>
-                      <span className="flex items-center gap-1.5">
-                        <CurrencyDollarIcon className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                        <span className="truncate font-medium text-gray-700">${job.budget?.toLocaleString() || t("pages.jobs.notSpecified")}</span>
+                      <span className="flex items-center gap-1">
+                        <CurrencyDollarIcon className="h-4 w-4" />
+                        ${job.budget?.toLocaleString() || t("pages.jobs.notSpecified")}
                       </span>
                       {job.duration && (
-                        <span className="flex items-center gap-1.5">
-                          <BriefcaseIcon className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                          <span className="truncate">{job.duration}</span>
+                        <span className="flex items-center gap-1">
+                          <BriefcaseIcon className="h-4 w-4" />
+                          {job.duration}
                         </span>
                       )}
                       {job.created_at && (
-                        <span className="flex items-center gap-1.5">
-                          <ClockIcon className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                          <span className="truncate">{formatRelativeTime(job.created_at)}</span>
+                        <span className="flex items-center gap-1">
+                          <ClockIcon className="h-4 w-4" />
+                          {t("pages.jobs.posted")} {formatRelativeTime(job.created_at)}
                         </span>
                       )}
                     </div>
 
                     {/* Job Description Preview */}
                     {job.description && (
-                      <p className="text-gray-600 text-xs mb-3 line-clamp-2 leading-relaxed">
+                      <p className="text-gray-600 text-sm mb-3 line-clamp-2">
                         {job.description}
                       </p>
                     )}
 
                     {/* Skills/Tags */}
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2 mb-3">
                       {job.category && (
-                        <span className="px-2.5 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium border border-blue-100">
+                        <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium">
                           {job.category}
                         </span>
                       )}
                       {job.employment_type && (
-                        <span className="px-2.5 py-1 bg-green-50 text-green-700 rounded-full text-xs font-medium border border-green-100">
+                        <span className="px-3 py-1 bg-green-50 text-green-700 rounded-full text-xs font-medium">
                           {job.employment_type}
                         </span>
                       )}
                       {job.experience_level && (
-                        <span className="px-2.5 py-1 bg-purple-50 text-purple-700 rounded-full text-xs font-medium border border-purple-100">
+                        <span className="px-3 py-1 bg-purple-50 text-purple-700 rounded-full text-xs font-medium">
                           {job.experience_level}
                         </span>
                       )}
-                      <span className="px-2.5 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium border border-gray-200">
+                      <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">
                         {job.applications || 0} {t("pages.jobs.applicants")}
                       </span>
                     </div>
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex flex-col gap-2 md:ml-4 md:flex-shrink-0">
-                    {role === "student" ? (
-                      <div className="relative">
+<div className="flex flex-col sm:flex-row md:flex-col gap-2 mt-4 md:mt-0 md:ml-4 md:flex-shrink-0 md:w-44">                      {role === "student" ? (
+                      <div className="relative group flex-1 sm:flex-none">
                         <button
                           onClick={() => !isApplyDisabled && handleApply(job)}
                           disabled={isApplyDisabled}
-                          className={`w-full px-4 md:px-5 py-2 md:py-2.5 rounded-lg font-semibold transition-all shadow-sm whitespace-nowrap text-sm cursor-pointer ${
-                            isApplyDisabled
-                              ? "bg-gray-300 text-gray-600 cursor-not-allowed opacity-60"
-                              : "bg-green-600 hover:bg-green-700 hover:shadow-md text-white active:scale-95"
+className={`w-full px-3 md:px-4 py-1.5 md:py-2 rounded-md font-medium transition shadow-sm whitespace-nowrap text-xs md:text-sm cursor-pointer ${                          isApplyDisabled
+                              ? "bg-gray-400 text-white cursor-not-allowed"
+                              : "bg-blue-600 hover:bg-blue-700 text-white"
                           }`}
                         >
                           {hasAlreadyApplied
@@ -321,8 +303,7 @@ const ActiveJobs: React.FC = () => {
                       <>
                         <button
                           onClick={() => navigate(`/dashboard/jobs/${job.job_id}`)}
-                          className="px-4 md:px-5 py-2 md:py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition-all shadow-sm whitespace-nowrap text-sm cursor-pointer hover:shadow-md active:scale-95"
-                        >
+className="px-3 md:px-4 py-1.5 md:py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-md font-medium transition shadow-sm whitespace-nowrap text-xs md:text-sm flex-1 sm:flex-none cursor-pointer">                        
                           {t("pages.jobs.viewDetails")}
                         </button>
                         {(role === "employer" || role === "superadmin") && (
@@ -330,8 +311,7 @@ const ActiveJobs: React.FC = () => {
                             onClick={() =>
                               navigate(`/dashboard/jobs/${job.job_id}/applications`)
                             }
-                            className="px-4 md:px-5 py-2 md:py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold transition-all shadow-sm whitespace-nowrap text-sm cursor-pointer hover:shadow-md active:scale-95"
-                          >
+className="px-3 md:px-4 py-1.5 md:py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium transition shadow-sm whitespace-nowrap text-xs md:text-sm flex-1 sm:flex-none cursor-pointer">                          
                             {t("pages.jobs.manage")} ({job.applications || 0})
                           </button>
                         )}

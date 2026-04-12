@@ -1003,15 +1003,35 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                       </>
                     )}
                     {role === "student" && (
-                      <li
-                        className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
-                        onClick={() => handleNavigation("/dashboard/jobs/my-applications")}
-                      >
-                        <BriefcaseIcon className="h-4 w-4 text-white/40 group-hover/item:text-[#9F7AEA] transition-colors" />
-                        <span className="text-white/60 group-hover/item:text-white transition-colors">
-                          {t("sidebar.myApplications")}
-                        </span>
-                      </li>
+                      <>
+                        <li
+                          className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
+                          onClick={() => handleNavigation("/dashboard/jobs/my-applications")}
+                        >
+                          <BriefcaseIcon className="h-4 w-4 text-white/40 group-hover/item:text-[#9F7AEA] transition-colors" />
+                          <span className="text-white/60 group-hover/item:text-white transition-colors">
+                            {t("sidebar.myApplications")}
+                          </span>
+                        </li>
+                        <li
+                          className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
+                          onClick={() => handleNavigation("/dashboard/jobs/my-applications/accepted")}
+                        >
+                          <CheckCircleIcon className="h-4 w-4 text-white/40 group-hover/item:text-green-400 transition-colors" />
+                          <span className="text-white/60 group-hover/item:text-white transition-colors">
+                            {t("sidebar.approved")}
+                          </span>
+                        </li>
+                        <li
+                          className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
+                          onClick={() => handleNavigation("/dashboard/jobs/my-applications/rejected")}
+                        >
+                          <XCircleIcon className="h-4 w-4 text-white/40 group-hover/item:text-red-400 transition-colors" />
+                          <span className="text-white/60 group-hover/item:text-white transition-colors">
+                            {t("sidebar.rejected")}
+                          </span>
+                        </li>
+                      </>
                     )}
                     <li
                       className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
@@ -1026,7 +1046,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                       className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
                       onClick={() => handleNavigation("/dashboard/jobs/active")}
                     >
-                      <FireIcon className="h-4 w-4 text-white/40 group-hover/item:text-[#9F7AEA] transition-colors" />
+                      <FireIcon className="h-4 w-4 text-white/40 group-hover/item:text-orange-400 transition-colors" />
                       <span className="text-white/60 group-hover/item:text-white transition-colors">
                         {t("sidebar.activeJobs")}
                       </span>

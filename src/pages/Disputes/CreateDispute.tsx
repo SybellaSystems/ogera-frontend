@@ -121,20 +121,19 @@ const CreateDispute: React.FC = () => {
   }
 
   return (
-    <div className="create-page max-w-4xl mx-auto space-y-3 animate-fadeIn p-1">
-      {/* Header */}
+    <div className="create-page max-w-4xl mx-auto space-y-6 animate-fadeIn">
       <div>
-        <h1 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-          <ExclamationTriangleIcon className="h-5 w-5 text-red-600" />
+        <h1 className="text-3xl font-extrabold text-gray-900 flex items-center gap-3">
+          <ExclamationTriangleIcon className="h-8 w-8 text-red-600" />
           {t("disputes.createTitle")}
         </h1>
-        <p className="text-gray-500 text-xs mt-0.5">{t("disputes.createSubtitle")}</p>
+        <p className="text-gray-500 mt-2">{t("disputes.createSubtitle")}</p>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 md:p-8 create-page-form">
-        <form onSubmit={formik.handleSubmit} className="space-y-5">
+      <div className="bg-white rounded-xl shadow-md border border-gray-100 p-6 md:p-8 create-page-form">
+        <form onSubmit={formik.handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2.5">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
               {t("disputes.selectJob")} <span className="text-red-500">*</span>
             </label>
             <select
@@ -147,10 +146,10 @@ const CreateDispute: React.FC = () => {
                 }
               }}
               onBlur={formik.handleBlur}
-              className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent appearance-none bg-white cursor-pointer transition-all ${
+              className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
                 formik.touched.job_id && formik.errors.job_id
                   ? "border-red-500"
-                  : "border-gray-300 hover:border-gray-400"
+                  : "border-gray-300"
               }`}
             >
               <option value="">{t("disputes.selectJobPlaceholder")}</option>
@@ -176,8 +175,8 @@ const CreateDispute: React.FC = () => {
           </div>
 
           {role === "employer" && formik.values.job_id && (
-            <div className="bg-red-50 border border-red-100 rounded-lg p-4">
-              <label className="block text-sm font-semibold text-gray-700 mb-2.5">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
                 {t("disputes.selectStudentApplication")}
               </label>
               <select
@@ -185,7 +184,7 @@ const CreateDispute: React.FC = () => {
                 value={formik.values.job_application_id || ""}
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
-                className="w-full px-4 py-2.5 border border-red-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent appearance-none bg-white cursor-pointer transition-all hover:border-red-300"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               >
                 <option value="">{t("disputes.autoSelectFirst")}</option>
                 {(jobApplicationsData?.data || [])
@@ -201,7 +200,7 @@ const CreateDispute: React.FC = () => {
           )}
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2.5">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
               {t("disputes.disputeType")} <span className="text-red-500">*</span>
             </label>
             <select
@@ -209,8 +208,8 @@ const CreateDispute: React.FC = () => {
               value={formik.values.type}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
-              className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent appearance-none bg-white cursor-pointer transition-all ${
-                formik.touched.type && formik.errors.type ? "border-red-500" : "border-gray-300 hover:border-gray-400"
+              className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                formik.touched.type && formik.errors.type ? "border-red-500" : "border-gray-300"
               }`}
             >
               <option value="Payment">{t("disputes.typePayment")}</option>
@@ -227,7 +226,7 @@ const CreateDispute: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2.5">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
               {t("disputes.priority")} <span className="text-red-500">*</span>
             </label>
             <select
@@ -235,8 +234,8 @@ const CreateDispute: React.FC = () => {
               value={formik.values.priority || ""}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
-              className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent appearance-none bg-white cursor-pointer transition-all ${
-                formik.touched.priority && formik.errors.priority ? "border-red-500" : "border-gray-300 hover:border-gray-400"
+              className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                formik.touched.priority && formik.errors.priority ? "border-red-500" : "border-gray-300"
               }`}
             >
               <option value="">{t("disputes.selectPriority")}</option>
@@ -250,7 +249,7 @@ const CreateDispute: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2.5">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
               {t("disputes.disputeTitle")} <span className="text-red-500">*</span>
             </label>
             <input
@@ -260,8 +259,8 @@ const CreateDispute: React.FC = () => {
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
               placeholder={t("disputes.titlePlaceholder")}
-              className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all ${
-                formik.touched.title && formik.errors.title ? "border-red-500" : "border-gray-300 hover:border-gray-400"
+              className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                formik.touched.title && formik.errors.title ? "border-red-500" : "border-gray-300"
               }`}
             />
             {formik.touched.title && formik.errors.title && (
@@ -270,7 +269,7 @@ const CreateDispute: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2.5">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
               {t("disputes.description")} <span className="text-red-500">*</span>
             </label>
             <textarea
@@ -280,8 +279,8 @@ const CreateDispute: React.FC = () => {
               onBlur={formik.handleBlur}
               rows={6}
               placeholder={t("disputes.descriptionPlaceholder")}
-              className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none transition-all ${
-                formik.touched.description && formik.errors.description ? "border-red-500" : "border-gray-300 hover:border-gray-400"
+              className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none ${
+                formik.touched.description && formik.errors.description ? "border-red-500" : "border-gray-300"
               }`}
             />
             {formik.touched.description && formik.errors.description && (
@@ -291,10 +290,10 @@ const CreateDispute: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2.5">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
               {t("disputes.uploadEvidence")}
             </label>
-            <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-red-500 hover:bg-red-50/30 transition-all duration-200">
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-purple-500 transition">
               <input
                 type="file"
                 id="evidence-upload"
@@ -304,35 +303,19 @@ const CreateDispute: React.FC = () => {
                 className="hidden"
               />
               <label htmlFor="evidence-upload" className="cursor-pointer flex flex-col items-center">
-                <div className="w-14 h-14 bg-red-50 rounded-full flex items-center justify-center mb-3">
-                  <PaperClipIcon className="h-7 w-7 text-red-600" />
-                </div>
-                <span className="text-sm font-semibold text-gray-700">{t("disputes.clickToUpload")}</span>
+                <PaperClipIcon className="h-10 w-10 text-gray-400 mb-2" />
+                <span className="text-sm text-gray-600">{t("disputes.clickToUpload")}</span>
                 <span className="text-xs text-gray-500 mt-1">{t("disputes.fileTypesHint")}</span>
               </label>
             </div>
             {selectedFiles.length > 0 && (
               <div className="mt-4 space-y-2">
-                <p className="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-3">{selectedFiles.length} {selectedFiles.length === 1 ? "file" : "files"} uploaded</p>
                 {selectedFiles.map((file, index) => (
-                  <div key={index} className="flex items-center justify-between bg-gradient-to-r from-red-50 to-white border border-red-100 p-3 rounded-lg hover:border-red-200 transition-all">
-                    <div className="flex items-center gap-2 flex-1 min-w-0">
-                      <div className="w-8 h-8 bg-red-100 rounded flex items-center justify-center flex-shrink-0">
-                        <PaperClipIcon className="h-4 w-4 text-red-600" />
-                      </div>
-                      <span className="text-sm text-gray-700 truncate flex-1">
-                        {file.name}
-                      </span>
-                      <span className="text-xs text-gray-500 flex-shrink-0 ml-2">
-                        ({(file.size / 1024).toFixed(2)} KB)
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => removeFile(index)}
-                      className="ml-2 p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-all flex-shrink-0"
-                      title="Remove file"
-                    >
+                  <div key={index} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+                    <span className="text-sm text-gray-700 truncate flex-1">
+                      {file.name} ({(file.size / 1024).toFixed(2)} KB)
+                    </span>
+                    <button type="button" onClick={() => removeFile(index)} className="ml-2 text-red-600 hover:text-red-800">
                       <XMarkIcon className="h-5 w-5" />
                     </button>
                   </div>
@@ -342,26 +325,26 @@ const CreateDispute: React.FC = () => {
           </div>
 
           {formik.values.priority && (
-            <div className="bg-gradient-to-r from-red-50 to-white border border-red-100 rounded-xl p-4 shadow-sm">
-              <p className="text-sm text-red-800 font-medium">
-                <span className="font-semibold">{t("disputes.priority")}:</span> <span className="inline-block px-2.5 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold ml-2">{formik.values.priority}</span>
-                {formik.values.type === "Payment" && <span className="text-xs text-red-600 ml-2 italic">{t("disputes.priorityAutoSet")}</span>}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <p className="text-sm text-blue-800">
+                <strong>{t("disputes.priority")}:</strong> {formik.values.priority}
+                {formik.values.type === "Payment" && ` ${t("disputes.priorityAutoSet")}`}
               </p>
             </div>
           )}
 
-          <div className="flex gap-3 pt-6 border-t border-gray-200">
+          <div className="flex gap-4 pt-4">
             <button
               type="button"
               onClick={() => navigate(-1)}
-              className="px-6 py-2.5 border border-gray-300 rounded-lg font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-all active:scale-95"
+              className="px-6 py-2.5 border border-gray-300 rounded-lg font-semibold text-gray-700 hover:bg-gray-50 transition"
             >
               {t("disputes.cancel")}
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition-all shadow-sm hover:shadow-md active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? t("disputes.submitting") : t("disputes.submitDispute")}
             </button>
