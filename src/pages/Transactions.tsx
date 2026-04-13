@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { CreditCardIcon } from "@heroicons/react/24/outline";
 import CustomTable, {
@@ -10,9 +10,11 @@ import {
   Visibility as ViewIcon,
   Receipt as ReceiptIcon,
 } from "@mui/icons-material";
+import { useListJobPaymentsQuery } from "../services/api/momoApi";
+import Loader from "../components/Loader";
 
 interface Transaction {
-  id: number;
+  id: string;
   transactionId: string;
   student: string;
   employer: string;
@@ -24,58 +26,37 @@ interface Transaction {
 
 const Transactions: React.FC = () => {
   const { t } = useTranslation();
-  const transactions: Transaction[] = [
-    {
-      id: 1,
-      transactionId: "TXN-001234",
-      student: "John Doe",
-      employer: "Google Inc",
-      amount: "$2,500",
-      type: "Payment",
-      status: "Completed",
-      date: "2024-03-15",
-    },
-    {
-      id: 2,
-      transactionId: "TXN-001235",
-      student: "Emily Smith",
-      employer: "Microsoft",
-      amount: "$1,800",
-      type: "Payment",
-      status: "Completed",
-      date: "2024-03-14",
-    },
-    {
-      id: 3,
-      transactionId: "TXN-001236",
-      student: "Mike Johnson",
-      employer: "Amazon",
-      amount: "$500",
-      type: "Refund",
-      status: "Pending",
-      date: "2024-03-13",
-    },
-    {
-      id: 4,
-      transactionId: "TXN-001237",
-      student: "Sarah Williams",
-      employer: "Tesla",
-      amount: "$3,200",
-      type: "Payment",
-      status: "Completed",
-      date: "2024-03-12",
-    },
-    {
-      id: 5,
-      transactionId: "TXN-001238",
-      student: "David Brown",
-      employer: "Apple",
-      amount: "$1,200",
-      type: "Payment",
-      status: "Failed",
-      date: "2024-03-11",
-    },
-  ];
+  const { data, isLoading } = useListJobPaymentsQuery();
+
+  // Convert MoMo payments to transaction format
+  const transactions: Transaction[] = useMemo(() => {
+    if (!data?.data) return [];
+    return data.data.map((payment) => ({
+      id: payment.job_id || "",
+      transactionId: payment.momo_reference_id || `TXN-${payment.job_id?.substring(0, 8).toUpperCase()}`,
+      student: "Student", // This info is not available in JobPaymentItem
+      employer: payment.employer?.full_name || "Unknown Employer",
+      amount: `RWF ${Number(payment.budget || 0).toLocaleString()}`,
+      type: "Payment" as const,
+      status: payment.funding_status === "Paid" ? "Completed" : payment.funding_status === "Pending" ? "Pending" : "Failed",
+      date: payment.momo_paid_at ? new Date(payment.momo_paid_at).toISOString().split("T")[0] : payment.paid_at ? new Date(payment.paid_at).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
+    }));
+  }, [data?.data]);
+
+  // Calculate stats from real data
+  const stats = useMemo(() => {
+    const completed = transactions.filter((t) => t.status === "Completed").length;
+    const pending = transactions.filter((t) => t.status === "Pending").length;
+    const failed = transactions.filter((t) => t.status === "Failed").length;
+    const totalVolume = transactions
+      .filter((t) => t.status === "Completed")
+      .reduce((sum, t) => {
+        const amount = parseFloat(t.amount.replace(/[^0-9.]/g, ""));
+        return sum + (isNaN(amount) ? 0 : amount);
+      }, 0);
+
+    return { completed, pending, failed, totalVolume };
+  }, [transactions]);
 
   const columns: Column<Transaction>[] = [
     {
@@ -200,6 +181,8 @@ const Transactions: React.FC = () => {
     },
   ];
 
+  if (isLoading) return <Loader />;
+
   return (
     <div className="theme-page-bg space-y-6 animate-fadeIn min-h-full p-4">
       <div>
@@ -217,37 +200,45 @@ const Transactions: React.FC = () => {
         <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-6 shadow-md border border-purple-200">
           <p className="text-sm text-purple-700 font-medium">{t("pages.transactions.totalVolume")}</p>
           <p className="text-2xl md:text-3xl font-bold text-purple-900 mt-2">
-            $124,500
+            {stats.totalVolume.toLocaleString()}
           </p>
         </div>
         <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 shadow-md border border-green-200">
           <p className="text-sm text-green-700 font-medium">{t("pages.transactions.completed")}</p>
           <p className="text-2xl md:text-3xl font-bold text-green-900 mt-2">
-            1,245
+            {stats.completed}
           </p>
         </div>
         <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-6 shadow-md border border-orange-200">
           <p className="text-sm text-orange-700 font-medium">{t("pages.transactions.pending")}</p>
           <p className="text-2xl md:text-3xl font-bold text-orange-900 mt-2">
-            38
+            {stats.pending}
           </p>
         </div>
         <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-xl p-6 shadow-md border border-red-200">
           <p className="text-sm text-red-700 font-medium">{t("pages.transactions.failed")}</p>
-          <p className="text-2xl md:text-3xl font-bold text-red-900 mt-2">12</p>
+          <p className="text-2xl md:text-3xl font-bold text-red-900 mt-2">{stats.failed}</p>
         </div>
       </div>
 
       {/* Transactions Table */}
-      <CustomTable
-        columns={columns}
-        data={transactions}
-        actions={actions}
-        searchable={true}
-        searchPlaceholder={t("pages.transactions.searchPlaceholder")}
-        rowsPerPageOptions={[10, 25, 50]}
-        defaultRowsPerPage={10}
-      />
+      {transactions.length === 0 ? (
+        <div className="text-center py-12">
+          <CreditCardIcon className="h-16 w-16 mx-auto text-gray-300 mb-4" />
+          <p className="text-gray-500 text-lg font-medium">No transactions yet</p>
+          <p className="text-gray-400 text-sm mt-2">Transaction data will appear here once payments are processed.</p>
+        </div>
+      ) : (
+        <CustomTable
+          columns={columns}
+          data={transactions}
+          actions={actions}
+          searchable={true}
+          searchPlaceholder={t("pages.transactions.searchPlaceholder")}
+          rowsPerPageOptions={[10, 25, 50]}
+          defaultRowsPerPage={10}
+        />
+      )}
     </div>
   );
 };

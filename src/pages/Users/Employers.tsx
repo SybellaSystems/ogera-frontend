@@ -4,10 +4,10 @@ import CustomTable, {
   type Column,
   type TableAction,
 } from "../../components/Table/CustomTable";
-import { 
-  Chip, 
-  Avatar, 
-  Box, 
+import {
+  Chip,
+  Avatar,
+  Box,
   Typography,
   Dialog,
   DialogTitle,
@@ -26,7 +26,7 @@ import {
   Edit as EditIcon,
   Close as CloseIcon,
 } from "@mui/icons-material";
-import { 
+import {
   // useGetAllEmployersQuery,
   useGetUserByIdQuery,
   useUpdateUserByIdMutation,
@@ -50,9 +50,9 @@ interface Employer {
 const Employers: React.FC = () => {
   const { t } = useTranslation();
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const isSmallMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const isSmallMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
   const [page, setPage] = useState(0);
   const [limit, setLimit] = useState(10);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
@@ -60,7 +60,7 @@ const Employers: React.FC = () => {
   const [employerToView, setEmployerToView] = useState<Employer | null>(null);
   const [employerToEdit, setEmployerToEdit] = useState<Employer | null>(null);
   const [editFormData, setEditFormData] = useState<Partial<UserProfile>>({});
-  
+
   const [updateUser, { isLoading: isUpdating }] = useUpdateUserByIdMutation();
 
   const { data, isLoading, isError } = useGetAllUsersQuery({
@@ -70,10 +70,11 @@ const Employers: React.FC = () => {
   });
 
   // Fetch full employer details when viewing/editing
-  const { data: employerDetails, isLoading: isLoadingEmployerDetails } = useGetUserByIdQuery(
-    employerToView?.userId || employerToEdit?.userId || "",
-    { skip: !employerToView && !employerToEdit }
-  );
+  const { data: employerDetails, isLoading: isLoadingEmployerDetails } =
+    useGetUserByIdQuery(
+      employerToView?.userId || employerToEdit?.userId || "",
+      { skip: !employerToView && !employerToEdit },
+    );
 
   // Update form data when employer details are loaded
   useEffect(() => {
@@ -101,7 +102,7 @@ const Employers: React.FC = () => {
   });
 
   const employers: Employer[] = (data?.data || []).map((user, index) =>
-    mapEmployer(user, index)
+    mapEmployer(user, index),
   );
   const totalCount = data?.pagination?.total || employers.length;
 
@@ -113,7 +114,12 @@ const Employers: React.FC = () => {
       align: "center",
       sortable: false,
       format: (value) => (
-        <Typography sx={{ fontWeight: 500, color: "var(--theme-text-secondary, #6b7280)" }}>
+        <Typography
+          sx={{
+            fontWeight: 500,
+            color: "var(--theme-text-secondary, #6b7280)",
+          }}
+        >
           {value}
         </Typography>
       ),
@@ -136,7 +142,12 @@ const Employers: React.FC = () => {
           >
             {row.name.charAt(0)}
           </Avatar>
-          <Typography sx={{ fontWeight: 600, color: "var(--theme-text-primary, #111827)" }}>
+          <Typography
+            sx={{
+              fontWeight: 600,
+              color: "var(--theme-text-primary, #111827)",
+            }}
+          >
             {value}
           </Typography>
         </Box>
@@ -235,11 +246,16 @@ const Employers: React.FC = () => {
     if (!employerToEdit) return;
 
     try {
-      await updateUser({ id: employerToEdit.userId, data: editFormData }).unwrap();
+      await updateUser({
+        id: employerToEdit.userId,
+        data: editFormData,
+      }).unwrap();
       toast.success(t("pages.users.employerUpdatedSuccess"));
       handleCloseEditDialog();
     } catch (error: any) {
-      toast.error(error?.data?.message || t("pages.users.failedToUpdateEmployer"));
+      toast.error(
+        error?.data?.message || t("pages.users.failedToUpdateEmployer"),
+      );
     }
   };
 
@@ -279,7 +295,9 @@ const Employers: React.FC = () => {
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 shadow-md border border-green-200">
-          <p className="text-sm text-green-700 font-medium">{t("pages.users.totalEmployers")}</p>
+          <p className="text-sm text-green-700 font-medium">
+            {t("pages.users.totalEmployers")}
+          </p>
           <p className="text-3xl font-bold text-green-900 mt-2">
             {isLoading ? "…" : totalCount}
           </p>
@@ -308,8 +326,8 @@ const Employers: React.FC = () => {
           isError
             ? t("pages.users.failedToLoadEmployers")
             : totalCount === 0
-            ? t("pages.users.noEmployersPresent")
-            : t("pages.users.noEmployersFound")
+              ? t("pages.users.noEmployersPresent")
+              : t("pages.users.noEmployersFound")
         }
         searchable={true}
         searchPlaceholder={t("pages.users.searchEmployers")}
@@ -365,15 +383,19 @@ const Employers: React.FC = () => {
           },
         }}
       >
-        <DialogTitle 
-          sx={{ 
-            display: "flex", 
-            alignItems: "center", 
+        <DialogTitle
+          sx={{
+            display: "flex",
+            alignItems: "center",
             justifyContent: "space-between",
             gap: 1,
             px: isSmallMobile ? 1.5 : isMobile ? 2 : 3,
             py: isSmallMobile ? 1 : isMobile ? 1.5 : 2,
-            fontSize: isSmallMobile ? "0.875rem" : isMobile ? "1rem" : "1.25rem",
+            fontSize: isSmallMobile
+              ? "0.875rem"
+              : isMobile
+                ? "1rem"
+                : "1.25rem",
             position: isMobile ? "sticky" : "relative",
             top: 0,
             backgroundColor: "var(--theme-card-bg, #ffffff)",
@@ -382,17 +404,25 @@ const Employers: React.FC = () => {
           }}
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, flex: 1 }}>
-            <ViewIcon 
-              color="primary" 
-              fontSize={isSmallMobile ? "small" : isMobile ? "medium" : "medium"}
-              sx={{ fontSize: isSmallMobile ? "18px" : isMobile ? "20px" : "24px" }}
+            <ViewIcon
+              color="primary"
+              fontSize={
+                isSmallMobile ? "small" : isMobile ? "medium" : "medium"
+              }
+              sx={{
+                fontSize: isSmallMobile ? "18px" : isMobile ? "20px" : "24px",
+              }}
             />
-            <Typography 
-              variant={isSmallMobile ? "body1" : isMobile ? "subtitle1" : "h6"} 
+            <Typography
+              variant={isSmallMobile ? "body1" : isMobile ? "subtitle1" : "h6"}
               component="span"
-              sx={{ 
+              sx={{
                 fontWeight: 600,
-                fontSize: isSmallMobile ? "0.875rem" : isMobile ? "1rem" : "1.25rem",
+                fontSize: isSmallMobile
+                  ? "0.875rem"
+                  : isMobile
+                    ? "1rem"
+                    : "1.25rem",
               }}
             >
               {t("pages.users.employerDetails")}
@@ -415,21 +445,31 @@ const Employers: React.FC = () => {
               transform: "translateY(-50%)",
             }}
           >
-            <CloseIcon 
-              fontSize={isSmallMobile ? "small" : isMobile ? "medium" : "medium"}
-              sx={{ fontSize: isSmallMobile ? "18px" : isMobile ? "20px" : "24px" }}
+            <CloseIcon
+              fontSize={
+                isSmallMobile ? "small" : isMobile ? "medium" : "medium"
+              }
+              sx={{
+                fontSize: isSmallMobile ? "18px" : isMobile ? "20px" : "24px",
+              }}
             />
           </IconButton>
         </DialogTitle>
-        <DialogContent 
-          sx={{ 
-            px: isSmallMobile ? 1.5 : isMobile ? 2 : 2.5, 
+        <DialogContent
+          sx={{
+            px: isSmallMobile ? 1.5 : isMobile ? 2 : 2.5,
             pb: isSmallMobile ? 1 : isMobile ? 1.25 : 1.5,
             pt: isSmallMobile ? 1.25 : isMobile ? 1.5 : 2,
           }}
         >
           {isLoadingEmployerDetails ? (
-            <Box sx={{ display: "flex", justifyContent: "center", p: isMobile ? 2 : 4 }}>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                p: isMobile ? 2 : 4,
+              }}
+            >
               <CircularProgress size={isMobile ? 32 : 40} />
             </Box>
           ) : employerDetails?.data ? (
@@ -454,7 +494,11 @@ const Employers: React.FC = () => {
                     bgcolor: "#10b981",
                     width: isSmallMobile ? 48 : isMobile ? 56 : 64,
                     height: isSmallMobile ? 48 : isMobile ? 56 : 64,
-                    fontSize: isSmallMobile ? "1.25rem" : isMobile ? "1.5rem" : "1.75rem",
+                    fontSize: isSmallMobile
+                      ? "1.25rem"
+                      : isMobile
+                        ? "1.5rem"
+                        : "1.75rem",
                     fontWeight: 700,
                     boxShadow: "0 2px 8px rgba(0, 0, 0, 0.12)",
                     borderRadius: "8px",
@@ -463,11 +507,21 @@ const Employers: React.FC = () => {
                   {employerDetails.data.full_name?.charAt(0) || "E"}
                 </Avatar>
                 <Box sx={{ flex: 1, width: isMobile ? "100%" : "auto" }}>
-                  <Typography 
-                    variant={isSmallMobile ? "subtitle2" : isMobile ? "subtitle1" : "h6"} 
-                    sx={{ 
+                  <Typography
+                    variant={
+                      isSmallMobile
+                        ? "subtitle2"
+                        : isMobile
+                          ? "subtitle1"
+                          : "h6"
+                    }
+                    sx={{
                       fontWeight: 700,
-                      fontSize: isSmallMobile ? "0.9375rem" : isMobile ? "1.125rem" : "1.25rem",
+                      fontSize: isSmallMobile
+                        ? "0.9375rem"
+                        : isMobile
+                          ? "1.125rem"
+                          : "1.25rem",
                       mb: 0.5,
                       color: "text.primary",
                     }}
@@ -481,8 +535,16 @@ const Employers: React.FC = () => {
                       bgcolor: "var(--chip-role-employer-bg)",
                       color: "var(--chip-role-employer-text)",
                       fontWeight: 600,
-                      fontSize: isSmallMobile ? "0.65rem" : isMobile ? "0.7rem" : "0.75rem",
-                      height: isSmallMobile ? "20px" : isMobile ? "22px" : "24px",
+                      fontSize: isSmallMobile
+                        ? "0.65rem"
+                        : isMobile
+                          ? "0.7rem"
+                          : "0.75rem",
+                      height: isSmallMobile
+                        ? "20px"
+                        : isMobile
+                          ? "22px"
+                          : "24px",
                       px: 0.75,
                     }}
                   />
@@ -498,18 +560,23 @@ const Employers: React.FC = () => {
                       p: isSmallMobile ? 1.25 : isMobile ? 1.5 : 1.75,
                       borderRadius: 1.5,
                       backgroundColor: "var(--theme-card-bg, #ffffff)",
-                      border: "1px solid var(--theme-border, rgba(0, 0, 0, 0.08))",
+                      border:
+                        "1px solid var(--theme-border, rgba(0, 0, 0, 0.08))",
                       boxShadow: "0 4px 10px rgba(15, 23, 42, 0.04)",
                       height: "100%",
                       minHeight: "80px",
                     }}
                   >
-                    <Typography 
-                      variant="body2" 
-                      color="text.secondary" 
-                      sx={{ 
-                        mb: isSmallMobile ? 0.5 : 0.75, 
-                        fontSize: isSmallMobile ? "0.65rem" : isMobile ? "0.7rem" : "0.75rem",
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{
+                        mb: isSmallMobile ? 0.5 : 0.75,
+                        fontSize: isSmallMobile
+                          ? "0.65rem"
+                          : isMobile
+                            ? "0.7rem"
+                            : "0.75rem",
                         fontWeight: 500,
                         textTransform: "uppercase",
                         letterSpacing: "0.5px",
@@ -517,11 +584,15 @@ const Employers: React.FC = () => {
                     >
                       {t("pages.users.emailAddress")}
                     </Typography>
-                    <Typography 
-                      variant="body2" 
-                      sx={{ 
+                    <Typography
+                      variant="body2"
+                      sx={{
                         fontWeight: 600,
-                        fontSize: isSmallMobile ? "0.8125rem" : isMobile ? "0.875rem" : "0.9375rem",
+                        fontSize: isSmallMobile
+                          ? "0.8125rem"
+                          : isMobile
+                            ? "0.875rem"
+                            : "0.9375rem",
                         wordBreak: "break-word",
                         color: "text.primary",
                       }}
@@ -538,18 +609,23 @@ const Employers: React.FC = () => {
                       p: isSmallMobile ? 1.25 : isMobile ? 1.5 : 1.75,
                       borderRadius: 1.5,
                       backgroundColor: "var(--theme-card-bg, #ffffff)",
-                      border: "1px solid var(--theme-border, rgba(0, 0, 0, 0.08))",
+                      border:
+                        "1px solid var(--theme-border, rgba(0, 0, 0, 0.08))",
                       boxShadow: "0 4px 10px rgba(15, 23, 42, 0.04)",
                       height: "100%",
                       minHeight: "80px",
                     }}
                   >
-                    <Typography 
-                      variant="body2" 
-                      color="text.secondary" 
-                      sx={{ 
-                        mb: isSmallMobile ? 0.5 : 0.75, 
-                        fontSize: isSmallMobile ? "0.65rem" : isMobile ? "0.7rem" : "0.75rem",
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{
+                        mb: isSmallMobile ? 0.5 : 0.75,
+                        fontSize: isSmallMobile
+                          ? "0.65rem"
+                          : isMobile
+                            ? "0.7rem"
+                            : "0.75rem",
                         fontWeight: 500,
                         textTransform: "uppercase",
                         letterSpacing: "0.5px",
@@ -557,11 +633,15 @@ const Employers: React.FC = () => {
                     >
                       {t("pages.users.mobileNumber")}
                     </Typography>
-                    <Typography 
-                      variant="body2" 
-                      sx={{ 
+                    <Typography
+                      variant="body2"
+                      sx={{
                         fontWeight: 600,
-                        fontSize: isSmallMobile ? "0.8125rem" : isMobile ? "0.875rem" : "0.9375rem",
+                        fontSize: isSmallMobile
+                          ? "0.8125rem"
+                          : isMobile
+                            ? "0.875rem"
+                            : "0.9375rem",
                         color: "text.primary",
                       }}
                     >
@@ -577,18 +657,23 @@ const Employers: React.FC = () => {
                       p: isSmallMobile ? 1.25 : isMobile ? 1.5 : 1.75,
                       borderRadius: 1.5,
                       backgroundColor: "var(--theme-card-bg, #ffffff)",
-                      border: "1px solid var(--theme-border, rgba(0, 0, 0, 0.08))",
+                      border:
+                        "1px solid var(--theme-border, rgba(0, 0, 0, 0.08))",
                       boxShadow: "0 4px 10px rgba(15, 23, 42, 0.04)",
                       height: "100%",
                       minHeight: "80px",
                     }}
                   >
-                    <Typography 
-                      variant="body2" 
-                      color="text.secondary" 
-                      sx={{ 
-                        mb: isSmallMobile ? 0.5 : 0.75, 
-                        fontSize: isSmallMobile ? "0.65rem" : isMobile ? "0.7rem" : "0.75rem",
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{
+                        mb: isSmallMobile ? 0.5 : 0.75,
+                        fontSize: isSmallMobile
+                          ? "0.65rem"
+                          : isMobile
+                            ? "0.7rem"
+                            : "0.75rem",
                         fontWeight: 500,
                         textTransform: "uppercase",
                         letterSpacing: "0.5px",
@@ -596,11 +681,15 @@ const Employers: React.FC = () => {
                     >
                       {t("pages.users.businessRegistrationId")}
                     </Typography>
-                    <Typography 
-                      variant="body2" 
-                      sx={{ 
+                    <Typography
+                      variant="body2"
+                      sx={{
                         fontWeight: 600,
-                        fontSize: isSmallMobile ? "0.8125rem" : isMobile ? "0.875rem" : "0.9375rem",
+                        fontSize: isSmallMobile
+                          ? "0.8125rem"
+                          : isMobile
+                            ? "0.875rem"
+                            : "0.9375rem",
                         color: "text.primary",
                       }}
                     >
@@ -621,12 +710,16 @@ const Employers: React.FC = () => {
                       minHeight: "80px",
                     }}
                   >
-                    <Typography 
-                      variant="body2" 
-                      color="text.secondary" 
-                      sx={{ 
-                        mb: isSmallMobile ? 0.5 : 0.75, 
-                        fontSize: isSmallMobile ? "0.65rem" : isMobile ? "0.7rem" : "0.75rem",
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{
+                        mb: isSmallMobile ? 0.5 : 0.75,
+                        fontSize: isSmallMobile
+                          ? "0.65rem"
+                          : isMobile
+                            ? "0.7rem"
+                            : "0.75rem",
                         fontWeight: 500,
                         textTransform: "uppercase",
                         letterSpacing: "0.5px",
@@ -634,11 +727,15 @@ const Employers: React.FC = () => {
                     >
                       {t("pages.users.preferredLocation")}
                     </Typography>
-                    <Typography 
-                      variant="body2" 
-                      sx={{ 
+                    <Typography
+                      variant="body2"
+                      sx={{
                         fontWeight: 600,
-                        fontSize: isSmallMobile ? "0.8125rem" : isMobile ? "0.875rem" : "0.9375rem",
+                        fontSize: isSmallMobile
+                          ? "0.8125rem"
+                          : isMobile
+                            ? "0.875rem"
+                            : "0.9375rem",
                         color: "text.primary",
                       }}
                     >
@@ -665,12 +762,16 @@ const Employers: React.FC = () => {
                       minHeight: "80px",
                     }}
                   >
-                    <Typography 
-                      variant="body2" 
-                      color="text.secondary" 
-                      sx={{ 
-                        mb: isSmallMobile ? 0.5 : 0.75, 
-                        fontSize: isSmallMobile ? "0.65rem" : isMobile ? "0.7rem" : "0.75rem",
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{
+                        mb: isSmallMobile ? 0.5 : 0.75,
+                        fontSize: isSmallMobile
+                          ? "0.65rem"
+                          : isMobile
+                            ? "0.7rem"
+                            : "0.75rem",
                         fontWeight: 500,
                         textTransform: "uppercase",
                         letterSpacing: "0.5px",
@@ -679,23 +780,41 @@ const Employers: React.FC = () => {
                       Email Verification
                     </Typography>
                     <Chip
-                      icon={employerDetails.data.email_verified ? (
-                        <Box
-                          sx={{
-                            width: 6,
-                            height: 6,
-                            borderRadius: "50%",
-                            bgcolor: "#065f46",
-                          }}
-                        />
-                      ) : undefined}
-                      label={employerDetails.data.email_verified ? t("pages.users.verified") : t("pages.users.notVerified")}
+                      icon={
+                        employerDetails.data.email_verified ? (
+                          <Box
+                            sx={{
+                              width: 6,
+                              height: 6,
+                              borderRadius: "50%",
+                              bgcolor: "#065f46",
+                            }}
+                          />
+                        ) : undefined
+                      }
+                      label={
+                        employerDetails.data.email_verified
+                          ? t("pages.users.verified")
+                          : t("pages.users.notVerified")
+                      }
                       size="small"
                       sx={{
-                        bgcolor: employerDetails.data.email_verified ? "var(--chip-verified-bg)" : "var(--chip-unverified-bg)",
-                        color: employerDetails.data.email_verified ? "var(--chip-verified-text)" : "var(--chip-unverified-text)",
-                        fontSize: isSmallMobile ? "0.65rem" : isMobile ? "0.7rem" : "0.75rem",
-                        height: isSmallMobile ? "22px" : isMobile ? "24px" : "26px",
+                        bgcolor: employerDetails.data.email_verified
+                          ? "var(--chip-verified-bg)"
+                          : "var(--chip-unverified-bg)",
+                        color: employerDetails.data.email_verified
+                          ? "var(--chip-verified-text)"
+                          : "var(--chip-unverified-text)",
+                        fontSize: isSmallMobile
+                          ? "0.65rem"
+                          : isMobile
+                            ? "0.7rem"
+                            : "0.75rem",
+                        height: isSmallMobile
+                          ? "22px"
+                          : isMobile
+                            ? "24px"
+                            : "26px",
                         fontWeight: 600,
                       }}
                     />
@@ -720,12 +839,16 @@ const Employers: React.FC = () => {
                       minHeight: "80px",
                     }}
                   >
-                    <Typography 
-                      variant="body2" 
-                      color="text.secondary" 
-                      sx={{ 
-                        mb: isSmallMobile ? 0.5 : 0.75, 
-                        fontSize: isSmallMobile ? "0.65rem" : isMobile ? "0.7rem" : "0.75rem",
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{
+                        mb: isSmallMobile ? 0.5 : 0.75,
+                        fontSize: isSmallMobile
+                          ? "0.65rem"
+                          : isMobile
+                            ? "0.7rem"
+                            : "0.75rem",
                         fontWeight: 500,
                         textTransform: "uppercase",
                         letterSpacing: "0.5px",
@@ -734,23 +857,41 @@ const Employers: React.FC = () => {
                       {t("pages.users.phoneVerification")}
                     </Typography>
                     <Chip
-                      icon={employerDetails.data.phone_verified ? (
-                        <Box
-                          sx={{
-                            width: 6,
-                            height: 6,
-                            borderRadius: "50%",
-                            bgcolor: "#065f46",
-                          }}
-                        />
-                      ) : undefined}
-                      label={employerDetails.data.phone_verified ? t("pages.users.verified") : t("pages.users.notVerified")}
+                      icon={
+                        employerDetails.data.phone_verified ? (
+                          <Box
+                            sx={{
+                              width: 6,
+                              height: 6,
+                              borderRadius: "50%",
+                              bgcolor: "#065f46",
+                            }}
+                          />
+                        ) : undefined
+                      }
+                      label={
+                        employerDetails.data.phone_verified
+                          ? t("pages.users.verified")
+                          : t("pages.users.notVerified")
+                      }
                       size="small"
                       sx={{
-                        bgcolor: employerDetails.data.phone_verified ? "var(--chip-verified-bg)" : "var(--chip-unverified-bg)",
-                        color: employerDetails.data.phone_verified ? "var(--chip-verified-text)" : "var(--chip-unverified-text)",
-                        fontSize: isSmallMobile ? "0.65rem" : isMobile ? "0.7rem" : "0.75rem",
-                        height: isSmallMobile ? "22px" : isMobile ? "24px" : "26px",
+                        bgcolor: employerDetails.data.phone_verified
+                          ? "var(--chip-verified-bg)"
+                          : "var(--chip-unverified-bg)",
+                        color: employerDetails.data.phone_verified
+                          ? "var(--chip-verified-text)"
+                          : "var(--chip-unverified-text)",
+                        fontSize: isSmallMobile
+                          ? "0.65rem"
+                          : isMobile
+                            ? "0.7rem"
+                            : "0.75rem",
+                        height: isSmallMobile
+                          ? "22px"
+                          : isMobile
+                            ? "24px"
+                            : "26px",
                         fontWeight: 600,
                       }}
                     />
@@ -769,12 +910,16 @@ const Employers: React.FC = () => {
                       minHeight: "80px",
                     }}
                   >
-                    <Typography 
-                      variant="body2" 
-                      color="text.secondary" 
-                      sx={{ 
-                        mb: isSmallMobile ? 0.5 : 0.75, 
-                        fontSize: isSmallMobile ? "0.65rem" : isMobile ? "0.7rem" : "0.75rem",
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{
+                        mb: isSmallMobile ? 0.5 : 0.75,
+                        fontSize: isSmallMobile
+                          ? "0.65rem"
+                          : isMobile
+                            ? "0.7rem"
+                            : "0.75rem",
                         fontWeight: 500,
                         textTransform: "uppercase",
                         letterSpacing: "0.5px",
@@ -782,33 +927,45 @@ const Employers: React.FC = () => {
                     >
                       Account Created
                     </Typography>
-                    <Typography 
-                      variant="body2" 
-                      sx={{ 
+                    <Typography
+                      variant="body2"
+                      sx={{
                         fontWeight: 600,
-                        fontSize: isSmallMobile ? "0.8125rem" : isMobile ? "0.875rem" : "0.9375rem",
+                        fontSize: isSmallMobile
+                          ? "0.8125rem"
+                          : isMobile
+                            ? "0.875rem"
+                            : "0.9375rem",
                         color: "text.primary",
                       }}
                     >
                       {employerDetails.data.created_at
-                        ? new Date(employerDetails.data.created_at).toLocaleDateString("en-US", {
+                        ? new Date(
+                            employerDetails.data.created_at,
+                          ).toLocaleDateString("en-US", {
                             year: "numeric",
                             month: "long",
                             day: "numeric",
                           })
                         : "-"}
                     </Typography>
-                    <Typography 
-                      variant="caption" 
-                      sx={{ 
-                        fontSize: isSmallMobile ? "0.625rem" : isMobile ? "0.65rem" : "0.7rem",
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        fontSize: isSmallMobile
+                          ? "0.625rem"
+                          : isMobile
+                            ? "0.65rem"
+                            : "0.7rem",
                         color: "text.secondary",
                         mt: 0.5,
                         display: "block",
                       }}
                     >
                       {employerDetails.data.created_at
-                        ? new Date(employerDetails.data.created_at).toLocaleTimeString("en-US", {
+                        ? new Date(
+                            employerDetails.data.created_at,
+                          ).toLocaleTimeString("en-US", {
                             hour: "2-digit",
                             minute: "2-digit",
                           })
@@ -822,9 +979,9 @@ const Employers: React.FC = () => {
             <Typography>Employer details not found</Typography>
           )}
         </DialogContent>
-        <DialogActions 
-          sx={{ 
-            px: isSmallMobile ? 1.5 : isMobile ? 2 : 2.5, 
+        <DialogActions
+          sx={{
+            px: isSmallMobile ? 1.5 : isMobile ? 2 : 2.5,
             pb: isSmallMobile ? 1.25 : isMobile ? 1.5 : 1.75,
             pt: isSmallMobile ? 1 : isMobile ? 1.25 : 1.5,
             flexDirection: isMobile ? "column" : "row",
@@ -838,15 +995,19 @@ const Employers: React.FC = () => {
             flexShrink: 0,
           }}
         >
-          <Button 
-            onClick={handleCloseViewDialog} 
-            variant="outlined" 
+          <Button
+            onClick={handleCloseViewDialog}
+            variant="outlined"
             color="inherit"
             fullWidth={isMobile}
             size={isSmallMobile ? "medium" : isMobile ? "large" : "medium"}
             sx={{
               minHeight: isSmallMobile ? "42px" : isMobile ? "48px" : "36px",
-              fontSize: isSmallMobile ? "0.875rem" : isMobile ? "0.9375rem" : "0.875rem",
+              fontSize: isSmallMobile
+                ? "0.875rem"
+                : isMobile
+                  ? "0.9375rem"
+                  : "0.875rem",
               fontWeight: isMobile ? 500 : 400,
             }}
           >
@@ -885,15 +1046,19 @@ const Employers: React.FC = () => {
           },
         }}
       >
-        <DialogTitle 
-          sx={{ 
-            display: "flex", 
-            alignItems: "center", 
+        <DialogTitle
+          sx={{
+            display: "flex",
+            alignItems: "center",
             justifyContent: "space-between",
             gap: 1,
             px: isSmallMobile ? 1.5 : isMobile ? 2 : 3,
             py: isSmallMobile ? 1 : isMobile ? 1.5 : 2,
-            fontSize: isSmallMobile ? "0.875rem" : isMobile ? "1rem" : "1.25rem",
+            fontSize: isSmallMobile
+              ? "0.875rem"
+              : isMobile
+                ? "1rem"
+                : "1.25rem",
             position: isMobile ? "sticky" : "relative",
             top: 0,
             backgroundColor: "var(--theme-card-bg, #ffffff)",
@@ -902,17 +1067,25 @@ const Employers: React.FC = () => {
           }}
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, flex: 1 }}>
-            <EditIcon 
-              color="primary" 
-              fontSize={isSmallMobile ? "small" : isMobile ? "medium" : "medium"}
-              sx={{ fontSize: isSmallMobile ? "18px" : isMobile ? "20px" : "24px" }}
+            <EditIcon
+              color="primary"
+              fontSize={
+                isSmallMobile ? "small" : isMobile ? "medium" : "medium"
+              }
+              sx={{
+                fontSize: isSmallMobile ? "18px" : isMobile ? "20px" : "24px",
+              }}
             />
-            <Typography 
-              variant={isSmallMobile ? "body1" : isMobile ? "subtitle1" : "h6"} 
+            <Typography
+              variant={isSmallMobile ? "body1" : isMobile ? "subtitle1" : "h6"}
               component="span"
-              sx={{ 
+              sx={{
                 fontWeight: 600,
-                fontSize: isSmallMobile ? "0.875rem" : isMobile ? "1rem" : "1.25rem",
+                fontSize: isSmallMobile
+                  ? "0.875rem"
+                  : isMobile
+                    ? "1rem"
+                    : "1.25rem",
               }}
             >
               {t("pages.users.editEmployer")}
@@ -935,15 +1108,19 @@ const Employers: React.FC = () => {
               transform: "translateY(-50%)",
             }}
           >
-            <CloseIcon 
-              fontSize={isSmallMobile ? "small" : isMobile ? "medium" : "medium"}
-              sx={{ fontSize: isSmallMobile ? "18px" : isMobile ? "20px" : "24px" }}
+            <CloseIcon
+              fontSize={
+                isSmallMobile ? "small" : isMobile ? "medium" : "medium"
+              }
+              sx={{
+                fontSize: isSmallMobile ? "18px" : isMobile ? "20px" : "24px",
+              }}
             />
           </IconButton>
         </DialogTitle>
-        <DialogContent 
-          sx={{ 
-            px: isSmallMobile ? 1.5 : isMobile ? 2 : 3, 
+        <DialogContent
+          sx={{
+            px: isSmallMobile ? 1.5 : isMobile ? 2 : 3,
             pb: isSmallMobile ? 1 : isMobile ? 1.5 : 2,
             pt: isSmallMobile ? 1.5 : isMobile ? 2 : 3,
             overflowY: "auto",
@@ -958,7 +1135,13 @@ const Employers: React.FC = () => {
           }}
         >
           {isLoadingEmployerDetails ? (
-            <Box sx={{ display: "flex", justifyContent: "center", p: isMobile ? 2 : 4 }}>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                p: isMobile ? 2 : 4,
+              }}
+            >
               <CircularProgress size={isMobile ? 32 : 40} />
             </Box>
           ) : employerDetails?.data ? (
@@ -981,7 +1164,11 @@ const Employers: React.FC = () => {
                     bgcolor: "#10b981",
                     width: isSmallMobile ? 48 : isMobile ? 56 : 64,
                     height: isSmallMobile ? 48 : isMobile ? 56 : 64,
-                    fontSize: isSmallMobile ? "1rem" : isMobile ? "1.25rem" : "1.5rem",
+                    fontSize: isSmallMobile
+                      ? "1rem"
+                      : isMobile
+                        ? "1.25rem"
+                        : "1.5rem",
                     fontWeight: 600,
                     borderRadius: "8px",
                   }}
@@ -990,11 +1177,17 @@ const Employers: React.FC = () => {
                 </Avatar>
                 <Box sx={{ flex: 1 }}>
                   <Typography
-                    variant={isSmallMobile ? "body2" : isMobile ? "body1" : "subtitle1"}
+                    variant={
+                      isSmallMobile ? "body2" : isMobile ? "body1" : "subtitle1"
+                    }
                     sx={{
                       fontWeight: 600,
                       color: "text.primary",
-                      fontSize: isSmallMobile ? "0.875rem" : isMobile ? "0.9375rem" : "1rem",
+                      fontSize: isSmallMobile
+                        ? "0.875rem"
+                        : isMobile
+                          ? "0.9375rem"
+                          : "1rem",
                     }}
                   >
                     {employerDetails.data.full_name}
@@ -1007,8 +1200,16 @@ const Employers: React.FC = () => {
                       color: "var(--chip-role-employer-text)",
                       fontWeight: 600,
                       mt: 0.5,
-                      fontSize: isSmallMobile ? "0.65rem" : isMobile ? "0.7rem" : "0.75rem",
-                      height: isSmallMobile ? "20px" : isMobile ? "22px" : "24px",
+                      fontSize: isSmallMobile
+                        ? "0.65rem"
+                        : isMobile
+                          ? "0.7rem"
+                          : "0.75rem",
+                      height: isSmallMobile
+                        ? "20px"
+                        : isMobile
+                          ? "22px"
+                          : "24px",
                     }}
                   />
                 </Box>
@@ -1021,18 +1222,35 @@ const Employers: React.FC = () => {
                     label={t("pages.users.fullName")}
                     value={editFormData.full_name || ""}
                     onChange={(e) =>
-                      setEditFormData({ ...editFormData, full_name: e.target.value })
+                      setEditFormData({
+                        ...editFormData,
+                        full_name: e.target.value,
+                      })
                     }
                     variant="outlined"
-                    size={isSmallMobile ? "small" : isMobile ? "small" : "medium"}
+                    size={
+                      isSmallMobile ? "small" : isMobile ? "small" : "medium"
+                    }
                     sx={{
                       "& .MuiInputBase-root": {
-                        fontSize: isSmallMobile ? "0.875rem" : isMobile ? "0.875rem" : "1rem",
-                        minHeight: isSmallMobile ? "44px" : isMobile ? "48px" : "56px",
+                        fontSize: isSmallMobile
+                          ? "0.875rem"
+                          : isMobile
+                            ? "0.875rem"
+                            : "1rem",
+                        minHeight: isSmallMobile
+                          ? "44px"
+                          : isMobile
+                            ? "48px"
+                            : "56px",
                         backgroundColor: "var(--theme-input-bg, #ffffff)",
                       },
                       "& .MuiInputLabel-root": {
-                        fontSize: isSmallMobile ? "0.75rem" : isMobile ? "0.8125rem" : "0.875rem",
+                        fontSize: isSmallMobile
+                          ? "0.75rem"
+                          : isMobile
+                            ? "0.8125rem"
+                            : "0.875rem",
                       },
                       "& .MuiOutlinedInput-root": {
                         "&:hover fieldset": {
@@ -1049,18 +1267,35 @@ const Employers: React.FC = () => {
                     type="email"
                     value={editFormData.email || ""}
                     onChange={(e) =>
-                      setEditFormData({ ...editFormData, email: e.target.value })
+                      setEditFormData({
+                        ...editFormData,
+                        email: e.target.value,
+                      })
                     }
                     variant="outlined"
-                    size={isSmallMobile ? "small" : isMobile ? "small" : "medium"}
+                    size={
+                      isSmallMobile ? "small" : isMobile ? "small" : "medium"
+                    }
                     sx={{
                       "& .MuiInputBase-root": {
-                        fontSize: isSmallMobile ? "0.875rem" : isMobile ? "0.875rem" : "1rem",
-                        minHeight: isSmallMobile ? "44px" : isMobile ? "48px" : "56px",
+                        fontSize: isSmallMobile
+                          ? "0.875rem"
+                          : isMobile
+                            ? "0.875rem"
+                            : "1rem",
+                        minHeight: isSmallMobile
+                          ? "44px"
+                          : isMobile
+                            ? "48px"
+                            : "56px",
                         backgroundColor: "var(--theme-input-bg, #ffffff)",
                       },
                       "& .MuiInputLabel-root": {
-                        fontSize: isSmallMobile ? "0.75rem" : isMobile ? "0.8125rem" : "0.875rem",
+                        fontSize: isSmallMobile
+                          ? "0.75rem"
+                          : isMobile
+                            ? "0.8125rem"
+                            : "0.875rem",
                       },
                       "& .MuiOutlinedInput-root": {
                         "&:hover fieldset": {
@@ -1076,18 +1311,35 @@ const Employers: React.FC = () => {
                     label="Mobile Number"
                     value={editFormData.mobile_number || ""}
                     onChange={(e) =>
-                      setEditFormData({ ...editFormData, mobile_number: e.target.value })
+                      setEditFormData({
+                        ...editFormData,
+                        mobile_number: e.target.value,
+                      })
                     }
                     variant="outlined"
-                    size={isSmallMobile ? "small" : isMobile ? "small" : "medium"}
+                    size={
+                      isSmallMobile ? "small" : isMobile ? "small" : "medium"
+                    }
                     sx={{
                       "& .MuiInputBase-root": {
-                        fontSize: isSmallMobile ? "0.875rem" : isMobile ? "0.875rem" : "1rem",
-                        minHeight: isSmallMobile ? "44px" : isMobile ? "48px" : "56px",
+                        fontSize: isSmallMobile
+                          ? "0.875rem"
+                          : isMobile
+                            ? "0.875rem"
+                            : "1rem",
+                        minHeight: isSmallMobile
+                          ? "44px"
+                          : isMobile
+                            ? "48px"
+                            : "56px",
                         backgroundColor: "var(--theme-input-bg, #ffffff)",
                       },
                       "& .MuiInputLabel-root": {
-                        fontSize: isSmallMobile ? "0.75rem" : isMobile ? "0.8125rem" : "0.875rem",
+                        fontSize: isSmallMobile
+                          ? "0.75rem"
+                          : isMobile
+                            ? "0.8125rem"
+                            : "0.875rem",
                       },
                       "& .MuiOutlinedInput-root": {
                         "&:hover fieldset": {
@@ -1103,18 +1355,35 @@ const Employers: React.FC = () => {
                     label={t("pages.users.businessRegistrationId")}
                     value={editFormData.business_registration_id || ""}
                     onChange={(e) =>
-                      setEditFormData({ ...editFormData, business_registration_id: e.target.value })
+                      setEditFormData({
+                        ...editFormData,
+                        business_registration_id: e.target.value,
+                      })
                     }
                     variant="outlined"
-                    size={isSmallMobile ? "small" : isMobile ? "small" : "medium"}
+                    size={
+                      isSmallMobile ? "small" : isMobile ? "small" : "medium"
+                    }
                     sx={{
                       "& .MuiInputBase-root": {
-                        fontSize: isSmallMobile ? "0.875rem" : isMobile ? "0.875rem" : "1rem",
-                        minHeight: isSmallMobile ? "44px" : isMobile ? "48px" : "56px",
+                        fontSize: isSmallMobile
+                          ? "0.875rem"
+                          : isMobile
+                            ? "0.875rem"
+                            : "1rem",
+                        minHeight: isSmallMobile
+                          ? "44px"
+                          : isMobile
+                            ? "48px"
+                            : "56px",
                         backgroundColor: "var(--theme-input-bg, #ffffff)",
                       },
                       "& .MuiInputLabel-root": {
-                        fontSize: isSmallMobile ? "0.75rem" : isMobile ? "0.8125rem" : "0.875rem",
+                        fontSize: isSmallMobile
+                          ? "0.75rem"
+                          : isMobile
+                            ? "0.8125rem"
+                            : "0.875rem",
                       },
                       "& .MuiOutlinedInput-root": {
                         "&:hover fieldset": {
@@ -1130,18 +1399,35 @@ const Employers: React.FC = () => {
                     label={t("pages.users.preferredLocation")}
                     value={editFormData.preferred_location || ""}
                     onChange={(e) =>
-                      setEditFormData({ ...editFormData, preferred_location: e.target.value })
+                      setEditFormData({
+                        ...editFormData,
+                        preferred_location: e.target.value,
+                      })
                     }
                     variant="outlined"
-                    size={isSmallMobile ? "small" : isMobile ? "small" : "medium"}
+                    size={
+                      isSmallMobile ? "small" : isMobile ? "small" : "medium"
+                    }
                     sx={{
                       "& .MuiInputBase-root": {
-                        fontSize: isSmallMobile ? "0.875rem" : isMobile ? "0.875rem" : "1rem",
-                        minHeight: isSmallMobile ? "44px" : isMobile ? "48px" : "56px",
+                        fontSize: isSmallMobile
+                          ? "0.875rem"
+                          : isMobile
+                            ? "0.875rem"
+                            : "1rem",
+                        minHeight: isSmallMobile
+                          ? "44px"
+                          : isMobile
+                            ? "48px"
+                            : "56px",
                         backgroundColor: "var(--theme-input-bg, #ffffff)",
                       },
                       "& .MuiInputLabel-root": {
-                        fontSize: isSmallMobile ? "0.75rem" : isMobile ? "0.8125rem" : "0.875rem",
+                        fontSize: isSmallMobile
+                          ? "0.75rem"
+                          : isMobile
+                            ? "0.8125rem"
+                            : "0.875rem",
                       },
                       "& .MuiOutlinedInput-root": {
                         "&:hover fieldset": {
@@ -1157,9 +1443,9 @@ const Employers: React.FC = () => {
             <Typography>Employer details not found</Typography>
           )}
         </DialogContent>
-        <DialogActions 
-          sx={{ 
-            px: isSmallMobile ? 1.5 : isMobile ? 2 : 3, 
+        <DialogActions
+          sx={{
+            px: isSmallMobile ? 1.5 : isMobile ? 2 : 3,
             pb: isSmallMobile ? 1.5 : isMobile ? 2 : 2,
             pt: isSmallMobile ? 1 : isMobile ? 1.5 : 2,
             flexDirection: isMobile ? "column-reverse" : "row",
@@ -1172,15 +1458,19 @@ const Employers: React.FC = () => {
             boxShadow: isMobile ? "0 -2px 8px rgba(0, 0, 0, 0.1)" : "none",
           }}
         >
-          <Button 
-            onClick={handleCloseEditDialog} 
-            variant="outlined" 
+          <Button
+            onClick={handleCloseEditDialog}
+            variant="outlined"
             color="inherit"
             fullWidth={isMobile}
             size={isSmallMobile ? "medium" : isMobile ? "large" : "medium"}
             sx={{
               minHeight: isSmallMobile ? "42px" : isMobile ? "48px" : "36px",
-              fontSize: isSmallMobile ? "0.875rem" : isMobile ? "0.9375rem" : "0.875rem",
+              fontSize: isSmallMobile
+                ? "0.875rem"
+                : isMobile
+                  ? "0.9375rem"
+                  : "0.875rem",
               fontWeight: isMobile ? 500 : 400,
             }}
           >
@@ -1191,16 +1481,30 @@ const Employers: React.FC = () => {
             variant="contained"
             color="primary"
             disabled={isUpdating || isLoadingEmployerDetails}
-            startIcon={isUpdating ? <CircularProgress size={isSmallMobile ? 16 : isMobile ? 18 : 20} /> : <EditIcon />}
+            startIcon={
+              isUpdating ? (
+                <CircularProgress
+                  size={isSmallMobile ? 16 : isMobile ? 18 : 20}
+                />
+              ) : (
+                <EditIcon />
+              )
+            }
             fullWidth={isMobile}
             size={isSmallMobile ? "medium" : isMobile ? "large" : "medium"}
             sx={{
               minHeight: isSmallMobile ? "42px" : isMobile ? "48px" : "36px",
-              fontSize: isSmallMobile ? "0.875rem" : isMobile ? "0.9375rem" : "0.875rem",
+              fontSize: isSmallMobile
+                ? "0.875rem"
+                : isMobile
+                  ? "0.9375rem"
+                  : "0.875rem",
               fontWeight: isMobile ? 600 : 500,
             }}
           >
-            {isUpdating ? t("pages.users.saving") : t("pages.users.saveChanges")}
+            {isUpdating
+              ? t("pages.users.saving")
+              : t("pages.users.saveChanges")}
           </Button>
         </DialogActions>
       </Dialog>
