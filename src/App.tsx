@@ -53,6 +53,8 @@ import StudentAcceptedApplications from "./pages/Jobs/StudentAcceptedApplication
 import StudentRejectedApplications from "./pages/Jobs/StudentRejectedApplications";
 import EmployerAcceptedApplications from "./pages/Jobs/EmployerAcceptedApplications";
 import EmployerRejectedApplications from "./pages/Jobs/EmployerRejectedApplications";
+import EmployerTasks from "./pages/Jobs/EmployerTasks";
+import JobTasksKanban from "./pages/Jobs/JobTasksKanban";
 
 // Dispute Pages
 import Disputes from "./pages/Disputes";
@@ -300,6 +302,16 @@ function App() {
               Component: JobCategories,
             },
             {
+              path: "jobs/tasks",
+              element: <ProtectedRoute allowedRoles={["employer", "superadmin"]} />,
+              children: [
+                {
+                  index: true,
+                  Component: EmployerTasks,
+                },
+              ],
+            },
+            {
               path: "jobs/applications",
               // Employer/superadmin manage incoming applications. Students should use "My Applications".
               element: <ProtectedRoute allowedRoles={["employer", "superadmin"]} />,
@@ -343,6 +355,16 @@ function App() {
                 {
                   index: true,
                   Component: CreateJob,
+                },
+              ],
+            },
+            {
+              path: "jobs/:id/tasks",
+              element: <ProtectedRoute allowedRoles={["employer", "superadmin"]} />,
+              children: [
+                {
+                  index: true,
+                  Component: JobTasksKanban,
                 },
               ],
             },

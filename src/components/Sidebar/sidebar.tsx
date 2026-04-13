@@ -27,6 +27,7 @@ import {
   ShieldCheckIcon,
   PlusIcon,
   EyeIcon,
+  BellIcon,
   DocumentTextIcon,
   BanknotesIcon,
   ListBulletIcon,
@@ -102,6 +103,56 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     onClose(); // Close sidebar on mobile after navigation
   };
 
+  const currentPathWithSearch = `${location.pathname}${location.search}`;
+  const employerTaskPath = "/dashboard/jobs/tasks";
+  const employerApplicantsPath = "/dashboard/jobs/applications";
+  const isEmployerTasksRoute =
+    location.pathname === employerTaskPath || location.pathname.endsWith("/tasks");
+  const isEmployerApplicantsRoute =
+    location.pathname === employerApplicantsPath || location.pathname.endsWith("/applications");
+
+  const employerJobsSubmenu = [
+    { key: "create-job", label: "Create Job", path: "/dashboard/jobs/create", icon: PlusIcon },
+    { key: "my-jobs", label: "My Jobs", path: "/dashboard/jobs/all", icon: BriefcaseIcon },
+    { key: "active-jobs", label: "Active Jobs", path: "/dashboard/jobs/active", icon: FireIcon },
+    { key: "closed-jobs", label: "Closed Jobs", path: "/dashboard/jobs/completed", icon: CheckCircleIcon },
+  ];
+
+  const employerPaymentsSubmenu = [
+    { key: "wallet-balance", label: "Wallet / Balance", path: "/dashboard/transactions?view=wallet", icon: CreditCardIcon },
+    { key: "send-payments", label: "Send Payments", path: "/dashboard/transactions/pay", icon: BanknotesIcon },
+    { key: "payment-history", label: "Payment History", path: "/dashboard/transactions?view=history", icon: DocumentTextIcon },
+  ];
+
+  const employerResolutionSubmenu = [
+    { key: "active-disputes", label: "Active Disputes", path: "/dashboard/disputes/my-disputes", icon: ExclamationTriangleIcon },
+    { key: "payment-issues", label: "Payment Issues", path: "/dashboard/disputes/create?type=payment", icon: CreditCardIcon },
+    { key: "work-task-disputes", label: "Work/Task Disputes", path: "/dashboard/disputes/create?type=task", icon: BriefcaseIcon },
+    { key: "resolved-cases", label: "Resolved Cases", path: "/dashboard/disputes/resolved", icon: CheckCircleIcon },
+  ];
+
+  const employerSettingsSubmenu = [
+    { key: "company-profile", label: "Company Profile", path: "/dashboard/profile", icon: BuildingOfficeIcon },
+    { key: "account", label: "Account", path: "/dashboard/profile?tab=account", icon: UserGroupIcon },
+    { key: "security", label: "Security", path: "/dashboard/profile?tab=security", icon: ShieldCheckIcon },
+  ];
+
+  const activeEmployerJobsItem =
+    employerJobsSubmenu.find((item) => isActive(item.path))?.label ||
+    (location.pathname.startsWith("/dashboard/jobs/") ? "Jobs" : "");
+
+  const activeEmployerPaymentsItem =
+    employerPaymentsSubmenu.find((item) => currentPathWithSearch === item.path)?.label ||
+    (isActiveGroup("/dashboard/transactions") ? "Payments" : "");
+
+  const activeEmployerResolutionItem =
+    employerResolutionSubmenu.find((item) => currentPathWithSearch === item.path || location.pathname === item.path)?.label ||
+    (isActiveGroup("/dashboard/disputes") ? "Resolution Center" : "");
+
+  const activeEmployerSettingsItem =
+    employerSettingsSubmenu.find((item) => currentPathWithSearch === item.path)?.label ||
+    (isActiveGroup("/dashboard/profile") ? "Settings" : "");
+
   return (
     <>
       {/* Overlay for mobile */}
@@ -162,6 +213,299 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             </span>
           </div>
 
+          {role === "employer" ? (
+            <>
+              <div>
+                <div
+                  className={`flex items-center justify-between px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 group ${
+                    isActiveGroup("/dashboard/jobs") ? "bg-[#9F7AEA]/15 border-l-2 border-[#9F7AEA]" : "hover:bg-[#9F7AEA]/10"
+                  }`}
+                  onClick={() => toggleMenu("employer-jobs")}
+                >
+                  <div className="flex items-center gap-3">
+                    <BriefcaseIcon className="h-5 w-5 text-white/70 group-hover:text-white transition-colors" />
+                    <div className="flex flex-col">
+                      <span className="font-medium group-hover:text-white transition-colors">Jobs</span>
+                      {isActiveGroup("/dashboard/jobs") && openMenu !== "employer-jobs" && (
+                        <span className="text-xs text-[#9F7AEA] font-medium">
+                          {activeEmployerJobsItem}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <ChevronDownIcon
+                    className={`h-4 w-4 transition-transform duration-200 text-white/50 group-hover:text-white ${
+                      openMenu === "employer-jobs" ? "rotate-180 text-white" : ""
+                    }`}
+                  />
+                </div>
+
+                {openMenu === "employer-jobs" && (
+                  <ul className="pl-11 space-y-1 text-sm mt-2 animate-fadeIn">
+                    {employerJobsSubmenu.map((item) => {
+                      const ItemIcon = item.icon;
+                      return (
+                        <li
+                          key={item.key}
+                          className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
+                            isActive(item.path)
+                              ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
+                              : "hover:text-purple-300 hover:bg-[#9F7AEA]/10 text-white/60"
+                          }`}
+                          onClick={() => handleNavigation(item.path)}
+                        >
+                          <ItemIcon
+                            className={`h-4 w-4 transition-colors ${
+                              isActive(item.path)
+                                ? "text-[#9F7AEA]"
+                                : "text-white/40 group-hover/item:text-[#9F7AEA]"
+                            }`}
+                          />
+                          <span
+                            className={`transition-colors ${
+                              isActive(item.path) ? "text-white font-medium" : "group-hover/item:text-white"
+                            }`}
+                          >
+                            {item.label}
+                          </span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </div>
+
+              <div
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 group ${
+                  isEmployerTasksRoute
+                    ? "bg-[#9F7AEA]/15 text-white border-l-2 border-[#9F7AEA]"
+                    : "hover:bg-[#9F7AEA]/10"
+                }`}
+                onClick={() => handleNavigation(employerTaskPath)}
+              >
+                <ListBulletIcon className="h-5 w-5 text-white/70 group-hover:text-white transition-colors" />
+                <span className="font-medium group-hover:text-white transition-colors">
+                  Tasks
+                </span>
+              </div>
+
+              <div
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 group ${
+                  isEmployerApplicantsRoute
+                    ? "bg-[#9F7AEA]/15 text-white border-l-2 border-[#9F7AEA]"
+                    : "hover:bg-[#9F7AEA]/10"
+                }`}
+                onClick={() => handleNavigation(employerApplicantsPath)}
+              >
+                <EyeIcon className="h-5 w-5 text-white/70 group-hover:text-white transition-colors" />
+                <span className="font-medium group-hover:text-white transition-colors">
+                  Applicants
+                </span>
+              </div>
+
+              <div
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 group ${
+                  isActive("/dashboard/notifications")
+                    ? "bg-[#9F7AEA]/15 text-white border-l-2 border-[#9F7AEA]"
+                    : "hover:bg-[#9F7AEA]/10"
+                }`}
+                onClick={() => handleNavigation("/dashboard/notifications")}
+              >
+                <BellIcon className="h-5 w-5 text-white/70 group-hover:text-white transition-colors" />
+                <span className="font-medium group-hover:text-white transition-colors">
+                  Messages
+                </span>
+              </div>
+
+              <div>
+                <div
+                  className={`flex items-center justify-between px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 group ${
+                    isActiveGroup("/dashboard/transactions") ? "bg-[#9F7AEA]/15 border-l-2 border-[#9F7AEA]" : "hover:bg-[#9F7AEA]/10"
+                  }`}
+                  onClick={() => toggleMenu("employer-payments")}
+                >
+                  <div className="flex items-center gap-3">
+                    <CreditCardIcon className="h-5 w-5 text-white/70 group-hover:text-white transition-colors" />
+                    <div className="flex flex-col">
+                      <span className="font-medium group-hover:text-white transition-colors">Payments</span>
+                      {isActiveGroup("/dashboard/transactions") && openMenu !== "employer-payments" && (
+                        <span className="text-xs text-[#9F7AEA] font-medium">
+                          {activeEmployerPaymentsItem}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <ChevronDownIcon
+                    className={`h-4 w-4 transition-transform duration-200 text-white/50 group-hover:text-white ${
+                      openMenu === "employer-payments" ? "rotate-180 text-white" : ""
+                    }`}
+                  />
+                </div>
+
+                {openMenu === "employer-payments" && (
+                  <ul className="pl-11 space-y-1 text-sm mt-2 animate-fadeIn">
+                    {employerPaymentsSubmenu.map((item) => {
+                      const ItemIcon = item.icon;
+                      const isPaymentItemActive = currentPathWithSearch === item.path;
+
+                      return (
+                        <li
+                          key={item.key}
+                          className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
+                            isPaymentItemActive
+                              ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
+                              : "hover:text-purple-300 hover:bg-[#9F7AEA]/10 text-white/60"
+                          }`}
+                          onClick={() => handleNavigation(item.path)}
+                        >
+                          <ItemIcon
+                            className={`h-4 w-4 transition-colors ${
+                              isPaymentItemActive
+                                ? "text-[#9F7AEA]"
+                                : "text-white/40 group-hover/item:text-[#9F7AEA]"
+                            }`}
+                          />
+                          <span
+                            className={`transition-colors ${
+                              isPaymentItemActive ? "text-white font-medium" : "group-hover/item:text-white"
+                            }`}
+                          >
+                            {item.label}
+                          </span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </div>
+
+              <div>
+                <div
+                  className={`flex items-center justify-between px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 group ${
+                    isActiveGroup("/dashboard/disputes") ? "bg-[#9F7AEA]/15 border-l-2 border-[#9F7AEA]" : "hover:bg-[#9F7AEA]/10"
+                  }`}
+                  onClick={() => toggleMenu("employer-resolution")}
+                >
+                  <div className="flex items-center gap-3">
+                    <ExclamationTriangleIcon className="h-5 w-5 text-white/70 group-hover:text-white transition-colors" />
+                    <div className="flex flex-col">
+                      <span className="font-medium group-hover:text-white transition-colors">Resolution Center</span>
+                      {isActiveGroup("/dashboard/disputes") && openMenu !== "employer-resolution" && (
+                        <span className="text-xs text-[#9F7AEA] font-medium">
+                          {activeEmployerResolutionItem}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <ChevronDownIcon
+                    className={`h-4 w-4 transition-transform duration-200 text-white/50 group-hover:text-white ${
+                      openMenu === "employer-resolution" ? "rotate-180 text-white" : ""
+                    }`}
+                  />
+                </div>
+
+                {openMenu === "employer-resolution" && (
+                  <ul className="pl-11 space-y-1 text-sm mt-2 animate-fadeIn">
+                    {employerResolutionSubmenu.map((item) => {
+                      const ItemIcon = item.icon;
+                      const isResolutionItemActive =
+                        currentPathWithSearch === item.path || location.pathname === item.path;
+
+                      return (
+                        <li
+                          key={item.key}
+                          className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
+                            isResolutionItemActive
+                              ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
+                              : "hover:text-purple-300 hover:bg-[#9F7AEA]/10 text-white/60"
+                          }`}
+                          onClick={() => handleNavigation(item.path)}
+                        >
+                          <ItemIcon
+                            className={`h-4 w-4 transition-colors ${
+                              isResolutionItemActive
+                                ? "text-[#9F7AEA]"
+                                : "text-white/40 group-hover/item:text-[#9F7AEA]"
+                            }`}
+                          />
+                          <span
+                            className={`transition-colors ${
+                              isResolutionItemActive ? "text-white font-medium" : "group-hover/item:text-white"
+                            }`}
+                          >
+                            {item.label}
+                          </span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </div>
+
+              <div>
+                <div
+                  className={`flex items-center justify-between px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 group ${
+                    isActiveGroup("/dashboard/profile") ? "bg-[#9F7AEA]/15 border-l-2 border-[#9F7AEA]" : "hover:bg-[#9F7AEA]/10"
+                  }`}
+                  onClick={() => toggleMenu("employer-settings")}
+                >
+                  <div className="flex items-center gap-3">
+                    <ShieldCheckIcon className="h-5 w-5 text-white/70 group-hover:text-white transition-colors" />
+                    <div className="flex flex-col">
+                      <span className="font-medium group-hover:text-white transition-colors">Settings</span>
+                      {isActiveGroup("/dashboard/profile") && openMenu !== "employer-settings" && (
+                        <span className="text-xs text-[#9F7AEA] font-medium">
+                          {activeEmployerSettingsItem}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <ChevronDownIcon
+                    className={`h-4 w-4 transition-transform duration-200 text-white/50 group-hover:text-white ${
+                      openMenu === "employer-settings" ? "rotate-180 text-white" : ""
+                    }`}
+                  />
+                </div>
+
+                {openMenu === "employer-settings" && (
+                  <ul className="pl-11 space-y-1 text-sm mt-2 animate-fadeIn">
+                    {employerSettingsSubmenu.map((item) => {
+                      const ItemIcon = item.icon;
+                      const isSettingsItemActive = currentPathWithSearch === item.path;
+
+                      return (
+                        <li
+                          key={item.key}
+                          className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
+                            isSettingsItemActive
+                              ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
+                              : "hover:text-purple-300 hover:bg-[#9F7AEA]/10 text-white/60"
+                          }`}
+                          onClick={() => handleNavigation(item.path)}
+                        >
+                          <ItemIcon
+                            className={`h-4 w-4 transition-colors ${
+                              isSettingsItemActive
+                                ? "text-[#9F7AEA]"
+                                : "text-white/40 group-hover/item:text-[#9F7AEA]"
+                            }`}
+                          />
+                          <span
+                            className={`transition-colors ${
+                              isSettingsItemActive ? "text-white font-medium" : "group-hover/item:text-white"
+                            }`}
+                          >
+                            {item.label}
+                          </span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </div>
+            </>
+          ) : (
+            <>
           {/* For verifyDocAdmin: Show only Academic Verification */}
           {role === "verifyDocAdmin" && (
             <div>
@@ -1437,6 +1781,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 </div>
               );
             })}
+            </>
+          )}
         </nav>
       </div>
     </>
