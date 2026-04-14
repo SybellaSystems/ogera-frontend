@@ -3,7 +3,6 @@ import type {
   IConversation,
   IMessage,
   ICreateConversationRequest,
-  ISendMessageRequest,
 } from '@/types/message.types';
 
 export const messagesApi = apiSlice.injectEndpoints({
@@ -45,7 +44,7 @@ export const messagesApi = apiSlice.injectEndpoints({
         if (offset) searchParams.append('offset', String(offset));
         return `/messages/${conversationId}?${searchParams.toString()}`;
       },
-      providesTags: (result, error, { conversationId }) => [
+      providesTags: (_result, _error, { conversationId }) => [
         { type: 'Messages', id: conversationId },
       ],
     }),
@@ -68,7 +67,7 @@ export const messagesApi = apiSlice.injectEndpoints({
           body: formData,
         };
       },
-      invalidatesTags: (result, error, { conversationId }) => [
+      invalidatesTags: (_result, _error, { conversationId }) => [
         { type: 'Messages', id: conversationId },
         'Messages', // Also invalidate conversations for last_message_at update
       ],
@@ -94,7 +93,7 @@ export const messagesApi = apiSlice.injectEndpoints({
     >({
       query: (conversationId) =>
         `/messages/${conversationId}/unread-count`,
-      providesTags: (result, error, conversationId) => [
+      providesTags: (_result, _error, conversationId) => [
         { type: 'Messages', id: conversationId },
       ],
     }),
