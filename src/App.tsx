@@ -68,6 +68,7 @@ import MyDisputes from "./pages/Disputes/MyDisputes";
 // Other Pages
 import Analytics from "./pages/Analytics";
 import Notifications from "./pages/Notifications";
+import Messages from "./pages/Messages";
 import Transactions from "./pages/Transactions";
 import Pay from "./pages/Transactions/Pay";
 import MoMoPayments from "./pages/Transactions/MoMoPayments";
@@ -419,6 +420,16 @@ function App() {
             {
               path: "notifications",
               Component: Notifications,
+            },
+            {
+              path: "messages",
+              element: <ProtectedRoute allowedRoles={["employer", "student"]} />,
+              children: [
+                {
+                  index: true,
+                  Component: Messages,
+                },
+              ],
             },
             {
               path: "transactions",

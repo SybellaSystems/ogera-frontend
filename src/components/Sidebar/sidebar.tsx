@@ -305,11 +305,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
               <div
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 group ${
-                  isActive("/dashboard/notifications")
+                  isActive("/dashboard/messages")
                     ? "bg-[#9F7AEA]/15 text-white border-l-2 border-[#9F7AEA]"
                     : "hover:bg-[#9F7AEA]/10"
                 }`}
-                onClick={() => handleNavigation("/dashboard/notifications")}
+                onClick={() => handleNavigation("/dashboard/messages")}
               >
                 <BellIcon className="h-5 w-5 text-white/70 group-hover:text-white transition-colors" />
                 <span className="font-medium group-hover:text-white transition-colors">
