@@ -93,7 +93,7 @@ const Login = ({ initialView }: LoginProps = {}) => {
       const userData = (userRes.data as any).user;
       // Resolve relative profile image URL to full URL
       if (userData?.profile_image_url && userData.profile_image_url.startsWith("/")) {
-        const baseUrl = (BASE_URL || "http://localhost:5000/api").replace("/api", "");
+        const baseUrl = (BASE_URL || "https://api.ogera.sybellasystems.co.rw/api").replace("/api", "");
         userData.profile_image_url = `${baseUrl}${userData.profile_image_url}`;
       }
       // Extract role string — could be an object { roleName, roleType } or a string
@@ -252,7 +252,7 @@ const Login = ({ initialView }: LoginProps = {}) => {
         {/* Login form — right half */}
         <FormPanel className={isLogin ? "active" : "inactive"} style={{ opacity: isLogin ? 1 : 0, pointerEvents: isLogin ? "auto" : "none", transition: "opacity 0.4s ease 0.2s" }}>
           <FormInner>
-            <BackButton href={import.meta.env.VITE_LANDING_URL || "http://localhost:3000"}>
+            <BackButton href={import.meta.env.VITE_LANDING_URL || "https://ogera.sybellasystems.co.rw"}>
               <ChevronLeft style={{ fontSize: 20 }} />
               Back
             </BackButton>

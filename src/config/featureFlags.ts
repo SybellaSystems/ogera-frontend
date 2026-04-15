@@ -15,8 +15,8 @@ export const FEATURES = {
   /** Resolution Center (Disputes) - Hidden in V1 */
   RESOLUTION_CENTER: false,
   
-  /** Settings (Account/Profile) - Hidden in V1 */
-  SETTINGS: false,
+  /** Settings (Account/Profile) - Enabled in V1 so students/employers can manage their profile */
+  SETTINGS: true,
 } as const;
 
 /**

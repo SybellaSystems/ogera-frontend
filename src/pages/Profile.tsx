@@ -319,7 +319,7 @@ const Profile: React.FC = () => {
       const updatedData = response.data;
       let newImageUrl = updatedData?.profile_image_url;
       if (newImageUrl && newImageUrl.startsWith("/")) {
-        const baseUrl = (import.meta.env.VITE_API_URL || "http://localhost:5000/api").replace("/api", "");
+        const baseUrl = (import.meta.env.VITE_API_URL || "https://api.ogera.sybellasystems.co.rw/api").replace("/api", "");
         newImageUrl = `${baseUrl}${newImageUrl}`;
       }
       if (newImageUrl) {
@@ -465,7 +465,7 @@ const Profile: React.FC = () => {
                   </div>
                   {(user?.profile_image_url || profileData?.profile_image_url) && (() => {
                     const imgUrl = user?.profile_image_url || profileData?.profile_image_url;
-                    const baseUrl = (import.meta.env.VITE_API_URL || "http://localhost:5000/api").replace("/api", "");
+                    const baseUrl = (import.meta.env.VITE_API_URL || "https://api.ogera.sybellasystems.co.rw/api").replace("/api", "");
                     const resolvedUrl = imgUrl.startsWith("/") ? `${baseUrl}${imgUrl}` : imgUrl;
                     return (
                     <img src={resolvedUrl} alt={userData?.full_name || t("profile.user")}

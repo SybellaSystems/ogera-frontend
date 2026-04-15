@@ -12,7 +12,7 @@ export const initializeSocket = (getToken: () => string | null): Socket => {
         throw new Error('No authentication token available');
     }
     
-    socket = io(import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000', {
+    socket = io(import.meta.env.VITE_API_URL?.replace('/api', '') || 'https://api.ogera.sybellasystems.co.rw', {
         auth: {
             token: token,
         },

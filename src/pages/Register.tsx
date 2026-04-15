@@ -305,7 +305,7 @@ const Register = ({ formOnly, onRoleChange }: RegisterProps = {}) => {
             {isStudent ? (
               <FormGroup>
                 <Label htmlFor="national_id_number">{t("register.nationalIdNumber")}</Label>
-                <TextField id="national_id_number" name="national_id_number" placeholder={t("register.enterNationalId")} variant="outlined" fullWidth size="small" inputProps={{ maxLength: 15 }} value={formik.values.national_id_number} onChange={formik.handleChange} onBlur={formik.handleBlur}
+                <TextField id="national_id_number" name="national_id_number" placeholder={t("register.enterNationalId")} variant="outlined" fullWidth size="small" inputProps={{ maxLength: 16 }} value={formik.values.national_id_number} onChange={formik.handleChange} onBlur={formik.handleBlur}
                   InputProps={{ style: inputStyle, startAdornment: <InputAdornment position="start"><BadgeOutlined style={{ color: "#8a8599", fontSize: 20 }} /></InputAdornment> }} sx={inputSx} />
                 {formik.touched.national_id_number && formik.errors.national_id_number && <ErrorText>{formik.errors.national_id_number}</ErrorText>}
               </FormGroup>
@@ -543,7 +543,7 @@ const Register = ({ formOnly, onRoleChange }: RegisterProps = {}) => {
                     variant="outlined"
                     fullWidth
                     size="small"
-                    inputProps={{ maxLength: 15 }}
+                    inputProps={{ maxLength: 16 }}
                     value={formik.values.national_id_number}
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}

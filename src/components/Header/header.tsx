@@ -406,7 +406,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
             {user?.profile_image_url ? (
               <>
                 <img
-                  src={user.profile_image_url.startsWith("/") ? `${(import.meta.env.VITE_API_URL || "http://localhost:5000/api").replace("/api", "")}${user.profile_image_url}` : user.profile_image_url}
+                  src={user.profile_image_url.startsWith("/") ? `${(import.meta.env.VITE_API_URL || "https://api.ogera.sybellasystems.co.rw/api").replace("/api", "")}${user.profile_image_url}` : user.profile_image_url}
                   alt={user.full_name || "User"}
                   className="h-full w-full rounded-full object-cover cursor-pointer"
                   onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
