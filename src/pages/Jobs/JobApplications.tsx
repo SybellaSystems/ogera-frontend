@@ -14,6 +14,40 @@ import {
 import Loader from "../../components/Loader";
 import toast from "react-hot-toast";
 import api from "../../services/api/axiosInstance";
+import TrustScoreCard from "../../components/TrustScoreCard";
+import type { TrustScore, TrustLevel } from "../../services/api/trustScoreApi";
+
+function levelFromNumericScore(score: number): TrustLevel {
+  if (score >= 85) return "Exceptional";
+  if (score >= 70) return "Competent";
+  if (score >= 55) return "Developing";
+  if (score >= 40) return "Emerging";
+  return "Limited";
+}
+
+/** Build card payload from applicant user row (fields from users table when present). */
+function trustScoreFromStudentUser(student: any): TrustScore | null {
+  if (!student?.user_id || student.trust_score == null) return null;
+  const trust = Number(student.trust_score);
+  const I = Number(student.intelligence_score ?? 0);
+  const E = Number(student.experience_score ?? 0);
+  const C = Number(student.interaction_score ?? 0);
+  const level = (student.trust_level as TrustLevel) || levelFromNumericScore(trust);
+  return {
+    user_id: student.user_id,
+    trust_score: trust,
+    intelligence_score: I,
+    experience_score: E,
+    interaction_score: C,
+    intelligence_percent: I * 100,
+    experience_percent: E * 100,
+    interaction_percent: C * 100,
+    level,
+    description: "",
+    suggestions: [],
+    source: "cached",
+  };
+}
 
 const JobApplications: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -267,6 +301,18 @@ const JobApplications: React.FC = () => {
                           📞 {application.student.mobile_number}
                         </p>
                       )}
+                      {(() => {
+                        const ts = application.student
+                          ? trustScoreFromStudentUser(application.student)
+                          : null;
+                        return ts ? (
+                          <TrustScoreCard variant="compact" trustScore={ts} />
+                        ) : (
+                          <p className="text-xs text-gray-400 mt-1">
+                            {t("pages.jobs.trustScoreNotCalculated")}
+                          </p>
+                        );
+                      })()}
                     </div>
                   </div>
 

@@ -1,9 +1,32 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
+import { useSelector } from "react-redux";
 import { ChartBarIcon } from "@heroicons/react/24/outline";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
+import { useGetAdminTrustSummaryQuery } from "../services/api/trustScoreApi";
 
 const Analytics: React.FC = () => {
   const { t } = useTranslation();
+  const roleRaw = useSelector((state: any) => state.auth.role);
+  const role = roleRaw ? String(roleRaw).toLowerCase().trim() : "";
+  const isAdminAnalytics =
+    role === "superadmin" || role === "admin" || Boolean(role?.includes("admin"));
+
+  const { data: trustApi, isLoading: trustLoading, isError: trustError } =
+    useGetAdminTrustSummaryQuery(undefined, {
+      skip: !isAdminAnalytics,
+    });
+
+  const trust = trustApi?.data;
+
   return (
     <div className="space-y-6 animate-fadeIn">
       <div>
@@ -14,7 +37,114 @@ const Analytics: React.FC = () => {
         <p className="text-gray-500 mt-2">{t("pages.analytics.subtitle")}</p>
       </div>
 
-      {/* Key Metrics */}
+      {isAdminAnalytics && (
+        <div className="space-y-6">
+          <h2 className="text-xl font-semibold text-gray-900">
+            {t("pages.analytics.trustScoreSection")}
+          </h2>
+
+          {trustLoading && (
+            <p className="text-sm text-gray-500">{t("common.loading")}</p>
+          )}
+          {trustError && (
+            <p className="text-sm text-red-600">{t("common.error")}</p>
+          )}
+
+          {trust && !trustLoading && (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-gradient-to-br from-violet-50 to-violet-100 rounded-xl p-6 shadow-md border border-violet-200">
+                  <p className="text-sm text-violet-700 font-medium">
+                    {t("pages.analytics.avgTrustScore")}
+                  </p>
+                  <p className="text-3xl font-bold text-violet-900 mt-2">
+                    {trust.average_trust_score != null
+                      ? trust.average_trust_score.toFixed(1)
+                      : "—"}
+                  </p>
+                </div>
+                <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl p-6 shadow-md border border-slate-200 md:col-span-2">
+                  <p className="text-sm text-slate-700 font-medium">
+                    {t("pages.analytics.studentsWithScore")}
+                  </p>
+                  <p className="text-3xl font-bold text-slate-900 mt-2">
+                    {trust.students_with_score}
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                    {t("pages.analytics.trustDistribution")}
+                  </h3>
+                  <div className="h-72">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={trust.distribution.map((d) => ({
+                          name: d.label,
+                          count: d.count,
+                        }))}
+                        margin={{ top: 8, right: 8, left: 0, bottom: 32 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                        <XAxis
+                          dataKey="name"
+                          tick={{ fontSize: 10 }}
+                          interval={0}
+                          angle={-18}
+                          textAnchor="end"
+                          height={60}
+                        />
+                        <YAxis allowDecimals={false} width={36} />
+                        <Tooltip />
+                        <Bar dataKey="count" fill="#7f56d9" radius={[4, 4, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                    {t("pages.analytics.topStudentsTrust")}
+                  </h3>
+                  <ul className="space-y-3">
+                    {trust.top_users.map((u) => (
+                      <li
+                        key={u.user_id}
+                        className="flex justify-between items-center text-sm border-b border-gray-100 pb-2 last:border-0"
+                      >
+                        <span className="font-medium text-gray-800 truncate pr-2">
+                          {u.full_name}
+                        </span>
+                        <span className="shrink-0 text-purple-700 font-bold">
+                          {u.trust_score != null ? u.trust_score.toFixed(0) : "—"}
+                          {u.trust_level ? (
+                            <span className="text-gray-400 font-normal text-xs ml-2">
+                              {u.trust_level}
+                            </span>
+                          ) : null}
+                        </span>
+                      </li>
+                    ))}
+                    {!trust.top_users.length && (
+                      <li className="text-sm text-gray-500">{t("common.noData")}</li>
+                    )}
+                  </ul>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {!isAdminAnalytics && (
+        <p className="text-sm text-gray-500 bg-gray-50 border border-gray-200 rounded-lg p-4">
+          {t("pages.analytics.trustAdminOnly")}
+        </p>
+      )}
+
+      {/* Key Metrics (existing placeholders) */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 shadow-md border border-blue-200">
           <p className="text-sm text-blue-700 font-medium">{t("pages.analytics.totalRevenue")}</p>
@@ -37,107 +167,8 @@ const Analytics: React.FC = () => {
           <p className="text-sm text-orange-600 mt-2">{t("pages.analytics.fromLastMonth", { percent: 3 })}</p>
         </div>
       </div>
-
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">{t("pages.analytics.userGrowthTrend")}</h2>
-          <div className="h-64 flex items-center justify-center border-2 border-dashed border-gray-300 rounded-xl">
-            <div className="text-center">
-              <ChartBarIcon className="h-16 w-16 text-gray-400 mx-auto mb-2" />
-              <p className="text-gray-500">{t("pages.analytics.chartPlaceholder")}</p>
-              <p className="text-sm text-gray-400 mt-1">{t("pages.analytics.lineChartDesc")}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">{t("pages.analytics.revenueAnalytics")}</h2>
-          <div className="h-64 flex items-center justify-center border-2 border-dashed border-gray-300 rounded-xl">
-            <div className="text-center">
-              <ChartBarIcon className="h-16 w-16 text-gray-400 mx-auto mb-2" />
-              <p className="text-gray-500">{t("pages.analytics.chartPlaceholder")}</p>
-              <p className="text-sm text-gray-400 mt-1">{t("pages.analytics.barChartDesc")}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Additional Stats */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">{t("pages.analytics.topJobCategories")}</h2>
-          <div className="space-y-3">
-            {[
-              { name: "Software Dev", percentage: 32 },
-              { name: "Marketing", percentage: 24 },
-              { name: "Design", percentage: 18 },
-              { name: "Data Science", percentage: 15 },
-              { name: t("pages.analytics.others"), percentage: 11 },
-            ].map((cat, index) => (
-              <div key={index}>
-                <div className="flex justify-between mb-1">
-                  <span className="text-sm font-medium text-gray-700">{cat.name}</span>
-                  <span className="text-sm font-semibold text-purple-600">{cat.percentage}%</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div className="bg-purple-600 h-2 rounded-full" style={{ width: `${cat.percentage}%` }}></div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* User Demographics */}
-        <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">{t("pages.analytics.userDemographics")}</h2>
-          <div className="space-y-4">
-            <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
-              <span className="text-sm font-medium text-gray-700">{t("dashboard.students")}</span>
-              <span className="text-lg font-bold text-blue-600">8,120</span>
-            </div>
-            <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
-              <span className="text-sm font-medium text-gray-700">{t("dashboard.employers")}</span>
-              <span className="text-lg font-bold text-green-600">1,245</span>
-            </div>
-            <div className="flex justify-between items-center p-3 bg-purple-50 rounded-lg">
-              <span className="text-sm font-medium text-gray-700">Admins</span>
-              <span className="text-lg font-bold text-purple-600">15</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Recent Activity */}
-        <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">{t("pages.analytics.platformActivity")}</h2>
-          <div className="space-y-3">
-            <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-              <span className="text-green-600 text-xl">✓</span>
-              <div>
-                <p className="text-sm font-medium text-gray-900">{t("pages.analytics.newRegistrations")}</p>
-                <p className="text-xs text-gray-500">{t("pages.analytics.last7Days")}</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-              <span className="text-blue-600 text-xl">📊</span>
-              <div>
-                <p className="text-sm font-medium text-gray-900">{t("pages.analytics.jobsPostedCount")}</p>
-                <p className="text-xs text-gray-500">{t("pages.analytics.last7Days")}</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-              <span className="text-purple-600 text-xl">⭐</span>
-              <div>
-                <p className="text-sm font-medium text-gray-900">{t("pages.analytics.jobsCompletedCount")}</p>
-                <p className="text-xs text-gray-500">{t("pages.analytics.last7Days")}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };
 
 export default Analytics;
-

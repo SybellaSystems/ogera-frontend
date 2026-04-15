@@ -5,21 +5,25 @@ import type { TrustScore } from "../services/api/trustScoreApi";
 interface TrustScoreCardProps {
   trustScore: TrustScore;
   isLoading?: boolean;
+  /** Full profile card vs compact row for employer candidate lists */
+  variant?: "full" | "compact";
 }
 
 const TrustScoreCard: React.FC<TrustScoreCardProps> = ({
   trustScore,
   isLoading = false,
+  variant = "full",
 }) => {
   const { t } = useTranslation();
+
   if (isLoading) {
     return (
       <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100 animate-pulse">
-        <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
-        <div className="h-24 bg-gray-200 rounded mb-6"></div>
+        <div className="h-8 bg-gray-200 rounded w-1/3 mb-4" />
+        <div className="h-24 bg-gray-200 rounded mb-6" />
         <div className="space-y-3">
-          <div className="h-4 bg-gray-200 rounded"></div>
-          <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+          <div className="h-4 bg-gray-200 rounded" />
+          <div className="h-4 bg-gray-200 rounded w-5/6" />
         </div>
       </div>
     );
@@ -32,61 +36,55 @@ const TrustScoreCard: React.FC<TrustScoreCardProps> = ({
       case "Competent":
         return "bg-blue-100 text-blue-700 border-blue-200";
       case "Developing":
-        return "bg-yellow-100 text-yellow-700 border-yellow-200";
-      case "Emerging":
         return "bg-orange-100 text-orange-700 border-orange-200";
-      case "Limited":
+      case "Emerging":
         return "bg-red-100 text-red-700 border-red-200";
+      case "Limited":
+        return "bg-red-100 text-red-800 border-red-200";
       default:
         return "bg-gray-100 text-gray-700 border-gray-200";
     }
   };
 
+  const barColor = (score: number) => {
+    if (score >= 85) return "bg-green-600";
+    if (score >= 70) return "bg-blue-600";
+    if (score >= 55) return "bg-orange-500";
+    return "bg-red-600";
+  };
+
   const getScoreColor = (score: number) => {
     if (score >= 85) return "text-green-600";
     if (score >= 70) return "text-blue-600";
-    if (score >= 55) return "text-yellow-600";
-    if (score >= 40) return "text-orange-600";
+    if (score >= 55) return "text-orange-600";
     return "text-red-600";
   };
 
-  const getVerificationIcon = (verified: boolean) => {
-    return verified ? (
-      <svg
-        className="w-5 h-5 text-green-600"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M5 13l4 4L19 7"
-        />
-      </svg>
-    ) : (
-      <svg
-        className="w-5 h-5 text-gray-400"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M6 18L18 6M6 6l12 12"
-        />
-      </svg>
+  if (variant === "compact") {
+    return (
+      <div className="flex flex-wrap items-center gap-2 mt-2">
+        <span
+          className={`text-sm font-bold ${getScoreColor(trustScore.trust_score)}`}
+        >
+          {t("profile.trustScoreShort")}: {trustScore.trust_score.toFixed(0)}
+        </span>
+        <span
+          className={`px-2 py-0.5 rounded-full text-xs font-semibold border ${getLevelColor(
+            trustScore.level
+          )}`}
+        >
+          {t(`profile.trustScoreLevel.${trustScore.level}`)}
+        </span>
+      </div>
     );
-  };
+  }
 
   return (
     <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">{t("profile.trustScore")}</h2>
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+        <h2 className="text-2xl font-bold text-gray-900">
+          {t("profile.trustScore")}
+        </h2>
         <span
           className={`px-4 py-2 rounded-full text-sm font-semibold border ${getLevelColor(
             trustScore.level
@@ -96,172 +94,80 @@ const TrustScoreCard: React.FC<TrustScoreCardProps> = ({
         </span>
       </div>
 
-      {/* Score Display */}
+      <div className="mb-2 flex flex-wrap gap-2 text-xs text-gray-500">
+        <span>
+          I/E/C · {t("profile.trustScoreFormulaHint")}
+        </span>
+      </div>
+
       <div className="mb-6">
         <div className="flex items-end gap-2 mb-2">
-          <span className={`text-5xl font-bold ${getScoreColor(trustScore.trust_score)}`}>
+          <span
+            className={`text-5xl font-bold ${getScoreColor(trustScore.trust_score)}`}
+          >
             {trustScore.trust_score.toFixed(0)}
           </span>
           <span className="text-gray-500 text-xl mb-2">/ 100</span>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-3 mt-4">
           <div
-            className={`h-3 rounded-full transition-all duration-500 ${
-              trustScore.trust_score >= 85
-                ? "bg-green-600"
-                : trustScore.trust_score >= 70
-                ? "bg-blue-600"
-                : trustScore.trust_score >= 55
-                ? "bg-yellow-600"
-                : trustScore.trust_score >= 40
-                ? "bg-orange-600"
-                : "bg-red-600"
-            }`}
-            style={{ width: `${trustScore.trust_score}%` }}
-          ></div>
+            className={`h-3 rounded-full transition-all duration-500 ${barColor(
+              trustScore.trust_score
+            )}`}
+            style={{ width: `${Math.min(100, trustScore.trust_score)}%` }}
+          />
         </div>
       </div>
 
-      {/* Description - translated by level */}
-      <p className="text-gray-600 text-sm mb-6">
-        {t(`profile.trustScoreDescription.${trustScore.level}`)}
-      </p>
+      <p className="text-gray-600 text-sm mb-6">{trustScore.description}</p>
 
-      {/* Verification Status */}
-      <div className="space-y-4 mb-6">
-        <h3 className="text-lg font-semibold text-gray-900">
-          {t("profile.verificationStatus")}
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Email Verification */}
-          <div
-            className={`p-4 rounded-lg border-2 ${
-              trustScore.email_verified
-                ? "border-green-200 bg-green-50"
-                : "border-gray-200 bg-gray-50"
-            }`}
-          >
-            <div className="flex items-center justify-between mb-2">
-              <span className="font-medium text-gray-700">{t("profile.email")}</span>
-              {getVerificationIcon(trustScore.email_verified)}
-            </div>
-            <p className="text-sm text-gray-600">
-              {trustScore.breakdown.email_verification_score.toFixed(1)} {t("profile.points")}
-            </p>
-          </div>
-
-          {/* Phone Verification */}
-          <div
-            className={`p-4 rounded-lg border-2 ${
-              trustScore.phone_verified
-                ? "border-green-200 bg-green-50"
-                : "border-gray-200 bg-gray-50"
-            }`}
-          >
-            <div className="flex items-center justify-between mb-2">
-              <span className="font-medium text-gray-700">{t("profile.phone")}</span>
-              {getVerificationIcon(trustScore.phone_verified)}
-            </div>
-            <p className="text-sm text-gray-600">
-              {trustScore.breakdown.phone_verification_score.toFixed(1)} {t("profile.points")}
-            </p>
-          </div>
-
-          {/* Academic Verification */}
-          <div
-            className={`p-4 rounded-lg border-2 ${
-              trustScore.academic_verified
-                ? "border-green-200 bg-green-50"
-                : "border-gray-200 bg-gray-50"
-            }`}
-          >
-            <div className="flex items-center justify-between mb-2">
-              <span className="font-medium text-gray-700">{t("profile.academic")}</span>
-              {getVerificationIcon(trustScore.academic_verified)}
-            </div>
-            <p className="text-sm text-gray-600">
-              {trustScore.breakdown.academic_verification_score.toFixed(1)} {t("profile.points")}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Score Breakdown */}
-      <div className="pt-6 border-t border-gray-200">
+      <div className="pt-6 border-t border-gray-200 mb-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          {t("profile.scoreBreakdown")}
+          {t("profile.trustScoreBreakdownIEC")}
         </h3>
-        <div className="space-y-3">
-          {/* Email Score */}
-          <div>
-            <div className="flex justify-between items-center mb-1">
-              <span className="text-sm font-medium text-gray-700">
-                {t("profile.emailVerification")}
-              </span>
-              <span className="text-sm font-semibold text-gray-900">
-                {trustScore.breakdown.email_verification_score.toFixed(2)} / 33.33
-              </span>
+        <div className="space-y-4">
+          {(
+            [
+              ["intelligence", trustScore.intelligence_percent, "#6366f1"],
+              ["experience", trustScore.experience_percent, "#8b5cf6"],
+              ["interaction", trustScore.interaction_percent, "#10b981"],
+            ] as const
+          ).map(([key, pct, color]) => (
+            <div key={key}>
+              <div className="flex justify-between items-center mb-1">
+                <span className="text-sm font-medium text-gray-700">
+                  {t(`profile.trustScoreAxis.${key}`)}
+                </span>
+                <span className="text-sm font-semibold text-gray-900">
+                  {pct.toFixed(0)}%
+                </span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div
+                  className="h-2 rounded-full transition-all"
+                  style={{
+                    width: `${Math.min(100, pct)}%`,
+                    backgroundColor: color,
+                  }}
+                />
+              </div>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div
-                className="bg-blue-600 h-2 rounded-full"
-                style={{
-                  width: `${
-                    (trustScore.breakdown.email_verification_score / 33.33) * 100
-                  }%`,
-                }}
-              ></div>
-            </div>
-          </div>
-
-          {/* Phone Score */}
-          <div>
-            <div className="flex justify-between items-center mb-1">
-              <span className="text-sm font-medium text-gray-700">
-                {t("profile.phoneVerification")}
-              </span>
-              <span className="text-sm font-semibold text-gray-900">
-                {trustScore.breakdown.phone_verification_score.toFixed(2)} / 33.33
-              </span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div
-                className="bg-purple-600 h-2 rounded-full"
-                style={{
-                  width: `${
-                    (trustScore.breakdown.phone_verification_score / 33.33) * 100
-                  }%`,
-                }}
-              ></div>
-            </div>
-          </div>
-
-          {/* Academic Score */}
-          <div>
-            <div className="flex justify-between items-center mb-1">
-              <span className="text-sm font-medium text-gray-700">
-                {t("profile.academicVerificationScore")}
-              </span>
-              <span className="text-sm font-semibold text-gray-900">
-                {trustScore.breakdown.academic_verification_score.toFixed(2)} / 33.34
-              </span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div
-                className="bg-green-600 h-2 rounded-full"
-                style={{
-                  width: `${
-                    (trustScore.breakdown.academic_verification_score / 33.34) * 100
-                  }%`,
-                }}
-              ></div>
-            </div>
-          </div>
+          ))}
         </div>
+      </div>
+
+      <div className="pt-6 border-t border-gray-200">
+        <h3 className="text-lg font-semibold text-gray-900 mb-3">
+          {t("profile.trustScoreSuggestions")}
+        </h3>
+        <ul className="list-disc list-inside space-y-2 text-sm text-gray-600">
+          {trustScore.suggestions.map((s, i) => (
+            <li key={i}>{s}</li>
+          ))}
+        </ul>
       </div>
     </div>
   );
 };
 
 export default TrustScoreCard;
-

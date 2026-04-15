@@ -7,6 +7,7 @@ import {
   ShieldCheckIcon,
   BellIcon,
   BookOpenIcon,
+  CpuChipIcon,
 } from "@heroicons/react/24/outline";
 import type { ComponentType } from "react";
 
@@ -125,6 +126,18 @@ export const SIDEBAR_MENU_CONFIG: MenuItemConfig[] = [
       { label: "Open Disputes", path: "/dashboard/disputes/open", labelKey: "sidebar.openDisputes" },
       { label: "In Progress", path: "/dashboard/disputes/in-progress", labelKey: "sidebar.inProgress" },
       { label: "Resolved", path: "/dashboard/disputes/resolved", labelKey: "sidebar.resolved" },
+    ],
+  },
+  {
+    permissionRoute: "/cognitive-tests",
+    label: "Cognitive tests",
+    labelKey: "sidebar.cognitiveTests",
+    icon: CpuChipIcon,
+    menuKey: "cognitive",
+    basePath: "/dashboard/cognitive-tests",
+    hasSubmenu: true,
+    submenuItems: [
+      { label: "Manage tests", path: "/dashboard/cognitive-tests", labelKey: "sidebar.cognitiveManage" },
     ],
   },
   {

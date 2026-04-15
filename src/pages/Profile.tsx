@@ -1,12 +1,13 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useSelector, useDispatch } from "react-redux";
 import { setCredentials } from "../features/auth/authSlice";
 import { getUserProfile, updateUserProfile } from "../services/api/profileApi";
 import { uploadResume } from "../services/api/resumeApi";
 import { uploadProfileImage } from "../services/api/profileImageApi";
+import api from "../services/api/axiosInstance";
 import type { UserProfile } from "../services/api/profileApi";
-import { useGetMyTrustScoreQuery } from "../services/api/trustScoreApi";
+import { useGetMyTrustScoreQuery, useCalculateTrustScoreMutation } from "../services/api/trustScoreApi";
 import { useGetDashboardMetricsQuery } from "../services/api/dashboardApi";
 import { useListJobPaymentsQuery, useGetWalletBalanceQuery } from "../services/api/momoApi";
 import { useGetAllUsersQuery } from "../services/api/usersApi";
@@ -24,6 +25,7 @@ import {
   useUpdateProjectMutation,
   useDeleteProjectMutation,
   useAddAccomplishmentMutation,
+  useUpdateAccomplishmentMutation,
   useDeleteAccomplishmentMutation,
   type UserEmployment,
   type UserEducation,
@@ -43,7 +45,7 @@ import { useNavigate } from "react-router-dom";
 import {
   PencilIcon,
   CloudArrowUpIcon,
-  ArrowDownTrayIcon,
+  EyeIcon,
   TrashIcon,
   CheckCircleIcon,
   MapPinIcon,
@@ -69,6 +71,7 @@ import toast from "react-hot-toast";
 
 type ActiveSection =
   | "resume"
+  | "internship"
   | "resume-headline"
   | "key-skills"
   | "employment"
@@ -95,6 +98,11 @@ const Profile: React.FC = () => {
   const [isPhoneVerificationModalOpen, setIsPhoneVerificationModalOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<ActiveSection>("resume");
   const [isUploadingResume, setIsUploadingResume] = useState(false);
+  const [isUploadingInternshipCertificate, setIsUploadingInternshipCertificate] =
+    useState(false);
+  const [showViewer, setShowViewer] = useState(false);
+  const [viewerUrl, setViewerUrl] = useState<string | null>(null);
+  const [viewerContentType, setViewerContentType] = useState<string | null>(null);
   const [superAdminActiveTab, setSuperAdminActiveTab] = useState<"overview" | "account" | "permissions" | "stats" | "security">("overview");
 
   // Modal states
@@ -128,6 +136,7 @@ const Profile: React.FC = () => {
   const [updateProject] = useUpdateProjectMutation();
   const [deleteProject] = useDeleteProjectMutation();
   const [addAccomplishment] = useAddAccomplishmentMutation();
+  const [updateAccomplishment] = useUpdateAccomplishmentMutation();
   const [deleteAccomplishment] = useDeleteAccomplishmentMutation();
   const [resendVerificationEmail] = useResendVerificationEmailMutation();
   const navigate = useNavigate();
@@ -146,6 +155,8 @@ const Profile: React.FC = () => {
   } = useGetMyTrustScoreQuery(undefined, {
     skip: !profileData || isSuperAdmin,
   });
+
+  const [calculateTrustScore] = useCalculateTrustScoreMutation();
 
   // Fetch Dashboard Metrics (for superadmin)
   const {
@@ -248,6 +259,68 @@ const Profile: React.FC = () => {
   const educations = currentProfileData?.educations || [];
   const projects = currentProfileData?.projects || [];
   const accomplishments = currentProfileData?.accomplishments || [];
+  const internshipCertificate = accomplishments.find((acc) => {
+    const normalizedTitle = (acc.title || "").toLowerCase();
+    return (
+      acc.accomplishment_type === "certification" &&
+      normalizedTitle === "internship certificate"
+    );
+  });
+  const visibleAccomplishments = accomplishments.filter((acc) => {
+    const normalizedTitle = (acc.title || "").toLowerCase();
+    return !(
+      acc.accomplishment_type === "certification" &&
+      normalizedTitle === "internship certificate"
+    );
+  });
+
+  /** When portfolio projects change, Experience (E) changes — persist TrustScore on the server */
+  const projectsTrustSignature = useMemo(() => {
+    const list = currentProfileData?.projects ?? [];
+    return JSON.stringify(list.map((p) => [p.project_id, p.is_ongoing]));
+  }, [currentProfileData?.projects]);
+  const employmentsTrustSignature = useMemo(() => {
+    const list = currentProfileData?.employments ?? [];
+    return JSON.stringify(list.map((e) => [e.employment_id, e.employment_type, e.is_current]));
+  }, [currentProfileData?.employments]);
+  const accomplishmentsTrustSignature = useMemo(() => {
+    const list = currentProfileData?.accomplishments ?? [];
+    return JSON.stringify(
+      list.map((a) => [a.accomplishment_id, a.accomplishment_type, (a.title || "").toLowerCase()])
+    );
+  }, [currentProfileData?.accomplishments]);
+  const resumeTrustSignature = useMemo(
+    () => String(profileData?.resume_url || ""),
+    [profileData?.resume_url]
+  );
+
+  useEffect(() => {
+    if (isSuperAdmin || normalizedUserRole !== "student" || !profileData?.user_id) {
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        await calculateTrustScore(profileData.user_id).unwrap();
+        if (!cancelled) refetchTrustScore();
+      } catch {
+        /* non-blocking */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    profileData?.user_id,
+    projectsTrustSignature,
+    employmentsTrustSignature,
+    accomplishmentsTrustSignature,
+    resumeTrustSignature,
+    normalizedUserRole,
+    isSuperAdmin,
+    calculateTrustScore,
+    refetchTrustScore,
+  ]);
 
   // Get current employment (is_current = true) or most recent employment
   const currentEmployment = employments.find(emp => emp.is_current) || employments[0];
@@ -325,10 +398,224 @@ const Profile: React.FC = () => {
     }
   };
 
+  const handleFileDownload = async (fileUrl: string, defaultFileName: string) => {
+    let filePath = fileUrl;
+
+    if (fileUrl.includes("/api/resumes/download")) {
+      const url = new URL(fileUrl, window.location.origin);
+      filePath = url.searchParams.get("path") || fileUrl;
+    } else if (fileUrl.startsWith("http://") || fileUrl.startsWith("https://")) {
+      window.open(fileUrl, "_blank");
+      return;
+    }
+
+    const response = await api.get(
+      `/resumes/download?path=${encodeURIComponent(filePath)}`,
+      { responseType: "blob" }
+    );
+
+    const fileNameFromPath =
+      filePath.split("/").pop()?.split("?")[0] || defaultFileName;
+    const blob = new Blob([response.data as BlobPart], {
+      type: (response.data as any)?.type || "application/pdf",
+    });
+    const blobUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = blobUrl;
+    link.download = fileNameFromPath;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(blobUrl);
+  };
+
+  const handleFileViewInModal = async (fileUrl: string) => {
+    let filePath = fileUrl;
+
+    if (fileUrl.includes("/api/resumes/download")) {
+      const url = new URL(fileUrl, window.location.origin);
+      filePath = url.searchParams.get("path") || fileUrl;
+    } else if (fileUrl.startsWith("http://") || fileUrl.startsWith("https://")) {
+      setViewerUrl(fileUrl);
+      setViewerContentType("application/pdf");
+      setShowViewer(true);
+      return;
+    }
+
+    const response = await api.get(
+      `/resumes/download?path=${encodeURIComponent(filePath)}`,
+      { responseType: "blob" }
+    );
+
+    const blob = new Blob([response.data as BlobPart], {
+      type: (response.data as any)?.type || "application/pdf",
+    });
+    const blobUrl = window.URL.createObjectURL(blob);
+    setViewerUrl(blobUrl);
+    setViewerContentType(blob.type || "application/pdf");
+    setShowViewer(true);
+  };
+
+  const closeViewer = () => {
+    if (viewerUrl && viewerUrl.startsWith("blob:")) {
+      window.URL.revokeObjectURL(viewerUrl);
+    }
+    setViewerUrl(null);
+    setViewerContentType(null);
+    setShowViewer(false);
+  };
+
   // Handle resume download
-  const handleResumeDownload = () => {
-    if (profileData?.resume_url) {
-      window.open(profileData.resume_url, "_blank");
+  const handleResumeDownload = async () => {
+    if (!profileData?.resume_url) return;
+
+    try {
+      await handleFileDownload(profileData.resume_url, "resume.pdf");
+    } catch (error: any) {
+      toast.error(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Failed to download resume"
+      );
+    }
+  };
+
+  const handleDeleteResume = async () => {
+    if (!profileData?.resume_url) return;
+
+    try {
+      await updateUserProfile({ resume_url: null });
+      toast.success("Resume deleted successfully");
+      await fetchProfile();
+      refetchFullProfile();
+    } catch (error: any) {
+      toast.error(
+        error?.response?.data?.message ||
+          error?.data?.message ||
+          "Failed to delete resume"
+      );
+    }
+  };
+
+  const handleViewResume = async () => {
+    if (!profileData?.resume_url) return;
+
+    try {
+      await handleFileViewInModal(profileData.resume_url);
+    } catch (error: any) {
+      toast.error(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Failed to view resume"
+      );
+    }
+  };
+
+  const handleInternshipCertificateUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const allowedTypes = [
+      "application/pdf",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "application/rtf",
+    ];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error(t("profile.resumeUploadValidFile"));
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error(t("profile.resumeUploadSize"));
+      return;
+    }
+
+    try {
+      setIsUploadingInternshipCertificate(true);
+      const response = await uploadResume(file);
+      const certificateUrl = response.data?.resume_url;
+
+      if (!certificateUrl) {
+        throw new Error("Upload failed");
+      }
+
+      if (internshipCertificate?.accomplishment_id) {
+        await updateAccomplishment({
+          id: internshipCertificate.accomplishment_id,
+          data: { credential_url: certificateUrl },
+        });
+      } else {
+        await addAccomplishment({
+          accomplishment_type: "certification",
+          title: "Internship Certificate",
+          credential_url: certificateUrl,
+        });
+      }
+
+      toast.success("Internship certificate uploaded successfully");
+      refetchFullProfile();
+    } catch (error: any) {
+      toast.error(
+        error?.response?.data?.message ||
+          error?.data?.message ||
+          "Failed to upload internship certificate"
+      );
+    } finally {
+      setIsUploadingInternshipCertificate(false);
+      const fileInput = document.getElementById(
+        "internship-certificate-upload"
+      ) as HTMLInputElement;
+      if (fileInput) fileInput.value = "";
+    }
+  };
+
+  const handleInternshipCertificateDownload = async () => {
+    if (!internshipCertificate?.credential_url) return;
+
+    try {
+      await handleFileDownload(
+        internshipCertificate.credential_url,
+        "internship-certificate.pdf"
+      );
+    } catch (error: any) {
+      toast.error(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Failed to download internship certificate"
+      );
+    }
+  };
+
+  const handleDeleteInternshipCertificate = async () => {
+    if (!internshipCertificate?.accomplishment_id) return;
+
+    try {
+      await deleteAccomplishment(internshipCertificate.accomplishment_id);
+      toast.success("Internship certificate deleted successfully");
+      refetchFullProfile();
+    } catch (error: any) {
+      toast.error(
+        error?.response?.data?.message ||
+          error?.data?.message ||
+          "Failed to delete internship certificate"
+      );
+    }
+  };
+
+  const handleViewInternshipCertificate = async () => {
+    if (!internshipCertificate?.credential_url) return;
+
+    try {
+      await handleFileViewInModal(internshipCertificate.credential_url);
+    } catch (error: any) {
+      toast.error(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Failed to view internship certificate"
+      );
     }
   };
 
@@ -976,6 +1263,7 @@ const Profile: React.FC = () => {
               <nav className="p-3 space-y-1">
                 {[
                   { key: "resume", label: t("profile.resume"), action: t("profile.update"), icon: <DocumentTextIcon className="w-4 h-4" /> },
+                  { key: "internship", label: t("profile.internship", { defaultValue: "Internship" }), action: t("profile.update"), icon: <DocumentTextIcon className="w-4 h-4" /> },
                   { key: "resume-headline", label: t("profile.resumeHeadline"), icon: <PencilSquareIcon className="w-4 h-4" /> },
                   { key: "key-skills", label: t("profile.keySkills"), icon: <StarIcon className="w-4 h-4" /> },
                   { key: "employment", label: t("profile.employment"), action: t("profile.add"), icon: <BriefcaseIcon className="w-4 h-4" /> },
@@ -1036,7 +1324,9 @@ const Profile: React.FC = () => {
                           </svg>
                         </div>
                         <div>
-                          <p className="font-semibold text-gray-900 text-lg">{profileData.resume_url.split("/").pop() || "resume.pdf"}</p>
+                          <p className="font-semibold text-gray-900 text-lg">
+                            {t("profile.resume")}
+                          </p>
                           <p className="text-sm text-gray-600 mt-1">
                             <span className="font-medium">{t("profile.uploadedOn")}:</span> {profileData.updated_at
                               ? new Date(profileData.updated_at).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
@@ -1045,15 +1335,18 @@ const Profile: React.FC = () => {
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
-                        <button 
-                          onClick={handleResumeDownload} 
-                          className="cursor-pointer p-3 rounded-xl bg-white hover:bg-[#faf8ff] border-2 border-[#e0d8f0] transition-all  shadow-sm hover:shadow-md" 
-                          title={t("profile.downloadResume")}
+                        <button
+                          type="button"
+                          className="cursor-pointer p-3 rounded-xl bg-white hover:bg-[#faf8ff] border-2 border-[#e0d8f0] transition-all shadow-sm hover:shadow-md"
+                          onClick={handleViewResume}
+                          title="View Resume"
                         >
-                          <ArrowDownTrayIcon className="w-5 h-5 text-[#7f56d9]" />
+                          <EyeIcon className="w-5 h-5 text-[#7f56d9]" />
                         </button>
                         <button 
+                          type="button"
                           className="cursor-pointer p-3 rounded-xl bg-white hover:bg-red-50 border-2 border-red-200 transition-all  shadow-sm hover:shadow-md" 
+                          onClick={handleDeleteResume}
                           title={t("profile.deleteResume")}
                         >
                           <TrashIcon className="w-5 h-5 text-red-600" />
@@ -1096,6 +1389,106 @@ const Profile: React.FC = () => {
                         )}
                       </button>
                       <p className="text-sm text-gray-600 mt-4 font-medium">{t("profile.supportedFormats")} <span className="text-[#7f56d9]">DOC, DOCX, RTF, PDF</span></p>
+                      <p className="text-xs text-gray-500 mt-1">{t("profile.maxFileSize")}</p>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Internship Certificate Section */}
+            {activeSection === "internship" && (
+              <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+                <div className="bg-[#7f56d9] px-6 py-4">
+                  <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    {t("profile.internship", { defaultValue: "Internship" })}
+                  </h2>
+                </div>
+                <div className="p-6">
+                  {internshipCertificate?.credential_url && (
+                    <div className="flex items-center justify-between p-5 bg-[#f5f3ff] rounded-xl border-2 border-[#e0d8f0] mb-6 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="flex items-center gap-4">
+                        <div className="w-16 h-16 bg-[#7f56d9] rounded-xl flex items-center justify-center shadow-lg">
+                          <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                          </svg>
+                        </div>
+                        <div>
+                          <p className="font-semibold text-gray-900 text-lg">
+                            {t("profile.internship", { defaultValue: "Internship" })} Certificate
+                          </p>
+                          <p className="text-sm text-gray-600 mt-1">
+                            <span className="font-medium">{t("profile.uploadedOn")}:</span>{" "}
+                            {internshipCertificate.updated_at
+                              ? new Date(internshipCertificate.updated_at).toLocaleDateString("en-US", {
+                                  month: "long",
+                                  day: "numeric",
+                                  year: "numeric",
+                                })
+                              : t("profile.recently")}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <button
+                          type="button"
+                          className="cursor-pointer p-3 rounded-xl bg-white hover:bg-[#faf8ff] border-2 border-[#e0d8f0] transition-all shadow-sm hover:shadow-md"
+                          onClick={handleViewInternshipCertificate}
+                          title="View Internship Certificate"
+                        >
+                          <EyeIcon className="w-5 h-5 text-[#7f56d9]" />
+                        </button>
+                        <button
+                          type="button"
+                          className="cursor-pointer p-3 rounded-xl bg-white hover:bg-red-50 border-2 border-red-200 transition-all shadow-sm hover:shadow-md"
+                          onClick={handleDeleteInternshipCertificate}
+                          title={t("profile.deleteResume")}
+                        >
+                          <TrashIcon className="w-5 h-5 text-red-600" />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  <div className="border-2 border-dashed border-[#e0d8f0] rounded-xl p-10 text-center bg-[#f5f3ff] hover:border-[#7f56d9] transition-all">
+                    <input
+                      type="file"
+                      id="internship-certificate-upload"
+                      className="hidden"
+                      accept=".pdf,.doc,.docx,.rtf"
+                      onChange={handleInternshipCertificateUpload}
+                      disabled={isUploadingInternshipCertificate}
+                    />
+                    <label htmlFor="internship-certificate-upload" className="cursor-pointer flex flex-col items-center">
+                      <div className="w-20 h-20 bg-[#7f56d9] rounded-full flex items-center justify-center mb-6 shadow-lg transition-transform">
+                        <CloudArrowUpIcon className="w-10 h-10 text-white" />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          document.getElementById("internship-certificate-upload")?.click();
+                        }}
+                        className="bg-[#7f56d9] hover:from-purple-700 hover:to-indigo-700 text-white px-8 py-3 rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                        disabled={isUploadingInternshipCertificate}
+                      >
+                        {isUploadingInternshipCertificate ? (
+                          <span className="flex items-center gap-2">
+                            <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            {t("profile.uploading")}
+                          </span>
+                        ) : (
+                          t("profile.uploadInternshipCertificate", { defaultValue: "Upload Internship Certificate" })
+                        )}
+                      </button>
+                      <p className="text-sm text-gray-600 mt-4 font-medium">
+                        {t("profile.supportedFormats")} <span className="text-[#7f56d9]">DOC, DOCX, RTF, PDF</span>
+                      </p>
                       <p className="text-xs text-gray-500 mt-1">{t("profile.maxFileSize")}</p>
                     </label>
                   </div>
@@ -1693,8 +2086,8 @@ const Profile: React.FC = () => {
                 </div>
                 <div className="p-6">
                   <div className="space-y-6">
-                    {accomplishments.length > 0 ? (
-                      accomplishments.map((acc) => (
+                    {visibleAccomplishments.length > 0 ? (
+                      visibleAccomplishments.map((acc) => (
                         <div key={acc.accomplishment_id} className="bg-[#f5f3ff] rounded-xl p-6 border-2 border-[#e0d8f0] hover:border-fuchsia-300 transition-all shadow-sm hover:shadow-md">
                           <div className="flex items-start justify-between">
                             <div className="flex items-start gap-4 flex-1">
@@ -1787,7 +2180,10 @@ const Profile: React.FC = () => {
       {/* TrustScore Section */}
       {!isSuperAdmin && trustScoreResponse?.data && (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
-          <TrustScoreCard trustScore={trustScoreResponse.data} isLoading={isTrustScoreLoading} />
+          <TrustScoreCard
+            trustScore={trustScoreResponse.data}
+            isLoading={isTrustScoreLoading}
+          />
         </div>
       )}
 
@@ -1858,6 +2254,44 @@ const Profile: React.FC = () => {
           setEditingItem(null);
         }}
       />
+
+      {showViewer && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 backdrop-blur-sm">
+          <div className="fixed inset-0 bg-black/40" onClick={closeViewer} />
+          <div className="relative bg-white rounded-lg shadow-lg max-w-4xl w-full max-h-[85vh] sm:max-h-[90vh] z-[60] flex flex-col overflow-hidden border border-gray-200">
+            <div className="flex items-center justify-between p-3 sm:p-4 border-b flex-shrink-0">
+              <h3 className="text-lg font-bold text-gray-800">Document Viewer</h3>
+              <button
+                className="px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded cursor-pointer"
+                onClick={closeViewer}
+              >
+                Close
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-2 sm:p-4">
+              {viewerUrl ? (
+                viewerContentType?.startsWith("image/") ? (
+                  <img
+                    src={viewerUrl}
+                    alt="document"
+                    className="mx-auto max-h-full w-auto object-contain"
+                  />
+                ) : (
+                  <iframe
+                    src={viewerUrl}
+                    className="w-full h-full border-0 min-h-[500px] sm:min-h-[600px]"
+                    title="Document"
+                  />
+                )
+              ) : (
+                <div className="text-center p-8 text-gray-500">
+                  No document to display
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Existing Modals */}
       <ChangePasswordModal isOpen={isChangePasswordModalOpen} onClose={() => setIsChangePasswordModalOpen(false)} userEmail={userData?.email || ""} />

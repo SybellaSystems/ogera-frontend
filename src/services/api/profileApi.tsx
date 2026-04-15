@@ -43,9 +43,9 @@ export interface UpdateProfileData {
   mobile_number?: string;
   national_id_number?: string;
   business_registration_id?: string;
-  resume_url?: string;
-  cover_letter?: string;
-  preferred_location?: string;
+  resume_url?: string | null;
+  cover_letter?: string | null;
+  preferred_location?: string | null;
 }
 
 export const updateUserProfile = async (

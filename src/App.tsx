@@ -89,6 +89,11 @@ import AddCourse from "./pages/Courses/AddCourse";
 import ViewCourse from "./pages/Courses/ViewCourse";
 import CourseDetail from "./pages/Courses/CourseDetail";
 import CourseAnalytics from "./pages/Courses/CourseAnalytics";
+import CognitiveTestsHub from "./pages/CognitiveTests/CognitiveTestsHub";
+import CognitiveTestEditor from "./pages/CognitiveTests/CognitiveTestEditor";
+import StudentCognitiveTests from "./pages/CognitiveTests/StudentCognitiveTests";
+import TakeCognitiveTest from "./pages/CognitiveTests/TakeCognitiveTest";
+import "./services/api/cognitiveTestApi";
 
 function App() {
   const { t } = useTranslation();
@@ -447,6 +452,40 @@ function App() {
             {
               path: "courses/:id",
               Component: CourseDetail,
+            },
+            {
+              path: "cognitive-tests",
+              element: <ProtectedRoute allowedRoles={["superadmin", "admin"]} />,
+              children: [
+                {
+                  index: true,
+                  Component: CognitiveTestsHub,
+                },
+                {
+                  path: "edit/:id",
+                  Component: CognitiveTestEditor,
+                },
+              ],
+            },
+            {
+              path: "cognitive-tests/available",
+              element: <ProtectedRoute allowedRoles={["student"]} />,
+              children: [
+                {
+                  index: true,
+                  Component: StudentCognitiveTests,
+                },
+              ],
+            },
+            {
+              path: "cognitive-tests/attempt/:id",
+              element: <ProtectedRoute allowedRoles={["student"]} />,
+              children: [
+                {
+                  index: true,
+                  Component: TakeCognitiveTest,
+                },
+              ],
             },
           ],
         },

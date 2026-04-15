@@ -22,6 +22,12 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import TrustScoreCard from "../components/TrustScoreCard";
+import {
+  useGetMyTrustScoreQuery,
+  useCalculateTrustScoreMutation,
+  useGetStudentLeaderboardQuery,
+} from "../services/api/trustScoreApi";
 
 interface DashboardMetrics {
   totalUsers: number;
@@ -91,7 +97,21 @@ const Dashboard: React.FC = () => {
   const user = useSelector((state: any) => state.auth.user);
   const roleRaw = useSelector((state: any) => state.auth.role);
   const accessToken = useSelector((state: any) => state.auth.accessToken);
+  const authUserId = user?.user_id as string | undefined;
   const role = roleRaw ? String(roleRaw).toLowerCase().trim() : undefined;
+
+  const {
+    data: trustScoreRes,
+    isLoading: trustLoading,
+    refetch: refetchTrust,
+  } = useGetMyTrustScoreQuery(undefined, {
+    skip: role !== "student" || !authUserId,
+  });
+  const [recalcTrust] = useCalculateTrustScoreMutation();
+  const { data: leaderboardRes, isLoading: leaderboardLoading } =
+    useGetStudentLeaderboardQuery(8, {
+      skip: role !== "employer" && role !== "superadmin",
+    });
   const isAdminDashboardRole = role === "superadmin" || Boolean(role?.includes("admin"));
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const showProfileCompletion = role === "student" || role === "employer";
@@ -125,6 +145,21 @@ const Dashboard: React.FC = () => {
   // Superadmin recent activity from notifications
   const [adminActivities, setAdminActivities] = useState<EmployerNotificationItem[]>([]);
   const [adminActivitiesLoading, setAdminActivitiesLoading] = useState(false);
+
+  // Students: persist TrustScore when opening the dashboard (keeps breakdown in sync)
+  useEffect(() => {
+    if (role !== "student" || !authUserId) return;
+    let cancelled = false;
+    recalcTrust(authUserId)
+      .unwrap()
+      .then(() => {
+        if (!cancelled) refetchTrust();
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [role, authUserId, recalcTrust, refetchTrust]);
 
   const parseApiErrorMessage = (status: number, payload?: ApiErrorPayload) => {
     const backendMessage = payload?.message?.trim();
@@ -636,6 +671,43 @@ const Dashboard: React.FC = () => {
           onClose={() => setIsWizardOpen(false)}
           onComplete={() => setIsWizardOpen(false)}
         />
+      )}
+
+      {role === "student" && authUserId && trustScoreRes?.data && (
+        <TrustScoreCard
+          trustScore={trustScoreRes.data}
+          isLoading={trustLoading}
+        />
+      )}
+
+      {(role === "employer" || role === "superadmin") && (
+        <div className="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
+          <h2 className="text-xs font-semibold text-gray-800 mb-2">
+            {t("dashboard.topCandidatesTrust")}
+          </h2>
+          {leaderboardLoading ? (
+            <p className="text-[11px] text-gray-500">{t("common.loading")}</p>
+          ) : (
+            <ul className="space-y-2">
+              {(leaderboardRes?.data?.leaderboard || []).map((row) => (
+                <li
+                  key={row.user_id}
+                  className="flex justify-between items-center text-[11px] border-b border-gray-50 pb-1.5 last:border-0"
+                >
+                  <span className="font-medium text-gray-800 truncate pr-2">
+                    {row.full_name}
+                  </span>
+                  <span className="text-purple-700 font-bold shrink-0">
+                    {row.trust_score != null ? row.trust_score.toFixed(0) : "—"}
+                  </span>
+                </li>
+              ))}
+              {!leaderboardRes?.data?.leaderboard?.length && (
+                <li className="text-[11px] text-gray-500">{t("common.noData")}</li>
+              )}
+            </ul>
+          )}
+        </div>
       )}
 
       {/* Stats Cards */}
