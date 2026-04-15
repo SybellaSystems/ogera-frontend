@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
 import {
@@ -26,6 +26,7 @@ const JobDetails: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
   const role = useSelector((state: any) => state.auth.role);
   const { data, isLoading, error, refetch } = useGetJobByIdQuery(id || "");
   const { data: profileData } = useGetUserProfileQuery(undefined);
@@ -48,6 +49,19 @@ const JobDetails: React.FC = () => {
   const hasApplied = applicationCheck?.data?.hasApplied || false;
   const isCompletedJob = job?.status === "Completed";
   const isApplyDisabled = hasApplied || isCompletedJob;
+
+  // Auto-open apply modal when arriving from landing page with ?apply=1
+  useEffect(() => {
+    if (
+      searchParams.get("apply") === "1" &&
+      role === "student" &&
+      job &&
+      !hasApplied &&
+      !isCompletedJob
+    ) {
+      setIsModalOpen(true);
+    }
+  }, [searchParams, role, job, hasApplied, isCompletedJob]);
   const fundingStatus = job?.funding_status || "Unfunded";
   const isEmployerView = (role === "employer" || role === "superadmin") && currentUserId && job?.employer_id === currentUserId;
 

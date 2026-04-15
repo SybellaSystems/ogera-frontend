@@ -19,6 +19,7 @@
   },
   "sidebar": {
     "dashboard": "Imbonerahamwe",
+    "profile": "Umwirondoro",
     "user": "Umukoresha",
     "allUsers": "Abakoresha Bose",
     "students": "Abanyeshuri",
@@ -41,6 +42,9 @@
     "createJob": "Kora Akazi",
     "applications": "Ibyo wasabwe",
     "myApplications": "Ibyo wasabwe",
+    "acceptedApplications": "Byemewe",
+    "rejectedApplications": "Byanze",
+    "interviews": "Ibibazo",
     "allJobs": "Akazi Kose",
     "activeJobs": "Akazi Gikora",
     "completed": "Cyarakozwe",

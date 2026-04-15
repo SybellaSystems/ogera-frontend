@@ -19,6 +19,7 @@
   },
   "sidebar": {
     "dashboard": "Paneelbord",
+    "profile": "Profiel",
     "user": "Gebruiker",
     "allUsers": "Alle Gebruikers",
     "students": "Studente",
@@ -41,6 +42,9 @@
     "createJob": "Skep Werk",
     "applications": "Aansoeke",
     "myApplications": "My Aansoeke",
+    "acceptedApplications": "Aanvaar",
+    "rejectedApplications": "Verwerp",
+    "interviews": "Onderhoude",
     "allJobs": "Alle Werke",
     "activeJobs": "Aktiewe Werke",
     "completed": "Voltooi",

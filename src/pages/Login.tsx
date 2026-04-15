@@ -118,6 +118,17 @@ const Login = ({ initialView }: LoginProps = {}) => {
     if (RECAPTCHA_SITE_KEY && (window as any).grecaptcha && reCaptchaRef.current) {
       (window as any).grecaptcha.reset();
     }
+    const params = new URLSearchParams(location.search);
+    const redirectTo = params.get("redirect");
+    if (redirectTo) {
+      // External URLs (back to landing page) need a full-page navigation
+      if (/^https?:\/\//i.test(redirectTo)) {
+        window.location.href = redirectTo;
+        return;
+      }
+      navigate(redirectTo);
+      return;
+    }
     navigate("/dashboard");
   };
 
@@ -241,7 +252,7 @@ const Login = ({ initialView }: LoginProps = {}) => {
         {/* Login form — right half */}
         <FormPanel className={isLogin ? "active" : "inactive"} style={{ opacity: isLogin ? 1 : 0, pointerEvents: isLogin ? "auto" : "none", transition: "opacity 0.4s ease 0.2s" }}>
           <FormInner>
-            <BackButton to="/">
+            <BackButton href={import.meta.env.VITE_LANDING_URL || "http://localhost:3000"}>
               <ChevronLeft style={{ fontSize: 20 }} />
               Back
             </BackButton>
@@ -460,7 +471,7 @@ const FormInner = styled("div")`
   }
 `;
 
-const BackButton = styled(Link)`
+const BackButton = styled("a")`
   display: flex;
   align-items: center;
   gap: 4px;

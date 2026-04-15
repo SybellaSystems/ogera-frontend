@@ -19,6 +19,7 @@
   },
   "sidebar": {
     "dashboard": "Ideshibhodi",
+    "profile": "Iphrofayili",
     "user": "Umsebenzisi",
     "allUsers": "Bonke Abasebenzisi",
     "students": "Abafundi",
@@ -41,6 +42,9 @@
     "createJob": "Dala Umsebenzi",
     "applications": "Izicelo",
     "myApplications": "Izicelo Zami",
+    "acceptedApplications": "Eyamukelwe",
+    "rejectedApplications": "Eyenqatshiwe",
+    "interviews": "Izingxoxo",
     "allJobs": "Yonke Imisebenzi",
     "activeJobs": "Imisebenzi Esebenzayo",
     "completed": "Kuphothulwe",

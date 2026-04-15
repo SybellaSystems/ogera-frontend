@@ -36,6 +36,20 @@ const saveState = (state: any) => {
     };
     const serializedState = JSON.stringify(stateToSave);
     localStorage.setItem("authState", serializedState);
+
+    // Set a cross-app cookie so the landing page knows the user is logged in.
+    // Cookies on localhost are shared across ports (no port in domain matching per RFC 6265).
+    if (state.auth.user) {
+      const name = encodeURIComponent(state.auth.user.full_name || "");
+      const image = encodeURIComponent(state.auth.user.profile_image_url || "");
+      document.cookie = `ogera_logged_in=true; path=/; SameSite=Lax; max-age=86400`;
+      document.cookie = `ogera_user_name=${name}; path=/; SameSite=Lax; max-age=86400`;
+      document.cookie = `ogera_user_image=${image}; path=/; SameSite=Lax; max-age=86400`;
+    } else {
+      document.cookie = "ogera_logged_in=; path=/; max-age=0";
+      document.cookie = "ogera_user_name=; path=/; max-age=0";
+      document.cookie = "ogera_user_image=; path=/; max-age=0";
+    }
   } catch (err) {
     console.error("Could not save state", err);
   }

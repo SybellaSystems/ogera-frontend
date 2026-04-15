@@ -2,8 +2,11 @@ import React, { useState, useRef, useEffect } from "react";
 import { XMarkIcon, DocumentIcon, XCircleIcon } from "@heroicons/react/24/outline";
 import { useApplyForJobMutation, type JobApplicationAnswer } from "../services/api/jobApplicationApi";
 import { uploadResume } from "../services/api/resumeApi";
+import { useGetUserProfileQuery } from "../services/api/authApi";
 import toast from "react-hot-toast";
 import type { Job } from "../services/api/jobsApi";
+
+const MIN_COVER_LETTER_LENGTH = 50;
 
 interface ApplyJobModalProps {
   job: Job;
@@ -25,6 +28,19 @@ const ApplyJobModal: React.FC<ApplyJobModalProps> = ({
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [applyForJob, { isLoading }] = useApplyForJobMutation();
+
+  // Pull the student's existing profile so we can reuse any resume already on file.
+  // This way a student who already uploaded a resume to their profile doesn't have
+  // to re-upload for every job application.
+  const { data: profileData } = useGetUserProfileQuery(undefined, { skip: !isOpen });
+  const profileResumeUrl = (profileData as any)?.data?.resume_url || null;
+
+  // If profile has a resume and the modal state doesn't have one yet, seed it.
+  useEffect(() => {
+    if (isOpen && profileResumeUrl && !resumeUrl && !resumeFile) {
+      setResumeUrl(profileResumeUrl);
+    }
+  }, [isOpen, profileResumeUrl, resumeUrl, resumeFile]);
 
   // Initialize answers when job questions are loaded
   useEffect(() => {
@@ -103,7 +119,26 @@ const ApplyJobModal: React.FC<ApplyJobModalProps> = ({
       onClose();
       return;
     }
-    
+
+    // Resume is required: either just uploaded in this modal OR already on the profile.
+    if (!resumeUrl) {
+      toast.error("Please upload your resume (or add one to your profile first)");
+      return;
+    }
+
+    // Cover letter is required and must be substantive.
+    const trimmedCover = coverLetter.trim();
+    if (!trimmedCover) {
+      toast.error("Please write a cover letter");
+      return;
+    }
+    if (trimmedCover.length < MIN_COVER_LETTER_LENGTH) {
+      toast.error(
+        `Cover letter is too short — please write at least ${MIN_COVER_LETTER_LENGTH} characters`
+      );
+      return;
+    }
+
     // Validate required questions
     if (job.questions && job.questions.length > 0) {
       const requiredQuestions = job.questions.filter((q) => q.is_required);
@@ -111,7 +146,7 @@ const ApplyJobModal: React.FC<ApplyJobModalProps> = ({
         const key = q.question_id || `question_${index}`;
         return !answers[key] || answers[key].trim() === "";
       });
-      
+
       if (missingAnswers.length > 0) {
         toast.error("Please answer all required questions");
         return;
@@ -166,8 +201,15 @@ const ApplyJobModal: React.FC<ApplyJobModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-0 md:p-4 bg-black bg-opacity-50">
-      <div className="bg-white rounded-none md:rounded-xl shadow-2xl max-w-2xl w-full h-full md:h-auto md:max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-0 md:p-4 bg-slate-900/40 backdrop-blur-sm">
+      <style>{`
+        .apply-job-modal-scroll::-webkit-scrollbar { width: 6px; }
+        .apply-job-modal-scroll::-webkit-scrollbar-track { background: transparent; }
+        .apply-job-modal-scroll::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 3px; }
+        .apply-job-modal-scroll::-webkit-scrollbar-thumb:hover { background: #d1d5db; }
+        .apply-job-modal-scroll { scrollbar-width: thin; scrollbar-color: #e5e7eb transparent; }
+      `}</style>
+      <div className="apply-job-modal-scroll bg-white rounded-none md:rounded-xl shadow-2xl max-w-2xl w-full h-full md:h-auto md:max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="sticky top-0 bg-white border-b border-gray-200 px-4 md:px-6 py-3 md:py-4 flex items-center justify-between z-10">
           <div className="flex-1 min-w-0 pr-2">
@@ -227,7 +269,12 @@ const ApplyJobModal: React.FC<ApplyJobModalProps> = ({
               htmlFor="resume"
               className="block text-sm font-medium text-gray-700 mb-2"
             >
-              Resume (Optional)
+              Resume <span className="text-red-500">*</span>
+              {profileResumeUrl && !resumeFile && (
+                <span className="ml-2 text-xs text-green-600 font-normal">
+                  ✓ Using resume from your profile
+                </span>
+              )}
             </label>
             {!resumeFile ? (
               <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-purple-400 transition-colors">
@@ -392,7 +439,7 @@ const ApplyJobModal: React.FC<ApplyJobModalProps> = ({
               htmlFor="coverLetter"
               className="block text-sm font-medium text-gray-700 mb-2"
             >
-              Cover Letter (Optional)
+              Cover Letter <span className="text-red-500">*</span>
             </label>
             <textarea
               id="coverLetter"
@@ -402,8 +449,13 @@ const ApplyJobModal: React.FC<ApplyJobModalProps> = ({
               placeholder="Tell the employer why you're a great fit for this position..."
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors resize-none"
             />
-            <p className="mt-2 text-sm text-gray-500">
-              A cover letter can help you stand out from other applicants
+            <p className={`mt-2 text-sm ${
+              coverLetter.trim().length > 0 && coverLetter.trim().length < MIN_COVER_LETTER_LENGTH
+                ? "text-red-600"
+                : "text-gray-500"
+            }`}>
+              {coverLetter.trim().length}/{MIN_COVER_LETTER_LENGTH} characters minimum —
+              tell the employer why you're a great fit
             </p>
           </div>
 

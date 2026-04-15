@@ -19,6 +19,7 @@
   },
   "sidebar": {
     "dashboard": "Dashibodi",
+    "profile": "Wasifu",
     "user": "Mtumiaji",
     "allUsers": "Watumiaji Wote",
     "students": "Wanafunzi",
@@ -41,6 +42,9 @@
     "createJob": "Unda Kazi",
     "applications": "Maombi",
     "myApplications": "Maombi Yangu",
+    "acceptedApplications": "Yamekubaliwa",
+    "rejectedApplications": "Yamekataliwa",
+    "interviews": "Mahojiano",
     "allJobs": "Kazi Zote",
     "activeJobs": "Kazi Zinazoendelea",
     "completed": "Imekamilika",
