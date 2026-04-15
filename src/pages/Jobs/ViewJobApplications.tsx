@@ -196,6 +196,12 @@ const ViewJobApplications: React.FC = () => {
             </p>
           </div>
         </div>
+        <button
+          onClick={() => navigate(`/dashboard/jobs/${id}/tasks`)}
+          className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700"
+        >
+          Manage Tasks
+        </button>
       </div>
 
       {/* Job Info Card */}

@@ -7,6 +7,7 @@ import { useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
 
 import ProtectedRoute from "./components/ProtectedRoute";
+import FeatureGate from "./components/FeatureGate";
 import AdminLayout from "./layouts/adminLayout";
 import StudentLayout from "./layouts/StudentLayout";
 import EmployerLayout from "./layouts/EmployerLayout";
@@ -53,6 +54,8 @@ import StudentAcceptedApplications from "./pages/Jobs/StudentAcceptedApplication
 import StudentRejectedApplications from "./pages/Jobs/StudentRejectedApplications";
 import EmployerAcceptedApplications from "./pages/Jobs/EmployerAcceptedApplications";
 import EmployerRejectedApplications from "./pages/Jobs/EmployerRejectedApplications";
+import EmployerTasks from "./pages/Jobs/EmployerTasks";
+import JobTasksKanban from "./pages/Jobs/JobTasksKanban";
 
 // Dispute Pages
 import Disputes from "./pages/Disputes";
@@ -67,6 +70,7 @@ import MyDisputes from "./pages/Disputes/MyDisputes";
 import Analytics from "./pages/Analytics";
 import Notifications from "./pages/Notifications";
 import Interviews from "./pages/Interviews";
+import Messages from "./pages/Messages";
 import Transactions from "./pages/Transactions";
 import Pay from "./pages/Transactions/Pay";
 import MoMoPayments from "./pages/Transactions/MoMoPayments";
@@ -166,7 +170,11 @@ function App() {
             },
             {
               path: "profile",
-              Component: Profile,
+              element: (
+                <FeatureGate feature="SETTINGS">
+                  <Profile />
+                </FeatureGate>
+              ),
             },
             // User Routes (Permission-based access)
             {
@@ -301,6 +309,16 @@ function App() {
               Component: JobCategories,
             },
             {
+              path: "jobs/tasks",
+              element: <ProtectedRoute allowedRoles={["employer", "superadmin"]} />,
+              children: [
+                {
+                  index: true,
+                  Component: EmployerTasks,
+                },
+              ],
+            },
+            {
               path: "jobs/applications",
               // Employer/superadmin manage incoming applications. Students should use "My Applications".
               element: <ProtectedRoute allowedRoles={["employer", "superadmin"]} />,
@@ -348,6 +366,16 @@ function App() {
               ],
             },
             {
+              path: "jobs/:id/tasks",
+              element: <ProtectedRoute allowedRoles={["employer", "superadmin"]} />,
+              children: [
+                {
+                  index: true,
+                  Component: JobTasksKanban,
+                },
+              ],
+            },
+            {
               path: "jobs/:id/applications",
               element: <ProtectedRoute allowedRoles={["employer", "superadmin"]} />,
               children: [
@@ -361,34 +389,62 @@ function App() {
               path: "jobs/:id",
               Component: JobDetails,
             },
-            // Dispute Routes
+            // Dispute Routes - Hidden in V1 via Feature Flag
             {
               path: "disputes",
-              Component: Disputes,
+              element: (
+                <FeatureGate feature="RESOLUTION_CENTER">
+                  <Disputes />
+                </FeatureGate>
+              ),
             },
-             {
+            {
               path: "disputes/create",
-              Component: CreateDispute,
+              element: (
+                <FeatureGate feature="RESOLUTION_CENTER">
+                  <CreateDispute />
+                </FeatureGate>
+              ),
             },
             {
               path: "disputes/open",
-              Component: OpenDisputes,
+              element: (
+                <FeatureGate feature="RESOLUTION_CENTER">
+                  <OpenDisputes />
+                </FeatureGate>
+              ),
             },
             {
               path: "disputes/in-progress",
-              Component: InProgress,
+              element: (
+                <FeatureGate feature="RESOLUTION_CENTER">
+                  <InProgress />
+                </FeatureGate>
+              ),
             },
             {
               path: "disputes/resolved",
-              Component: ResolvedDisputes,
+              element: (
+                <FeatureGate feature="RESOLUTION_CENTER">
+                  <ResolvedDisputes />
+                </FeatureGate>
+              ),
             },
             {
               path: "disputes/my-disputes",
-              Component: MyDisputes,
+              element: (
+                <FeatureGate feature="RESOLUTION_CENTER">
+                  <MyDisputes />
+                </FeatureGate>
+              ),
             },
             {
               path: "disputes/:id",
-              Component: DisputeDetail,
+              element: (
+                <FeatureGate feature="RESOLUTION_CENTER">
+                  <DisputeDetail />
+                </FeatureGate>
+              ),
             },
             // Other Routes
             {
@@ -403,6 +459,16 @@ function App() {
               path: "interviews",
               element: <ProtectedRoute allowedRoles={["student"]} />,
               children: [{ index: true, Component: Interviews }],
+            },
+            {
+              path: "messages",
+              element: <ProtectedRoute allowedRoles={["employer", "student"]} />,
+              children: [
+                {
+                  index: true,
+                  Component: Messages,
+                },
+              ],
             },
             {
               path: "transactions",

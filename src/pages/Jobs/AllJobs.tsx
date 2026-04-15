@@ -402,6 +402,13 @@ className="px-3 md:px-4 py-1.5 md:py-2 bg-blue-600 hover:bg-blue-700 text-white 
                           <>
                             <button
                               onClick={() =>
+                                navigate(`/dashboard/jobs/${job.job_id}/tasks`)
+                              }
+className="px-3 md:px-4 py-1.5 md:py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md font-medium transition shadow-sm whitespace-nowrap text-xs md:text-sm flex-1 sm:flex-none cursor-pointer"                            >
+                              Manage Tasks
+                            </button>
+                            <button
+                              onClick={() =>
                                 navigate(`/dashboard/jobs/${job.job_id}/applications`)
                               }
 className="px-3 md:px-4 py-1.5 md:py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-md font-medium transition shadow-sm whitespace-nowrap text-xs md:text-sm flex-1 sm:flex-none cursor-pointer"                            >
