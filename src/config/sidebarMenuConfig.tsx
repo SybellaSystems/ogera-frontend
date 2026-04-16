@@ -7,6 +7,7 @@ import {
   ShieldCheckIcon,
   BellIcon,
   BookOpenIcon,
+  CalendarDaysIcon,
 } from "@heroicons/react/24/outline";
 import type { ComponentType } from "react";
 
@@ -45,6 +46,9 @@ export const SIDEBAR_MENU_CONFIG: MenuItemConfig[] = [
     submenuItems: [
       { label: "All Jobs", path: "/dashboard/jobs/all", labelKey: "sidebar.allJobs" },
       { label: "Active Jobs", path: "/dashboard/jobs/active", labelKey: "sidebar.activeJobs" },
+      { label: "My Applications", path: "/dashboard/jobs/my-applications", labelKey: "sidebar.myApplications" },
+      { label: "Accepted", path: "/dashboard/jobs/my-applications/accepted", labelKey: "sidebar.acceptedApplications" },
+      { label: "Rejected", path: "/dashboard/jobs/my-applications/rejected", labelKey: "sidebar.rejectedApplications" },
       { label: "Completed", path: "/dashboard/jobs/completed", labelKey: "sidebar.completed" },
       { label: "Job Categories", path: "/dashboard/jobs/categories", labelKey: "sidebar.jobCategories" },
     ],
@@ -65,6 +69,16 @@ export const SIDEBAR_MENU_CONFIG: MenuItemConfig[] = [
       { label: "Performance Track", path: "/dashboard/academic/performance", labelKey: "sidebar.performanceTrack" },
       { label: "Account Locks", path: "/dashboard/academic/locks", labelKey: "sidebar.accountLocks" },
     ],
+  },
+  {
+    permissionRoute: "/interviews",
+    label: "Interviews",
+    labelKey: "sidebar.interviews",
+    icon: CalendarDaysIcon,
+    menuKey: "interviews",
+    basePath: "/dashboard/interviews",
+    hasSubmenu: false,
+    directPath: "/dashboard/interviews",
   },
   {
     permissionRoute: "/notifications",

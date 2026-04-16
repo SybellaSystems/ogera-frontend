@@ -12,10 +12,12 @@ import {
   XCircleIcon,
   ClockIcon,
   ArrowLeftIcon,
+  CalendarDaysIcon,
 } from "@heroicons/react/24/outline";
 import Loader from "../../components/Loader";
 import toast from "react-hot-toast";
 import api from "../../services/api/axiosInstance";
+import ScheduleInterviewModal from "../../components/ScheduleInterviewModal";
 
 const ViewJobApplications: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -26,6 +28,12 @@ const ViewJobApplications: React.FC = () => {
     useUpdateApplicationStatusMutation();
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [updatingAction, setUpdatingAction] = useState<"Accepted" | "Rejected" | null>(null);
+  const [scheduleFor, setScheduleFor] = useState<{
+    studentId: string;
+    studentName: string;
+  } | null>(null);
+  const [statusFilter, setStatusFilter] = useState<"all" | "Pending" | "Accepted" | "Rejected">("Pending");
+  const [searchTerm, setSearchTerm] = useState("");
 
   const applications = data?.data || [];
   const job = jobData?.data;
@@ -158,6 +166,18 @@ const ViewJobApplications: React.FC = () => {
     (app) => app.status === "Rejected"
   ).length;
   const acceptedApplication = applications.find((app) => app.status === "Accepted");
+
+  // Apply filters: status tab + name search
+  const filteredApplications = applications.filter((app) => {
+    if (statusFilter !== "all" && app.status !== statusFilter) return false;
+    if (searchTerm.trim()) {
+      const q = searchTerm.toLowerCase();
+      const name = app.student?.full_name?.toLowerCase() || "";
+      const email = app.student?.email?.toLowerCase() || "";
+      if (!name.includes(q) && !email.includes(q)) return false;
+    }
+    return true;
+  });
 
   return (
     <div className="theme-page-bg space-y-6 animate-fadeIn min-h-full p-4">
@@ -310,8 +330,56 @@ const ViewJobApplications: React.FC = () => {
           </p>
         </div>
       ) : (
+        <>
+          {/* Filter tabs + search */}
+          <div className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 flex flex-wrap items-center gap-3 justify-between">
+            <div className="flex flex-wrap gap-1">
+              {([
+                { key: "Pending", label: "Pending", count: pendingCount, color: "orange" },
+                { key: "Accepted", label: "Accepted", count: acceptedCount, color: "green" },
+                { key: "Rejected", label: "Rejected", count: rejectedCount, color: "red" },
+                { key: "all", label: "All", count: applications.length, color: "purple" },
+              ] as const).map((tab) => {
+                const active = statusFilter === tab.key;
+                const colorClasses: Record<string, string> = {
+                  orange: active ? "bg-orange-100 text-orange-700 border-orange-300" : "text-gray-600 border-gray-200 hover:bg-orange-50",
+                  green: active ? "bg-green-100 text-green-700 border-green-300" : "text-gray-600 border-gray-200 hover:bg-green-50",
+                  red: active ? "bg-red-100 text-red-700 border-red-300" : "text-gray-600 border-gray-200 hover:bg-red-50",
+                  purple: active ? "bg-purple-100 text-purple-700 border-purple-300" : "text-gray-600 border-gray-200 hover:bg-purple-50",
+                };
+                return (
+                  <button
+                    key={tab.key}
+                    onClick={() => setStatusFilter(tab.key)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition ${colorClasses[tab.color]}`}
+                  >
+                    {tab.label}
+                    <span className="ml-1.5 px-1.5 py-0.5 bg-white/80 rounded-full text-[10px]">
+                      {tab.count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            <input
+              type="search"
+              placeholder="Search by name or email..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="px-3 py-1.5 border border-gray-200 rounded-lg text-xs w-full sm:w-56 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
+            />
+          </div>
+
+          {filteredApplications.length === 0 ? (
+            <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-100 text-center">
+              <p className="text-sm text-gray-500">
+                No applications match your filter
+                {searchTerm && ` "${searchTerm}"`}.
+              </p>
+            </div>
+          ) : (
         <div className="space-y-4">
-          {applications.map((application) => (
+          {filteredApplications.map((application) => (
             <div
               key={application.application_id}
               className="bg-white rounded-xl p-6 shadow-md border border-gray-100 dark:border-[var(--theme-border)] hover:shadow-lg transition-shadow"
@@ -377,7 +445,19 @@ const ViewJobApplications: React.FC = () => {
                   </div>
 
                   {application.status === "Pending" && (
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 flex-wrap justify-end">
+                      <button
+                        onClick={() =>
+                          setScheduleFor({
+                            studentId: application.student_id,
+                            studentName: application.student?.full_name || "Student",
+                          })
+                        }
+                        className="inline-flex items-center gap-1 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition text-sm whitespace-nowrap"
+                      >
+                        <CalendarDaysIcon className="h-4 w-4" />
+                        Schedule Interview
+                      </button>
                       <button
                         onClick={() =>
                           handleStatusUpdate(application.application_id, "Accepted")
@@ -421,6 +501,20 @@ const ViewJobApplications: React.FC = () => {
             </div>
           ))}
         </div>
+          )}
+        </>
+      )}
+
+      {scheduleFor && job && (
+        <ScheduleInterviewModal
+          isOpen={!!scheduleFor}
+          onClose={() => setScheduleFor(null)}
+          studentId={scheduleFor.studentId}
+          studentName={scheduleFor.studentName}
+          jobId={job.job_id}
+          jobTitle={job.job_title}
+          onScheduled={() => refetch()}
+        />
       )}
     </div>
   );

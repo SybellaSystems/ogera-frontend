@@ -19,6 +19,7 @@
   },
   "sidebar": {
     "dashboard": "Tableau de bord",
+    "profile": "Profil",
     "user": "Utilisateur",
     "allUsers": "Tous les utilisateurs",
     "students": "Étudiants",
@@ -41,6 +42,9 @@
     "createJob": "Créer un emploi",
     "applications": "Candidatures",
     "myApplications": "Mes candidatures",
+    "acceptedApplications": "Acceptées",
+    "rejectedApplications": "Rejetées",
+    "interviews": "Entretiens",
     "allJobs": "Tous les emplois",
     "activeJobs": "Emplois actifs",
     "completed": "Terminé",

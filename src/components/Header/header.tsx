@@ -406,9 +406,9 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
             {user?.profile_image_url ? (
               <>
                 <img
-                  src={user.profile_image_url.startsWith("/") ? `${(import.meta.env.VITE_API_URL || "http://localhost:5000/api").replace("/api", "")}${user.profile_image_url}` : user.profile_image_url}
+                  src={user.profile_image_url.startsWith("/") ? `${(import.meta.env.VITE_API_URL || "https://api.ogera.sybellasystems.co.rw/api").replace("/api", "")}${user.profile_image_url}` : user.profile_image_url}
                   alt={user.full_name || "User"}
-                  className="h-full w-full rounded-full object-cover"
+                  className="h-full w-full rounded-full object-cover cursor-pointer"
                   onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
                 />
                 <span className="text-white text-sm font-bold select-none absolute inset-0 flex items-center justify-center" style={{ zIndex: -1 }}>{userInitials}</span>
@@ -422,7 +422,16 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
           {isDropdownOpen && (
             <div className="absolute right-0 mt-2 w-48 bg-white/95 backdrop-blur-lg border border-gray-200/50 rounded-xl shadow-2xl py-2 z-50 animate-fadeIn overflow-hidden">
               <button
-                className="w-full text-left px-4 py-2.5 text-gray-700 hover:bg-linear-to-r hover:from-purple-50 hover:to-indigo-50 transition-all duration-200 flex items-center gap-2 group"
+                className="w-full text-left px-4 py-2.5 text-gray-700 hover:bg-linear-to-r hover:from-purple-50 hover:to-indigo-50 transition-all duration-200 flex items-center gap-2 group cursor-pointer"
+                onClick={() => {
+                  setIsDropdownOpen(false);
+                  window.location.href = import.meta.env.VITE_LANDING_URL || "https://ogera.sybellasystems.co.rw";
+                }}
+              >
+                <span className="group-hover:text-purple-600 transition-colors">Home</span>
+              </button>
+              <button
+                className="w-full text-left px-4 py-2.5 text-gray-700 hover:bg-linear-to-r hover:from-purple-50 hover:to-indigo-50 transition-all duration-200 flex items-center gap-2 group cursor-pointer"
                 onClick={() => {
                   setIsDropdownOpen(false);
                   navigate("/dashboard/profile");
@@ -431,7 +440,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                 <span className="group-hover:text-purple-600 transition-colors">{t("header.profile")}</span>
               </button>
               <button
-                className="w-full text-left px-4 py-2.5 text-gray-700 hover:bg-linear-to-r hover:from-red-50 hover:to-pink-50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 group"
+                className="w-full text-left px-4 py-2.5 text-gray-700 hover:bg-linear-to-r hover:from-red-50 hover:to-pink-50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 group cursor-pointer"
                 onClick={handleLogout}
                 disabled={isLoggingOut}
               >

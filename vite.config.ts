@@ -25,7 +25,8 @@ export default defineConfig({
 
     hmr: {
       host: 'app.ogera.sybellasystems.co.rw',
-      protocol: 'ws'
+      protocol: 'ws',
+      port: 5173
     },
 
     allowedHosts: [

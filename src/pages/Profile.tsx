@@ -10,6 +10,7 @@ import { useGetMyTrustScoreQuery } from "../services/api/trustScoreApi";
 import { useGetDashboardMetricsQuery } from "../services/api/dashboardApi";
 import { useListJobPaymentsQuery, useGetWalletBalanceQuery } from "../services/api/momoApi";
 import { useGetAllUsersQuery } from "../services/api/usersApi";
+import { useGetProfileCompletionQuery } from "../services/api/profileCompletionApi";
 import {
   useGetFullProfileQuery,
   useUpdateExtendedProfileMutation,
@@ -318,7 +319,7 @@ const Profile: React.FC = () => {
       const updatedData = response.data;
       let newImageUrl = updatedData?.profile_image_url;
       if (newImageUrl && newImageUrl.startsWith("/")) {
-        const baseUrl = (import.meta.env.VITE_API_URL || "http://localhost:5000/api").replace("/api", "");
+        const baseUrl = (import.meta.env.VITE_API_URL || "https://api.ogera.sybellasystems.co.rw/api").replace("/api", "");
         newImageUrl = `${baseUrl}${newImageUrl}`;
       }
       if (newImageUrl) {
@@ -402,27 +403,9 @@ const Profile: React.FC = () => {
     }
   };
 
-  // Calculate profile completion percentage
-  const calculateProfileCompletion = () => {
-    if (!profileData) return 0;
-    let completed = 0;
-    const total = 10;
-
-    if (profileData.full_name) completed++;
-    if (profileData.email) completed++;
-    if (profileData.mobile_number) completed++;
-    if (profileData.resume_url) completed++;
-    if (resumeHeadline) completed++;
-    if (keySkills.length > 0) completed++;
-    if (employments.length > 0) completed++;
-    if (educations.length > 0) completed++;
-    if (projects.length > 0) completed++;
-    if (profileSummary) completed++;
-
-    return Math.round((completed / total) * 100);
-  };
-
-  const profileCompletion = calculateProfileCompletion();
+  // Use the same source as the Dashboard so both stay in sync
+  const { data: profileCompletionData } = useGetProfileCompletionQuery();
+  const profileCompletion = profileCompletionData?.data?.profile_completion_percentage ?? 0;
 
   // Format duration
   const formatDuration = (startDate: string, endDate?: string | null, isCurrent?: boolean) => {
@@ -482,7 +465,7 @@ const Profile: React.FC = () => {
                   </div>
                   {(user?.profile_image_url || profileData?.profile_image_url) && (() => {
                     const imgUrl = user?.profile_image_url || profileData?.profile_image_url;
-                    const baseUrl = (import.meta.env.VITE_API_URL || "http://localhost:5000/api").replace("/api", "");
+                    const baseUrl = (import.meta.env.VITE_API_URL || "https://api.ogera.sybellasystems.co.rw/api").replace("/api", "");
                     const resolvedUrl = imgUrl.startsWith("/") ? `${baseUrl}${imgUrl}` : imgUrl;
                     return (
                     <img src={resolvedUrl} alt={userData?.full_name || t("profile.user")}

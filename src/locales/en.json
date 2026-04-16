@@ -19,6 +19,7 @@
   },
   "sidebar": {
     "dashboard": "Dashboard",
+    "profile": "Profile",
     "user": "User",
     "allUsers": "All Users",
     "students": "Students",
@@ -41,6 +42,9 @@
     "createJob": "Create Job",
     "applications": "Applications",
     "myApplications": "My Applications",
+    "acceptedApplications": "Accepted",
+    "rejectedApplications": "Rejected",
+    "interviews": "Interviews",
     "allJobs": "All Jobs",
     "activeJobs": "Active Jobs",
     "completed": "Completed",

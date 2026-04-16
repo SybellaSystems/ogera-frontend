@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
 import { ProfileMilestones, ProfileCompletionWizard } from "../components/ProfileCompletion";
-import { useProfileCompletion } from "../components/ProfileCompletion/useProfileCompletion";
+import { useGetProfileCompletionQuery } from "../services/api/profileCompletionApi";
 import {
   UserGroupIcon,
   BriefcaseIcon,
@@ -10,9 +10,7 @@ import {
   ChartBarIcon,
   ArrowTrendingUpIcon,
   ArrowTrendingDownIcon,
-  StarIcon,
 } from "@heroicons/react/24/outline";
-import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
 import {
   BarChart,
   Bar,
@@ -95,7 +93,9 @@ const Dashboard: React.FC = () => {
   const isAdminDashboardRole = role === "superadmin" || Boolean(role?.includes("admin"));
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const showProfileCompletion = role === "student" || role === "employer";
-  const { profileCompletion, userId: profileUserId } = useProfileCompletion();
+  const { data: profileCompletionData } = useGetProfileCompletionQuery();
+  const profileCompletion = profileCompletionData?.data?.profile_completion_percentage ?? 0;
+  const profileUserId = user?.user_id;
   const hour = new Date().getHours();
   const greeting =
     hour < 12
@@ -555,16 +555,9 @@ const Dashboard: React.FC = () => {
 
   const getChartData = () => {
     if (role === "student") {
+      const data = (studentMetrics?.weeklyActivity as ChartRow[] | undefined) ?? [];
       return {
-        data: [
-          { day: "Mon", applications: 2, completed: 1 },
-          { day: "Tue", applications: 3, completed: 2 },
-          { day: "Wed", applications: 1, completed: 1 },
-          { day: "Thu", applications: 4, completed: 3 },
-          { day: "Fri", applications: 5, completed: 2 },
-          { day: "Sat", applications: 1, completed: 0 },
-          { day: "Sun", applications: 0, completed: 0 },
-        ],
+        data,
         bars: [
           { key: "applications", name: t("dashboard.applications"), fill: "#7F56D9" },
           { key: "completed", name: t("dashboard.jobsCompleted"), fill: "#E9D5FF" },
@@ -573,16 +566,9 @@ const Dashboard: React.FC = () => {
       };
     }
     if (role === "employer") {
+      const data = ((employerMetrics as any)?.weeklyActivity as ChartRow[] | undefined) ?? [];
       return {
-        data: [
-          { day: "Mon", applications: 15, hires: 2 },
-          { day: "Tue", applications: 22, hires: 3 },
-          { day: "Wed", applications: 18, hires: 1 },
-          { day: "Thu", applications: 30, hires: 4 },
-          { day: "Fri", applications: 35, hires: 5 },
-          { day: "Sat", applications: 8, hires: 1 },
-          { day: "Sun", applications: 5, hires: 0 },
-        ],
+        data,
         bars: [
           { key: "applications", name: t("dashboard.applications"), fill: "#7F56D9" },
           { key: "hires", name: t("dashboard.hires"), fill: "#E9D5FF" },
@@ -590,16 +576,9 @@ const Dashboard: React.FC = () => {
         title: t("dashboard.weeklyHiringActivity"),
       };
     }
+    const data = ((metrics as any)?.weeklyGrowth as ChartRow[] | undefined) ?? [];
     return {
-      data: [
-        { day: "Mon", students: 120, employers: 45 },
-        { day: "Tue", students: 190, employers: 60 },
-        { day: "Wed", students: 150, employers: 38 },
-        { day: "Thu", students: 230, employers: 72 },
-        { day: "Fri", students: 280, employers: 90 },
-        { day: "Sat", students: 95, employers: 25 },
-        { day: "Sun", students: 65, employers: 18 },
-      ],
+      data,
       bars: [
         { key: "students", name: t("dashboard.students"), fill: "#7F56D9" },
         { key: "employers", name: t("dashboard.employers"), fill: "#E9D5FF" },
@@ -666,6 +645,120 @@ const Dashboard: React.FC = () => {
         ))}
       </div>
 
+      {/* Application Status Breakdown — students AND employers */}
+      {(role === "student" || role === "employer") && (() => {
+        const source: any = role === "student" ? studentMetrics : employerMetrics;
+        const b = source?.applicationBreakdown ?? { pending: 0, shortlisted: 0, accepted: 0, rejected: 0, total: 0 };
+        return (
+          <div className="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-xs font-semibold text-gray-800">
+                {role === "employer" ? "Applications Received — by status" : "Application Status"}
+              </h2>
+              <span className="text-[10px] text-gray-500">{b.total} total</span>
+            </div>
+            {b.total === 0 ? (
+              <p className="text-[11px] text-gray-400 italic py-2">
+                {role === "employer"
+                  ? "No applications received yet. Post a job to attract students."
+                  : "No applications yet — apply to a job to see your progress here."}
+              </p>
+            ) : (
+              <>
+                <div className="flex h-2 rounded-full overflow-hidden bg-gray-100 mb-2">
+                  {b.pending > 0 && <div className="bg-yellow-400" style={{ width: `${(b.pending / b.total) * 100}%` }} />}
+                  {b.shortlisted > 0 && <div className="bg-blue-400" style={{ width: `${(b.shortlisted / b.total) * 100}%` }} />}
+                  {b.accepted > 0 && <div className="bg-green-500" style={{ width: `${(b.accepted / b.total) * 100}%` }} />}
+                  {b.rejected > 0 && <div className="bg-red-400" style={{ width: `${(b.rejected / b.total) * 100}%` }} />}
+                </div>
+                <div className="grid grid-cols-4 gap-2 text-center">
+                  <div>
+                    <div className="flex items-center justify-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-yellow-400" />
+                      <span className="text-sm font-bold text-gray-900">{b.pending}</span>
+                    </div>
+                    <p className="text-[9px] text-gray-500">Pending</p>
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+                      <span className="text-sm font-bold text-gray-900">{b.shortlisted}</span>
+                    </div>
+                    <p className="text-[9px] text-gray-500">Shortlisted</p>
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                      <span className="text-sm font-bold text-gray-900">{b.accepted}</span>
+                    </div>
+                    <p className="text-[9px] text-gray-500">Accepted</p>
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
+                      <span className="text-sm font-bold text-gray-900">{b.rejected}</span>
+                    </div>
+                    <p className="text-[9px] text-gray-500">Rejected</p>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* Recent Applicants — employers only */}
+      {role === "employer" && (() => {
+        const recent: any[] = (employerMetrics as any)?.recentApplicants ?? [];
+        const formatRel = (iso: string) => {
+          const diffMs = Date.now() - new Date(iso).getTime();
+          const mins = Math.round(diffMs / 60000);
+          if (mins < 1) return "just now";
+          if (mins < 60) return `${mins}m ago`;
+          const hours = Math.round(mins / 60);
+          if (hours < 24) return `${hours}h ago`;
+          const days = Math.round(hours / 24);
+          if (days < 7) return `${days}d ago`;
+          return new Date(iso).toLocaleDateString();
+        };
+        return (
+          <div className="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-xs font-semibold text-gray-800">Recent Applicants</h2>
+              <span className="text-[10px] text-gray-500">{recent.length} latest</span>
+            </div>
+            {recent.length === 0 ? (
+              <p className="text-[11px] text-gray-400 italic py-2">
+                No applicants yet — once students start applying, they'll show up here.
+              </p>
+            ) : (
+              <ul className="divide-y divide-gray-100">
+                {recent.map((r) => (
+                  <li
+                    key={r.application_id}
+                    className="flex items-center gap-3 py-2 hover:bg-gray-50 px-1 rounded cursor-pointer transition-colors"
+                    onClick={() => (window.location.href = `/dashboard/jobs/${r.job_id}/applications`)}
+                  >
+                    <div className="h-8 w-8 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                      {r.student_image ? (
+                        <img src={r.student_image} alt={r.student_name} className="h-8 w-8 rounded-full object-cover" />
+                      ) : (
+                        r.student_name.charAt(0).toUpperCase()
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-gray-900 truncate">{r.student_name}</p>
+                      <p className="text-[10px] text-gray-500 truncate">applied for {r.job_title}</p>
+                    </div>
+                    <span className="text-[10px] text-gray-400 flex-shrink-0">{formatRel(r.applied_at)}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        );
+      })()}
+
       {/* Graph + Quick Stats */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-2.5">
         {/* Graph Section */}
@@ -716,25 +809,7 @@ const Dashboard: React.FC = () => {
         <div className="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
           <h2 className="text-xs font-semibold text-gray-800 mb-2">{t("dashboard.quickStats")}</h2>
 
-          {/* Student Rating */}
-          {role === "student" && (
-            <div className="mb-2 p-2 rounded bg-[#f5f3ff] border border-[#e0d8f0]">
-              <p className="text-[10px] text-gray-500 mb-0.5">{t("dashboard.yourRating")}</p>
-              <div className="flex items-center gap-1.5">
-                <div className="flex items-center gap-px">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    star <= 4 ? (
-                      <StarIconSolid key={star} className="h-3.5 w-3.5 text-yellow-400" />
-                    ) : (
-                      <StarIcon key={star} className="h-3.5 w-3.5 text-gray-300" />
-                    )
-                  ))}
-                </div>
-                <span className="text-xs font-bold text-gray-900">4.0</span>
-                <span className="text-[9px] text-gray-400">({t("dashboard.reviews", { count: 12 })})</span>
-              </div>
-            </div>
-          )}
+          {/* Student Rating (hidden until reviews source is wired) */}
 
           <ul className="space-y-1 text-gray-700 text-[11px]">
             {quickStats.map((stat, index) => (
@@ -764,57 +839,50 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Student KPIs */}
-      {role === "student" && (
-        <div className="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
-          <h2 className="text-xs font-semibold mb-2.5 text-gray-800">{t("dashboard.yourProgress")}</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {/* Profile Completion */}
-            <div className="space-y-1">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] text-gray-600">{t("dashboard.profileCompletion")}</span>
-                <span className="text-[11px] font-bold text-[#7F56D9]">75%</span>
+      {role === "student" && (() => {
+        const profilePct = profileCompletion ?? 0;
+        const jobPct = studentMetrics?.rates?.jobCompletionRate ?? 0;
+        const successPct = studentMetrics?.rates?.applicationSuccessRate ?? 0;
+        return (
+          <div className="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
+            <h2 className="text-xs font-semibold mb-2.5 text-gray-800">{t("dashboard.yourProgress")}</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] text-gray-600">{t("dashboard.profileCompletion")}</span>
+                  <span className="text-[11px] font-bold text-[#7F56D9]">{profilePct}%</span>
+                </div>
+                <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-full bg-[#7f56d9] rounded-full transition-all duration-500" style={{ width: `${profilePct}%` }} />
+                </div>
+                <p className="text-[9px] text-gray-400">{t("dashboard.addSkillsAndBio")}</p>
               </div>
-              <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-[#7f56d9] rounded-full transition-all duration-500"
-                  style={{ width: "75%" }}
-                />
-              </div>
-              <p className="text-[9px] text-gray-400">{t("dashboard.addSkillsAndBio")}</p>
-            </div>
 
-            {/* Job Completion Rate */}
-            <div className="space-y-1">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] text-gray-600">Job Completion</span>
-                <span className="text-[11px] font-bold text-[#7f56d9]">85%</span>
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] text-gray-600">Job Completion</span>
+                  <span className="text-[11px] font-bold text-[#7f56d9]">{jobPct}%</span>
+                </div>
+                <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-full bg-[#7f56d9] rounded-full transition-all duration-500" style={{ width: `${jobPct}%` }} />
+                </div>
+                <p className="text-[9px] text-gray-400">{t("dashboard.jobsCompletedOnTime")}</p>
               </div>
-              <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-[#7f56d9] rounded-full transition-all duration-500"
-                  style={{ width: "85%" }}
-                />
-              </div>
-              <p className="text-[9px] text-gray-400">{t("dashboard.jobsCompletedOnTime")}</p>
-            </div>
 
-            {/* Application Success Rate */}
-            <div className="space-y-1">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] text-gray-600">{t("dashboard.applicationSuccess")}</span>
-                <span className="text-[11px] font-bold text-[#7f56d9]">42%</span>
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] text-gray-600">{t("dashboard.applicationSuccess")}</span>
+                  <span className="text-[11px] font-bold text-[#7f56d9]">{successPct}%</span>
+                </div>
+                <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-full bg-[#7f56d9] rounded-full transition-all duration-500" style={{ width: `${successPct}%` }} />
+                </div>
+                <p className="text-[9px] text-gray-400">{t("dashboard.applicationsAccepted")}</p>
               </div>
-              <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-[#7f56d9] rounded-full transition-all duration-500"
-                  style={{ width: "42%" }}
-                />
-              </div>
-              <p className="text-[9px] text-gray-400">{t("dashboard.applicationsAccepted")}</p>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 };

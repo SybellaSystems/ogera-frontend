@@ -5,7 +5,6 @@ export const registerValidationSchema = Yup.object({
   full_name: Yup.string().required("Full name is required"),
   email: Yup.string()
   .email("Invalid email format")
-  .matches(/^[\w.-]+@([\w-]+\.)+(com|in)$/, "Email must end with .com or .in")
   .required("Email is required"),
   password: Yup.string()
     .matches(

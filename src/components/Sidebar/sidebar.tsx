@@ -5,10 +5,14 @@ import { useTranslation } from "react-i18next";
 import { hasAnyPermission } from "../../utils/permissionUtils";
 import type { Role } from "../../utils/permissionUtils";
 import { SIDEBAR_MENU_CONFIG } from "../../config/sidebarMenuConfig";
+import { FEATURES } from "../../config/featureFlags";
 import {
   HomeIcon,
+  UserCircleIcon,
   UsersIcon,
   BriefcaseIcon,
+  CalendarDaysIcon,
+  BellIcon,
   ChartBarIcon,
   ExclamationTriangleIcon,
   ChevronDownIcon,
@@ -27,7 +31,6 @@ import {
   ShieldCheckIcon,
   PlusIcon,
   EyeIcon,
-  BellIcon,
   DocumentTextIcon,
   BanknotesIcon,
   ListBulletIcon,
@@ -214,7 +217,55 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             </span>
           </div>
 
-          {role === "employer" ? (
+          {/* Profile - All Users */}
+          <div
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 group ${
+              isActive("/dashboard/profile")
+                ? "bg-[#9F7AEA]/15 text-white border-l-2 border-[#9F7AEA]"
+                : "hover:bg-[#9F7AEA]/10"
+            }`}
+            onClick={() => handleNavigation("/dashboard/profile")}
+          >
+            <UserCircleIcon className={`h-5 w-5 transition-colors ${isActive("/dashboard/profile") ? "text-white" : "text-white/70 group-hover:text-white"}`} />
+            <span className={`font-medium transition-colors ${isActive("/dashboard/profile") ? "text-white" : "group-hover:text-white"}`}>
+              {t("sidebar.profile")}
+            </span>
+          </div>
+
+          {/* Interviews - Students only */}
+          {role === "student" && (
+            <div
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 group ${
+                isActive("/dashboard/interviews")
+                  ? "bg-[#9F7AEA]/15 text-white border-l-2 border-[#9F7AEA]"
+                  : "hover:bg-[#9F7AEA]/10"
+              }`}
+              onClick={() => handleNavigation("/dashboard/interviews")}
+            >
+              <CalendarDaysIcon className={`h-5 w-5 transition-colors ${isActive("/dashboard/interviews") ? "text-white" : "text-white/70 group-hover:text-white"}`} />
+              <span className={`font-medium transition-colors ${isActive("/dashboard/interviews") ? "text-white" : "group-hover:text-white"}`}>
+                {t("sidebar.interviews")}
+              </span>
+            </div>
+          )}
+
+          {/* Notifications - All Users */}
+          <div
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 group ${
+              isActive("/dashboard/notifications")
+                ? "bg-[#9F7AEA]/15 text-white border-l-2 border-[#9F7AEA]"
+                : "hover:bg-[#9F7AEA]/10"
+            }`}
+            onClick={() => handleNavigation("/dashboard/notifications")}
+          >
+            <BellIcon className={`h-5 w-5 transition-colors ${isActive("/dashboard/notifications") ? "text-white" : "text-white/70 group-hover:text-white"}`} />
+            <span className={`font-medium transition-colors ${isActive("/dashboard/notifications") ? "text-white" : "group-hover:text-white"}`}>
+              {t("sidebar.notifications")}
+            </span>
+          </div>
+
+          {/* Employer-specific Jobs menu — replaces the shared Jobs menu below for employers */}
+          {role === "employer" && (
             <>
               <div>
                 <div
@@ -306,11 +357,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
               <div
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 group ${
-                  isActive("/dashboard/notifications")
+                  isActive("/dashboard/messages")
                     ? "bg-[#9F7AEA]/15 text-white border-l-2 border-[#9F7AEA]"
                     : "hover:bg-[#9F7AEA]/10"
                 }`}
-                onClick={() => handleNavigation("/dashboard/notifications")}
+                onClick={() => handleNavigation("/dashboard/messages")}
               >
                 <BellIcon className="h-5 w-5 text-white/70 group-hover:text-white transition-colors" />
                 <span className="font-medium group-hover:text-white transition-colors">
@@ -380,6 +431,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 )}
               </div>
 
+              {/* Resolution Center - Hidden in V1 via Feature Flag */}
+              {FEATURES.RESOLUTION_CENTER && (
               <div>
                 <div
                   className={`flex items-center justify-between px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 group ${
@@ -442,7 +495,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                   </ul>
                 )}
               </div>
+              )}
 
+              {/* Settings - Hidden in V1 via Feature Flag */}
+              {FEATURES.SETTINGS && (
               <div>
                 <div
                   className={`flex items-center justify-between px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 group ${
@@ -504,9 +560,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                   </ul>
                 )}
               </div>
+              )}
             </>
-          ) : (
-            <>
+          )}
+
           {/* For verifyDocAdmin: Show only Academic Verification */}
           {role === "verifyDocAdmin" && (
             <div>
@@ -1254,12 +1311,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             </div>
           )}
 
-          {/* Jobs - Student, Employer, Admin, or users with permission (not verifyDocAdmin) */}
+          {/* Jobs - Student, Admin, or users with permission (not verifyDocAdmin).
+              Employers use their own dedicated Jobs menu rendered above. */}
           {(() => {
-            // For built-in admin roles, show Jobs. For custom admin roles, only check permissions.
-            const roleCheck = role === "student" || role === "employer" || isBuiltInAdmin;
+            // Employers are excluded here because they get a dedicated employer Jobs menu above.
+            const roleCheck = role === "student" || isBuiltInAdmin;
             const permissionCheck = hasAnyPermission(permissions, "/jobs", role);
-            const shouldShow = (roleCheck || permissionCheck) && role !== "verifyDocAdmin";
+            const shouldShow = (roleCheck || permissionCheck) && role !== "verifyDocAdmin" && role !== "employer";
             
             console.log('🔍 [SIDEBAR] Jobs check:');
             console.log('  - Role:', role);
@@ -1703,6 +1761,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 "disputes",       // Hardcoded Disputes menu
                 "analytics",      // Hardcoded Analytics menu
                 "transactions",   // Hardcoded Transaction menu
+                "notifications",  // Hardcoded above (visible to all users)
+                "interviews",     // Hardcoded above (students only)
               ];
               
               // Role menu is hardcoded for superadmin
@@ -1791,8 +1851,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 </div>
               );
             })}
-            </>
-          )}
         </nav>
       </div>
     </>

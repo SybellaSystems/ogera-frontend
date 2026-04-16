@@ -37,11 +37,27 @@ interface RegisterProps {
   onRoleChange?: (role: string) => void;
 }
 
+// ── Skills data per category ──
+const SKILL_CATEGORIES = [
+  { id: "development", name: "Development & IT",         suggestions: ["JavaScript","React","TypeScript","Node.js","Python","Java","CSS","HTML","Vue.js","Angular"] },
+  { id: "design",      name: "Design & Creative",        suggestions: ["Figma","Adobe XD","UI Design","UX Design","Photoshop","Illustrator","Canva","Sketch"] },
+  { id: "finance",     name: "Finance & Accounting",     suggestions: ["Accounting","Bookkeeping","Excel","Financial Analysis","QuickBooks","Auditing","Tax"] },
+  { id: "sales",       name: "Sales & Marketing",        suggestions: ["Sales","Marketing","SEO","Social Media","Content Writing","Email Marketing","Google Ads"] },
+  { id: "ai-services", name: "AI Services",              suggestions: ["Machine Learning","Python","TensorFlow","NLP","Data Science","Deep Learning","LLMs"] },
+  { id: "law",         name: "Law",                      suggestions: ["Legal Research","Contract Law","Corporate Law","Legal Writing","Compliance","IP Law"] },
+  { id: "hr",          name: "HR & Training",            suggestions: ["Recruitment","HR Management","Training","Talent Acquisition","Performance Mgmt"] },
+  { id: "engineering", name: "Engineering & Architecture",suggestions: ["AutoCAD","Civil Engineering","Mechanical Eng.","Architecture","SolidWorks","3D Modeling"] },
+  { id: "writing",     name: "Writing & Translation",    suggestions: ["Content Writing","Copywriting","Translation","Proofreading","Technical Writing"] },
+  { id: "admin",       name: "Admin & Support",          suggestions: ["Admin Support","Data Entry","Customer Service","Office Management","Scheduling"] },
+];
+
 const Register = ({ formOnly, onRoleChange }: RegisterProps = {}) => {
   const { t } = useTranslation();
   const [showPassword, setShowPassword] = useState(false);
   const [openTerms, setOpenTerms] = useState(false);
   const [openPrivacy, setOpenPrivacy] = useState(false);
+  const [step, setStep] = useState<1 | 2>(1);
+  const [selectedCategory, setSelectedCategory] = useState("");
   const navigate = useNavigate();
 
   const [registerUser, { data, isError, isLoading, isSuccess, error }] =
@@ -97,6 +113,7 @@ const Register = ({ formOnly, onRoleChange }: RegisterProps = {}) => {
             values.accountType === "employer" ? values.businessId : null,
           terms: values.terms,
           privacy: values.privacy,
+          category: values.accountType === "student" && selectedCategory ? selectedCategory : undefined,
         };
         await registerUser(payload).unwrap();
       } catch (err) {
@@ -170,6 +187,19 @@ const Register = ({ formOnly, onRoleChange }: RegisterProps = {}) => {
 
   const isStudent = formik.values.accountType === "student";
 
+  const handleStep1Continue = async () => {
+    const errors = await formik.validateForm();
+    await formik.setTouched({
+      full_name: true, email: true, password: true,
+      national_id_number: isStudent, businessId: !isStudent,
+      mobile_number: true, countryCode: true, terms: true, privacy: true,
+    } as any);
+    if (Object.keys(errors).length === 0) {
+      if (isStudent) setStep(2);
+      else formik.submitForm();
+    }
+  };
+
   useEffect(() => {
     onRoleChange?.(formik.values.accountType);
   }, [formik.values.accountType]);
@@ -187,7 +217,51 @@ const Register = ({ formOnly, onRoleChange }: RegisterProps = {}) => {
           <Heading>{t("register.createAccount")}</Heading>
           <SubHeading>{t("register.connectTrustedEmployers")}</SubHeading>
 
-          <RegisterFormContainer onSubmit={formik.handleSubmit}>
+          {/* ── Step indicator ── */}
+          {isStudent && (
+            <StepIndicator>
+              <StepDot $active={true} $done={step === 2} />
+              <StepLine $done={step === 2} />
+              <StepDot $active={step === 2} $done={false} />
+              <StepLabel>{step === 1 ? "Step 1 of 2 — Basic Info" : "Step 2 of 2 — Your Skills"}</StepLabel>
+            </StepIndicator>
+          )}
+
+          {step === 2 ? (
+            /* ══════════════ STEP 2 — Category ══════════════ */
+            <SkillsStep>
+              <SkillsHeading>What's your main field?</SkillsHeading>
+              <SkillsSubtext>Pick the category that best describes you — employers use this to find you</SkillsSubtext>
+
+              <CategoryTilesGrid>
+                {SKILL_CATEGORIES.map(cat => (
+                  <CategoryTile
+                    key={cat.id}
+                    $selected={selectedCategory === cat.id}
+                    onClick={() => setSelectedCategory(cat.id)}
+                    type="button"
+                  >
+                    {cat.name}
+                  </CategoryTile>
+                ))}
+              </CategoryTilesGrid>
+
+              {!selectedCategory && <SkillsHint>Please select a category to continue</SkillsHint>}
+
+              <StepButtonRow>
+                <BackStepBtn type="button" onClick={() => setStep(1)}>← Back</BackStepBtn>
+                <CreateAccountButton
+                  type="button"
+                  disabled={isLoading || !selectedCategory}
+                  onClick={() => formik.submitForm()}
+                >
+                  {isLoading ? t("common.loading") : "Create Account"}
+                </CreateAccountButton>
+              </StepButtonRow>
+            </SkillsStep>
+          ) : (
+          /* ══════════════ STEP 1 — Basic Info ══════════════ */
+          <RegisterFormContainer onSubmit={(e) => { e.preventDefault(); isStudent ? handleStep1Continue() : formik.handleSubmit(e as any); }}>
             <ToggleGroup>
               {(["student", "employer"] as const).map((type) => (
                 <ToggleOption key={type}>
@@ -231,7 +305,7 @@ const Register = ({ formOnly, onRoleChange }: RegisterProps = {}) => {
             {isStudent ? (
               <FormGroup>
                 <Label htmlFor="national_id_number">{t("register.nationalIdNumber")}</Label>
-                <TextField id="national_id_number" name="national_id_number" placeholder={t("register.enterNationalId")} variant="outlined" fullWidth size="small" inputProps={{ maxLength: 15 }} value={formik.values.national_id_number} onChange={formik.handleChange} onBlur={formik.handleBlur}
+                <TextField id="national_id_number" name="national_id_number" placeholder={t("register.enterNationalId")} variant="outlined" fullWidth size="small" inputProps={{ maxLength: 16 }} value={formik.values.national_id_number} onChange={formik.handleChange} onBlur={formik.handleBlur}
                   InputProps={{ style: inputStyle, startAdornment: <InputAdornment position="start"><BadgeOutlined style={{ color: "#8a8599", fontSize: 20 }} /></InputAdornment> }} sx={inputSx} />
                 {formik.touched.national_id_number && formik.errors.national_id_number && <ErrorText>{formik.errors.national_id_number}</ErrorText>}
               </FormGroup>
@@ -263,10 +337,15 @@ const Register = ({ formOnly, onRoleChange }: RegisterProps = {}) => {
             </TermsItem>
             {((formik.touched.terms && formik.errors.terms) || (formik.touched.privacy && formik.errors.privacy)) && <ErrorText>You must agree to the terms and privacy policy</ErrorText>}
 
-            <CreateAccountButton type="submit" disabled={isLoading}>
-              {isLoading ? t("common.loading") : t("register.createAccountButton")}
+            <CreateAccountButton
+              type={isStudent ? "button" : "submit"}
+              disabled={isLoading}
+              onClick={isStudent ? handleStep1Continue : undefined}
+            >
+              {isLoading ? t("common.loading") : isStudent ? "Continue →" : t("register.createAccountButton")}
             </CreateAccountButton>
           </RegisterFormContainer>
+          )} {/* end step 1 / step 2 conditional */}
         </LeftFormContent>
 
         <TermsModal open={openTerms} onClose={() => setOpenTerms(false)} />
@@ -285,7 +364,44 @@ const Register = ({ formOnly, onRoleChange }: RegisterProps = {}) => {
             <Heading>{t("register.createAccount")}</Heading>
             <SubHeading>{t("register.connectTrustedEmployers")}</SubHeading>
 
-            <RegisterFormContainer onSubmit={formik.handleSubmit}>
+            {isStudent && (
+              <StepIndicator>
+                <StepDot $active={true} $done={step === 2} />
+                <StepLine $done={step === 2} />
+                <StepDot $active={step === 2} $done={false} />
+                <StepLabel>{step === 1 ? "Step 1 of 2 — Basic Info" : "Step 2 of 2 — Your Field"}</StepLabel>
+              </StepIndicator>
+            )}
+
+            {step === 2 ? (
+              <SkillsStep>
+                <SkillsHeading>What's your main field?</SkillsHeading>
+                <SkillsSubtext>Pick the category that best describes you — employers use this to find you</SkillsSubtext>
+
+                <CategoryTilesGrid>
+                  {SKILL_CATEGORIES.map(cat => (
+                    <CategoryTile
+                      key={cat.id}
+                      $selected={selectedCategory === cat.id}
+                      onClick={() => setSelectedCategory(cat.id)}
+                      type="button"
+                    >
+                      {cat.name}
+                    </CategoryTile>
+                  ))}
+                </CategoryTilesGrid>
+
+                {!selectedCategory && <SkillsHint>Please select a category to continue</SkillsHint>}
+
+                <StepButtonRow>
+                  <BackStepBtn type="button" onClick={() => setStep(1)}>← Back</BackStepBtn>
+                  <CreateAccountButton type="button" disabled={isLoading || !selectedCategory} onClick={() => formik.submitForm()}>
+                    {isLoading ? t("common.loading") : "Create Account"}
+                  </CreateAccountButton>
+                </StepButtonRow>
+              </SkillsStep>
+            ) : (
+            <RegisterFormContainer onSubmit={(e) => { e.preventDefault(); isStudent ? handleStep1Continue() : formik.handleSubmit(e as any); }}>
               {/* Account Type Toggle */}
               <ToggleGroup>
                 {(["student", "employer"] as const).map((type) => (
@@ -427,7 +543,7 @@ const Register = ({ formOnly, onRoleChange }: RegisterProps = {}) => {
                     variant="outlined"
                     fullWidth
                     size="small"
-                    inputProps={{ maxLength: 15 }}
+                    inputProps={{ maxLength: 16 }}
                     value={formik.values.national_id_number}
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
@@ -554,13 +670,16 @@ const Register = ({ formOnly, onRoleChange }: RegisterProps = {}) => {
                 <ErrorText>You must agree to the terms and privacy policy</ErrorText>
               )}
 
-              <CreateAccountButton type="submit" disabled={isLoading}>
-                {isLoading
-                  ? t("common.loading")
-                  : t("register.createAccountButton")}
+              <CreateAccountButton
+                type={isStudent ? "button" : "submit"}
+                disabled={isLoading}
+                onClick={isStudent ? handleStep1Continue : undefined}
+              >
+                {isLoading ? t("common.loading") : isStudent ? "Continue →" : t("register.createAccountButton")}
               </CreateAccountButton>
 
             </RegisterFormContainer>
+            )} {/* end step 1 / step 2 */}
           </LeftFormContent>
         </RegisterLeftContainer>
 
@@ -1018,3 +1137,73 @@ const CreateAccountButton = styled("button")`
     font-size: 15px;
   }
 `;
+
+/* ── Step indicator ── */
+const StepIndicator = styled("div")`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+`;
+const StepDot = styled("span")<{ $active: boolean; $done: boolean }>`
+  width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+  background: ${p => p.$done ? "#22c55e" : p.$active ? "#7F56D9" : "#e0d8f0"};
+  transition: background 0.3s;
+`;
+const StepLine = styled("span")<{ $done: boolean }>`
+  flex: 1; max-width: 40px; height: 2px;
+  background: ${p => p.$done ? "#22c55e" : "#e0d8f0"};
+  transition: background 0.3s;
+`;
+const StepLabel = styled("span")`
+  font-size: 11px; color: #8a8599; font-weight: 500; width: 100%;
+`;
+
+/* ── Step 2 category ── */
+const SkillsStep = styled("div")`
+  display: flex; flex-direction: column; gap: 16px;
+`;
+const SkillsHeading = styled("h3")`
+  font-size: 18px; font-weight: 700; color: #2D2252; margin: 0;
+`;
+const SkillsSubtext = styled("p")`
+  font-size: 13px; color: #6b6580; margin: -8px 0 0;
+`;
+const CategoryTilesGrid = styled("div")`
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+`;
+const CategoryTile = styled("button")<{ $selected: boolean }>`
+  padding: 14px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+  text-align: center;
+  border: 2px solid ${p => p.$selected ? "#7F56D9" : "#e0d8f0"};
+  background: ${p => p.$selected ? "#f5f3ff" : "#fafafa"};
+  color: ${p => p.$selected ? "#7F56D9" : "#4a4560"};
+  box-shadow: ${p => p.$selected ? "0 0 0 3px rgba(127,86,217,0.15)" : "none"};
+  &:hover {
+    border-color: #7F56D9;
+    color: #7F56D9;
+    background: #f5f3ff;
+  }
+`;
+const SkillsHint = styled("p")`
+  font-size: 12px; color: #9e9aaa; margin: 0; font-style: italic;
+`;
+const StepButtonRow = styled("div")`
+  display: flex; gap: 10px; align-items: center;
+`;
+const BackStepBtn = styled("button")`
+  padding: 12px 18px; border-radius: 10px; font-size: 14px; font-weight: 600;
+  background: #f5f3ff; color: #7F56D9; border: 1.5px solid #e0d8f0;
+  cursor: pointer; font-family: inherit; transition: background 0.2s;
+  &:hover { background: #ede9fe; }
+`;
+
