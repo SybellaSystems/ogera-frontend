@@ -27,6 +27,7 @@ const ViewJobApplications: React.FC = () => {
   const [updateStatus, { isLoading: isUpdating }] =
     useUpdateApplicationStatusMutation();
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [updatingAction, setUpdatingAction] = useState<"Accepted" | "Rejected" | null>(null);
   const [scheduleFor, setScheduleFor] = useState<{
     studentId: string;
     studentName: string;
@@ -43,6 +44,7 @@ const ViewJobApplications: React.FC = () => {
   ) => {
     try {
       setUpdatingId(applicationId);
+      setUpdatingAction(status);
       await updateStatus({
         application_id: applicationId,
         data: { status },
@@ -55,6 +57,7 @@ const ViewJobApplications: React.FC = () => {
       );
     } finally {
       setUpdatingId(null);
+      setUpdatingAction(null);
     }
   };
 
@@ -162,6 +165,7 @@ const ViewJobApplications: React.FC = () => {
   const rejectedCount = applications.filter(
     (app) => app.status === "Rejected"
   ).length;
+  const acceptedApplication = applications.find((app) => app.status === "Accepted");
 
   // Apply filters: status tab + name search
   const filteredApplications = applications.filter((app) => {
@@ -234,6 +238,61 @@ const ViewJobApplications: React.FC = () => {
             >
               {job.status}
             </span>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white dark:border-[var(--theme-border)] rounded-xl p-6 shadow-md border border-gray-100">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-[var(--theme-text-primary)] mb-4">
+          Transaction Information
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          <div>
+            <p className="text-gray-600 dark:text-[var(--theme-text-secondary)]">Funding Status</p>
+            <p className="font-semibold text-gray-900 dark:text-[var(--theme-text-primary)]">{job.funding_status || "Unfunded"}</p>
+          </div>
+          <div>
+            <p className="text-gray-600 dark:text-[var(--theme-text-secondary)]">Employer funded amount</p>
+            <p className="font-semibold text-gray-900 dark:text-[var(--theme-text-primary)]">
+              {(Number(job.budget || 0) * 1.1).toLocaleString()} RWF
+            </p>
+          </div>
+          <div>
+            <p className="text-gray-600 dark:text-[var(--theme-text-secondary)]">Funding reference ID</p>
+            <p className="font-semibold text-gray-900 dark:text-[var(--theme-text-primary)] break-all">
+              {job.momo_reference_id || "Not available"}
+            </p>
+          </div>
+          <div>
+            <p className="text-gray-600 dark:text-[var(--theme-text-secondary)]">Funding paid at</p>
+            <p className="font-semibold text-gray-900 dark:text-[var(--theme-text-primary)]">
+              {job.momo_paid_at ? formatDate(job.momo_paid_at) : "Not paid yet"}
+            </p>
+          </div>
+          <div>
+            <p className="text-gray-600 dark:text-[var(--theme-text-secondary)]">Student disbursement reference ID</p>
+            <p className="font-semibold text-gray-900 dark:text-[var(--theme-text-primary)] break-all">
+              {job.disbursement_reference_id || "Not paid yet"}
+            </p>
+          </div>
+          <div>
+            <p className="text-gray-600 dark:text-[var(--theme-text-secondary)]">Paid to student at</p>
+            <p className="font-semibold text-gray-900 dark:text-[var(--theme-text-primary)]">
+              {job.paid_at ? formatDate(job.paid_at) : "Not paid yet"}
+            </p>
+          </div>
+          <div>
+            <p className="text-gray-600 dark:text-[var(--theme-text-secondary)]">Amount sent to student</p>
+            <p className="font-semibold text-gray-900 dark:text-[var(--theme-text-primary)]">
+              {job.amount_paid_to_student != null ? `${Number(job.amount_paid_to_student).toLocaleString()} RWF` : "Not paid yet"}
+            </p>
+          </div>
+          <div>
+            <p className="text-gray-600 dark:text-[var(--theme-text-secondary)]">Paid student</p>
+            <p className="font-semibold text-gray-900 dark:text-[var(--theme-text-primary)]">
+              {acceptedApplication?.student?.full_name || "No accepted student yet"}
+              {acceptedApplication?.student?.email ? ` (${acceptedApplication.student.email})` : ""}
+            </p>
           </div>
         </div>
       </div>
@@ -408,7 +467,9 @@ const ViewJobApplications: React.FC = () => {
                         }
                         className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white rounded-lg font-semibold transition text-sm whitespace-nowrap"
                       >
-                        {isUpdating && updatingId === application.application_id
+                        {isUpdating &&
+                        updatingId === application.application_id &&
+                        updatingAction === "Accepted"
                           ? "Updating..."
                           : "Accept"}
                       </button>
@@ -421,7 +482,9 @@ const ViewJobApplications: React.FC = () => {
                         }
                         className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white rounded-lg font-semibold transition text-sm whitespace-nowrap"
                       >
-                        {isUpdating && updatingId === application.application_id
+                        {isUpdating &&
+                        updatingId === application.application_id &&
+                        updatingAction === "Rejected"
                           ? "Updating..."
                           : "Reject"}
                       </button>

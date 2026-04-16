@@ -21,7 +21,8 @@ import { formatRelativeTime } from "../../utils/timeUtils";
 const ActiveJobs: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const role = useSelector((state: any) => state.auth.role);
+  const roleRaw = useSelector((state: any) => state.auth.role);
+  const role = roleRaw ? String(roleRaw).toLowerCase().trim() : "";
   const { data, isLoading, error } = useGetActiveJobsQuery();
   const { data: studentApplications, refetch: refetchApplications } = useGetStudentApplicationsQuery(undefined, {
     skip: role !== "student",
@@ -38,9 +39,15 @@ const ActiveJobs: React.FC = () => {
   );
 
   const activeJobs = data?.data || [];
+  const isFundedJob = (fundingStatus?: string | null) =>
+    fundingStatus === "Funded" || fundingStatus === "Paid";
 
   // Filter jobs based on search and location
   const filteredJobs = activeJobs.filter((job: any) => {
+    if (role === "student" && !isFundedJob(job.funding_status)) {
+      return false;
+    }
+
     const matchesSearch =
       !searchQuery ||
       job.job_title?.toLowerCase().includes(searchQuery.toLowerCase()) ||

@@ -293,6 +293,16 @@ function App() {
               Component: AllJobs,
             },
             {
+              path: "jobs/unfunded",
+              element: <ProtectedRoute allowedRoles={["employer", "superadmin"]} />,
+              children: [
+                {
+                  index: true,
+                  Component: AllJobs,
+                },
+              ],
+            },
+            {
               path: "jobs/active",
               Component: ActiveJobs,
             },

@@ -289,7 +289,7 @@ const CreateJob: React.FC = () => {
       if (!isEditMode) {
         resetForm();
       }
-      navigate("/dashboard/jobs/all");
+      navigate("/dashboard/jobs/unfunded");
     }
   }, [isCreateSuccess, createData, isUpdateSuccess, updateData, isEditMode, resetForm, navigate, t]);
 

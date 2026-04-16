@@ -116,6 +116,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
   const employerJobsSubmenu = [
     { key: "create-job", label: "Create Job", path: "/dashboard/jobs/create", icon: PlusIcon },
+    { key: "unfunded-jobs", label: "Unfunded Jobs", path: "/dashboard/jobs/unfunded", icon: ClockIcon },
     { key: "my-jobs", label: "My Jobs", path: "/dashboard/jobs/all", icon: BriefcaseIcon },
     { key: "active-jobs", label: "Active Jobs", path: "/dashboard/jobs/active", icon: FireIcon },
     { key: "closed-jobs", label: "Closed Jobs", path: "/dashboard/jobs/completed", icon: CheckCircleIcon },
@@ -1373,6 +1374,15 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                           <PlusIcon className="h-4 w-4 text-white/40 group-hover/item:text-[#9F7AEA] transition-colors" />
                           <span className="text-white/60 group-hover/item:text-white transition-colors">
                             {t("sidebar.createJob")}
+                          </span>
+                        </li>
+                        <li
+                          className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
+                          onClick={() => handleNavigation("/dashboard/jobs/unfunded")}
+                        >
+                          <ClockIcon className="h-4 w-4 text-white/40 group-hover/item:text-[#9F7AEA] transition-colors" />
+                          <span className="text-white/60 group-hover/item:text-white transition-colors">
+                            Unfunded Jobs
                           </span>
                         </li>
                         <li

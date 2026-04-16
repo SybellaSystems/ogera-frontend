@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
 import {
@@ -21,8 +21,19 @@ import { formatRelativeTime } from "../../utils/timeUtils";
 const AllJobs: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const role = useSelector((state: any) => state.auth.role);
-  const { data, isLoading, error, refetch } = useGetAllJobsQuery();
+  const location = useLocation();
+  const roleRaw = useSelector((state: any) => state.auth.role);
+  const role = roleRaw ? String(roleRaw).toLowerCase().trim() : "";
+  const isUnfundedRoute = location.pathname === "/dashboard/jobs/unfunded";
+  const jobsQueryParams =
+    role === "student"
+      ? { funded: true }
+      : role === "employer" && isUnfundedRoute
+      ? { funded: false }
+      : role === "employer"
+      ? { funded: true }
+      : undefined;
+  const { data, isLoading, error, refetch } = useGetAllJobsQuery(jobsQueryParams);
   const { data: profileData } = useGetUserProfileQuery(undefined);
   const { data: studentApplications, refetch: refetchApplications } = useGetStudentApplicationsQuery(undefined, {
     skip: role !== "student",
@@ -42,11 +53,28 @@ const AllJobs: React.FC = () => {
 
   const jobs = data?.data || [];
   const currentUserId = profileData?.data?.user_id;
+  const isFundedJob = (fundingStatus?: string | null) =>
+    fundingStatus === "Funded" || fundingStatus === "Paid";
 
   // Filter jobs based on role, search, location, and status
   const filteredJobs = jobs.filter((job: any) => {
     // For employers, only show their own jobs
     if (role === "employer" && currentUserId && job.employer_id !== currentUserId) {
+      return false;
+    }
+
+    // Employer unfunded page: only jobs that are not yet funded.
+    if (role === "employer" && isUnfundedRoute && isFundedJob(job.funding_status)) {
+      return false;
+    }
+
+    // Employer my-jobs page: only funded jobs.
+    if (role === "employer" && !isUnfundedRoute && !isFundedJob(job.funding_status)) {
+      return false;
+    }
+
+    // Students should never see unfunded jobs.
+    if (role === "student" && !isFundedJob(job.funding_status)) {
       return false;
     }
     
@@ -154,7 +182,7 @@ const AllJobs: React.FC = () => {
         <div>
           <h1 className="text-2xl md:text-4xl font-extrabold text-gray-900 flex items-center gap-2 md:gap-3">
             <BriefcaseIcon className="h-6 w-6 md:h-10 md:w-10 text-purple-600" />
-            {t("pages.jobs.allJobs")}
+            {isUnfundedRoute ? "Unfunded Jobs" : t("pages.jobs.allJobs")}
           </h1>
           <p className="text-sm md:text-base text-gray-500 mt-2">
             {role === "employer"

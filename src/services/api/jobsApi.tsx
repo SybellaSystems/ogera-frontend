@@ -29,6 +29,7 @@ export interface Job {
   momo_paid_at?: string | null;
   disbursement_reference_id?: string | null;
   paid_at?: string | null;
+  amount_paid_to_student?: number | null;
   amount_received_by_you?: number | null;
   created_at: string;
   updated_at: string;
@@ -86,6 +87,11 @@ export interface JobsListResponse {
   message: string;
 }
 
+export interface JobsQueryParams {
+  status?: "Pending" | "Active" | "Inactive" | "Completed";
+  funded?: boolean;
+}
+
 export interface DeleteJobResponse {
   success: boolean;
   status: number;
@@ -98,10 +104,11 @@ export interface DeleteJobResponse {
 export const jobsApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     // Get all jobs
-    getAllJobs: builder.query<JobsListResponse, void>({
-      query: () => ({
+    getAllJobs: builder.query<JobsListResponse, JobsQueryParams | void>({
+      query: (params) => ({
         url: "/jobs",
         method: "GET",
+        params: params ?? undefined,
       }),
       providesTags: ["Job"],
     }),
