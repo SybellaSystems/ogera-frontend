@@ -4,6 +4,7 @@ export interface UserProfile {
   user_id: string;
   email: string;
   mobile_number: string;
+  country_code?: string;
   full_name: string;
   national_id_number?: string;
   business_registration_id?: string;
@@ -41,6 +42,7 @@ export interface UpdateProfileData {
   full_name?: string;
   email?: string;
   mobile_number?: string;
+  country_code?: string;
   national_id_number?: string;
   business_registration_id?: string;
   resume_url?: string;

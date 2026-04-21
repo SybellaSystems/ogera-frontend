@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Alert,
@@ -8,6 +8,7 @@ import {
   MenuItem,
   TextField,
   InputAdornment,
+  CircularProgress,
 } from '@mui/material';
 import {
   BuildingOfficeIcon,
@@ -22,8 +23,13 @@ import {
 } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 
-import type { FullProfile } from '../../services/api/extendedProfileApi';
+import type { FullProfile, UpdateExtendedProfileRequest } from '../../services/api/extendedProfileApi';
 import type { UserProfile } from '../../services/api/profileApi';
+import { updateUserProfile } from '../../services/api/profileApi';
+import {
+  useUpdateCompanyInfoMutation,
+  useUpdateExtendedProfileMutation,
+} from '../../services/api/extendedProfileApi';
 
 interface EmployerProfileProps {
   profileData: UserProfile | null;
@@ -43,6 +49,12 @@ const EmployerProfile: React.FC<EmployerProfileProps> = ({ profileData, fullProf
   const extendedProfile = fullProfileData?.extendedProfile;
   const [activeSection, setActiveSection] = useState<EmployerSection>('company-info');
   const [successMessage, setSuccessMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [savingSection, setSavingSection] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const [updateCompanyInfo] = useUpdateCompanyInfoMutation();
+  const [updateExtendedProfile] = useUpdateExtendedProfileMutation();
 
   const [formState, setFormState] = useState({
     companyName: profileData?.full_name || '',
@@ -73,10 +85,197 @@ const EmployerProfile: React.FC<EmployerProfileProps> = ({ profileData, fullProf
     { key: 'hiring-preferences', label: t('profile.hiringPreferences', { defaultValue: 'Hiring Preferences' }), icon: <TagIcon className="w-4 h-4" /> },
   ];
 
+  // Fetch and populate company data on component mount or when data changes
+  useEffect(() => {
+    if (profileData || fullProfileData) {
+      try {
+        setFormState((prevState) => ({
+          ...prevState,
+          // Company data from user_extended_profiles table
+          companyName: extendedProfile?.company_name || prevState.companyName,
+          location: extendedProfile?.company_location || prevState.location,
+          businessEmail: profileData?.email || prevState.businessEmail,
+          phoneNumber: profileData?.mobile_number || prevState.phoneNumber,
+          // Extended profile data
+          industry: extendedProfile?.industry_category || prevState.industry,
+          companySize: extendedProfile?.company_size || prevState.companySize,
+          description: extendedProfile?.profile_summary || prevState.description,
+          websiteUrl: extendedProfile?.website_url || prevState.websiteUrl,
+          linkedInUrl: extendedProfile?.linkedin_url || prevState.linkedInUrl,
+        }));
+      } catch (error) {
+        console.error('Failed to load company information:', error);
+        setErrorMessage('Failed to load company information');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  }, [profileData, fullProfileData, extendedProfile]);
+
   const handleSave = (section: string) => {
     setSuccessMessage(`${section} saved successfully.`);
     toast.success(`${section} updated`);
     window.setTimeout(() => setSuccessMessage(''), 2500);
+  };
+
+  const clearMessages = () => {
+    setSuccessMessage('');
+    setErrorMessage('');
+  };
+
+  /**
+   * Helper function to safely map form state to API payload
+   * Converts empty strings to undefined and trims whitespace
+   */
+  const sanitizeField = (value: string | undefined): string | undefined => {
+    if (!value) return undefined;
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : undefined;
+  };
+
+  const handleSaveCompanyInfo = async () => {
+    setSavingSection('company-info');
+    clearMessages();
+    try {
+      // Create strict mapping from form state to API payload
+      const payload = {
+        company_name: sanitizeField(formState.companyName),
+        industry_category: sanitizeField(formState.industry),
+        company_size: sanitizeField(formState.companySize),
+        company_location: sanitizeField(formState.location),
+      };
+
+      console.log('[EmployerProfile] handleSaveCompanyInfo - Payload:', payload);
+
+      const response = await updateCompanyInfo(payload).unwrap();
+      if (!response?.success) {
+        throw new Error(response?.message || 'Failed to update company information');
+      }
+
+      setSuccessMessage('Company information saved successfully.');
+      toast.success('Company information updated');
+      setTimeout(() => clearMessages(), 3000);
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Failed to update company information';
+      setErrorMessage(errorMsg);
+      toast.error(errorMsg);
+      setTimeout(() => clearMessages(), 3000);
+    } finally {
+      setSavingSection(null);
+    }
+  };
+
+  const handleSaveCompanyDescription = async () => {
+    setSavingSection('company-description');
+    clearMessages();
+    try {
+      // Create strict mapping: ensure empty strings become undefined
+      const payload: UpdateExtendedProfileRequest = {
+        profile_summary: sanitizeField(formState.description),
+      };
+
+      console.log('[EmployerProfile] handleSaveCompanyDescription - Payload:', payload);
+
+      const response = await updateExtendedProfile(payload).unwrap();
+      if (!response?.success) {
+        throw new Error(response?.message || 'Failed to update company description');
+      }
+
+      setSuccessMessage('Company description saved successfully.');
+      toast.success('Company description updated');
+      setTimeout(() => clearMessages(), 3000);
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Failed to update company description';
+      setErrorMessage(errorMsg);
+      toast.error(errorMsg);
+      setTimeout(() => clearMessages(), 3000);
+    } finally {
+      setSavingSection(null);
+    }
+  };
+
+  const handleSaveOnlinePresence = async () => {
+    setSavingSection('online-presence');
+    clearMessages();
+    try {
+      // Create strict mapping: camelCase (form state) → snake_case (API)
+      // Empty strings are converted to undefined
+      const payload: UpdateExtendedProfileRequest = {
+        website_url: sanitizeField(formState.websiteUrl),
+        linkedin_url: sanitizeField(formState.linkedInUrl),
+      };
+
+      console.log('[EmployerProfile] handleSaveOnlinePresence - Form state:', {
+        websiteUrl: formState.websiteUrl,
+        linkedInUrl: formState.linkedInUrl,
+      });
+      console.log('[EmployerProfile] handleSaveOnlinePresence - Payload:', payload);
+
+      const response = await updateExtendedProfile(payload).unwrap();
+      if (!response?.success) {
+        throw new Error(response?.message || 'Failed to update online presence');
+      }
+
+      setSuccessMessage('Online presence saved successfully.');
+      toast.success('Online presence updated');
+      setTimeout(() => clearMessages(), 3000);
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Failed to update online presence';
+      setErrorMessage(errorMsg);
+      toast.error(errorMsg);
+      setTimeout(() => clearMessages(), 3000);
+    } finally {
+      setSavingSection(null);
+    }
+  };
+
+  const handleSaveContactInfo = async () => {
+    setSavingSection('contact');
+    clearMessages();
+    try {
+      // Create strict mapping: ensure empty strings become undefined
+      const payload = {
+        email: sanitizeField(formState.businessEmail),
+        mobile_number: sanitizeField(formState.phoneNumber),
+      };
+
+      console.log('[EmployerProfile] handleSaveContactInfo - Payload:', payload);
+
+      const response = await updateUserProfile(payload);
+
+      if (!response?.success) {
+        throw new Error(response?.message || 'Failed to update contact information');
+      }
+
+      setSuccessMessage('Contact information saved successfully.');
+      toast.success('Contact information updated');
+      setTimeout(() => clearMessages(), 3000);
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Failed to update contact information';
+      setErrorMessage(errorMsg);
+      toast.error(errorMsg);
+      setTimeout(() => clearMessages(), 3000);
+    } finally {
+      setSavingSection(null);
+    }
+  };
+
+  const handleSaveHiringPreferences = async () => {
+    setSavingSection('hiring-preferences');
+    clearMessages();
+    try {
+      // Currently hiring preferences (preferredJobCategories, workType) are not supported by the API
+      // This handler is a placeholder for future enhancement
+      setSuccessMessage('Hiring preferences feature coming soon.');
+      setTimeout(() => clearMessages(), 3000);
+    } catch (err) {
+      const errorMsg = 'Hiring preferences feature is not yet available';
+      setErrorMessage(errorMsg);
+      toast.error(errorMsg);
+      setTimeout(() => clearMessages(), 3000);
+    } finally {
+      setSavingSection(null);
+    }
   };
 
   const renderSectionCard = (
@@ -122,6 +321,18 @@ const EmployerProfile: React.FC<EmployerProfileProps> = ({ profileData, fullProf
           <Alert severity="success">{successMessage}</Alert>
         </div>
       )}
+
+      {errorMessage && (
+        <div className="mb-6">
+          <Alert severity="error">{errorMessage}</Alert>
+        </div>
+      )}
+
+      {isLoading ? (
+        <div className="flex items-center justify-center py-12">
+          <CircularProgress size={40} style={{ color: '#7f56d9' }} />
+        </div>
+      ) : (
 
       <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] gap-6 items-start">
         <div className="lg:sticky lg:top-4">
@@ -202,8 +413,14 @@ const EmployerProfile: React.FC<EmployerProfileProps> = ({ profileData, fullProf
                 }}
               />
               <div className="md:col-span-2 flex justify-end pt-2">
-                <Button variant="contained" style={{ backgroundColor: '#7f56d9' }} onClick={() => handleSave('Company information')}>
-                  {t('profile.save', { defaultValue: 'Save Changes' })}
+                <Button 
+                  variant="contained" 
+                  style={{ backgroundColor: '#7f56d9' }} 
+                  onClick={handleSaveCompanyInfo}
+                  disabled={savingSection === 'company-info'}
+                  startIcon={savingSection === 'company-info' ? <CircularProgress size={20} /> : undefined}
+                >
+                  {savingSection === 'company-info' ? 'Saving...' : t('profile.save', { defaultValue: 'Save Changes' })}
                 </Button>
               </div>
             </div>,
@@ -221,8 +438,14 @@ const EmployerProfile: React.FC<EmployerProfileProps> = ({ profileData, fullProf
               onChange={(e) => setFormState((prev) => ({ ...prev, description: e.target.value }))}
               placeholder={t('profile.companyDescriptionPlaceholder', { defaultValue: 'Describe your company, mission, team, and what makes you distinct.' })}
             />,
-            <Button variant="contained" style={{ backgroundColor: '#7f56d9' }} onClick={() => handleSave('Company description')}>
-              {t('profile.save', { defaultValue: 'Save Changes' })}
+            <Button 
+              variant="contained" 
+              style={{ backgroundColor: '#7f56d9' }} 
+              onClick={handleSaveCompanyDescription}
+              disabled={savingSection === 'company-description'}
+              startIcon={savingSection === 'company-description' ? <CircularProgress size={20} /> : undefined}
+            >
+              {savingSection === 'company-description' ? 'Saving...' : t('profile.save', { defaultValue: 'Save Changes' })}
             </Button>,
           )}
 
@@ -257,8 +480,14 @@ const EmployerProfile: React.FC<EmployerProfileProps> = ({ profileData, fullProf
                 }}
               />
               <div className="md:col-span-2 flex justify-end pt-2">
-                <Button variant="contained" style={{ backgroundColor: '#7f56d9' }} onClick={() => handleSave('Online presence')}>
-                  {t('profile.save', { defaultValue: 'Save Changes' })}
+                <Button 
+                  variant="contained" 
+                  style={{ backgroundColor: '#7f56d9' }} 
+                  onClick={handleSaveOnlinePresence}
+                  disabled={savingSection === 'online-presence'}
+                  startIcon={savingSection === 'online-presence' ? <CircularProgress size={20} /> : undefined}
+                >
+                  {savingSection === 'online-presence' ? 'Saving...' : t('profile.save', { defaultValue: 'Save Changes' })}
                 </Button>
               </div>
             </div>,
@@ -280,10 +509,20 @@ const EmployerProfile: React.FC<EmployerProfileProps> = ({ profileData, fullProf
                   {t('profile.companyLogoHint', { defaultValue: 'Upload a logo to personalize your company profile and keep the branding consistent.' })}
                 </p>
                 <div className="flex flex-wrap gap-3">
-                  <Button variant="contained" style={{ backgroundColor: '#7f56d9' }} onClick={() => handleSave('Branding')}>
+                  <Button 
+                    variant="contained" 
+                    style={{ backgroundColor: '#7f56d9' }} 
+                    onClick={() => handleSave('Branding')}
+                    disabled={savingSection === 'branding'}
+                    startIcon={savingSection === 'branding' ? <CircularProgress size={20} /> : undefined}
+                  >
                     {t('profile.uploadLogo', { defaultValue: 'Upload Logo' })}
                   </Button>
-                  <Button variant="outlined" onClick={() => handleSave('Branding preview')}>
+                  <Button 
+                    variant="outlined" 
+                    onClick={() => handleSave('Branding preview')}
+                    disabled={savingSection === 'branding'}
+                  >
                     {t('profile.preview', { defaultValue: 'Preview' })}
                   </Button>
                 </div>
@@ -315,8 +554,14 @@ const EmployerProfile: React.FC<EmployerProfileProps> = ({ profileData, fullProf
                 }}
               />
               <div className="md:col-span-2 flex justify-end pt-2">
-                <Button variant="contained" style={{ backgroundColor: '#7f56d9' }} onClick={() => handleSave('Contact information')}>
-                  {t('profile.save', { defaultValue: 'Save Changes' })}
+                <Button 
+                  variant="contained" 
+                  style={{ backgroundColor: '#7f56d9' }} 
+                  onClick={handleSaveContactInfo}
+                  disabled={savingSection === 'contact'}
+                  startIcon={savingSection === 'contact' ? <CircularProgress size={20} /> : undefined}
+                >
+                  {savingSection === 'contact' ? 'Saving...' : t('profile.save', { defaultValue: 'Save Changes' })}
                 </Button>
               </div>
             </div>,
@@ -344,14 +589,21 @@ const EmployerProfile: React.FC<EmployerProfileProps> = ({ profileData, fullProf
                 <MenuItem value="hybrid">{t('profile.hybrid', { defaultValue: 'Hybrid' })}</MenuItem>
               </TextField>
               <div className="md:col-span-2 flex justify-end pt-2">
-                <Button variant="contained" style={{ backgroundColor: '#7f56d9' }} onClick={() => handleSave('Hiring preferences')}>
-                  {t('profile.save', { defaultValue: 'Save Changes' })}
+                <Button 
+                  variant="contained" 
+                  style={{ backgroundColor: '#7f56d9' }} 
+                  onClick={handleSaveHiringPreferences}
+                  disabled={savingSection === 'hiring-preferences'}
+                  startIcon={savingSection === 'hiring-preferences' ? <CircularProgress size={20} /> : undefined}
+                >
+                  {savingSection === 'hiring-preferences' ? 'Saving...' : t('profile.save', { defaultValue: 'Save Changes' })}
                 </Button>
               </div>
             </div>,
           )}
         </div>
       </div>
+      )}
     </div>
   );
 };

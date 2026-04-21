@@ -77,6 +77,7 @@ export const COUNTRY_MOBILE_CONFIGS: CountryMobileConfig[] = [
   // Africa
   { code: "NG", country: "Nigeria", dialCode: "+234", digitCount: 10 },
   { code: "KE", country: "Kenya", dialCode: "+254", digitCount: 9 },
+  { code: "RW", country: "Rwanda", dialCode: "+250", digitCount: 9 },
   { code: "ZA", country: "South Africa", dialCode: "+27", digitCount: 9 },
   { code: "GH", country: "Ghana", dialCode: "+233", digitCount: 9 },
   { code: "TZ", country: "Tanzania", dialCode: "+255", digitCount: 9 },

@@ -83,6 +83,12 @@ export interface ExtendedProfile {
   user_id: string;
   resume_headline?: string;
   profile_summary?: string;
+  company_name?: string;
+  industry_category?: string;
+  company_size?: string;
+  company_location?: string;
+  website_url?: string;
+  linkedin_url?: string;
   total_experience_years?: number;
   total_experience_months?: number;
   current_salary?: number;
@@ -186,6 +192,12 @@ export interface CreateAccomplishmentRequest {
 export interface UpdateExtendedProfileRequest {
   resume_headline?: string;
   profile_summary?: string;
+  company_name?: string;
+  industry_category?: string;
+  company_size?: string;
+  company_location?: string;
+  website_url?: string;
+  linkedin_url?: string;
   total_experience_years?: number;
   total_experience_months?: number;
   current_salary?: number;
@@ -203,6 +215,13 @@ export interface UpdateExtendedProfileRequest {
     twitter?: string;
     other?: string;
   };
+}
+
+export interface UpdateCompanyInfoRequest {
+  company_name?: string;
+  industry_category?: string;
+  company_size?: string;
+  company_location?: string;
 }
 
 // ====================== API ======================
@@ -231,6 +250,15 @@ export const extendedProfileApi = createApi({
     updateExtendedProfile: builder.mutation<ApiResponse<ExtendedProfile>, UpdateExtendedProfileRequest>({
       query: (data) => ({
         url: "/profile/extended",
+        method: "PUT",
+        body: data,
+      }),
+      invalidatesTags: ["ExtendedProfile", "FullProfile"],
+    }),
+
+    updateCompanyInfo: builder.mutation<ApiResponse<ExtendedProfile>, UpdateCompanyInfoRequest>({
+      query: (data) => ({
+        url: "/profile/company-info",
         method: "PUT",
         body: data,
       }),
@@ -421,6 +449,7 @@ export const {
   // Extended Profile
   useGetExtendedProfileQuery,
   useUpdateExtendedProfileMutation,
+  useUpdateCompanyInfoMutation,
   // Skills
   useGetSkillsQuery,
   useAddSkillMutation,

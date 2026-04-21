@@ -393,6 +393,14 @@ const Profile: React.FC = () => {
             </div>
           </div>
         </div>
+
+        <EditProfileModal
+          isOpen={isEditProfileModalOpen}
+          onClose={() => setIsEditProfileModalOpen(false)}
+          profileData={profileData}
+          onUpdateSuccess={handleProfileUpdateSuccess}
+          userRole={userRole || ""}
+        />
       </div>
     );
   }
