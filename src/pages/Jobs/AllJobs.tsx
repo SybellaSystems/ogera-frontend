@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
@@ -29,6 +29,7 @@ const AllJobs: React.FC = () => {
   const location = useLocation();
   const roleRaw = useSelector((state: any) => state.auth.role);
   const role = roleRaw ? String(roleRaw).toLowerCase().trim() : "";
+  const isRoleReady = Boolean(role);
   const isUnfundedRoute = location.pathname === "/dashboard/jobs/unfunded";
   const jobsQueryParams =
     role === "employer" && isUnfundedRoute
@@ -36,7 +37,12 @@ const AllJobs: React.FC = () => {
       : role === "employer"
       ? undefined
       : undefined;
-  const { data, isLoading, error, refetch } = useGetAllJobsQuery(jobsQueryParams);
+  const { data, isLoading, isFetching, error, refetch } = useGetAllJobsQuery(jobsQueryParams, {
+    skip: !isRoleReady,
+    refetchOnMountOrArgChange: true,
+    refetchOnFocus: true,
+    refetchOnReconnect: true,
+  });
   const { data: profileData } = useGetUserProfileQuery(undefined);
   const { data: studentApplications, refetch: refetchApplications } = useGetStudentApplicationsQuery(undefined, {
     skip: role !== "student",
@@ -52,6 +58,11 @@ const AllJobs: React.FC = () => {
   const [selectedPaymentRange, setSelectedPaymentRange] = useState("");
   const [savedJobs, setSavedJobs] = useState<Set<string>>(new Set());
   const [reviewJob, { isLoading: isReviewingJob }] = useReviewJobMutation();
+
+  useEffect(() => {
+    if (!isRoleReady) return;
+    refetch();
+  }, [isRoleReady, isUnfundedRoute, refetch]);
   
   // Create a Set of job IDs the student has applied to
   const appliedJobIds = new Set(
@@ -203,7 +214,7 @@ const AllJobs: React.FC = () => {
     }
   };
 
-  if (isLoading) {
+  if (!isRoleReady || (isLoading && !data) || (isFetching && !data)) {
     return <Loader />;
   }
 

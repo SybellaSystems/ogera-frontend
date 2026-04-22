@@ -70,6 +70,7 @@ const JobDetails: React.FC = () => {
   const isEmployerView = (role === "employer" || role === "superadmin") && currentUserId && job?.employer_id === currentUserId;
   const isAlreadyApproved = job?.status === "Active";
   const isAlreadyDisapproved = job?.status === "Inactive";
+  const isReviewLocked = isAlreadyApproved || isAlreadyDisapproved;
 
   const feeInfo = useMemo(() => {
     const budget = Number(job?.budget ?? 0) || 0;
@@ -259,7 +260,7 @@ const JobDetails: React.FC = () => {
               text={isAlreadyApproved ? "Approved" : isUpdatingJob ? "Approving..." : "Approve"}
               onClick={async () => {
                 if (!id) return;
-                if (isAlreadyApproved) return;
+                if (isReviewLocked) return;
                 try {
                   await reviewJob({ id, status: "Active" }).unwrap();
                   toast.success("Job approved successfully.");
@@ -270,14 +271,14 @@ const JobDetails: React.FC = () => {
                   toast.error(err?.data?.message || err?.message || "Failed to approve job. Please try again.");
                 }
               }}
-              disabled={isUpdatingJob || isAlreadyApproved}
+              disabled={isUpdatingJob || isReviewLocked}
             />
             <Button
               backgroundcolor="#dc2626"
               text={isAlreadyDisapproved ? "Disapproved" : isUpdatingJob ? "Updating..." : "Disapprove"}
               onClick={async () => {
                 if (!id) return;
-                if (isAlreadyDisapproved) return;
+                if (isReviewLocked) return;
                 try {
                   await reviewJob({ id, status: "Inactive" }).unwrap();
                   toast.success("Job disapproved successfully.");
@@ -288,7 +289,7 @@ const JobDetails: React.FC = () => {
                   toast.error(err?.data?.message || err?.message || "Failed to disapprove job. Please try again.");
                 }
               }}
-              disabled={isUpdatingJob || isAlreadyDisapproved}
+              disabled={isUpdatingJob || isReviewLocked}
             />
           </div>
         )}
