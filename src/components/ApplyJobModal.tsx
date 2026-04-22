@@ -192,9 +192,24 @@ const ApplyJobModal: React.FC<ApplyJobModalProps> = ({
         onSuccess();
       }
     } catch (err: any) {
-      toast.error(
-        err?.data?.message || err?.data?.error || "Failed to apply for job"
-      );
+      const errorMessage =
+        err?.data?.message || err?.data?.error || "Failed to apply for job";
+      const isFundingInfo = String(errorMessage)
+        .toLowerCase()
+        .includes("not funded");
+
+      if (isFundingInfo) {
+        toast(errorMessage, {
+          icon: "⚠️",
+          style: {
+            background: "#fffbeb",
+            color: "#92400e",
+            border: "1px solid #fde68a",
+          },
+        });
+      } else {
+        toast.error(errorMessage);
+      }
     }
   };
 
