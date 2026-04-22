@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { useFormik } from "formik";
 import { XMarkIcon, DocumentIcon, XCircleIcon } from "@heroicons/react/24/outline";
@@ -109,6 +110,12 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
 
   // derive initial dial code from existing profile number (if any)
   const initialDialCode = (() => {
+    const savedCountryCode = profileData?.country_code;
+    if (savedCountryCode) {
+      const savedDialCode = getCountriesList().find((country) => country.code === savedCountryCode)?.dialCode;
+      if (savedDialCode) return savedDialCode;
+    }
+
     const num = profileData?.mobile_number || "";
     if (num.startsWith("+")) {
       const codes = getCountriesList().map((c) => c.dialCode).sort((a, b) => b.length - a.length);
@@ -222,7 +229,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
           firstName: profileData?.full_name?.split(" ")[0] || "",
           lastName: profileData?.full_name?.split(" ")[1] || "",
           email: profileData?.email || "",
-          countryCode: initialCountryISO, // Reset to default country
+          countryCode: profileData?.country_code || initialCountryISO,
           mobile_number: profileData?.mobile_number || "",
           national_id_number: profileData?.national_id_number || "",
           business_registration_id: profileData?.business_registration_id || "",
@@ -341,10 +348,10 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
     }
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || typeof document === "undefined") return null;
 
-  return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+  return createPortal(
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl p-6 relative max-h-[90vh] overflow-y-auto">
         {/* Close Button */}
         <button
@@ -832,7 +839,8 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

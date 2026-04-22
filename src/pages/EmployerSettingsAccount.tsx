@@ -16,12 +16,16 @@ import {
   BellIcon,
   UserGroupIcon,
   PhoneIcon,
-  CreditCardIcon,
 } from '@heroicons/react/24/outline';
 
+import EditProfileModal from '../components/EditProfileModal';
 import ProfileHeaderCard from '../components/Profile/ProfileHeaderCard';
 import { getUserProfile, type UserProfile } from '../services/api/profileApi';
-import { useGetFullProfileQuery } from '../services/api/extendedProfileApi';
+import {
+  useGetFullProfileQuery,
+  useUpdateCompanyInfoMutation,
+  type UpdateCompanyInfoRequest,
+} from '../services/api/extendedProfileApi';
 import { useGetProfileCompletionQuery } from '../services/api/profileCompletionApi';
 
 interface AccountFormData {
@@ -45,11 +49,19 @@ interface TeamMember {
 
 type AccountSection = 'overview' | 'business' | 'preferences' | 'team';
 
+interface CompanyInfoFormData {
+  company_name: string;
+  industry_category: string;
+  company_size: string;
+  company_location: string;
+}
+
 const EmployerSettingsAccount: React.FC = () => {
   const { t, i18n } = useTranslation();
   const user = useSelector((state: any) => state.auth.user);
   const [profileData, setProfileData] = useState<UserProfile | null>(null);
   const [activeSection, setActiveSection] = useState<AccountSection>('overview');
+  const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
 
   // State management
   const [accountData, setAccountData] = useState<AccountFormData>({
@@ -62,15 +74,23 @@ const EmployerSettingsAccount: React.FC = () => {
     emailNotifications: true,
     inAppNotifications: true,
   });
+  const [companyInfo, setCompanyInfo] = useState<CompanyInfoFormData>({
+    company_name: '',
+    industry_category: '',
+    company_size: '',
+    company_location: '',
+  });
 
   const [teamMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [companySaving, setCompanySaving] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
   const { data: fullProfileData, refetch: refetchFullProfile } = useGetFullProfileQuery();
   const { data: profileCompletionData, refetch: refetchProfileCompletion } = useGetProfileCompletionQuery();
+  const [updateCompanyInfo] = useUpdateCompanyInfoMutation();
 
   useEffect(() => {
     // Load account data
@@ -103,6 +123,16 @@ const EmployerSettingsAccount: React.FC = () => {
     };
   }, []);
 
+  useEffect(() => {
+    const extendedProfile = fullProfileData?.data?.extendedProfile;
+    setCompanyInfo({
+      company_name: extendedProfile?.company_name || '',
+      industry_category: extendedProfile?.industry_category || '',
+      company_size: extendedProfile?.company_size || '',
+      company_location: extendedProfile?.company_location || '',
+    });
+  }, [fullProfileData?.data?.extendedProfile]);
+
   const handleProfileDataRefresh = async () => {
     await Promise.all([
       refetchFullProfile(),
@@ -116,6 +146,8 @@ const EmployerSettingsAccount: React.FC = () => {
       console.error('Failed to refresh profile data:', error);
     }
   };
+
+  const userRole = (profileData?.role?.roleName || user?.role?.roleName || user?.role || '').toString();
 
   // Handle account form changes
   const handleAccountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -134,15 +166,23 @@ const EmployerSettingsAccount: React.FC = () => {
     }));
   };
 
+  const handleCompanyInfoChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setCompanyInfo((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
   // Save account information
   const handleSaveAccount = async () => {
     setSaving(true);
+    setErrorMessage('');
     try {
-      // TODO: Call API to save account data
-      setSuccessMessage(t('common.saved'));
-      setTimeout(() => setSuccessMessage(''), 3000);
+      throw new Error('Account save is not implemented yet');
     } catch (err) {
-      setErrorMessage(t('common.error'));
+      setSuccessMessage('');
+      setErrorMessage(err instanceof Error ? err.message : t('common.error'));
     } finally {
       setSaving(false);
     }
@@ -151,14 +191,70 @@ const EmployerSettingsAccount: React.FC = () => {
   // Save notification preferences
   const handleSaveNotifications = async () => {
     setSaving(true);
+    setErrorMessage('');
     try {
-      // TODO: Call API to save notification preferences
-      setSuccessMessage(t('common.saved'));
-      setTimeout(() => setSuccessMessage(''), 3000);
+      throw new Error('Notification preferences save is not implemented yet');
     } catch (err) {
-      setErrorMessage(t('common.error'));
+      setSuccessMessage('');
+      setErrorMessage(err instanceof Error ? err.message : t('common.error'));
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleSaveCompanyInfo = async () => {
+    setCompanySaving(true);
+    setErrorMessage('');
+    setSuccessMessage('');
+    try {
+      const normalize = (value: string) => value.trim();
+      const payload: UpdateCompanyInfoRequest = {
+        company_name: normalize(companyInfo.company_name),
+        industry_category: normalize(companyInfo.industry_category),
+        company_size: normalize(companyInfo.company_size),
+        company_location: normalize(companyInfo.company_location),
+      };
+
+      const response = await updateCompanyInfo(payload).unwrap();
+      if (!response?.success) {
+        throw new Error(response?.message || 'Failed to update company information');
+      }
+
+      const [refreshedProfile, refreshedCompletion] = await Promise.all([
+        refetchFullProfile(),
+        refetchProfileCompletion(),
+      ]);
+
+      const confirmedCompanyProfile = refreshedProfile.data?.data?.extendedProfile;
+      if (!confirmedCompanyProfile) {
+        throw new Error('Company information was not saved');
+      }
+
+      const matchesPayload =
+        confirmedCompanyProfile.company_name === payload.company_name &&
+        confirmedCompanyProfile.industry_category === payload.industry_category &&
+        confirmedCompanyProfile.company_size === payload.company_size &&
+        confirmedCompanyProfile.company_location === payload.company_location;
+
+      if (!matchesPayload) {
+        throw new Error('Company information was not saved');
+      }
+
+      setCompanyInfo({
+        company_name: confirmedCompanyProfile.company_name || '',
+        industry_category: confirmedCompanyProfile.industry_category || '',
+        company_size: confirmedCompanyProfile.company_size || '',
+        company_location: confirmedCompanyProfile.company_location || '',
+      });
+
+      void refreshedCompletion;
+      setSuccessMessage(response.message || t('common.saved'));
+      setTimeout(() => setSuccessMessage(''), 3000);
+    } catch (err) {
+      setSuccessMessage('');
+      setErrorMessage(err instanceof Error ? err.message : t('common.error'));
+    } finally {
+      setCompanySaving(false);
     }
   };
 
@@ -263,63 +359,85 @@ const EmployerSettingsAccount: React.FC = () => {
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold text-white flex items-center gap-2">
             <BuildingOfficeIcon className="w-6 h-6" />
-            {t('settings.businessOperations')}
+            {t('settings.companyProfile', { defaultValue: 'Company Profile' })}
           </h2>
         </div>
       </div>
       <div className="p-6 space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div>
-            <h3 className="text-sm font-medium text-gray-700 mb-2">
-              {t('settings.companyName')}
-            </h3>
-            <p className="text-gray-900">{user?.company_name || 'N/A'}</p>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {t('settings.companyName', { defaultValue: 'Company Name' })}
+            </label>
+            <TextField
+              fullWidth
+              size="small"
+              name="company_name"
+              value={companyInfo.company_name}
+              onChange={handleCompanyInfoChange}
+              placeholder={t('settings.enterCompanyName', { defaultValue: 'Enter company name' })}
+              variant="outlined"
+            />
           </div>
 
           <div>
-            <h3 className="text-sm font-medium text-gray-700 mb-2">
-              {t('settings.subscriptionPlan')}
-            </h3>
-            <div className="inline-block px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-sm font-medium">
-              {t('settings.subscriptionPro')}
-            </div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {t('settings.industryCategory', { defaultValue: 'Industry Category' })}
+            </label>
+            <TextField
+              fullWidth
+              size="small"
+              name="industry_category"
+              value={companyInfo.industry_category}
+              onChange={handleCompanyInfoChange}
+              placeholder={t('settings.enterIndustryCategory', { defaultValue: 'Enter industry category' })}
+              variant="outlined"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {t('settings.companySize', { defaultValue: 'Company Size' })}
+            </label>
+            <TextField
+              fullWidth
+              size="small"
+              name="company_size"
+              value={companyInfo.company_size}
+              onChange={handleCompanyInfoChange}
+              placeholder={t('settings.enterCompanySize', { defaultValue: 'e.g. 11-50 employees' })}
+              variant="outlined"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {t('settings.companyLocation', { defaultValue: 'Company Location' })}
+            </label>
+            <TextField
+              fullWidth
+              size="small"
+              name="company_location"
+              value={companyInfo.company_location}
+              onChange={handleCompanyInfoChange}
+              placeholder={t('settings.enterCompanyLocation', { defaultValue: 'Enter company location' })}
+              variant="outlined"
+            />
           </div>
         </div>
 
-        <div className="border-t border-gray-200 pt-6">
-          <h3 className="text-sm font-medium text-gray-700 mb-4">
-            {t('settings.accountStats')}
-          </h3>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
-              <p className="text-xs font-medium text-blue-600 uppercase">
-                {t('settings.activeJobs')}
-              </p>
-              <p className="text-2xl font-bold text-blue-900 mt-1">5/10</p>
-            </div>
-
-            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
-              <p className="text-xs font-medium text-green-600 uppercase">
-                {t('settings.billingStatus')}
-              </p>
-              <p className="text-lg font-bold text-green-900 mt-1">
-                {t('settings.active')}
-              </p>
-            </div>
-
-            <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
-              <p className="text-xs font-medium text-purple-600 uppercase">
-                {t('settings.paymentMethod')}
-              </p>
-              <div className="flex items-center gap-2 mt-2">
-                <CreditCardIcon className="w-5 h-5 text-purple-600" />
-                <span className="text-sm font-medium text-purple-900">
-                  {t('settings.creditCard')}
-                </span>
-              </div>
-            </div>
-          </div>
+        <div className="pt-4 border-t border-gray-200 flex items-center justify-between gap-4">
+          <p className="text-sm text-gray-500">
+            {t('settings.companyProfileDescription', { defaultValue: 'These details are shown on your employer profile.' })}
+          </p>
+          <Button
+            variant="contained"
+            style={{ backgroundColor: '#7f56d9' }}
+            disabled={companySaving}
+            onClick={handleSaveCompanyInfo}
+          >
+            {companySaving ? <CircularProgress size={20} /> : t('common.save')}
+          </Button>
         </div>
       </div>
     </div>
@@ -503,6 +621,7 @@ const EmployerSettingsAccount: React.FC = () => {
           profileCompletion={profileCompletionData?.data?.profile_completion_percentage || 0}
           wrapperClassName="mb-8"
           contentClassName="w-full px-0 py-6"
+          onEditProfileClick={() => setIsEditProfileModalOpen(true)}
           onProfileDataRefresh={handleProfileDataRefresh}
         />
 
@@ -583,6 +702,14 @@ const EmployerSettingsAccount: React.FC = () => {
           </div>
         </div>
       </div>
+
+      <EditProfileModal
+        isOpen={isEditProfileModalOpen}
+        onClose={() => setIsEditProfileModalOpen(false)}
+        profileData={profileData}
+        onUpdateSuccess={handleProfileDataRefresh}
+        userRole={userRole}
+      />
     </div>
   );
 };

@@ -20,6 +20,7 @@ import {
 } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 
+import EditProfileModal from '../components/EditProfileModal';
 import ProfileHeaderCard from '../components/Profile/ProfileHeaderCard';
 import { getUserProfile, type UserProfile } from '../services/api/profileApi';
 import { useGetFullProfileQuery } from '../services/api/extendedProfileApi';
@@ -42,6 +43,7 @@ const EmployerSettingsSecurity: React.FC = () => {
   const user = useSelector((state: any) => state.auth.user);
   const [profileData, setProfileData] = useState<UserProfile | null>(null);
   const [activeSection, setActiveSection] = useState<SecuritySection>('password');
+  const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -90,6 +92,8 @@ const EmployerSettingsSecurity: React.FC = () => {
       console.error('Failed to refresh profile data:', error);
     }
   };
+
+  const userRole = (profileData?.role?.roleName || user?.role?.roleName || user?.role || '').toString();
 
   const securitySidebarItems: Array<{
     key: SecuritySection;
@@ -415,6 +419,7 @@ const EmployerSettingsSecurity: React.FC = () => {
           profileCompletion={profileCompletionData?.data?.profile_completion_percentage || 0}
           wrapperClassName="mb-8"
           contentClassName="w-full px-0 py-6"
+          onEditProfileClick={() => setIsEditProfileModalOpen(true)}
           onProfileDataRefresh={handleProfileDataRefresh}
         />
 
@@ -487,6 +492,14 @@ const EmployerSettingsSecurity: React.FC = () => {
           </div>
         </div>
       </div>
+
+      <EditProfileModal
+        isOpen={isEditProfileModalOpen}
+        onClose={() => setIsEditProfileModalOpen(false)}
+        profileData={profileData}
+        onUpdateSuccess={handleProfileDataRefresh}
+        userRole={userRole}
+      />
     </div>
   );
 };
