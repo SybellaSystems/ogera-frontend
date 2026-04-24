@@ -5,6 +5,7 @@ import { uploadResume } from "../services/api/resumeApi";
 import { useGetUserProfileQuery } from "../services/api/authApi";
 import toast from "react-hot-toast";
 import type { Job } from "../services/api/jobsApi";
+import { SUPPORTED_CURRENCIES } from "../constants/currencies";
 
 const MIN_COVER_LETTER_LENGTH = 50;
 
@@ -26,6 +27,7 @@ const ApplyJobModal: React.FC<ApplyJobModalProps> = ({
   const [resumeUrl, setResumeUrl] = useState<string | null>(null);
   const [isUploadingResume, setIsUploadingResume] = useState(false);
   const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [preferredPayoutCurrency, setPreferredPayoutCurrency] = useState("USD");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [applyForJob, { isLoading }] = useApplyForJobMutation();
 
@@ -54,6 +56,10 @@ const ApplyJobModal: React.FC<ApplyJobModalProps> = ({
       setAnswers(initialAnswers);
     }
   }, [job.questions]);
+
+  useEffect(() => {
+    setPreferredPayoutCurrency(job.currency || "USD");
+  }, [job.currency, isOpen]);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -176,6 +182,7 @@ const ApplyJobModal: React.FC<ApplyJobModalProps> = ({
         data: {
           cover_letter: coverLetter.trim() || undefined,
           resume_url: resumeUrl || undefined,
+          preferred_payout_currency: preferredPayoutCurrency,
           answers: answersArray.length > 0 ? answersArray : undefined,
         },
       }).unwrap();
@@ -184,6 +191,7 @@ const ApplyJobModal: React.FC<ApplyJobModalProps> = ({
       setResumeFile(null);
       setResumeUrl(null);
       setAnswers({});
+      setPreferredPayoutCurrency(job.currency || "USD");
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
@@ -447,6 +455,28 @@ const ApplyJobModal: React.FC<ApplyJobModalProps> = ({
                 })}
             </div>
           )}
+
+          {/* Cover Letter */}
+          <div>
+            <label
+              htmlFor="preferredPayoutCurrency"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Preferred payout currency
+            </label>
+            <select
+              id="preferredPayoutCurrency"
+              value={preferredPayoutCurrency}
+              onChange={(e) => setPreferredPayoutCurrency(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+            >
+              {SUPPORTED_CURRENCIES.map((currency) => (
+                <option key={currency.code} value={currency.code}>
+                  {currency.code} - {currency.label}
+                </option>
+              ))}
+            </select>
+          </div>
 
           {/* Cover Letter */}
           <div>

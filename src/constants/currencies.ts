@@ -31,6 +31,8 @@ export const SUPPORTED_CURRENCIES: SupportedCurrency[] = [
   { code: "SZL", label: "Eswatini Lilangeni" },
   { code: "LSL", label: "Lesotho Loti" },
   { code: "USD", label: "US Dollar" },
+  { code: "EUR", label: "EUR Dollar" },
+
 ];
 
 export const formatBudgetWithCurrency = (

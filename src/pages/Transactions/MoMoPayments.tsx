@@ -206,9 +206,45 @@ const MoMoPayments: React.FC = () => {
               <div>
                 <dt className="text-gray-500">Amount sent to student (90% of wallet)</dt>
                 <dd className="text-xl font-bold text-emerald-600">
-                  {(payoutModal.amount_paid_to_student ?? payoutModal.budget ?? 0).toLocaleString()} RWF
+                  {(payoutModal.amount_paid_to_student ?? payoutModal.budget ?? 0).toLocaleString()} {payoutModal.amount_paid_to_student_currency || payoutModal.currency || "USD"}
                 </dd>
               </div>
+              {payoutModal.transaction_details?.funding && (
+                <div>
+                  <dt className="text-gray-500">Funding conversion (Employer to Wallet)</dt>
+                  <dd className="text-gray-900">
+                    {payoutModal.transaction_details.funding.original_amount.toLocaleString()} {payoutModal.transaction_details.funding.original_currency}
+                    {" -> "}
+                    {payoutModal.transaction_details.funding.converted_amount.toLocaleString()} {payoutModal.transaction_details.funding.converted_currency}
+                    {" @ "}
+                    {payoutModal.transaction_details.funding.exchange_rate}
+                  </dd>
+                </div>
+              )}
+              {payoutModal.transaction_details?.wallet_deduction && (
+                <div>
+                  <dt className="text-gray-500">Wallet deduction conversion</dt>
+                  <dd className="text-gray-900">
+                    {payoutModal.transaction_details.wallet_deduction.original_amount.toLocaleString()} {payoutModal.transaction_details.wallet_deduction.original_currency}
+                    {" -> "}
+                    {payoutModal.transaction_details.wallet_deduction.converted_amount.toLocaleString()} {payoutModal.transaction_details.wallet_deduction.converted_currency}
+                    {" @ "}
+                    {payoutModal.transaction_details.wallet_deduction.exchange_rate}
+                  </dd>
+                </div>
+              )}
+              {payoutModal.transaction_details?.student_payout && (
+                <div>
+                  <dt className="text-gray-500">Student payout conversion (Wallet to Student)</dt>
+                  <dd className="text-gray-900">
+                    {payoutModal.transaction_details.student_payout.original_amount.toLocaleString()} {payoutModal.transaction_details.student_payout.original_currency}
+                    {" -> "}
+                    {payoutModal.transaction_details.student_payout.converted_amount.toLocaleString()} {payoutModal.transaction_details.student_payout.converted_currency}
+                    {" @ "}
+                    {payoutModal.transaction_details.student_payout.exchange_rate}
+                  </dd>
+                </div>
+              )}
               <div>
                 <dt className="text-gray-500">Paid at</dt>
                 <dd className="text-gray-900">
