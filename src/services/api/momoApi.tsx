@@ -28,6 +28,7 @@ export interface JobPaymentItem {
   job_id: string;
   job_title: string;
   budget: number;
+  currency?: string;
   funding_status: string;
   momo_reference_id: string | null;
   momo_paid_at: string | null;
@@ -35,7 +36,41 @@ export interface JobPaymentItem {
   paid_at?: string | null;
   /** Amount actually sent to student (90% of employer payment). */
   amount_paid_to_student?: number | null;
+  amount_paid_to_student_currency?: string | null;
+  wallet_deduction_amount?: number | null;
+  wallet_currency?: string | null;
+  transaction_details?: {
+    funding?: {
+      original_amount: number;
+      original_currency: string;
+      converted_amount: number;
+      converted_currency: string;
+      exchange_rate: number;
+      fx_timestamp?: string;
+    } | null;
+    wallet_deduction?: {
+      original_amount: number;
+      original_currency: string;
+      converted_amount: number;
+      converted_currency: string;
+      exchange_rate: number;
+      fx_timestamp?: string;
+    } | null;
+    student_payout?: {
+      original_amount: number;
+      original_currency: string;
+      converted_amount: number;
+      converted_currency: string;
+      exchange_rate: number;
+      fx_timestamp?: string;
+    } | null;
+  };
   employer?: { user_id: string; full_name: string; email?: string; mobile_number?: string };
+}
+
+export interface JobPaymentDetailResponse {
+  success: boolean;
+  data?: JobPaymentItem;
 }
 
 export interface WalletBalanceResponse {
@@ -76,6 +111,13 @@ export const momoApi = apiSlice.injectEndpoints({
       }),
       providesTags: ["MoMoPayments"],
     }),
+    getJobPaymentDetail: builder.query<JobPaymentDetailResponse, string>({
+      query: (jobId) => ({
+        url: `/momo/job/${jobId}/payment-detail`,
+        method: "GET",
+      }),
+      providesTags: ["MoMoPayments"],
+    }),
     getWalletBalance: builder.query<WalletBalanceResponse, void>({
       query: () => ({
         url: "/momo/admin/wallet-balance",
@@ -99,6 +141,7 @@ export const {
   useLazyGetMoMoStatusQuery,
   useGetMoMoStatusQuery,
   useListJobPaymentsQuery,
+  useGetJobPaymentDetailQuery,
   useGetWalletBalanceQuery,
   useApproveWorkAndPayMutation,
 } = momoApi;

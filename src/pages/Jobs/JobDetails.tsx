@@ -15,6 +15,7 @@ import { useGetJobByIdQuery, useReviewJobMutation } from "../../services/api/job
 import { useGetUserProfileQuery } from "../../services/api/authApi";
 import { useCheckStudentApplicationQuery } from "../../services/api/jobApplicationApi";
 import { useFundJobMutation, useLazyGetMoMoStatusQuery, useApproveWorkAndPayMutation } from "../../services/api/momoApi";
+import { useGetJobPaymentDetailQuery } from "../../services/api/momoApi";
 import { apiSlice } from "../../services/api/apiSlice";
 import ApplyJobModal from "../../components/ApplyJobModal";
 import Loader from "../../components/Loader";
@@ -44,6 +45,9 @@ const JobDetails: React.FC = () => {
   const [fundJob, { isLoading: isFunding }] = useFundJobMutation();
   const [getMoMoStatus] = useLazyGetMoMoStatusQuery();
   const [approveWorkAndPay, { isLoading: isPaying }] = useApproveWorkAndPayMutation();
+  const { data: paymentDetailData } = useGetJobPaymentDetailQuery(id || "", {
+    skip: !id || (normalizedRole !== "employer" && normalizedRole !== "superadmin" && normalizedRole !== "admin"),
+  });
   const [reviewJob, { isLoading: isUpdatingJob }] = useReviewJobMutation();
 
    const job = data?.data;
@@ -74,10 +78,9 @@ const JobDetails: React.FC = () => {
 
   const feeInfo = useMemo(() => {
     const budget = Number(job?.budget ?? 0) || 0;
-    const platformFee = Math.round(budget * 0.1);
-    const total = budget + platformFee;
-    return { budget, platformFee, total };
+    return { budget };
   }, [job?.budget]);
+  const jobPayment = paymentDetailData?.data;
 
   
 
@@ -442,17 +445,18 @@ const JobDetails: React.FC = () => {
                   <div className="border border-gray-200 rounded-xl p-4 bg-gray-50">
                     <div className="flex items-center justify-between text-sm text-gray-700">
                       <span>Job amount</span>
-                      <span className="font-semibold">{feeInfo.budget.toLocaleString()} RWF</span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm text-gray-700 mt-2">
-                      <span>Platform fee (10%)</span>
-                      <span className="font-semibold">{feeInfo.platformFee.toLocaleString()} RWF</span>
+                      <span className="font-semibold">{feeInfo.budget.toLocaleString()} {job.currency || "USD"}</span>
                     </div>
                     <div className="h-px bg-gray-200 my-3" />
                     <div className="flex items-center justify-between">
                       <span className="text-gray-900 font-semibold">Total to pay</span>
-                      <span className="text-xl font-extrabold text-purple-700">{feeInfo.total.toLocaleString()} RWF</span>
+                      <span className="text-xl font-extrabold text-purple-700">{feeInfo.budget.toLocaleString()} {job.currency || "USD"}</span>
                     </div>
+                    {jobPayment?.transaction_details?.funding && (
+                      <div className="mt-3 text-xs text-gray-600">
+                        Wallet credit preview: {jobPayment.transaction_details.funding.original_amount.toLocaleString()} {jobPayment.transaction_details.funding.original_currency} to {jobPayment.transaction_details.funding.converted_amount.toLocaleString()} {jobPayment.transaction_details.funding.converted_currency} @ {jobPayment.transaction_details.funding.exchange_rate}
+                      </div>
+                    )}
                   </div>
 
                   <p className="text-sm text-gray-600 mt-4">
@@ -505,9 +509,36 @@ const JobDetails: React.FC = () => {
                         }
                       }}
                     >
-                      {isFunding ? "Sending…" : `Pay ${feeInfo.total.toLocaleString()} RWF`}
+                      {isFunding ? "Sending…" : `Pay ${feeInfo.budget.toLocaleString()} ${job.currency || "USD"}`}
                     </button>
                   </div>
+                </div>
+              </div>
+            )}
+
+            {/* Employer transaction details with FX breakdown */}
+            {isEmployerView && jobPayment && (
+              <div className="mt-4 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                <h3 className="text-lg font-semibold text-slate-900 mb-2">Transaction conversion details</h3>
+                <div className="space-y-2 text-sm text-slate-700">
+                  <div>
+                    Job currency: <strong>{jobPayment.currency || job.currency || "USD"}</strong> | Wallet currency: <strong>{jobPayment.wallet_currency || "USD"}</strong>
+                  </div>
+                  {jobPayment.transaction_details?.funding && (
+                    <div>
+                      Funding: {jobPayment.transaction_details.funding.original_amount.toLocaleString()} {jobPayment.transaction_details.funding.original_currency} to {jobPayment.transaction_details.funding.converted_amount.toLocaleString()} {jobPayment.transaction_details.funding.converted_currency} @ {jobPayment.transaction_details.funding.exchange_rate}
+                    </div>
+                  )}
+                  {jobPayment.transaction_details?.wallet_deduction && (
+                    <div>
+                      Wallet deduction: {jobPayment.transaction_details.wallet_deduction.original_amount.toLocaleString()} {jobPayment.transaction_details.wallet_deduction.original_currency} to {jobPayment.transaction_details.wallet_deduction.converted_amount.toLocaleString()} {jobPayment.transaction_details.wallet_deduction.converted_currency} @ {jobPayment.transaction_details.wallet_deduction.exchange_rate}
+                    </div>
+                  )}
+                  {jobPayment.transaction_details?.student_payout && (
+                    <div>
+                      Student payout: {jobPayment.transaction_details.student_payout.original_amount.toLocaleString()} {jobPayment.transaction_details.student_payout.original_currency} to {jobPayment.transaction_details.student_payout.converted_amount.toLocaleString()} {jobPayment.transaction_details.student_payout.converted_currency} @ {jobPayment.transaction_details.student_payout.exchange_rate}
+                    </div>
+                  )}
                 </div>
               </div>
             )}

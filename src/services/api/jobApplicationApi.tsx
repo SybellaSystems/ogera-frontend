@@ -7,6 +7,7 @@ export interface JobApplication {
   status: "Pending" | "Accepted" | "Rejected";
   cover_letter?: string;
   resume_url?: string;
+  preferred_payout_currency?: string;
   applied_at: string;
   reviewed_at?: string;
   reviewed_by?: string;
@@ -42,6 +43,7 @@ export interface JobApplicationAnswer {
 export interface ApplyForJobRequest {
   cover_letter?: string;
   resume_url?: string;
+  preferred_payout_currency?: string;
   answers?: JobApplicationAnswer[];
 }
 

@@ -5,6 +5,7 @@ import {
   useUpdateApplicationStatusMutation,
 } from "../../services/api/jobApplicationApi";
 import { useGetJobByIdQuery } from "../../services/api/jobsApi";
+import { useGetJobPaymentDetailQuery } from "../../services/api/momoApi";
 import {
   BriefcaseIcon,
   UserIcon,
@@ -24,6 +25,7 @@ const ViewJobApplications: React.FC = () => {
   const navigate = useNavigate();
   const { data: jobData, isLoading: isLoadingJob } = useGetJobByIdQuery(id || "");
   const { data, isLoading, error, refetch } = useGetJobApplicationsQuery(id || "");
+  const { data: paymentDetailData } = useGetJobPaymentDetailQuery(id || "", { skip: !id });
   const [updateStatus, { isLoading: isUpdating }] =
     useUpdateApplicationStatusMutation();
   const [updatingId, setUpdatingId] = useState<string | null>(null);
@@ -37,6 +39,7 @@ const ViewJobApplications: React.FC = () => {
 
   const applications = data?.data || [];
   const job = jobData?.data;
+  const payment = paymentDetailData?.data;
 
   const handleStatusUpdate = async (
     applicationId: string,
@@ -254,7 +257,9 @@ const ViewJobApplications: React.FC = () => {
           <div>
             <p className="text-gray-600 dark:text-[var(--theme-text-secondary)]">Employer funded amount</p>
             <p className="font-semibold text-gray-900 dark:text-[var(--theme-text-primary)]">
-              {(Number(job.budget || 0) * 1.1).toLocaleString()} RWF
+              {payment?.transaction_details?.funding
+                ? `${payment.transaction_details.funding.original_amount.toLocaleString()} ${payment.transaction_details.funding.original_currency}`
+                : `${Number(job.budget || 0).toLocaleString()} ${job.currency || "USD"}`}
             </p>
           </div>
           <div>
@@ -284,7 +289,11 @@ const ViewJobApplications: React.FC = () => {
           <div>
             <p className="text-gray-600 dark:text-[var(--theme-text-secondary)]">Amount sent to student</p>
             <p className="font-semibold text-gray-900 dark:text-[var(--theme-text-primary)]">
-              {job.amount_paid_to_student != null ? `${Number(job.amount_paid_to_student).toLocaleString()} RWF` : "Not paid yet"}
+              {payment?.transaction_details?.student_payout
+                ? `${payment.transaction_details.student_payout.converted_amount.toLocaleString()} ${payment.transaction_details.student_payout.converted_currency}`
+                : job.amount_paid_to_student != null
+                ? `${Number(job.amount_paid_to_student).toLocaleString()} ${job.currency || "USD"}`
+                : "Not paid yet"}
             </p>
           </div>
           <div>
@@ -295,6 +304,24 @@ const ViewJobApplications: React.FC = () => {
             </p>
           </div>
         </div>
+        {payment?.transaction_details?.funding && (
+          <div className="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200 text-sm space-y-1">
+            <p className="font-semibold text-gray-900">FX conversion details</p>
+            <p className="text-gray-700">
+              Funding: {payment.transaction_details.funding.original_amount.toLocaleString()} {payment.transaction_details.funding.original_currency} to {payment.transaction_details.funding.converted_amount.toLocaleString()} {payment.transaction_details.funding.converted_currency} @ {payment.transaction_details.funding.exchange_rate}
+            </p>
+            {payment.transaction_details.wallet_deduction && (
+              <p className="text-gray-700">
+                Wallet deduction: {payment.transaction_details.wallet_deduction.original_amount.toLocaleString()} {payment.transaction_details.wallet_deduction.original_currency} to {payment.transaction_details.wallet_deduction.converted_amount.toLocaleString()} {payment.transaction_details.wallet_deduction.converted_currency} @ {payment.transaction_details.wallet_deduction.exchange_rate}
+              </p>
+            )}
+            {payment.transaction_details.student_payout && (
+              <p className="text-gray-700">
+                Student payout: {payment.transaction_details.student_payout.original_amount.toLocaleString()} {payment.transaction_details.student_payout.original_currency} to {payment.transaction_details.student_payout.converted_amount.toLocaleString()} {payment.transaction_details.student_payout.converted_currency} @ {payment.transaction_details.student_payout.exchange_rate}
+              </p>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Statistics */}
