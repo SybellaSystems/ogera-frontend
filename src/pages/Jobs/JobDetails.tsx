@@ -31,11 +31,14 @@ const JobDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
   const role = useSelector((state: any) => state.auth.role);
+  const accessToken = useSelector((state: any) => state.auth.accessToken);
   const normalizedRole = role ? String(role).toLowerCase().trim() : "";
   const { data, isLoading, error, refetch } = useGetJobByIdQuery(id || "");
-  const { data: profileData } = useGetUserProfileQuery(undefined);
+  const { data: profileData } = useGetUserProfileQuery(undefined, {
+    skip: !accessToken,
+  });
   const { data: applicationCheck, refetch: refetchApplicationCheck } = useCheckStudentApplicationQuery(id || "", {
-    skip: !id || role !== "student",
+    skip: !id || role !== "student" || !accessToken,
   });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [savedJobs, setSavedJobs] = useState<Set<string>>(new Set());
@@ -613,7 +616,7 @@ const JobDetails: React.FC = () => {
             {job.questions.length > 1 ? "s" : ""} when applying for this job.
           </p>
           <ul className="space-y-2">
-            {job.questions
+            {[...job.questions]
               .sort((a, b) => (a.display_order || 0) - (b.display_order || 0))
               .map((question, index) => (
                 <li key={question.question_id || index} className="text-sm md:text-base text-blue-800">

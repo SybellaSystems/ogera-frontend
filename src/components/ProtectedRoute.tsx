@@ -7,6 +7,7 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles }) => {
   const roleRaw = useSelector((state: any) => state.auth.role);
+  const accessToken = useSelector((state: any) => state.auth.accessToken);
   const user = useSelector((state: any) => state.auth.user);
 
   // Safely extract role as string — could be object { roleName, roleType } or string
@@ -14,8 +15,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles }) => {
     ? (roleRaw?.roleType || roleRaw?.roleName || '')
     : (typeof roleRaw === 'string' ? roleRaw : '');
 
-  // If no user is logged in, redirect to login
-  if (!user || !role) {
+  // If no user/session is ready, redirect to login.
+  // Landing/app-flow can restore user/role from storage while token refresh is still pending.
+  if (!user || !role || !accessToken) {
     return <Navigate to="/auth/login" replace />;
   }
 

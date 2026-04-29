@@ -29,7 +29,9 @@ const useRefreshOnLoad = () => {
       // ⭐ Step 0: Check for the "isLoggedIn" hint cookie
       const hasSessionHint = document.cookie
         .split(";")
-        .some((item) => item.trim().startsWith("isLoggedIn="));
+        .some((item) =>
+          item.trim().startsWith("ogera_logged_in=") || item.trim().startsWith("isLoggedIn=")
+        );
 
       if (!hasSessionHint) {
         console.log("ℹ️ No session hint found. Skipping auto-refresh.");
