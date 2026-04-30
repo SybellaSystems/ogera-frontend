@@ -26,16 +26,15 @@ const useRefreshOnLoad = () => {
 
   useEffect(() => {
     const refreshAndFetchUser = async () => {
-      // ⭐ Step 0: Check for the "isLoggedIn" hint cookie
+      // Session hints can come from backend (`isLoggedIn`) or shared
+      // cross-app cookies (`ogera_logged_in`). In production, one of them
+      // might be missing depending on domain/cookie scope.
       const hasSessionHint = document.cookie
         .split(";")
-        .some((item) => item.trim().startsWith("isLoggedIn="));
-
-      if (!hasSessionHint) {
-        console.log("ℹ️ No session hint found. Skipping auto-refresh.");
-        setIsLoading(false);
-        return;
-      }
+        .some((item) => {
+          const key = item.trim().split("=")[0];
+          return key === "isLoggedIn" || key === "ogera_logged_in";
+        });
 
       try {
         // Step 1: Refresh the access token
@@ -46,7 +45,7 @@ const useRefreshOnLoad = () => {
 
         const newAccessToken = refreshRes.data.data.accessToken;
 
-        // Step 2: Fetch full user profile if not in state
+        // Step 2: Fetch full user profile if role is missing
         if (!currentRole) {
           const userRes = await axios.get<UserResponse>(`${BASE_URL}/auth/me`, {
             headers: { Authorization: `Bearer ${newAccessToken}` },
@@ -69,14 +68,20 @@ const useRefreshOnLoad = () => {
 
         setIsLoading(false);
       } catch (err: any) {
-        // If refresh fails (e.g., token expired), clear hint and logout
+        // If refresh fails and we had a session hint, clear stale hints and logout.
+        // If no hint exists, user is likely just unauthenticated, so skip logout noise.
         if (err?.response?.status === 401) {
-          console.warn("⚠️ Session hint was present but session is invalid.");
-          document.cookie = "isLoggedIn=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+          if (hasSessionHint) {
+            console.warn("⚠️ Session hint was present but session is invalid.");
+            document.cookie = "isLoggedIn=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            document.cookie = "ogera_logged_in=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+          }
         } else {
           console.error("❌ Refresh failed unexpectedly:", err);
         }
-        dispatch(logout());
+        if (hasSessionHint) {
+          dispatch(logout());
+        }
         setIsLoading(false);
       }
     };
