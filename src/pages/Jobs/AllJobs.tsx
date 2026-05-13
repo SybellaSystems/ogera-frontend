@@ -142,43 +142,40 @@ const AllJobs: React.FC = () => {
   const roleRaw = useSelector((state: any) => state.auth.role);
   const role = roleRaw ? String(roleRaw).toLowerCase().trim() : "";
   const isRoleReady = Boolean(role);
-  const isUnfundedRoute = location.pathname === "/dashboard/jobs/unfunded";
+const isUnfundedRoute = location.pathname === "/dashboard/jobs/unfunded";
 
-  const [selectedJob, setSelectedJob] = useState<any>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [toggleStatus, { isLoading: isToggling }] = useToggleJobStatusMutation();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedLocation, setSelectedLocation] = useState("");
-  const [selectedStatus, setSelectedStatus] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [selectedPaymentRange, setSelectedPaymentRange] = useState("");
-  const [savedJobs, setSavedJobs] = useState<Set<string>>(new Set());
-  const [reviewJob, { isLoading: isReviewingJob }] = useReviewJobMutation();
-  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
-  const [showFilters, setShowFilters] = useState(false);
+const [selectedJob, setSelectedJob] = useState<any>(null);
+const [isModalOpen, setIsModalOpen] = useState(false);
+const [toggleStatus, { isLoading: isToggling }] = useToggleJobStatusMutation();
+const [searchQuery, setSearchQuery] = useState("");
+const [selectedLocation, setSelectedLocation] = useState("");
+const [selectedStatus, setSelectedStatus] = useState("");
+const [selectedCategory, setSelectedCategory] = useState("");
+const [selectedPaymentRange, setSelectedPaymentRange] = useState("");
+const [savedJobs, setSavedJobs] = useState<Set<string>>(new Set());
+const [reviewJob, { isLoading: isReviewingJob }] = useReviewJobMutation();
+const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+const [showFilters, setShowFilters] = useState(false);
 
-  const jobsQueryParams = {
-    ...(role === "employer" && isUnfundedRoute ? { funded: false } : {}),
-    ...(searchQuery ? { search: searchQuery } : {}),
-    ...(selectedLocation ? { location: selectedLocation } : {}),
-    ...(selectedStatus ? { status: selectedStatus as any } : {}),
-    ...(selectedCategory ? { category: selectedCategory } : {}),
-    ...(selectedPaymentRange ? { payment_range: selectedPaymentRange } : {}),
-  };
-
-  const { data, isLoading, isFetching, error, refetch } = useGetAllJobsQuery(jobsQueryParams, {
+const jobsQueryParams = {
+  ...(role === "employer" && isUnfundedRoute ? { funded: false } : {}),
+  ...(searchQuery ? { search: searchQuery } : {}),
+  ...(selectedLocation ? { location: selectedLocation } : {}),
+  ...(selectedStatus ? { status: selectedStatus as any } : {}),
+  ...(selectedCategory ? { category: selectedCategory } : {}),
+  ...(selectedPaymentRange ? { payment_range: selectedPaymentRange } : {}),
+}; const { data, isLoading, isFetching, error, refetch } = useGetAllJobsQuery(jobsQueryParams, {
     skip: !isRoleReady,
     refetchOnMountOrArgChange: true,
     refetchOnFocus: true,
     refetchOnReconnect: true,
-  });
-
-  const { data: studentApplications, refetch: refetchApplications } = useGetStudentApplicationsQuery(undefined, {
+  });const { data: studentApplications, refetch: refetchApplications } =
+  useGetStudentApplicationsQuery(undefined, {
     skip: role !== "student",
   });
 
-  useEffect(() => {
-    if (!isRoleReady) return;
+useEffect(() => {
+  if (!isRoleReady) return;
     refetch();
   }, [isRoleReady, isUnfundedRoute, refetch]);
 
@@ -214,15 +211,18 @@ const AllJobs: React.FC = () => {
   const jobs = data?.data || [];
   const isFundedJob = (fundingStatus?: string | null) =>
     fundingStatus === "Funded" || fundingStatus === "Paid";
+const filteredJobs = jobs.filter((job: any) => {
+  // Backend now handles filtering; keep only route-level constraints.
+  if (
+    (role === "superadmin" || role === "admin") &&
+    isUnfundedRoute &&
+    isFundedJob(job.funding_status)
+  ) {
+    return false;
+  }
 
-  const filteredJobs = jobs.filter((job: any) => {
-    if (
-      (role === "superadmin" || role === "admin") &&
-      isUnfundedRoute &&
-      isFundedJob(job.funding_status)
-    ) return false;
-    return true;
-  });
+  return true;
+});
 
   const locations = Array.from(new Set(jobs.map((j: any) => j.location).filter(Boolean)));
   const statuses = ["Active", "Pending", "Inactive", "Completed"];
@@ -822,7 +822,6 @@ const AllJobs: React.FC = () => {
         </div>
       )}
 
-      {/* Apply modal */}
       {selectedJob && (
         <ApplyJobModal
           job={selectedJob}
