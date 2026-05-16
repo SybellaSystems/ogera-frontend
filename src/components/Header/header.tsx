@@ -2,7 +2,18 @@ import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
-import { BellIcon, Bars3Icon, LanguageIcon, ChevronDownIcon, SunIcon, MoonIcon } from "@heroicons/react/24/outline";
+import {
+  BellIcon,
+  Bars3Icon,
+  LanguageIcon,
+  ChevronDownIcon,
+  SunIcon,
+  MoonIcon,
+  BriefcaseIcon,
+  ChatBubbleLeftRightIcon,
+  CheckCircleIcon,
+  MegaphoneIcon,
+} from "@heroicons/react/24/outline";
 import { logoutApi } from "../../services/api/logoutApi";
 import i18n, { supportedLanguages } from "../../i18n";
 import { useTheme } from "../../contexts/ThemeContext";
@@ -11,8 +22,10 @@ import {
   useGetNotificationsQuery,
   useMarkNotificationAsReadMutation,
   useMarkAllNotificationsAsReadMutation,
+  type Notification,
 } from "../../services/api/notificationApi";
 import { hasAnyPermission } from "../../utils/permissionUtils";
+import { getSocket } from "../../utils/socket";
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -26,6 +39,8 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   const [isLanguageDropdownOpen, setIsLanguageDropdownOpen] = useState(false);
   const [isThemeDropdownOpen, setIsThemeDropdownOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [liveUnreadCount, setLiveUnreadCount] = useState(0);
+  const [liveNotifications, setLiveNotifications] = useState<Notification[]>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const notificationDropdownRef = useRef<HTMLDivElement>(null);
   const languageDropdownRef = useRef<HTMLDivElement>(null);
@@ -44,6 +59,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
     hasAnyPermission(permissions, "/notifications", roleRaw);
 
   const user = useSelector((state: any) => state.auth.user);
+  const accessToken = useSelector((state: any) => state.auth.accessToken);
   const userInitials = (user?.full_name || "U").split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase();
   
   // Get unread notification count for employers/superadmins and students
@@ -63,8 +79,42 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   const [markAsRead] = useMarkNotificationAsReadMutation();
   const [markAllAsRead] = useMarkAllNotificationsAsReadMutation();
 
-  const unreadCount = unreadCountData?.data?.count || 0;
-  const notifications = notificationsData?.data || [];
+  const unreadCount = liveUnreadCount;
+  const notifications = liveNotifications;
+
+  useEffect(() => {
+    setLiveUnreadCount(unreadCountData?.data?.count || 0);
+  }, [unreadCountData]);
+
+  useEffect(() => {
+    setLiveNotifications(notificationsData?.data || []);
+  }, [notificationsData]);
+
+  useEffect(() => {
+    if (!accessToken || !seesNotificationBell) return;
+
+    const socket = getSocket(() => accessToken);
+    if (!socket) return;
+
+    const handleNotificationNew = (notification: Notification) => {
+      setLiveNotifications((prev) => {
+        const next = [notification, ...prev.filter((item) => item.notification_id !== notification.notification_id)];
+        return next.slice(0, 12);
+      });
+    };
+
+    const handleUnreadCount = (payload: { count?: number }) => {
+      setLiveUnreadCount(payload?.count || 0);
+    };
+
+    socket.on("notification:new", handleNotificationNew);
+    socket.on("notifications:unread_count", handleUnreadCount);
+
+    return () => {
+      socket.off("notification:new", handleNotificationNew);
+      socket.off("notifications:unread_count", handleUnreadCount);
+    };
+  }, [accessToken, seesNotificationBell]);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -109,36 +159,46 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   }, [isNotificationDropdownOpen]);
 
   const handleNotificationClick = async (notification: any) => {
+    if (!notification) return;
+
     if (!notification.is_read) {
       try {
+        setLiveNotifications((prev) =>
+          prev.map((item) =>
+            item.notification_id === notification.notification_id
+              ? { ...item, is_read: true, read_at: new Date().toISOString() }
+              : item
+          )
+        );
+        setLiveUnreadCount((prev) => Math.max(prev - 1, 0));
         await markAsRead(notification.notification_id).unwrap();
-        // Force refetch both queries to update the UI
-        await Promise.all([
-          refetchUnreadCount(),
-          refetchNotifications(),
-        ]);
       } catch (error) {
         console.error("Failed to mark notification as read:", error);
-        // Optionally show user-friendly error message
+        await Promise.all([refetchUnreadCount(), refetchNotifications()]);
       }
     }
 
-    // Navigate based on notification type
     try {
-      if (notification.related_id) {
+      if (notification.action_url) {
+        navigate(notification.action_url);
+      } else if (notification.related_id) {
         if (notification.type === "job_application" && (roleNorm === "employer" || roleNorm === "superadmin")) {
-          // Employer clicks job application notification -> go to job applications page
           if (notification.application?.job?.job_id) {
             navigate(`/dashboard/jobs/${notification.application.job.job_id}/applications`);
           } else {
             navigate("/dashboard/jobs/applications");
           }
         } else if (notification.type === "application_status" && roleNorm === "student") {
-          // Student clicks application status notification -> go to their applications page
           navigate("/dashboard/jobs/my-applications");
+        } else if (notification.type === "new_message") {
+          navigate(`/dashboard/messages?conversationId=${notification.related_id}`);
+        } else {
+          navigate("/dashboard/notifications");
         }
-        setIsNotificationDropdownOpen(false);
+      } else {
+        navigate("/dashboard/notifications");
       }
+      setIsNotificationDropdownOpen(false);
     } catch (error) {
       console.error("Navigation error:", error);
     }
@@ -146,14 +206,29 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
 
   const handleMarkAllAsRead = async () => {
     try {
+      setLiveNotifications((prev) =>
+        prev.map((item) => ({ ...item, is_read: true, read_at: new Date().toISOString() }))
+      );
+      setLiveUnreadCount(0);
       await markAllAsRead().unwrap();
-      // Force refetch both queries to update the UI
-      await Promise.all([
-        refetchUnreadCount(),
-        refetchNotifications(),
-      ]);
     } catch (error) {
       console.error("Failed to mark all notifications as read:", error);
+      await Promise.all([refetchUnreadCount(), refetchNotifications()]);
+    }
+  };
+
+  const getNotificationIcon = (type: Notification["type"]) => {
+    switch (type) {
+      case "new_message":
+        return ChatBubbleLeftRightIcon;
+      case "job_application":
+        return BriefcaseIcon;
+      case "application_status":
+        return CheckCircleIcon;
+      case "job_posted":
+        return MegaphoneIcon;
+      default:
+        return BellIcon;
     }
   };
 
@@ -340,7 +415,9 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                       <p>{t("header.noNotifications")}</p>
                     </div>
                   ) : (
-                    notifications.map((notification: any) => (
+                    notifications.map((notification: any) => {
+                      const NotificationIcon = getNotificationIcon(notification.type);
+                      return (
                       <div
                         key={notification.notification_id}
                         onClick={() => handleNotificationClick(notification)}
@@ -349,11 +426,9 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                         }`}
                       >
                         <div className="flex items-start gap-3">
-                          <div
-                            className={`h-2 w-2 rounded-full mt-2 shrink-0 ${
-                              !notification.is_read ? "bg-purple-600" : "bg-transparent"
-                            }`}
-                          />
+                          <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-slate-600">
+                            <NotificationIcon className="h-5 w-5" />
+                          </div>
                           <div className="flex-1 min-w-0">
                             <p className="font-semibold text-gray-900 text-sm">
                               {notification.title}
@@ -381,7 +456,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                           </div>
                         </div>
                       </div>
-                    ))
+                    )})
                   )}
                 </div>
                 {notifications.length > 0 && (
@@ -389,15 +464,11 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                     <button
                       onClick={() => {
                         setIsNotificationDropdownOpen(false);
-                        if (roleNorm === "student") {
-                          navigate("/dashboard/jobs/my-applications");
-                        } else {
-                          navigate("/dashboard/jobs/applications");
-                        }
+                        navigate("/dashboard/notifications");
                       }}
                       className="text-sm text-purple-600 hover:text-purple-700 font-medium"
                     >
-                      {roleNorm === "student" ? t("header.viewMyApplications") : t("header.viewAllApplications")}
+                      View all notifications
                     </button>
                   </div>
                 )}

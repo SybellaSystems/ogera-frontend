@@ -3,13 +3,20 @@ import { apiSlice } from "./apiSlice";
 export interface Notification {
   notification_id: string;
   user_id: string;
-  type: "job_application" | "application_status" | "job_posted" | "system";
+  type: "job_application" | "application_status" | "job_posted" | "system" | "new_message";
   title: string;
   message: string;
   related_id?: string;
+  action_url?: string;
+  entity_type?: string;
+  entity_id?: string;
+  metadata?: Record<string, any> | null;
   is_read: boolean;
+  read_at?: string | null;
+  email_sent_at?: string | null;
   created_at: string;
   updated_at: string;
+  application?: any;
 }
 
 export interface NotificationResponse {
@@ -58,7 +65,7 @@ export const notificationApi = apiSlice.injectEndpoints({
      */
     getNotifications: builder.query<
       NotificationsListResponse,
-      { is_read?: boolean; limit?: number } | void
+      { is_read?: boolean; limit?: number; offset?: number } | void
     >({
       query: (params) => {
         const queryParams = new URLSearchParams();
@@ -68,6 +75,9 @@ export const notificationApi = apiSlice.injectEndpoints({
           }
           if (params.limit != null && params.limit > 0) {
             queryParams.append("limit", String(params.limit));
+          }
+          if (params.offset != null && params.offset >= 0) {
+            queryParams.append("offset", String(params.offset));
           }
         }
         const queryString = queryParams.toString();

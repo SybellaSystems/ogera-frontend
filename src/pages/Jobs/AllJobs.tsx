@@ -140,9 +140,16 @@ const AllJobs: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const roleRaw = useSelector((state: any) => state.auth.role);
-  const role = roleRaw ? String(roleRaw).toLowerCase().trim() : "";
-  const isRoleReady = Boolean(role);
-const isUnfundedRoute = location.pathname === "/dashboard/jobs/unfunded";
+  const accessToken = useSelector((state: any) => state.auth.accessToken);
+  const role =
+    typeof roleRaw === "object"
+      ? String(roleRaw?.roleType || roleRaw?.roleName || "").toLowerCase().trim()
+      : roleRaw
+      ? String(roleRaw).toLowerCase().trim()
+      : "";
+  const isAuthReady = Boolean(accessToken);
+  const isAdminLike = role.includes("admin") && !role.includes("student") && !role.includes("employer");
+  const isUnfundedRoute = location.pathname === "/dashboard/jobs/unfunded";
 
 const [selectedJob, setSelectedJob] = useState<any>(null);
 const [isModalOpen, setIsModalOpen] = useState(false);
@@ -158,26 +165,21 @@ const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 const [showFilters, setShowFilters] = useState(false);
 
 const jobsQueryParams = {
-  ...(role === "employer" && isUnfundedRoute ? { funded: false } : {}),
+  ...((role === "employer" || isAdminLike) && isUnfundedRoute ? { funded: false } : {}),
   ...(searchQuery ? { search: searchQuery } : {}),
   ...(selectedLocation ? { location: selectedLocation } : {}),
   ...(selectedStatus ? { status: selectedStatus as any } : {}),
   ...(selectedCategory ? { category: selectedCategory } : {}),
   ...(selectedPaymentRange ? { payment_range: selectedPaymentRange } : {}),
 }; const { data, isLoading, isFetching, error, refetch } = useGetAllJobsQuery(jobsQueryParams, {
-    skip: !isRoleReady,
+    skip: !isAuthReady,
     refetchOnMountOrArgChange: true,
     refetchOnFocus: true,
     refetchOnReconnect: true,
   });const { data: studentApplications, refetch: refetchApplications } =
   useGetStudentApplicationsQuery(undefined, {
-    skip: role !== "student",
+    skip: !isAuthReady || role !== "student",
   });
-
-useEffect(() => {
-  if (!isRoleReady) return;
-    refetch();
-  }, [isRoleReady, isUnfundedRoute, refetch]);
 
   // Close dropdown on outside click - simplified
   useEffect(() => {
@@ -279,7 +281,7 @@ const filteredJobs = jobs.filter((job: any) => {
     searchQuery || selectedLocation || selectedStatus || selectedCategory || selectedPaymentRange;
 
   // ── Loading ──────────────────────────────────────────────────────────────────
-  if (!isRoleReady || (isLoading && !data) || (isFetching && !data)) {
+  if (!isAuthReady || (isLoading && !data) || (isFetching && !data)) {
     return (
       <div className="space-y-6 p-1">
         <div className="flex items-center justify-between">

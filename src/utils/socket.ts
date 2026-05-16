@@ -2,70 +2,90 @@ import { io, Socket } from 'socket.io-client';
 
 let socket: Socket | null = null;
 
+const getSocketBaseUrl = () =>
+  import.meta.env.VITE_API_URL?.replace('/api', '') || 'https://api.ogera.sybellasystems.co.rw';
+
 export const initializeSocket = (getToken: () => string | null): Socket => {
-    if (socket?.connected) {
-        return socket;
+  const token = getToken();
+  const existingAuthToken = (socket as any)?.auth?.token;
+
+  if (socket && socket.connected) {
+    if (existingAuthToken === token) {
+      return socket;
     }
 
-    const token = getToken();
-    if (!token) {
-        throw new Error('No authentication token available');
-    }
-    
-    socket = io(import.meta.env.VITE_API_URL?.replace('/api', '') || 'https://api.ogera.sybellasystems.co.rw', {
-        auth: {
-            token: token,
-        },
-        transports: ['websocket', 'polling'],
-    });
+    socket.disconnect();
+    socket = null;
+  }
 
-    socket.on('connect', () => {
-        console.log('Socket.IO connected');
-    });
+  if (!token) {
+    throw new Error('No authentication token available');
+  }
 
-    socket.on('disconnect', () => {
-        console.log('Socket.IO disconnected');
-    });
+  socket = io(getSocketBaseUrl(), {
+    auth: {
+      token,
+    },
+    transports: ['websocket', 'polling'],
+  });
 
-    socket.on('error', (error: any) => {
-        console.error('Socket.IO error:', error);
-    });
-
-    return socket;
+  return socket;
 };
 
 export const getSocket = (getToken: () => string | null): Socket | null => {
-    if (!socket || !socket.connected) {
-        try {
-            return initializeSocket(getToken);
-        } catch (error) {
-            console.error('Failed to initialize socket:', error);
-            return null;
-        }
-    }
-    return socket;
+  try {
+    return initializeSocket(getToken);
+  } catch (error) {
+    console.error('Failed to initialize socket:', error);
+    return null;
+  }
 };
 
 export const disconnectSocket = () => {
-    if (socket) {
-        socket.disconnect();
-        socket = null;
-    }
+  if (socket) {
+    socket.disconnect();
+    socket = null;
+  }
 };
 
-// Helper to join a dispute room
+export const joinConversationRoom = (
+  conversation_id: string,
+  getToken: () => string | null
+) => {
+  const activeSocket = getSocket(getToken);
+  activeSocket?.emit('join_conversation', conversation_id);
+};
+
+export const leaveConversationRoom = (
+  conversation_id: string,
+  getToken: () => string | null
+) => {
+  const activeSocket = getSocket(getToken);
+  activeSocket?.emit('leave_conversation', conversation_id);
+};
+
+export const emitTypingStart = (
+  conversation_id: string,
+  getToken: () => string | null
+) => {
+  const activeSocket = getSocket(getToken);
+  activeSocket?.emit('typing:start', { conversation_id });
+};
+
+export const emitTypingStop = (
+  conversation_id: string,
+  getToken: () => string | null
+) => {
+  const activeSocket = getSocket(getToken);
+  activeSocket?.emit('typing:stop', { conversation_id });
+};
+
 export const joinDisputeRoom = (dispute_id: string, getToken: () => string | null) => {
-    const sock = getSocket(getToken);
-    if (sock) {
-        sock.emit('join_dispute', dispute_id);
-    }
+  const activeSocket = getSocket(getToken);
+  activeSocket?.emit('join_dispute', dispute_id);
 };
 
-// Helper to leave a dispute room
 export const leaveDisputeRoom = (dispute_id: string, getToken: () => string | null) => {
-    const sock = getSocket(getToken);
-    if (sock) {
-        sock.emit('leave_dispute', dispute_id);
-    }
+  const activeSocket = getSocket(getToken);
+  activeSocket?.emit('leave_dispute', dispute_id);
 };
-

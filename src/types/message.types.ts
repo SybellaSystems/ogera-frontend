@@ -29,8 +29,9 @@ export interface IMessage {
   conversation_id: string;
   sender_id: string;
   receiver_id: string;
-  content: string;
+  content?: string | null;
   read_status: boolean;
+  delivered_at?: string | null;
   file_url?: string | null;
   file_name?: string | null;
   file_type?: string | null;

@@ -37,9 +37,11 @@ import {
   CpuChipIcon,
   ClipboardDocumentListIcon,
   PuzzlePieceIcon,
+  ChatBubbleLeftRightIcon,
 } from "@heroicons/react/24/outline";
 import { useListCognitiveTestsAdminQuery } from "../../services/api/cognitiveTestApi";
 import { useListProblemMetricsAdminQuery } from "../../services/api/problemMetricApi";
+import { useGetTotalUnreadCountQuery } from "../../services/api/messagesApi";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -58,6 +60,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const roleRaw = useSelector((state: any) => state.auth.role) as Role | string | undefined;
   const permissions = useSelector((state: any) => state.auth.permissions);
   const role = roleRaw ? String(roleRaw).toLowerCase().trim() : "";
+  const showMessagesMenu = role === "student" || role === "employer";
+  const { data: unreadMessagesData } = useGetTotalUnreadCountQuery(undefined, {
+    skip: !showMessagesMenu,
+    pollingInterval: 15000,
+    refetchOnFocus: true,
+    refetchOnReconnect: true,
+  });
+  const unreadMessagesCount = unreadMessagesData?.data?.unread_count || 0;
 
   // Check if this is a built-in admin role (superadmin or exact "admin" roleName) that bypasses permissions
   // Note: Custom admin roles like "admin1", "admin2" etc. are NOT built-in admins and must check permissions
@@ -293,6 +303,33 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             </div>
           )}
 
+          {role === "student" && (
+            <div
+              className={`flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 group ${
+                isActive("/dashboard/messages")
+                  ? "bg-[#9F7AEA]/15 text-white border-l-2 border-[#9F7AEA]"
+                  : "hover:bg-[#9F7AEA]/10"
+              }`}
+              onClick={() => handleNavigation("/dashboard/messages")}
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <ChatBubbleLeftRightIcon className={`h-5 w-5 transition-colors ${
+                  isActive("/dashboard/messages") ? "text-white" : "text-white/70 group-hover:text-white"
+                }`} />
+                <span className={`font-medium transition-colors ${
+                  isActive("/dashboard/messages") ? "text-white" : "group-hover:text-white"
+                }`}>
+                  Messages
+                </span>
+              </div>
+              {unreadMessagesCount > 0 && (
+                <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-rose-500 px-1.5 py-0.5 text-xs font-semibold text-white">
+                  {unreadMessagesCount > 99 ? "99+" : unreadMessagesCount}
+                </span>
+              )}
+            </div>
+          )}
+
           {/* Notifications - All Users */}
           <div
             className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 group ${
@@ -400,17 +437,24 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               </div>
 
               <div
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 group ${
+                className={`flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 group ${
                   isActive("/dashboard/messages")
                     ? "bg-[#9F7AEA]/15 text-white border-l-2 border-[#9F7AEA]"
                     : "hover:bg-[#9F7AEA]/10"
                 }`}
                 onClick={() => handleNavigation("/dashboard/messages")}
               >
-                <BellIcon className="h-5 w-5 text-white/70 group-hover:text-white transition-colors" />
-                <span className="font-medium group-hover:text-white transition-colors">
-                  Messages
-                </span>
+                <div className="flex items-center gap-3 min-w-0">
+                  <ChatBubbleLeftRightIcon className="h-5 w-5 text-white/70 group-hover:text-white transition-colors" />
+                  <span className="font-medium group-hover:text-white transition-colors">
+                    Messages
+                  </span>
+                </div>
+                {unreadMessagesCount > 0 && (
+                  <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-rose-500 px-1.5 py-0.5 text-xs font-semibold text-white">
+                    {unreadMessagesCount > 99 ? "99+" : unreadMessagesCount}
+                  </span>
+                )}
               </div>
 
               <div>

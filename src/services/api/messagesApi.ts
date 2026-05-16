@@ -98,6 +98,28 @@ export const messagesApi = apiSlice.injectEndpoints({
       ],
     }),
 
+    getTotalUnreadCount: builder.query<
+      { success: boolean; data: { unread_count: number } },
+      void
+    >({
+      query: () => '/messages/unread-summary',
+      providesTags: ['Messages'],
+    }),
+
+    markConversationRead: builder.mutation<
+      { success: boolean; data: { updated: number }; message: string },
+      string
+    >({
+      query: (conversationId) => ({
+        url: `/messages/${conversationId}/read`,
+        method: 'POST',
+      }),
+      invalidatesTags: (_result, _error, conversationId) => [
+        { type: 'Messages', id: conversationId },
+        'Messages',
+      ],
+    }),
+
     // Delete a conversation
     deleteConversation: builder.mutation<
       { success: boolean; data: { success: boolean }; message: string },
@@ -118,6 +140,8 @@ export const {
   useSendMessageMutation,
   useCreateConversationMutation,
   useGetUnreadCountQuery,
+  useGetTotalUnreadCountQuery,
+  useMarkConversationReadMutation,
   useDeleteConversationMutation,
   useLazyGetConversationsQuery,
   useLazyGetMessagesQuery,

@@ -7,6 +7,7 @@ import {
   BellIcon,
   BellAlertIcon,
   BriefcaseIcon,
+  ChatBubbleLeftRightIcon,
   CheckCircleIcon,
   MegaphoneIcon,
   Cog6ToothIcon,
@@ -36,6 +37,8 @@ const getCardTheme = (index: number) => CARD_THEMES[index % CARD_THEMES.length];
 
 function getTypeIcon(type: string) {
   switch (type) {
+    case "new_message":
+      return ChatBubbleLeftRightIcon;
     case "job_application":
       return BriefcaseIcon;
     case "application_status":
@@ -181,6 +184,10 @@ const Notifications: React.FC = () => {
         console.error("Failed to mark as read:", err);
       }
     }
+    if (notification.action_url) {
+      navigate(notification.action_url);
+      return;
+    }
     if (notification.related_id) {
       if (notification.type === "job_application" && (roleNorm === "employer" || roleNorm === "superadmin")) {
         if (notification.application?.job?.job_id) {
@@ -190,6 +197,8 @@ const Notifications: React.FC = () => {
         }
       } else if (notification.type === "application_status" && roleNorm === "student") {
         navigate("/dashboard/jobs/my-applications");
+      } else if (notification.type === "new_message") {
+        navigate(`/dashboard/messages?conversationId=${notification.related_id}`);
       }
     }
   };
