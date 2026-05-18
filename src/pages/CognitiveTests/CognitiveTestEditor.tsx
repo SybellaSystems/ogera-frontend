@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import {
   ArrowLeftIcon,
@@ -7,7 +7,10 @@ import {
   GlobeAltIcon,
   LockClosedIcon,
   PencilSquareIcon,
+  CheckCircleIcon,
 } from "@heroicons/react/24/outline";
+import ConfirmDeleteModal from "../../components/AssessmentAdmin/ConfirmDeleteModal";
+import AssessmentPageLoading from "../../components/AssessmentAdmin/AssessmentPageLoading";
 import {
   useGetCognitiveTestAdminQuery,
   useUpdateCognitiveTestMutation,
@@ -22,6 +25,8 @@ import type { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 
 const CognitiveTestEditor: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const { data, isLoading, refetch } = useGetCognitiveTestAdminQuery(id!, { skip: !id });
   const [updateTest, { isLoading: savingMeta }] = useUpdateCognitiveTestMutation();
   const [deleteTest, { isLoading: deleting }] = useDeleteCognitiveTestMutation();
@@ -95,11 +100,12 @@ const CognitiveTestEditor: React.FC = () => {
   };
 
   const handleDeleteTest = async () => {
-    if (!id || !window.confirm("Delete this test and all questions?")) return;
+    if (!id) return;
     try {
       await deleteTest(id).unwrap();
       toast.success("Test deleted");
-      window.location.href = "/dashboard/cognitive-tests";
+      setShowDeleteModal(false);
+      navigate("/dashboard/cognitive-tests");
     } catch (e) {
       const err = e as FetchBaseQueryError & { data?: { message?: string } };
       toast.error(err?.data?.message || "Delete failed");
@@ -216,11 +222,15 @@ const CognitiveTestEditor: React.FC = () => {
   }
 
   if (isLoading || !test) {
-    return <p className="p-8 text-center text-gray-500">Loading…</p>;
+    return (
+      <div className="max-w-5xl mx-auto">
+        <AssessmentPageLoading label="Loading test…" />
+      </div>
+    );
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 pb-12">
+    <div className="max-w-5xl mx-auto space-y-6 pb-12 animate-fadeIn">
       <div className="flex flex-wrap items-center gap-3">
         <Link
           to="/dashboard/cognitive-tests"
@@ -250,13 +260,13 @@ const CognitiveTestEditor: React.FC = () => {
                 </>
               ) : (
                 <>
-                  <LockClosedIcon className="w-4 h-4" />click to publish
+                  <LockClosedIcon className="w-4 h-4" /> Click to publish
                 </>
               )}
             </button>
             <button
               type="button"
-              onClick={handleDeleteTest}
+              onClick={() => setShowDeleteModal(true)}
               disabled={deleting}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-red-700 bg-red-50 border border-red-200 cursor-pointer disabled:cursor-not-allowed"
             >
@@ -428,13 +438,19 @@ const CognitiveTestEditor: React.FC = () => {
             {sortedQuestions.map((q, idx) => (
               <li
                 key={q.question_id}
-                className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900/50 p-4 flex flex-col sm:flex-row sm:justify-between gap-3"
+                className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900/50 p-4 flex flex-col sm:flex-row sm:justify-between gap-3 hover:border-[#7F56D9]/30 transition"
               >
-                <div>
-                  <p className="text-xs text-gray-400 mb-1">
-                    Q{idx + 1} ·{" "}
-                    <span className="capitalize">{q.difficulty}</span> · correct:{" "}
-                    {String.fromCharCode(65 + q.correct_index)}
+                <div className="flex gap-3">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#7F56D9]/10 text-sm font-bold text-[#7F56D9]">
+                    {idx + 1}
+                  </span>
+                  <div>
+                  <p className="text-xs text-gray-400 mb-1 flex flex-wrap gap-2 items-center">
+                    <span className="capitalize px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800">{q.difficulty}</span>
+                    <span className="inline-flex items-center gap-1 text-emerald-600">
+                      <CheckCircleIcon className="h-3.5 w-3.5" />
+                      Answer {String.fromCharCode(65 + q.correct_index)}
+                    </span>
                   </p>
                   <p className="text-sm text-gray-900 dark:text-white font-medium">{q.prompt}</p>
                   <p className="text-xs text-gray-500 mt-2 space-y-0.5">
@@ -446,6 +462,7 @@ const CognitiveTestEditor: React.FC = () => {
                     <br />
                     D) {q.option_d}
                   </p>
+                  </div>
                 </div>
                 <div className="self-start flex items-center gap-3">
                   <button
@@ -469,6 +486,16 @@ const CognitiveTestEditor: React.FC = () => {
           </ul>
         )}
       </div>
+
+      <ConfirmDeleteModal
+        open={showDeleteModal}
+        title="Delete cognitive test?"
+        message="This will permanently remove the test and all its questions. This cannot be undone."
+        itemName={test.title}
+        isDeleting={deleting}
+        onCancel={() => setShowDeleteModal(false)}
+        onConfirm={handleDeleteTest}
+      />
     </div>
   );
 };
