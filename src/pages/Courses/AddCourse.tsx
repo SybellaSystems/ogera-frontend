@@ -536,7 +536,8 @@ export default AddCourse;
 // Styled Components - theme-aware for dark mode
 const Container = styled("div")`
   padding: 24px;
-  min-height: 100vh;
+  min-height: 100%;
+  width: 100%;
   background: var(--theme-page-bg);
   transition: background 0.35s ease;
 
@@ -550,8 +551,9 @@ const Container = styled("div")`
 `;
 
 const FormContainer = styled("form")`
-  max-width: 800px;
-  margin: 0 auto;
+  width: 100%;
+  max-width: none;
+  margin: 0;
   background: var(--theme-card-bg);
   color: var(--theme-text-primary);
   border-radius: 12px;
