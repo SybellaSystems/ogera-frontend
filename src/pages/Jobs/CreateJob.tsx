@@ -468,7 +468,7 @@ const CreateJob: React.FC = () => {
     <div className="min-h-screen bg-slate-50">
       {/* ── Top Header ──────────────────────────────────────────────────────── */}
       <div className="sticky top-0 z-30 bg-white border-b border-slate-100 shadow-sm">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-4">
+        <div className="w-full max-w-full px-4 sm:px-6 py-4 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-violet-600 flex items-center justify-center shadow-md shadow-violet-200">
               <BriefcaseIcon className="w-5 h-5 text-white" />
@@ -499,7 +499,7 @@ const CreateJob: React.FC = () => {
         </div>
 
         {/* Progress + step nav */}
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 pb-3 space-y-2.5">
+        <div className="w-full max-w-full px-4 sm:px-6 pb-3 space-y-2.5">
           <ProgressBar activeSection={activeSection} total={SECTIONS.length} />
           <StepNav
             sections={SECTIONS}
@@ -512,7 +512,7 @@ const CreateJob: React.FC = () => {
 
       {/* ── Main Form ────────────────────────────────────────────────────────── */}
       <form onSubmit={formik.handleSubmit}>
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-5">
+        <div className="w-full max-w-full px-4 sm:px-6 py-8 space-y-5">
 
           {/* ── SECTION 0: Basics ─────────────────────────────────────────── */}
           {activeSection === 0 && (
