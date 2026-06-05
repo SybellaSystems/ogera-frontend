@@ -5,6 +5,7 @@ import {
 } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
+import { Analytics as VercelAnalytics } from "@vercel/analytics/react";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 import FeatureGate from "./components/FeatureGate";
@@ -657,7 +658,12 @@ function App() {
     { path: "*", Component: NotFound },
   ]);
 
-  return <RouterProvider router={router} />;
+  return (
+    <>
+      <RouterProvider router={router} />
+      <VercelAnalytics />
+    </>
+  );
 }
 
 export default App;
