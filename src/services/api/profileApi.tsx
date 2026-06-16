@@ -24,6 +24,9 @@ export interface UserProfile {
     roleName: string;
     roleType: 'student' | 'employer' | 'superAdmin' | 'admin';
   };
+  badge?: 'FREE' | 'PREMIUM' | 'PIONEER';
+  pioneer_eligible?: boolean;
+  subscription_end_date?: string | null;
 }
 
 export interface ProfileApiResponse {

@@ -8,6 +8,9 @@ export interface DashboardMetrics {
   totalStudents: number;
   activeJobs: number;
   totalEarnings: number;
+  freeBadgeStudents?: number;
+  premiumStudents?: number;
+  pioneerStudents?: number;
 }
 
 /**
