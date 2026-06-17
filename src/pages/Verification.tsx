@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useFormik } from "formik";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useSelector } from "react-redux";
 import toast from "react-hot-toast";
 import type { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import { styled } from "@mui/material/styles";
@@ -9,6 +10,7 @@ import RestPasswordTemplate from "../components/ResetPassword";
 import Button from "../components/button";
 import { phoneOtpValidation } from "../validation/Index";
 import {
+  useGetVerificationStatusQuery,
   useResendVerificationEmailMutation,
   useSendPhoneVerificationOTPMutation,
   useVerifyAccountMutation,
@@ -28,28 +30,47 @@ type VerificationView = "choose" | "verifyMobile" | "emailSent";
 const Verification: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const authUser = useSelector((state: any) => state.auth.user);
 
   const emailFromQuery = searchParams.get("email") || "";
-  const [email, setEmail] = useState<string>(() => {
-    return (
-      emailFromQuery ||
-      localStorage.getItem("pendingVerificationEmail") ||
-      ""
-    );
-  });
-
-  const pendingPhoneNumber = useMemo(
-    () => localStorage.getItem("pendingVerificationPhoneNumber") || "",
-    []
-  );
+  const email = emailFromQuery || authUser?.email || "";
 
   const [view, setView] = useState<VerificationView>("choose");
-  const [emailVerified, setEmailVerified] = useState<boolean>(() => {
-    return localStorage.getItem("pendingVerificationEmailVerified") === "true";
+
+  const {
+    data: statusResponse,
+    refetch: refetchVerificationStatus,
+    isLoading: isLoadingStatus,
+  } = useGetVerificationStatusQuery(email, {
+    skip: !email,
+    pollingInterval: email ? 5000 : 0,
   });
-  const [phoneVerified, setPhoneVerified] = useState<boolean>(() => {
-    return localStorage.getItem("pendingVerificationPhoneVerified") === "true";
-  });
+
+  const verificationStatus = statusResponse?.data;
+  const emailVerified = Boolean(verificationStatus?.email_verified);
+  const phoneVerified = Boolean(verificationStatus?.phone_verified);
+  const pendingPhoneNumber =
+    verificationStatus?.mobile_number || authUser?.mobile_number || "";
+
+  useEffect(() => {
+    if (!email) {
+      toast.error(
+        "Missing email verification context. Please log in again or return to the dashboard."
+      );
+      navigate(authUser ? "/dashboard/profile" : "/auth/login");
+    }
+  }, [email, authUser, navigate]);
+
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === "visible" && email) {
+        refetchVerificationStatus();
+      }
+    };
+
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, [email, refetchVerificationStatus]);
 
   const [sendPhoneVerificationOtp, { isLoading: isSendingOtp }] =
     useSendPhoneVerificationOTPMutation();
@@ -57,32 +78,6 @@ const Verification: React.FC = () => {
     useVerifyAccountMutation();
   const [resendVerificationEmail, { isLoading: isResendingEmail }] =
     useResendVerificationEmailMutation();
-
-  useEffect(() => {
-    if (emailFromQuery) {
-      localStorage.setItem("pendingVerificationEmail", emailFromQuery);
-      setEmail(emailFromQuery);
-    }
-  }, [emailFromQuery]);
-
-  useEffect(() => {
-    if (!email) {
-      toast.error(
-        "Missing email verification context. Please log in again."
-      );
-      navigate("/auth/login");
-    }
-  }, [email, navigate]);
-
-  // Keep localStorage flags in sync when coming back from /auth/verify-email.
-  useEffect(() => {
-    setEmailVerified(
-      localStorage.getItem("pendingVerificationEmailVerified") === "true"
-    );
-    setPhoneVerified(
-      localStorage.getItem("pendingVerificationPhoneVerified") === "true"
-    );
-  }, []);
 
   const otp1Ref = useRef<HTMLInputElement>(null);
   const otp2Ref = useRef<HTMLInputElement>(null);
@@ -111,11 +106,7 @@ const Verification: React.FC = () => {
 
       try {
         await verifyAccount({ email, otp }).unwrap();
-
-        // Phone can be verified without email verification first.
-        setPhoneVerified(true);
-        localStorage.setItem("pendingVerificationPhoneVerified", "true");
-        localStorage.removeItem("pendingVerificationOtp");
+        await refetchVerificationStatus();
 
         toast.success("Phone number verified successfully!");
         setView("choose");
@@ -202,7 +193,6 @@ const Verification: React.FC = () => {
   useEffect(() => {
     if (view === "verifyMobile") {
       formik.resetForm();
-      // Slight delay so RestPasswordTemplate mounts before focusing.
       setTimeout(() => otp1Ref.current?.focus(), 0);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -215,7 +205,6 @@ const Verification: React.FC = () => {
         result?.data?.message || "OTP sent to your phone number!"
       );
 
-      // Development convenience: show the generated OTP in toast.
       if (
         result &&
         typeof result === "object" &&
@@ -253,6 +242,10 @@ const Verification: React.FC = () => {
       toast.error(error?.data?.message || "Failed to send verification email");
     }
   };
+
+  if (!email) {
+    return null;
+  }
 
   if (view === "verifyMobile") {
     return (
@@ -307,6 +300,7 @@ const Verification: React.FC = () => {
         <ContextLine>
           Status: Phone {phoneVerified ? "Verified" : "Not verified"} | Email{" "}
           {emailVerified ? "Verified" : "Not verified"}
+          {isLoadingStatus ? " (refreshing...)" : ""}
         </ContextLine>
 
         <ActionStack>
@@ -340,15 +334,15 @@ const Verification: React.FC = () => {
 
           {view === "emailSent" ? (
             <EmailSentMessage>
-              Verification link sent. Open the link from your email to
-              verify. After verification, you can return here.
+              Verification link sent. Open the link from your email to verify.
+              This page updates automatically when verification completes.
             </EmailSentMessage>
           ) : null}
 
           <Button
             backgroundcolor="#111827"
             type="button"
-            text="Login"
+            text="Back"
             onClick={() => navigate("/auth/login")}
           />
         </ActionStack>
@@ -416,5 +410,3 @@ const EmailSentMessage = styled("p")`
   color: #4b5563;
   margin: 4px 0 2px;
 `;
-
-

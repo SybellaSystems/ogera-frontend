@@ -19,22 +19,18 @@ const VerifyEmail: React.FC = () => {
   const [resendEmail, { isLoading: isResending }] = useResendVerificationEmailMutation();
 
   useEffect(() => {
-    if (token) {
-      // Keep token so /auth/verification can retry email verification
-      // (prevents the "Email not verified yet" issue if auto-verify fails).
-      localStorage.setItem("pendingEmailVerificationToken", token);
-      // Keep email in localStorage so the signup verification page can verify the phone OTP.
-      try {
-        const decoded: any = jwtDecode(token);
-        if (decoded?.email) {
-          localStorage.setItem("pendingVerificationEmail", String(decoded.email));
-          setEmail(String(decoded.email));
-        }
-      } catch {
-        // ignore decoding issues; verification page will fallback to localStorage
+    if (!token) return;
+
+    try {
+      const decoded: any = jwtDecode(token);
+      if (decoded?.email) {
+        setEmail(String(decoded.email));
       }
-      handleVerifyEmail();
+    } catch {
+      // Email will be returned by the verify API when successful.
     }
+
+    handleVerifyEmail();
   }, [token]);
 
   const handleVerifyEmail = async () => {
@@ -42,13 +38,31 @@ const VerifyEmail: React.FC = () => {
 
     try {
       setIsLoading(true);
-      await verifyEmail(token).unwrap();
+      const result = await verifyEmail(token).unwrap();
+      const verifiedEmail =
+        result?.data?.email ||
+        email ||
+        (() => {
+          try {
+            const decoded: any = jwtDecode(token);
+            return decoded?.email ? String(decoded.email) : "";
+          } catch {
+            return "";
+          }
+        })();
+
+      if (verifiedEmail) {
+        setEmail(verifiedEmail);
+      }
+
       setIsVerified(true);
-      localStorage.setItem("pendingVerificationEmailVerified", "true");
-      localStorage.removeItem("pendingEmailVerificationToken");
       toast.success("Email verified successfully!");
       setTimeout(() => {
-        navigate("/auth/verification");
+        if (verifiedEmail) {
+          navigate(`/auth/verification?email=${encodeURIComponent(verifiedEmail)}`);
+        } else {
+          navigate("/auth/login");
+        }
       }, 2000);
     } catch (err) {
       const error = err as FetchBaseQueryError & { data?: { message?: string } };
@@ -81,10 +95,16 @@ const VerifyEmail: React.FC = () => {
           <SuccessIcon>✓</SuccessIcon>
           <Heading>Email Verified!</Heading>
           <Message>
-            Your email has been successfully verified. You can now log in to your account.
+            Your email has been successfully verified. Returning to verification page...
           </Message>
-          <Button onClick={() => navigate("/auth/login")}>
-            Go to Login
+          <Button
+            onClick={() =>
+              email
+                ? navigate(`/auth/verification?email=${encodeURIComponent(email)}`)
+                : navigate("/auth/login")
+            }
+          >
+            Continue Verification
           </Button>
         </VerifyEmailCard>
       </VerifyEmailContainer>
@@ -247,9 +267,3 @@ const LinkText = styled("p")`
     color: #6e47c4;
   }
 `;
-
-
-
-
-
-
