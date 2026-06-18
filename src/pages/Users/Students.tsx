@@ -35,6 +35,7 @@ import {
 import type { UserProfile } from "../../services/api/profileApi";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
+import { StudentBadgeChip } from "../../components/Profile/StudentBadgeCard";
 
 interface Student {
   index: number;
@@ -46,6 +47,7 @@ interface Student {
   gpa: string;
   status: "Active" | "Pending";
   verified: boolean;
+  badge: string;
 }
 
 const Students: React.FC = () => {
@@ -103,6 +105,7 @@ const Students: React.FC = () => {
     gpa: "-",
     status: "Active",
     verified: true,
+    badge: (user as any).badge || "FREE",
   });
 
   const students: Student[] = (data?.data || []).map((user, index) =>
@@ -150,6 +153,12 @@ const Students: React.FC = () => {
       id: "email",
       label: t("pages.users.email"),
       minWidth: 200,
+    },
+    {
+      id: "badge",
+      label: "Badge",
+      minWidth: 130,
+      format: (value) => <StudentBadgeChip badge={String(value)} />,
     },
     {
       id: "university",

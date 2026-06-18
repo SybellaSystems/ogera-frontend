@@ -33,6 +33,9 @@ interface DashboardMetrics {
   totalStudents: number;
   activeJobs: number;
   totalEarnings: number;
+  freeBadgeStudents?: number;
+  premiumStudents?: number;
+  pioneerStudents?: number;
 }
 
 interface ApiErrorPayload {
@@ -486,6 +489,36 @@ const Dashboard: React.FC = () => {
         color: "text-[#7f56d9]",
         bg: "bg-[#f5f3ff]",
         changeBg: "bg-green-50 text-green-700",
+      },
+      {
+        title: "FREE Badge Students",
+        value: metricsLoading ? "..." : (metrics?.freeBadgeStudents != null ? formatNumber(metrics.freeBadgeStudents) : t("common.na")),
+        change: undefined,
+        trending: "up" as const,
+        icon: <AcademicCapIcon className="h-4 w-4" />,
+        color: "text-amber-600",
+        bg: "bg-amber-50",
+        changeBg: "bg-amber-50 text-amber-700",
+      },
+      {
+        title: "PREMIUM Students",
+        value: metricsLoading ? "..." : (metrics?.premiumStudents != null ? formatNumber(metrics.premiumStudents) : t("common.na")),
+        change: undefined,
+        trending: "up" as const,
+        icon: <StarIconSolid className="h-4 w-4" />,
+        color: "text-yellow-600",
+        bg: "bg-yellow-50",
+        changeBg: "bg-yellow-50 text-yellow-700",
+      },
+      {
+        title: "PIONEER Students",
+        value: metricsLoading ? "..." : (metrics?.pioneerStudents != null ? formatNumber(metrics.pioneerStudents) : t("common.na")),
+        change: undefined,
+        trending: "up" as const,
+        icon: <StarIconSolid className="h-4 w-4" />,
+        color: "text-purple-600",
+        bg: "bg-purple-50",
+        changeBg: "bg-purple-50 text-purple-700",
       },
       {
         title: t("dashboard.activeJobs"),
