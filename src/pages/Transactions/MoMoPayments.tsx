@@ -7,17 +7,23 @@ import {
   CurrencyDollarIcon,
   EyeIcon,
   XMarkIcon,
+  SparklesIcon,
 } from "@heroicons/react/24/outline";
 import { useListJobPaymentsQuery, useGetWalletBalanceQuery } from "../../services/api/momoApi";
+import { useGetAdminBadgePurchasesQuery } from "../../services/api/badgeApi";
+import { StudentBadgeChip } from "../../components/Profile/StudentBadgeCard";
 import Loader from "../../components/Loader";
 import type { JobPaymentItem } from "../../services/api/momoApi";
 
 const MoMoPayments: React.FC = () => {
   const { data, isLoading, error } = useListJobPaymentsQuery();
   const { data: walletData } = useGetWalletBalanceQuery();
+  const { data: badgePurchasesData, isLoading: badgeLoading } = useGetAdminBadgePurchasesQuery({ page: 1, limit: 50 });
   const [payoutModal, setPayoutModal] = useState<JobPaymentItem | null>(null);
 
   if (isLoading) return <Loader />;
+
+  const badgePurchases = badgePurchasesData?.data ?? [];
 
   const payments = data?.data ?? [];
   const funded = payments.filter((p) => p.funding_status === "Funded");
@@ -53,7 +59,7 @@ const MoMoPayments: React.FC = () => {
             {Number(balance).toLocaleString()} <span className="text-purple-200 text-lg font-medium">{currency}</span>
           </p>
           <p className="text-sm text-purple-200 mt-2">
-            Total received from employers (job + 10% fee).
+            Total received from employers (job + fee) and student premium subscriptions.
           </p>
         </div>
         <div className="bg-gradient-to-br from-emerald-600 to-teal-700 rounded-xl shadow-lg p-6 text-white">
@@ -172,6 +178,78 @@ const MoMoPayments: React.FC = () => {
                       ) : (
                         <span className="text-gray-300">—</span>
                       )}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Badge subscription MoMo payments */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="px-4 py-3 border-b border-gray-200 bg-purple-50">
+          <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <SparklesIcon className="h-5 w-5 text-purple-600" />
+            Badge Subscription Payments (MoMo)
+          </h2>
+          <p className="text-sm text-gray-500">Student premium upgrades — FREE to PREMIUM via MoMo</p>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Student</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Upgrade</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">USD (Wallet)</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {badgeLoading ? (
+                <tr>
+                  <td colSpan={6} className="px-4 py-8 text-center text-gray-500">Loading badge payments…</td>
+                </tr>
+              ) : badgePurchases.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-4 py-8 text-center text-gray-500">No badge subscription payments yet.</td>
+                </tr>
+              ) : (
+                badgePurchases.map((p) => (
+                  <tr key={p.id}>
+                    <td className="px-4 py-3 text-sm">
+                      <div className="font-medium text-gray-900">{p.user?.full_name ?? "—"}</div>
+                      <div className="text-gray-500 text-xs">{p.user?.email}</div>
+                    </td>
+                    <td className="px-4 py-3 text-sm">
+                      <span className="text-gray-600">{p.from_badge}</span>
+                      <span className="mx-1">→</span>
+                      <StudentBadgeChip badge={p.to_badge} />
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-600">
+                      {Number(p.amount).toLocaleString()} {p.currency}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-600">
+                      {p.usd_amount != null ? `$${Number(p.usd_amount).toLocaleString(undefined, { maximumFractionDigits: 2 })}` : "—"}
+                    </td>
+                    <td className="px-4 py-3">
+                      {p.payment_status === "SUCCESSFUL" ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                          <CheckCircleIcon className="h-4 w-4" /> Paid
+                        </span>
+                      ) : p.payment_status === "PENDING" ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
+                          <ClockIcon className="h-4 w-4" /> Pending
+                        </span>
+                      ) : (
+                        <span className="text-xs text-red-600">{p.payment_status}</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-500">
+                      {p.created_at ? new Date(p.created_at).toLocaleString() : "—"}
                     </td>
                   </tr>
                 ))

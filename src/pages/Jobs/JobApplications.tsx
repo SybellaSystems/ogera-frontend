@@ -20,6 +20,7 @@ import Loader from "../../components/Loader";
 import toast from "react-hot-toast";
 import api from "../../services/api/axiosInstance";
 import TrustScoreCard from "../../components/TrustScoreCard";
+import { StudentBadgeChip } from "../../components/Profile/StudentBadgeCard";
 import type { TrustScore, TrustLevel } from "../../services/api/trustScoreApi";
 
 function levelFromNumericScore(score: number): TrustLevel {
@@ -407,9 +408,12 @@ const JobApplications: React.FC = () => {
                         {application.student?.full_name?.charAt(0) || "S"}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-base font-semibold text-gray-900 truncate">
+                        <h3 className="text-base font-semibold text-gray-900 truncate flex items-center gap-2 flex-wrap">
                           {application.student?.full_name ||
                             t("pages.jobs.unknownStudent")}
+                          {(application.student as any)?.badge && (
+                            <StudentBadgeChip badge={(application.student as any).badge} />
+                          )}
                         </h3>
                         <div className="flex items-center gap-1 text-gray-600 text-xs mb-1">
                           <EnvelopeIcon className="h-3 w-3 text-gray-400 shrink-0" />
