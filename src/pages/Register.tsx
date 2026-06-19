@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { styled, keyframes } from "@mui/material/styles";
 import loginImage from "../assets/login.png";
@@ -53,6 +53,7 @@ const SKILL_CATEGORIES = [
 
 const Register = ({ formOnly, onRoleChange }: RegisterProps = {}) => {
   const { t } = useTranslation();
+  const successShown = useRef(false);
   const [showPassword, setShowPassword] = useState(false);
   const [openTerms, setOpenTerms] = useState(false);
   const [openPrivacy, setOpenPrivacy] = useState(false);
@@ -148,19 +149,13 @@ const Register = ({ formOnly, onRoleChange }: RegisterProps = {}) => {
       toast.error(err?.data?.message || t("register.somethingWentWrong"));
     }
 
-    if (data && isSuccess) {
+    if (data && isSuccess && !successShown.current) {
+      successShown.current = true;
       toast.success(t("register.registrationSuccess"), { duration: 5000 });
       const registeredEmail = formik.values.email;
       resetForm();
       setTimeout(() => {
         navigate("/auth/login");
-        // navigate("/auth/login", {
-        //   state: {
-        //     showVerificationMessage: true,
-        //     showVerifyAccountButton: true,
-        //     email: registeredEmail,
-        //   },
-        // });
       }, 2000);
     }
   }, [isError, error, data, isSuccess, resetForm, navigate]);

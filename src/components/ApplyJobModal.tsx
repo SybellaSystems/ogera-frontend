@@ -515,7 +515,7 @@ const ApplyJobModal: React.FC<ApplyJobModalProps> = ({
             />
             <p className={`mt-2 text-sm ${
               coverLetter.trim().length > 0 && coverLetter.trim().length < MIN_COVER_LETTER_LENGTH
-                ? "text-red-600"
+                ? "text-gray-500"
                 : "text-gray-500"
             }`}>
               {coverLetter.trim().length}/{MIN_COVER_LETTER_LENGTH} characters minimum —

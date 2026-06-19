@@ -49,7 +49,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   // Get unread notification count for employers/superadmins and students
   const { data: unreadCountData, refetch: refetchUnreadCount } = useGetUnreadNotificationCountQuery(undefined, {
     skip: !seesNotificationBell,
-    pollingInterval: 30000, // Poll every 30 seconds for new notifications
+   // pollingInterval: 30000,  Poll every 30 seconds for new notifications
   });
   
   // Get notifications for dropdown - enabled for employers/superadmins and students
