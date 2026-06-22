@@ -44,6 +44,11 @@ const Login = ({ initialView }: LoginProps = {}) => {
   const [isLogin, setIsLogin] = useState(
     initialView ? initialView === "login" : location.pathname !== "/auth/register"
   );
+
+  useEffect(() => {
+    setIsLogin(location.pathname !== "/auth/register");
+  }, [location.pathname]);
+
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const reCaptchaRef = useRef<any>(null);
@@ -55,11 +60,11 @@ const Login = ({ initialView }: LoginProps = {}) => {
   const [isLostAuthenticatorClicked, setIsLostAuthenticatorClicked] = useState(false);
   const [signupRole, setSignupRole] = useState("student");
 
-  const toggleView = () => {
-    const next = !isLogin;
-    setIsLogin(next);
-    window.history.replaceState(null, "", next ? "/auth/login" : "/auth/register");
-  };
+ const toggleView = () => {
+  const next = !isLogin;
+  setIsLogin(next);
+  navigate(next ? "/auth/login" : "/auth/register");
+};
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -234,10 +239,16 @@ const Login = ({ initialView }: LoginProps = {}) => {
     <AuthContainer>
       {/* Mobile tab toggle */}
       <MobileTabToggle>
-        <MobileTab $active={isLogin} onClick={() => { setIsLogin(true); window.history.replaceState(null, "", "/auth/login"); }}>
+        <MobileTab $active={isLogin} onClick={() => {
+  setIsLogin(true);
+  navigate("/auth/login");
+}}>
           Sign In
         </MobileTab>
-        <MobileTab $active={!isLogin} onClick={() => { setIsLogin(false); window.history.replaceState(null, "", "/auth/register"); }}>
+        <MobileTab $active={!isLogin} onClick={() => {
+  setIsLogin(false);
+  navigate("/auth/register");
+}}>
           Sign Up
         </MobileTab>
       </MobileTabToggle>

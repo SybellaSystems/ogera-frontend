@@ -100,11 +100,12 @@ const Register = ({ formOnly, onRoleChange }: RegisterProps = {}) => {
     validationSchema: registerValidationSchema,
     onSubmit: async (values) => {
       try {
-        const fullPhoneNumber = `${countryCode}${values.mobile_number}`;
+        // const fullPhoneNumber = `${countryCode}${values.mobile_number}`;
         const payload = {
           full_name: values.full_name,
           email: values.email,
-          mobile_number: fullPhoneNumber,
+          country_code: countryCode,
+          mobile_number: values.mobile_number,
           password: values.password,
           role: values.accountType,
           national_id_number:
@@ -149,23 +150,17 @@ const Register = ({ formOnly, onRoleChange }: RegisterProps = {}) => {
 
     if (data && isSuccess) {
       toast.success(t("register.registrationSuccess"), { duration: 5000 });
-      const registeredEmail = formik.values.email;
-      localStorage.setItem("pendingVerificationEmail", registeredEmail);
-      localStorage.setItem("pendingVerificationEmailVerified", "false");
-      localStorage.setItem("pendingVerificationPhoneVerified", "false");
-      const phoneNumber = (data as any)?.data?.phoneNumber;
-      if (phoneNumber) {
-        localStorage.setItem("pendingVerificationPhoneNumber", phoneNumber);
-      }
+      // const registeredEmail = formik.values.email;
       resetForm();
       setTimeout(() => {
-        navigate("/auth/login", {
-          state: {
-            showVerificationMessage: true,
-            showVerifyAccountButton: true,
-            email: registeredEmail,
-          },
-        });
+        navigate("/auth/login");
+        // navigate("/auth/login", {
+        //   state: {
+        //     showVerificationMessage: true,
+        //     showVerifyAccountButton: true,
+        //     email: registeredEmail,
+        //   },
+        // });
       }, 2000);
     }
   }, [isError, error, data, isSuccess, resetForm, navigate]);

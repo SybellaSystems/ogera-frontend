@@ -1,5 +1,12 @@
 import { apiSlice } from "./apiSlice";
 
+export type VerificationStatus = {
+  email: string;
+  mobile_number: string | null;
+  email_verified: boolean;
+  phone_verified: boolean;
+};
+
 export const authApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
 
@@ -43,12 +50,23 @@ export const authApi = apiSlice.injectEndpoints({
       providesTags: ["User"],
     }),
 
-    verifyEmail: builder.mutation({
+    verifyEmail: builder.mutation<{ data?: VerificationStatus & { success?: boolean } }, string>({
       query: (token) => ({
         // Token contains URL-sensitive characters; always encode.
         url: `/auth/verify-email?token=${encodeURIComponent(token)}`,
         method: "GET",
       }),
+      invalidatesTags: (_result, _error, _token) => ["VerificationStatus"],
+    }),
+
+    getVerificationStatus: builder.query<{ data: VerificationStatus }, string>({
+      query: (email) => ({
+        url: `/auth/verification-status?email=${encodeURIComponent(email)}`,
+        method: "GET",
+      }),
+      providesTags: (_result, _error, email) => [
+        { type: "VerificationStatus", id: email },
+      ],
     }),
 
     resendVerificationEmail: builder.mutation({
@@ -81,6 +99,9 @@ export const authApi = apiSlice.injectEndpoints({
         method: "POST",
         body: values,
       }),
+      invalidatesTags: (_result, _error, arg) => [
+        { type: "VerificationStatus", id: arg.email },
+      ],
     }),
 
     logout: builder.mutation({
@@ -100,6 +121,7 @@ export const {
   useResetPasswordMutation,
   useGetUserProfileQuery,
   useVerifyEmailMutation,
+  useGetVerificationStatusQuery,
   useResendVerificationEmailMutation,
   useSendPhoneVerificationOTPMutation,
   useVerifyPhoneMutation,

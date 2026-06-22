@@ -167,7 +167,10 @@ const ProfileHeaderCard: React.FC<ProfileHeaderCardProps> = ({
   };
 
   const handleVerifyAccountClick = () => {
-    navigate("/auth/verification");
+    const userEmail = userData?.email;
+    if (!userEmail) return;
+
+    navigate(`/auth/verification?email=${encodeURIComponent(userEmail)}`);
   };
 
   const handleVerifyEmailClick = async () => {
