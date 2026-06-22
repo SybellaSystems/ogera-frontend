@@ -19,6 +19,9 @@ import { getUserProfile, type UserProfile } from "../../services/api/profileApi"
 import { uploadProfileImage } from "../../services/api/profileImageApi";
 import { useResendVerificationEmailMutation } from "../../services/api/authApi";
 import type { FullProfile } from "../../services/api/extendedProfileApi";
+import StudentBadgeCard from "./StudentBadgeCard";
+import UpgradeSubscriptionModal from "./UpgradeSubscriptionModal";
+import { useGetBadgeStatusQuery } from "../../services/api/badgeApi";
 
 interface ProfileHeaderCardProps {
   profileData: UserProfile | null;
@@ -53,6 +56,13 @@ const ProfileHeaderCard: React.FC<ProfileHeaderCardProps> = ({
   const profileImageInputRef = useRef<HTMLInputElement>(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [profileImageVersion, setProfileImageVersion] = useState(0);
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+
+  const isStudent = (role || "").toString().toLowerCase() === "student";
+  const { data: badgeData, refetch: refetchBadge } = useGetBadgeStatusQuery(undefined, {
+    skip: !isStudent,
+  });
+  const badgeStatus = badgeData?.data;
 
   const userData = profileData || user;
   const userRole = userData?.role?.roleName || role;
@@ -340,10 +350,34 @@ const ProfileHeaderCard: React.FC<ProfileHeaderCardProps> = ({
                 ? new Date(profileData.updated_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }) + " - " + new Date(profileData.updated_at).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })
                 : t("profile.recently")}
             </p>
+
+            {isStudent && badgeStatus && (
+              <div className="mt-4">
+                <StudentBadgeCard
+                  badge={badgeStatus.badge}
+                  subscriptionDaysLeft={badgeStatus.subscriptionDaysLeft}
+                  pioneerEligible={badgeStatus.pioneerEligible}
+                  applicationsUsed={badgeStatus.applicationsUsed}
+                  applicationsRemaining={badgeStatus.applicationsRemaining}
+                  onUpgradeClick={() => setUpgradeModalOpen(true)}
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>
 
+      {isStudent && (
+        <UpgradeSubscriptionModal
+          isOpen={upgradeModalOpen}
+          onClose={() => setUpgradeModalOpen(false)}
+          defaultPhone={userData?.mobile_number || ""}
+          onSuccess={() => {
+            refetchBadge();
+            onProfileDataRefresh?.();
+          }}
+        />
+      )}
     </div>
   );
 };
