@@ -1,6 +1,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import type { TrustScore } from "../services/api/trustScoreApi";
+import { FaShieldAlt } from "react-icons/fa";
 
 interface TrustScoreCardProps {
   trustScore: TrustScore;
@@ -24,7 +25,13 @@ const TrustScoreCard: React.FC<TrustScoreCardProps> = ({
     {
       key: "experience",
       label: "Experience (E)",
-      items: ["Work experience", "Project", "Internship certificate", "Accomplishment", "Resume"],
+      items: [
+        "Work experience",
+        "Project",
+        "Internship certificate",
+        "Accomplishment",
+        "Resume",
+      ],
     },
   ] as const;
 
@@ -60,24 +67,24 @@ const TrustScoreCard: React.FC<TrustScoreCardProps> = ({
       case "Emerging":
         return "bg-red-100 text-red-700 border-red-200";
       case "Limited":
-        return "bg-red-100 text-red-800 border-red-200";
+        return "bg-red-100 text-red-900 border-red-200";
       default:
         return "bg-gray-100 text-gray-700 border-gray-200";
     }
   };
 
   const barColor = (score: number) => {
-    if (score >= 85) return "bg-green-600";
-    if (score >= 70) return "bg-blue-600";
+    if (score >= 85) return "bg-green-500";
+    if (score >= 70) return "bg-blue-500";
     if (score >= 55) return "bg-orange-500";
-    return "bg-red-600";
+    return "bg-red-500";
   };
 
   const getScoreColor = (score: number) => {
-    if (score >= 85) return "text-green-600";
-    if (score >= 70) return "text-blue-600";
-    if (score >= 55) return "text-orange-600";
-    return "text-red-600";
+    if (score >= 85) return "text-green-500";
+    if (score >= 70) return "text-blue-500";
+    if (score >= 55) return "text-orange-500";
+    return "text-red-500";
   };
 
   if (variant === "compact") {
@@ -90,7 +97,7 @@ const TrustScoreCard: React.FC<TrustScoreCardProps> = ({
         </span>
         <span
           className={`px-2 py-0.5 rounded-full text-xs font-semibold border ${getLevelColor(
-            trustScore.level
+            trustScore.level,
           )}`}
         >
           {t(`profile.trustScoreLevel.${trustScore.level}`)}
@@ -101,23 +108,27 @@ const TrustScoreCard: React.FC<TrustScoreCardProps> = ({
 
   return (
     <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">
-          {t("profile.trustScore")}
-        </h2>
-        <span
-          className={`px-4 py-2 rounded-full text-sm font-semibold border ${getLevelColor(
+      <div className="bg-gradient-to-r from-violet-500 to-purple-700 px-6 py-4 rounded-t-2xl -mx-8 -mt-8 mb-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <FaShieldAlt className="text-yellow-400 text-xl" />
+
+            <h2 className="text-xl font-bold text-white">
+              {t("profile.trustScore")}
+            </h2>
+          </div>
+
+          <span
+          className={`px-4 py-2 rounded-full text-2sm font-bold border ${getLevelColor(
             trustScore.level
           )}`}
         >
           {t(`profile.trustScoreLevel.${trustScore.level}`)}
         </span>
+        </div>
       </div>
-
-      <div className="mb-2 flex flex-wrap gap-2 text-xs text-gray-500">
-        <span>
-          I/E/C · {t("profile.trustScoreFormulaHint")}
-        </span>
+      <div className="mb-2 flex flex-wrap gap-2 text-sm text-gray-500">
+        <span>I/E/C · {t("profile.trustScoreFormulaHint")}</span>
       </div>
 
       <div className="mb-6">
@@ -132,17 +143,16 @@ const TrustScoreCard: React.FC<TrustScoreCardProps> = ({
         <div className="w-full bg-gray-200 rounded-full h-3 mt-4">
           <div
             className={`h-3 rounded-full transition-all duration-500 ${barColor(
-              trustScore.trust_score
+              trustScore.trust_score,
             )}`}
             style={{ width: `${Math.min(100, trustScore.trust_score)}%` }}
           />
         </div>
       </div>
 
-      <p className="text-gray-600 text-sm mb-6">{trustScore.description}</p>
 
       <div className="pt-6 border-t border-gray-200 mb-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+        <h3 className="text-xl font-semibold text-gray-900 mb-4">
           {t("profile.trustScoreBreakdownIEC")}
         </h3>
         <div className="space-y-4">
@@ -155,10 +165,10 @@ const TrustScoreCard: React.FC<TrustScoreCardProps> = ({
           ).map(([key, pct, color]) => (
             <div key={key}>
               <div className="flex justify-between items-center mb-1">
-                <span className="text-sm font-medium text-gray-700">
+                <span className="text-[15px] font-medium text-gray-700">
                   {t(`profile.trustScoreAxis.${key}`)}
                 </span>
-                <span className="text-sm font-semibold text-gray-900">
+                <span className="text-[15px] font-semibold text-gray-900">
                   {pct.toFixed(0)}%
                 </span>
               </div>
@@ -177,10 +187,10 @@ const TrustScoreCard: React.FC<TrustScoreCardProps> = ({
       </div>
 
       <div className="pt-6 border-t border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-900 mb-3">
+        <h3 className="text-xl font-semibold text-gray-900 mb-3">
           {t("profile.trustScoreSuggestions")}
         </h3>
-        <div className="space-y-3 text-sm text-gray-700">
+        <div className="space-y-3 text-[15px] text-gray-700">
           {persistentSuggestions.map((group) => (
             <p key={group.key}>
               <span className="font-semibold">{group.label}</span>
@@ -189,7 +199,7 @@ const TrustScoreCard: React.FC<TrustScoreCardProps> = ({
             </p>
           ))}
           {trustScore.suggestions.length > 0 && (
-            <ul className="list-disc list-inside space-y-1 text-sm text-gray-600">
+            <ul className="list-disc list-inside space-y-1 text-[15px] text-gray-600">
               {trustScore.suggestions.map((s, i) => (
                 <li key={i}>{s}</li>
               ))}

@@ -23,6 +23,7 @@ import {
   useAddEducationMutation,
   useAddEmploymentMutation,
 } from "../../services/api/extendedProfileApi";
+import { useResendVerificationEmailMutation } from "../../services/api/authApi";
 import { uploadProfileImage } from "../../services/api/profileImageApi";
 import { uploadResume } from "../../services/api/resumeApi";
 import { updateUserProfile } from "../../services/api/profileApi";
@@ -152,6 +153,8 @@ const ProfileCompletionWizard: React.FC<ProfileCompletionWizardProps> = ({
   const [addEducation] = useAddEducationMutation();
   const [addEmployment] = useAddEmploymentMutation();
   const [calculateTrustScore] = useCalculateTrustScoreMutation();
+
+  const [resendVerificationEmail] = useResendVerificationEmailMutation();
 
   const [profileData, setProfileData] = useState<any>(null);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
@@ -325,6 +328,11 @@ const ProfileCompletionWizard: React.FC<ProfileCompletionWizardProps> = ({
               await addEmployment(employmentForm).unwrap();
               toast.success("Employment added!");
             }
+            break;
+
+          case "email_verified":
+            await resendVerificationEmail(profileData.email).unwrap();
+            toast.success("Verification email sent. Please check your inbox.");
             break;
 
           default:
