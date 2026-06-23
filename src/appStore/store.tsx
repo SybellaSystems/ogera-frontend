@@ -1,7 +1,18 @@
-import { configureStore } from "@reduxjs/toolkit";
+import { configureStore, createListenerMiddleware } from "@reduxjs/toolkit";
 import rootReducer from "./rootReducer";
 import { apiSlice } from "../services/api/apiSlice";
 import { extendedProfileApi } from "../services/api/extendedProfileApi";
+import { logout } from "../features/auth/authSlice";
+
+const authListenerMiddleware = createListenerMiddleware();
+
+authListenerMiddleware.startListening({
+  actionCreator: logout,
+  effect: async (_action, listenerApi) => {
+    listenerApi.dispatch(apiSlice.util.resetApiState());
+    listenerApi.dispatch(extendedProfileApi.util.resetApiState());
+  },
+});
 
 // Load state from localStorage (WITHOUT access token for security)
 const loadState = () => {
@@ -105,6 +116,7 @@ const store = configureStore({
   reducer: rootReducer,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware()
+      .concat(authListenerMiddleware.middleware)
       .concat(apiSlice.middleware)
       .concat(extendedProfileApi.middleware),
   preloadedState: loadState(), // Load persisted state on app start

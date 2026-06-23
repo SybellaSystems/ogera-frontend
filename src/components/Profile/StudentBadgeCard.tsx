@@ -73,7 +73,6 @@ interface StudentBadgeCardProps {
 const StudentBadgeCard: React.FC<StudentBadgeCardProps> = ({
   badge,
   subscriptionDaysLeft,
-  pioneerEligible,
   applicationsUsed,
   applicationsRemaining,
   onUpgradeClick,
@@ -97,8 +96,10 @@ const StudentBadgeCard: React.FC<StudentBadgeCardProps> = ({
             {badge === "PIONEER" && (
               <p className="text-sm font-medium text-purple-700">Priority access · Instant job visibility</p>
             )}
-            {badge === "FREE" && pioneerEligible && (
-              <p className="text-xs text-purple-600 mt-0.5">Pioneer candidate — complete academic verification & first task</p>
+            {badge === "FREE" && (
+              <p className="text-xs text-purple-600 mt-0.5">
+                Complete academic verification & your first task to unlock the Pioneer badge
+              </p>
             )}
             {applicationsUsed != null && applicationsRemaining != null && (
               <p className="text-xs text-gray-600 mt-1">

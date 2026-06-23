@@ -59,12 +59,13 @@ const ProfileHeaderCard: React.FC<ProfileHeaderCardProps> = ({
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
 
   const isStudent = (role || "").toString().toLowerCase() === "student";
-  const { data: badgeData, refetch: refetchBadge } = useGetBadgeStatusQuery(undefined, {
-    skip: !isStudent,
+  const userData = profileData || user;
+  const userId = userData?.user_id || userData?.id;
+  const { data: badgeData, refetch: refetchBadge } = useGetBadgeStatusQuery(userId, {
+    skip: !isStudent || !userId,
+    refetchOnMountOrArgChange: true,
   });
   const badgeStatus = badgeData?.data;
-
-  const userData = profileData || user;
   const userRole = userData?.role?.roleName || role;
   const normalizedUserRole = (userRole || "").toString().toLowerCase();
   const shouldShowVerifyAccountButton =
