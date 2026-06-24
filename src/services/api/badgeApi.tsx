@@ -73,7 +73,7 @@ export interface SubscribePremiumResponse {
 
 export const badgeApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-    getBadgeStatus: builder.query<{ success: boolean; data: BadgeStatus }, void>({
+    getBadgeStatus: builder.query<{ success: boolean; data: BadgeStatus }, string>({
       query: () => ({ url: "/badge/status", method: "GET" }),
       providesTags: ["Badge"],
     }),
