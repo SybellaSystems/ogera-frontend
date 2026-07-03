@@ -42,12 +42,13 @@ const ActiveJobs: React.FC = () => {
       refetchOnReconnect: true,
     },
   );
-  const { data: studentApplications, refetch: refetchApplications } = useGetStudentApplicationsQuery(undefined, {
-    skip: role !== "student",
-  });
+  const { data: studentApplications, refetch: refetchApplications } =
+    useGetStudentApplicationsQuery(undefined, {
+      skip: role !== "student",
+    });
   // Create a Set of job IDs the student has applied to
   const appliedJobIds = new Set(
-    (studentApplications?.data || []).map((app: any) => app.job_id)
+    (studentApplications?.data || []).map((app: any) => app.job_id),
   );
 
   const activeJobs = data?.data || [];
@@ -63,7 +64,7 @@ const ActiveJobs: React.FC = () => {
 
   // Get unique locations for filter
   const locations = Array.from(
-    new Set(activeJobs.map((job: any) => job.location).filter(Boolean))
+    new Set(activeJobs.map((job: any) => job.location).filter(Boolean)),
   );
 
   const handleApply = (job: any) => {
@@ -191,12 +192,17 @@ const ActiveJobs: React.FC = () => {
         <div className="px-6 py-8 max-w-7xl mx-auto">
           {/* Result Count */}
           <div className="mb-6 text-sm text-gray-600">
-            Showing <span className="font-semibold text-gray-900">{filteredJobs.length}</span> active job{filteredJobs.length !== 1 ? "s" : ""}
+            Showing{" "}
+            <span className="font-semibold text-gray-900">
+              {filteredJobs.length}
+            </span>{" "}
+            active job{filteredJobs.length !== 1 ? "s" : ""}
           </div>
 
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
             {filteredJobs.map((job: any) => {
-              const employerName = job.employer?.full_name || t("pages.jobs.unknownEmployer");
+              const employerName =
+                job.employer?.full_name || t("pages.jobs.unknownEmployer");
               const companyInitial = employerName.charAt(0).toUpperCase();
               const isSaved = savedJobs.has(job.job_id);
               const isCompletedJob = job.status === "Completed";
@@ -206,12 +212,12 @@ const ActiveJobs: React.FC = () => {
               return (
                 <div
                   key={job.job_id}
-                  className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-green-300 transition-all duration-200 overflow-hidden group"
+                  className="group w-full h-full bg-white rounded-2xl border border-slate-100 hover:border-green-300 shadow-sm hover:shadow-lg hover:shadow-green-100/40 transition-all duration-300 overflow-hidden"
                 >
                   {/* Top colored bar */}
-                  <div className="h-1.5 bg-linear-to-r from-green-500 to-emerald-500"></div>
+                  <div className="h-1 w-full bg-gradient-to-r from-green-500 via-emerald-500 to-green-400"></div>
 
-                  <div className="p-5">
+                  <div className="flex flex-col h-full p-5">
                     <div className="flex gap-4">
                       {/* Company Logo */}
                       <div className="flex-shrink-0">
@@ -221,11 +227,13 @@ const ActiveJobs: React.FC = () => {
                       </div>
 
                       {/* Job Details */}
-                      <div className="flex-1 min-w-0">
+                      <div className="flex-1 flex flex-col min-w-0">
                         <div className="flex items-start justify-between mb-2 gap-2">
-                          <div className="flex-1 min-w-0">
+                          <div className="flex-1 flex flex-col min-w-0">
                             <h3
-                              onClick={() => navigate(`/dashboard/jobs/${job.job_id}`)}
+                              onClick={() =>
+                                navigate(`/dashboard/jobs/${job.job_id}`)
+                              }
                               className="text-base font-semibold text-green-600 hover:text-green-800 cursor-pointer mb-0.5"
                             >
                               {job.job_title}
@@ -237,7 +245,11 @@ const ActiveJobs: React.FC = () => {
                           <button
                             onClick={() => toggleSaveJob(job.job_id)}
                             className="flex-shrink-0 p-1.5 hover:bg-gray-100 rounded-full transition"
-                            title={isSaved ? t("pages.jobs.removeFromSaved") : t("pages.jobs.saveJob")}
+                            title={
+                              isSaved
+                                ? t("pages.jobs.removeFromSaved")
+                                : t("pages.jobs.saveJob")
+                            }
                           >
                             {isSaved ? (
                               <BookmarkSolidIcon className="h-5 w-5 text-green-600" />
@@ -254,8 +266,9 @@ const ActiveJobs: React.FC = () => {
                             {job.location}
                           </span>
                           <span className="flex items-center gap-1">
-                            <CurrencyDollarIcon className="h-3.5 w-3.5" />
-                            ${job.budget?.toLocaleString() || t("pages.jobs.notSpecified")}
+                            <CurrencyDollarIcon className="h-3.5 w-3.5" />$
+                            {job.budget?.toLocaleString() ||
+                              t("pages.jobs.notSpecified")}
                           </span>
                           {job.duration && (
                             <span className="flex items-center gap-1">
@@ -266,7 +279,8 @@ const ActiveJobs: React.FC = () => {
                           {job.created_at && (
                             <span className="flex items-center gap-1">
                               <ClockIcon className="h-3.5 w-3.5" />
-                              {t("pages.jobs.posted")} {formatRelativeTime(job.created_at)}
+                              {t("pages.jobs.posted")}{" "}
+                              {formatRelativeTime(job.created_at)}
                             </span>
                           )}
                         </div>
@@ -304,13 +318,14 @@ const ActiveJobs: React.FC = () => {
                         {/* Action Buttons */}
                         <div className="flex flex-wrap gap-2">
                           {role === "student" ? (
-                            <div className="relative group flex-1 min-w-[140px]">
+                            <div className="relative group inline-block">
                               <button
-                                onClick={() => !isApplyDisabled && handleApply(job)}
-                                disabled={isApplyDisabled}
-                                className={`w-full px-4 py-2 rounded-lg font-medium transition shadow-sm whitespace-nowrap text-xs cursor-pointer flex items-center justify-center gap-2 ${
+                                onClick={() =>
+                                  !isApplyDisabled && handleApply(job)
+                                }
+                                className={`px-4 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition shadow-sm cursor-pointer ${
                                   isApplyDisabled
-                                    ? "bg-gray-400 text-white cursor-not-allowed"
+                                    ? "bg-slate-100 text-slate-400 cursor-not-allowed"
                                     : "bg-green-600 hover:bg-green-700 text-white"
                                 }`}
                               >
@@ -318,13 +333,16 @@ const ActiveJobs: React.FC = () => {
                                 {hasAlreadyApplied
                                   ? t("pages.jobs.applied")
                                   : isCompletedJob
-                                  ? t("pages.jobs.completed", { defaultValue: "Completed" })
-                                  : t("pages.jobs.applyNow")}
+                                    ? t("pages.jobs.completed", {
+                                        defaultValue: "Completed",
+                                      })
+                                    : t("pages.jobs.applyNow")}
                               </button>
                               {isCompletedJob && (
                                 <div className="pointer-events-none absolute left-1/2 bottom-full z-10 mb-2 w-56 -translate-x-1/2 rounded-md bg-gray-900 px-3 py-2 text-center text-xs text-white opacity-0 shadow-lg transition-opacity duration-200 group-hover:opacity-100">
                                   {t("pages.jobs.completedNoApplyMessage", {
-                                    defaultValue: "This job is already completed, so applications are closed.",
+                                    defaultValue:
+                                      "This job is already completed, so applications are closed.",
                                   })}
                                 </div>
                               )}
@@ -332,16 +350,21 @@ const ActiveJobs: React.FC = () => {
                           ) : (
                             <>
                               <button
-                                onClick={() => navigate(`/dashboard/jobs/${job.job_id}`)}
-                                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition shadow-sm whitespace-nowrap text-xs flex-1 min-w-[140px] flex items-center justify-center gap-2 cursor-pointer"
+                                onClick={() =>
+                                  navigate(`/dashboard/jobs/${job.job_id}`)
+                                }
+                                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-bold transition shadow-sm"
                               >
                                 <ArrowRightIcon className="h-4 w-4" />
                                 {t("pages.jobs.viewDetails")}
                               </button>
-                              {(role === "employer" || role === "superadmin") && (
+                              {(role === "employer" ||
+                                role === "superadmin") && (
                                 <button
                                   onClick={() =>
-                                    navigate(`/dashboard/jobs/${job.job_id}/applications`)
+                                    navigate(
+                                      `/dashboard/jobs/${job.job_id}/applications`,
+                                    )
                                   }
                                   className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition shadow-sm whitespace-nowrap text-xs flex-1 min-w-[160px] flex items-center justify-center gap-2 cursor-pointer"
                                 >

@@ -20,7 +20,10 @@ import {
   XCircleIcon,
   ExclamationCircleIcon,
 } from "@heroicons/react/24/outline";
-import { BookmarkIcon as BookmarkSolidIcon, CheckCircleIcon as CheckCircleSolid } from "@heroicons/react/24/solid";
+import {
+  BookmarkIcon as BookmarkSolidIcon,
+  CheckCircleIcon as CheckCircleSolid,
+} from "@heroicons/react/24/solid";
 import {
   useGetAllJobsQuery,
   useToggleJobStatusMutation,
@@ -28,19 +31,48 @@ import {
 } from "../../services/api/jobsApi";
 import { useGetStudentApplicationsQuery } from "../../services/api/jobApplicationApi";
 import ApplyJobModal from "../../components/ApplyJobModal";
+import JobReaction from "../../components/Jobs/JobReaction";
 import { formatRelativeTime } from "../../utils/timeUtils";
 import { formatBudgetWithCurrency } from "../../constants/currencies";
 
 // ─── Status config ────────────────────────────────────────────────────────────
-const STATUS_CONFIG: Record<string, { bg: string; text: string; dot: string; label: string }> = {
-  Active:    { bg: "bg-emerald-50",  text: "text-emerald-700", dot: "bg-emerald-500",  label: "Active"    },
-  Pending:   { bg: "bg-amber-50",    text: "text-amber-700",   dot: "bg-amber-500",    label: "Pending"   },
-  Inactive:  { bg: "bg-slate-100",   text: "text-slate-600",   dot: "bg-slate-400",    label: "Inactive"  },
-  Completed: { bg: "bg-sky-50",      text: "text-sky-700",     dot: "bg-sky-500",      label: "Completed" },
+const STATUS_CONFIG: Record<
+  string,
+  { bg: string; text: string; dot: string; label: string }
+> = {
+  Active: {
+    bg: "bg-emerald-50",
+    text: "text-emerald-700",
+    dot: "bg-emerald-500",
+    label: "Active",
+  },
+  Pending: {
+    bg: "bg-amber-50",
+    text: "text-amber-700",
+    dot: "bg-amber-500",
+    label: "Pending",
+  },
+  Inactive: {
+    bg: "bg-slate-100",
+    text: "text-slate-600",
+    dot: "bg-slate-400",
+    label: "Inactive",
+  },
+  Completed: {
+    bg: "bg-sky-50",
+    text: "text-sky-700",
+    dot: "bg-sky-500",
+    label: "Completed",
+  },
 };
 
 const getStatusCfg = (s: string) =>
-  STATUS_CONFIG[s] ?? { bg: "bg-slate-100", text: "text-slate-600", dot: "bg-slate-400", label: s };
+  STATUS_CONFIG[s] ?? {
+    bg: "bg-slate-100",
+    text: "text-slate-600",
+    dot: "bg-slate-400",
+    label: s,
+  };
 
 // ─── Funding badge ────────────────────────────────────────────────────────────
 const FundingBadge: React.FC<{ status?: string | null }> = ({ status }) => {
@@ -93,12 +125,18 @@ const StatTile: React.FC<{
   color: string;
   bg: string;
 }> = ({ label, value, icon: Icon, color, bg }) => (
-  <div className={`${bg} rounded-2xl border border-slate-100/80 p-4 flex items-center gap-3 hover:shadow-md hover:border-slate-200 transition-all duration-200 group cursor-default`}>
-    <div className={`w-10 h-10 rounded-xl ${color} flex items-center justify-center flex-shrink-0 shadow-sm group-hover:shadow-md transition-shadow`}>
+  <div
+    className={`${bg} rounded-2xl border border-slate-100/80 p-4 flex items-center gap-3 hover:shadow-md hover:border-slate-200 transition-all duration-200 group cursor-default`}
+  >
+    <div
+      className={`w-10 h-10 rounded-xl ${color} flex items-center justify-center flex-shrink-0 shadow-sm group-hover:shadow-md transition-shadow`}
+    >
       <Icon className="w-5 h-5 text-white" />
     </div>
     <div>
-      <p className="text-2xl font-black text-slate-800 leading-tight">{value}</p>
+      <p className="text-2xl font-black text-slate-800 leading-tight">
+        {value}
+      </p>
       <p className="text-xs text-slate-600 font-semibold mt-0.5">{label}</p>
     </div>
   </div>
@@ -113,11 +151,14 @@ const ActionBtn: React.FC<{
   size?: "sm" | "xs";
 }> = ({ onClick, disabled, variant = "secondary", children, size = "sm" }) => {
   const variants = {
-    primary:   "bg-violet-600 hover:bg-violet-700 text-white shadow-sm shadow-violet-200/50 border border-violet-500/20",
-    secondary: "bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200",
-    danger:    "bg-red-50 hover:bg-red-100 text-red-700 border border-red-200/60",
-    success:   "bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200/60",
-    ghost:     "hover:bg-slate-100 text-slate-600 border border-transparent",
+    primary:
+      "bg-violet-600 hover:bg-violet-700 text-white shadow-sm shadow-violet-200/50 border border-violet-500/20",
+    secondary:
+      "bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200",
+    danger: "bg-red-50 hover:bg-red-100 text-red-700 border border-red-200/60",
+    success:
+      "bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200/60",
+    ghost: "hover:bg-slate-100 text-slate-600 border border-transparent",
   };
   const sizes = {
     sm: "px-3 py-1.5 text-xs font-semibold",
@@ -142,62 +183,69 @@ const AllJobs: React.FC = () => {
   const roleRaw = useSelector((state: any) => state.auth.role);
   const role = roleRaw ? String(roleRaw).toLowerCase().trim() : "";
   const isRoleReady = Boolean(role);
-const isUnfundedRoute = location.pathname === "/dashboard/jobs/unfunded";
+  const isUnfundedRoute = location.pathname === "/dashboard/jobs/unfunded";
 
-const [selectedJob, setSelectedJob] = useState<any>(null);
-const [isModalOpen, setIsModalOpen] = useState(false);
-const [toggleStatus, { isLoading: isToggling }] = useToggleJobStatusMutation();
-const [searchQuery, setSearchQuery] = useState("");
-const [selectedLocation, setSelectedLocation] = useState("");
-const [selectedStatus, setSelectedStatus] = useState("");
-const [selectedCategory, setSelectedCategory] = useState("");
-const [selectedPaymentRange, setSelectedPaymentRange] = useState("");
-const [savedJobs, setSavedJobs] = useState<Set<string>>(new Set());
-const [reviewJob, { isLoading: isReviewingJob }] = useReviewJobMutation();
-const [openMenuId, setOpenMenuId] = useState<string | null>(null);
-const [showFilters, setShowFilters] = useState(false);
+  const [selectedJob, setSelectedJob] = useState<any>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [toggleStatus, { isLoading: isToggling }] =
+    useToggleJobStatusMutation();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedLocation, setSelectedLocation] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedPaymentRange, setSelectedPaymentRange] = useState("");
+  const [savedJobs, setSavedJobs] = useState<Set<string>>(new Set());
+  const [reviewJob, { isLoading: isReviewingJob }] = useReviewJobMutation();
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
 
-const jobsQueryParams = {
-  ...(role === "employer" && isUnfundedRoute ? { funded: false } : {}),
-  ...(searchQuery ? { search: searchQuery } : {}),
-  ...(selectedLocation ? { location: selectedLocation } : {}),
-  ...(selectedStatus ? { status: selectedStatus as any } : {}),
-  ...(selectedCategory ? { category: selectedCategory } : {}),
-  ...(selectedPaymentRange ? { payment_range: selectedPaymentRange } : {}),
-}; const { data, isLoading, isFetching, error, refetch } = useGetAllJobsQuery(jobsQueryParams, {
-    skip: !isRoleReady,
-    refetchOnMountOrArgChange: true,
-    refetchOnFocus: true,
-    refetchOnReconnect: true,
-  });const { data: studentApplications, refetch: refetchApplications } =
-  useGetStudentApplicationsQuery(undefined, {
-    skip: role !== "student",
-  });
+  const jobsQueryParams = {
+    ...(role === "employer" && isUnfundedRoute ? { funded: false } : {}),
+    ...(searchQuery ? { search: searchQuery } : {}),
+    ...(selectedLocation ? { location: selectedLocation } : {}),
+    ...(selectedStatus ? { status: selectedStatus as any } : {}),
+    ...(selectedCategory ? { category: selectedCategory } : {}),
+    ...(selectedPaymentRange ? { payment_range: selectedPaymentRange } : {}),
+  };
+  const { data, isLoading, isFetching, error, refetch } = useGetAllJobsQuery(
+    jobsQueryParams,
+    {
+      skip: !isRoleReady,
+      refetchOnMountOrArgChange: true,
+      refetchOnFocus: true,
+      refetchOnReconnect: true,
+    },
+  );
+  const { data: studentApplications, refetch: refetchApplications } =
+    useGetStudentApplicationsQuery(undefined, {
+      skip: role !== "student",
+    });
 
-useEffect(() => {
-  if (!isRoleReady) return;
+  useEffect(() => {
+    if (!isRoleReady) return;
     refetch();
   }, [isRoleReady, isUnfundedRoute, refetch]);
 
   // Close dropdown on outside click - simplified
   useEffect(() => {
     if (!openMenuId) return; // Only listen if menu is open
-    
+
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
       // Check if click is outside all menu-related elements
-      const isMenuClick = target.closest('[role="menu"]') || 
-                         target.closest('button[data-menu-trigger]');
+      const isMenuClick =
+        target.closest('[role="menu"]') ||
+        target.closest("button[data-menu-trigger]");
       if (!isMenuClick) {
         setOpenMenuId(null);
       }
     };
-    
+
     // Small delay to avoid immediately closing
     const timer = setTimeout(() => {
       document.addEventListener("click", handleClickOutside);
     }, 0);
-    
+
     return () => {
       clearTimeout(timer);
       document.removeEventListener("click", handleClickOutside);
@@ -205,36 +253,47 @@ useEffect(() => {
   }, [openMenuId]);
 
   const appliedJobIds = new Set(
-    (studentApplications?.data || []).map((app: any) => app.job_id)
+    (studentApplications?.data || []).map((app: any) => app.job_id),
   );
 
   const jobs = data?.data || [];
   const isFundedJob = (fundingStatus?: string | null) =>
     fundingStatus === "Funded" || fundingStatus === "Paid";
-const filteredJobs = jobs.filter((job: any) => {
-  // Backend now handles filtering; keep only route-level constraints.
-  if (
-    (role === "superadmin" || role === "admin") &&
-    isUnfundedRoute &&
-    isFundedJob(job.funding_status)
-  ) {
-    return false;
-  }
+  const filteredJobs = jobs.filter((job: any) => {
+    // Backend now handles filtering; keep only route-level constraints.
+    if (
+      (role === "superadmin" || role === "admin") &&
+      isUnfundedRoute &&
+      isFundedJob(job.funding_status)
+    ) {
+      return false;
+    }
 
-  return true;
-});
+    return true;
+  });
 
-  const locations = Array.from(new Set(jobs.map((j: any) => j.location).filter(Boolean)));
+  const locations = Array.from(
+    new Set(jobs.map((j: any) => j.location).filter(Boolean)),
+  );
   const statuses = ["Active", "Pending", "Inactive", "Completed"];
-  const categories = Array.from(new Set(jobs.map((j: any) => j.category).filter(Boolean)));
+  const categories = Array.from(
+    new Set(jobs.map((j: any) => j.category).filter(Boolean)),
+  );
 
   const totalJobs = filteredJobs.length;
-  const activeJobs = filteredJobs.filter((j: any) => j.status === "Active").length;
+  const activeJobs = filteredJobs.filter(
+    (j: any) => j.status === "Active",
+  ).length;
   const pendingJobs =
     role === "student"
-      ? (studentApplications?.data || []).filter((a: any) => a.status === "Pending").length
+      ? (studentApplications?.data || []).filter(
+          (a: any) => a.status === "Pending",
+        ).length
       : filteredJobs.filter((j: any) => j.status === "Pending").length;
-  const totalApplicants = filteredJobs.reduce((sum: number, j: any) => sum + (j.applications || 0), 0);
+  const totalApplicants = filteredJobs.reduce(
+    (sum: number, j: any) => sum + (j.applications || 0),
+    0,
+  );
 
   const toggleSaveJob = (jobId: string) => {
     setSavedJobs((prev) => {
@@ -266,7 +325,10 @@ const filteredJobs = jobs.filter((job: any) => {
     }
   };
 
-  const handleAdminReview = async (jobId: string, status: "Active" | "Inactive") => {
+  const handleAdminReview = async (
+    jobId: string,
+    status: "Active" | "Inactive",
+  ) => {
     try {
       await reviewJob({ id: jobId, status }).unwrap();
       refetch();
@@ -276,7 +338,11 @@ const filteredJobs = jobs.filter((job: any) => {
   };
 
   const hasActiveFilters =
-    searchQuery || selectedLocation || selectedStatus || selectedCategory || selectedPaymentRange;
+    searchQuery ||
+    selectedLocation ||
+    selectedStatus ||
+    selectedCategory ||
+    selectedPaymentRange;
 
   // ── Loading ──────────────────────────────────────────────────────────────────
   if (!isRoleReady || (isLoading && !data) || (isFetching && !data)) {
@@ -291,12 +357,17 @@ const filteredJobs = jobs.filter((job: any) => {
         </div>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-20 bg-slate-100 rounded-2xl animate-pulse" />
+            <div
+              key={i}
+              className="h-20 bg-slate-100 rounded-2xl animate-pulse"
+            />
           ))}
         </div>
         <div className="h-14 bg-slate-100 rounded-2xl animate-pulse" />
         <div className="space-y-4">
-          {[...Array(4)].map((_, i) => <SkeletonCard key={i} />)}
+          {[...Array(4)].map((_, i) => (
+            <SkeletonCard key={i} />
+          ))}
         </div>
       </div>
     );
@@ -308,8 +379,12 @@ const filteredJobs = jobs.filter((job: any) => {
         <div className="w-16 h-16 rounded-2xl bg-red-50 border border-red-100 flex items-center justify-center mb-4">
           <XCircleIcon className="w-8 h-8 text-red-400" />
         </div>
-        <h3 className="text-lg font-bold text-slate-800 mb-1">Failed to load jobs</h3>
-        <p className="text-sm text-slate-500 mb-4">{t("pages.jobs.failedToLoad")}</p>
+        <h3 className="text-lg font-bold text-slate-800 mb-1">
+          Failed to load jobs
+        </h3>
+        <p className="text-sm text-slate-500 mb-4">
+          {t("pages.jobs.failedToLoad")}
+        </p>
         <button
           onClick={() => refetch()}
           className="flex items-center gap-2 px-4 py-2 rounded-xl bg-violet-600 text-white text-sm font-semibold hover:bg-violet-700 transition"
@@ -323,7 +398,6 @@ const filteredJobs = jobs.filter((job: any) => {
   // ─── RENDER ───────────────────────────────────────────────────────────────────
   return (
     <div className="space-y-6 pb-10">
-
       {/* ── Header ────────────────────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
@@ -342,8 +416,8 @@ const filteredJobs = jobs.filter((job: any) => {
             {role === "employer"
               ? t("pages.jobs.managePostings")
               : role === "student"
-              ? t("pages.jobs.browseAndApply")
-              : t("pages.jobs.browseAndManage")}
+                ? t("pages.jobs.browseAndApply")
+                : t("pages.jobs.browseAndManage")}
           </p>
         </div>
 
@@ -360,10 +434,34 @@ const filteredJobs = jobs.filter((job: any) => {
 
       {/* ── Stats ─────────────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <StatTile label={t("pages.jobs.totalJobs")}       value={totalJobs}       icon={BriefcaseIcon}  color="bg-violet-500" bg="bg-violet-50/60" />
-        <StatTile label={t("pages.jobs.activeJobs")}      value={activeJobs}      icon={CheckCircleIcon} color="bg-emerald-500" bg="bg-emerald-50/60" />
-        <StatTile label={t("pages.jobs.totalApplicants")} value={totalApplicants} icon={UserGroupIcon}  color="bg-sky-500"    bg="bg-sky-50/60"    />
-        <StatTile label={t("pages.jobs.pendingReview")}   value={pendingJobs}     icon={ChartBarIcon}   color="bg-amber-500"  bg="bg-amber-50/60"  />
+        <StatTile
+          label={t("pages.jobs.totalJobs")}
+          value={totalJobs}
+          icon={BriefcaseIcon}
+          color="bg-violet-500"
+          bg="bg-violet-50/60"
+        />
+        <StatTile
+          label={t("pages.jobs.activeJobs")}
+          value={activeJobs}
+          icon={CheckCircleIcon}
+          color="bg-emerald-500"
+          bg="bg-emerald-50/60"
+        />
+        <StatTile
+          label={t("pages.jobs.totalApplicants")}
+          value={totalApplicants}
+          icon={UserGroupIcon}
+          color="bg-sky-500"
+          bg="bg-sky-50/60"
+        />
+        <StatTile
+          label={t("pages.jobs.pendingReview")}
+          value={pendingJobs}
+          icon={ChartBarIcon}
+          color="bg-amber-500"
+          bg="bg-amber-50/60"
+        />
       </div>
 
       {/* ── Control bar ───────────────────────────────────────────────────────── */}
@@ -421,7 +519,7 @@ const filteredJobs = jobs.filter((job: any) => {
 
         {/* Expanded filter row */}
         {showFilters && (
-          <div className="border-t border-slate-100 px-4 py-3.5 bg-slate-50/80 flex flex-wrap gap-3">
+          <div className="px-4 py-3.5 bg-slate-50/80 flex flex-wrap gap-3">
             {/* Location */}
             <div className="relative">
               <MapPinIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
@@ -432,7 +530,9 @@ const filteredJobs = jobs.filter((job: any) => {
               >
                 <option value="">{t("pages.jobs.allLocations")}</option>
                 {(locations as string[]).map((l) => (
-                  <option key={l} value={l}>{l}</option>
+                  <option key={l} value={l}>
+                    {l}
+                  </option>
                 ))}
               </select>
             </div>
@@ -445,7 +545,9 @@ const filteredJobs = jobs.filter((job: any) => {
             >
               <option value="">All Categories</option>
               {(categories as string[]).map((c) => (
-                <option key={c} value={c}>{c}</option>
+                <option key={c} value={c}>
+                  {c}
+                </option>
               ))}
             </select>
 
@@ -469,7 +571,11 @@ const filteredJobs = jobs.filter((job: any) => {
               className="md:hidden h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 cursor-pointer"
             >
               <option value="">{t("pages.jobs.allStatus")}</option>
-              {statuses.map((s) => <option key={s} value={s}>{s}</option>)}
+              {statuses.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
             </select>
 
             {/* Clear */}
@@ -498,7 +604,9 @@ const filteredJobs = jobs.filter((job: any) => {
             <BriefcaseIcon className="w-10 h-10 text-violet-300" />
           </div>
           <h3 className="text-lg font-black text-slate-800 mb-2">
-            {hasActiveFilters ? t("pages.jobs.noJobsMatching") : t("pages.jobs.noJobsAvailable")}
+            {hasActiveFilters
+              ? t("pages.jobs.noJobsMatching")
+              : t("pages.jobs.noJobsAvailable")}
           </h3>
           <p className="text-sm text-slate-500 max-w-xs mb-6">
             {hasActiveFilters
@@ -508,14 +616,17 @@ const filteredJobs = jobs.filter((job: any) => {
           {hasActiveFilters ? (
             <button
               onClick={() => {
-                setSearchQuery(""); setSelectedLocation(""); setSelectedStatus("");
-                setSelectedCategory(""); setSelectedPaymentRange("");
+                setSearchQuery("");
+                setSelectedLocation("");
+                setSelectedStatus("");
+                setSelectedCategory("");
+                setSelectedPaymentRange("");
               }}
               className="px-5 py-2.5 rounded-xl bg-slate-100 text-slate-700 text-sm font-semibold hover:bg-slate-200 transition"
             >
               Clear filters
             </button>
-          ) : (role === "employer" || role === "superadmin") ? (
+          ) : role === "employer" || role === "superadmin" ? (
             <button
               onClick={() => navigate("/dashboard/jobs/create")}
               className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-violet-600 text-white text-sm font-bold shadow-md shadow-violet-200 hover:bg-violet-700 transition active:scale-95"
@@ -526,15 +637,20 @@ const filteredJobs = jobs.filter((job: any) => {
         </div>
       ) : (
         /* ── Job cards ──────────────────────────────────────────────────────── */
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
           {/* Results count */}
-          <p className="text-xs text-slate-500 font-medium px-1">
-            Showing <span className="font-bold text-slate-700">{filteredJobs.length}</span> job{filteredJobs.length !== 1 ? "s" : ""}
+          <p className="lg:col-span-2 text-xs text-slate-500 font-medium px-1">
+            Showing{" "}
+            <span className="font-bold text-slate-700">
+              {filteredJobs.length}
+            </span>{" "}
+            job{filteredJobs.length !== 1 ? "s" : ""}
             {hasActiveFilters && " · filtered"}
           </p>
 
           {filteredJobs.map((job: any) => {
-            const employerName = job.employer?.full_name || t("pages.jobs.unknownEmployer");
+            const employerName =
+              job.employer?.full_name || t("pages.jobs.unknownEmployer");
             const companyInitial = employerName.charAt(0).toUpperCase();
             const isSaved = savedJobs.has(job.job_id);
             const isCompletedJob = job.status === "Completed";
@@ -550,20 +666,25 @@ const filteredJobs = jobs.filter((job: any) => {
               "from-amber-500 to-orange-600",
               "from-pink-500 to-rose-600",
             ];
-            const gradIdx = companyInitial.charCodeAt(0) % avatarGradients.length;
+            const gradIdx =
+              companyInitial.charCodeAt(0) % avatarGradients.length;
 
             return (
               <div
                 key={job.job_id}
-                className="group bg-white rounded-2xl border border-slate-100 hover:border-violet-200 shadow-sm hover:shadow-lg hover:shadow-violet-100/40 transition-all duration-250 overflow-hidden"
+                className="group w-full h-full bg-white rounded-2xl border border-slate-100 hover:border-violet-200 shadow-sm hover:shadow-lg hover:shadow-violet-100/40 transition-all duration-300 overflow-hidden"
               >
                 {/* Unfunded accent stripe */}
-                {!isFundedJob(job.funding_status) && (
-                  <div className="h-1 w-full bg-gradient-to-r from-orange-400 via-amber-400 to-orange-300" />
-                )}
+                <div
+                  className={`h-1 w-full ${
+                    isFundedJob(job.funding_status)
+                      ? "bg-gradient-to-r from-purple-600 via-violet-500 to-fuchsia-500"
+                      : "bg-gradient-to-r from-orange-400 via-amber-400 to-orange-300"
+                  }`}
+                />
 
-                <div className="p-5">
-                  <div className="flex gap-4">
+                <div className="flex flex-col h-full p-5">
+                  <div className="flex gap-4 pb-4">
                     {/* Avatar */}
                     <div className="flex-shrink-0">
                       <div
@@ -580,7 +701,9 @@ const filteredJobs = jobs.filter((job: any) => {
                         <div className="flex-1 min-w-0">
                           <div className="flex flex-wrap items-center gap-2 mb-1">
                             <h3
-                              onClick={() => navigate(`/dashboard/jobs/${job.job_id}`)}
+                              onClick={() =>
+                                navigate(`/dashboard/jobs/${job.job_id}`)
+                              }
                               className="text-base font-bold text-slate-800 hover:text-violet-700 cursor-pointer transition-colors truncate"
                             >
                               {job.job_title}
@@ -589,19 +712,27 @@ const filteredJobs = jobs.filter((job: any) => {
                             <span
                               className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide ${statusCfg.bg} ${statusCfg.text} border border-current/10`}
                             >
-                              <span className={`w-1.5 h-1.5 rounded-full ${statusCfg.dot} animate-pulse`} />
+                              <span
+                                className={`w-1.5 h-1.5 rounded-full ${statusCfg.dot} animate-pulse`}
+                              />
                               {statusCfg.label}
                             </span>
                             <FundingBadge status={job.funding_status} />
                           </div>
-                          <p className="text-xs font-medium text-slate-500 truncate">{employerName}</p>
+                          <p className="text-xs font-medium text-slate-500 truncate">
+                            {employerName}
+                          </p>
                         </div>
 
                         {/* Bookmark (students) */}
                         {role === "student" && (
                           <button
                             onClick={() => toggleSaveJob(job.job_id)}
-                            title={isSaved ? t("pages.jobs.removeFromSaved") : t("pages.jobs.saveJob")}
+                            title={
+                              isSaved
+                                ? t("pages.jobs.removeFromSaved")
+                                : t("pages.jobs.saveJob")
+                            }
                             className="flex-shrink-0 p-1.5 rounded-lg hover:bg-slate-100 transition-colors duration-200"
                           >
                             {isSaved ? (
@@ -614,7 +745,7 @@ const filteredJobs = jobs.filter((job: any) => {
                       </div>
 
                       {/* Meta row */}
-                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-600 font-medium mb-3.5">
+                      <div className="grid grid-cols-2 gap-3 text-xs text-slate-600 font-medium py-4">
                         {job.location && (
                           <span className="flex items-center gap-1">
                             <MapPinIcon className="w-3.5 h-3.5" />
@@ -623,7 +754,10 @@ const filteredJobs = jobs.filter((job: any) => {
                         )}
                         <span className="flex items-center gap-1">
                           <CurrencyDollarIcon className="w-3.5 h-3.5" />
-                          {formatBudgetWithCurrency(job.budget, job.currency || "USD")}
+                          {formatBudgetWithCurrency(
+                            job.budget,
+                            job.currency || "USD",
+                          )}
                         </span>
                         {job.duration && (
                           <span className="flex items-center gap-1">
@@ -634,20 +768,23 @@ const filteredJobs = jobs.filter((job: any) => {
                         {job.created_at && (
                           <span className="flex items-center gap-1 text-slate-400">
                             <ClockIcon className="w-3 h-3" />
-                            {t("pages.jobs.posted")} {formatRelativeTime(job.created_at)}
+                            {t("pages.jobs.posted")}{" "}
+                            {formatRelativeTime(job.created_at)}
                           </span>
                         )}
                       </div>
 
                       {/* Description preview */}
                       {job.description && (
-                        <p className="text-xs text-slate-600 line-clamp-2 mb-3 leading-relaxed font-medium">
-                          {job.description}
-                        </p>
+                        <div className="my-4 rounded-lg border border-slate-200 bg-slate-50 p-3">
+                          <p className="text-xs text-slate-600 line-clamp-3 leading-relaxed">
+                            {job.description}
+                          </p>
+                        </div>
                       )}
 
                       {/* Tags row */}
-                      <div className="flex flex-wrap items-center gap-2 mb-4">
+                      <div className="flex flex-wrap gap-2 pb-4">
                         {job.category && (
                           <span className="px-2.5 py-1 rounded-lg bg-violet-50 text-violet-700 text-[10px] font-bold border border-violet-200/50">
                             {job.category}
@@ -669,12 +806,19 @@ const filteredJobs = jobs.filter((job: any) => {
                         </span>
                       </div>
 
+                      {/* Like / Dislike */}
+                      <div className="py-4">
+                        <JobReaction job={job} />
+                      </div>
+
                       {/* Action buttons */}
-                      <div className="flex flex-wrap items-center gap-2 pt-1">
+                      <div className="mt-auto pt-4  flex flex-wrap items-center gap-2">
                         {role === "student" ? (
                           <div className="relative group/apply">
                             <button
-                              onClick={() => !isApplyDisabled && handleApply(job)}
+                              onClick={() =>
+                                !isApplyDisabled && handleApply(job)
+                              }
                               disabled={isApplyDisabled}
                               className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all active:scale-95 ${
                                 isApplyDisabled
@@ -685,13 +829,16 @@ const filteredJobs = jobs.filter((job: any) => {
                               {hasAlreadyApplied
                                 ? "✓ Applied"
                                 : isCompletedJob
-                                ? t("pages.jobs.completed", { defaultValue: "Completed" })
-                                : t("pages.jobs.applyNow")}
+                                  ? t("pages.jobs.completed", {
+                                      defaultValue: "Completed",
+                                    })
+                                  : t("pages.jobs.applyNow")}
                             </button>
                             {isCompletedJob && (
                               <div className="pointer-events-none absolute left-1/2 bottom-full mb-2 -translate-x-1/2 w-52 rounded-xl bg-slate-900 px-3 py-2 text-center text-xs text-white opacity-0 shadow-xl transition-opacity duration-200 group-hover/apply:opacity-100">
                                 {t("pages.jobs.completedNoApplyMessage", {
-                                  defaultValue: "Applications are closed for this job.",
+                                  defaultValue:
+                                    "Applications are closed for this job.",
                                 })}
                               </div>
                             )}
@@ -699,20 +846,33 @@ const filteredJobs = jobs.filter((job: any) => {
                         ) : (
                           <>
                             {/* View */}
-                            <ActionBtn onClick={() => navigate(`/dashboard/jobs/${job.job_id}`)}>
+                            <ActionBtn
+                              onClick={() =>
+                                navigate(`/dashboard/jobs/${job.job_id}`)
+                              }
+                            >
                               {t("pages.jobs.viewDetails")}
                             </ActionBtn>
 
-                            {(role === "employer" || (role === "superadmin" && !isUnfundedRoute)) && (
+                            {(role === "employer" ||
+                              (role === "superadmin" && !isUnfundedRoute)) && (
                               <>
                                 <ActionBtn
-                                  onClick={() => navigate(`/dashboard/jobs/${job.job_id}/tasks`)}
+                                  onClick={() =>
+                                    navigate(
+                                      `/dashboard/jobs/${job.job_id}/tasks`,
+                                    )
+                                  }
                                   variant="secondary"
                                 >
                                   Tasks
                                 </ActionBtn>
                                 <ActionBtn
-                                  onClick={() => navigate(`/dashboard/jobs/${job.job_id}/applications`)}
+                                  onClick={() =>
+                                    navigate(
+                                      `/dashboard/jobs/${job.job_id}/applications`,
+                                    )
+                                  }
                                   variant="primary"
                                 >
                                   Applications
@@ -720,17 +880,24 @@ const filteredJobs = jobs.filter((job: any) => {
                                     {job.applications || 0}
                                   </span>
                                 </ActionBtn>
-                                {(job.status === "Active" || job.status === "Inactive") && (
+                                {(job.status === "Active" ||
+                                  job.status === "Inactive") && (
                                   <ActionBtn
-                                    onClick={() => handleToggleStatus(job.job_id, job.status)}
+                                    onClick={() =>
+                                      handleToggleStatus(job.job_id, job.status)
+                                    }
                                     disabled={isToggling}
-                                    variant={job.status === "Active" ? "danger" : "success"}
+                                    variant={
+                                      job.status === "Active"
+                                        ? "danger"
+                                        : "success"
+                                    }
                                   >
                                     {isToggling
                                       ? t("pages.jobs.updating")
                                       : job.status === "Active"
-                                      ? t("pages.jobs.deactivate")
-                                      : t("pages.jobs.activate")}
+                                        ? t("pages.jobs.deactivate")
+                                        : t("pages.jobs.activate")}
                                   </ActionBtn>
                                 )}
 
@@ -740,7 +907,11 @@ const filteredJobs = jobs.filter((job: any) => {
                                     data-menu-trigger
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      setOpenMenuId(openMenuId === job.job_id ? null : job.job_id);
+                                      setOpenMenuId(
+                                        openMenuId === job.job_id
+                                          ? null
+                                          : job.job_id,
+                                      );
                                     }}
                                     className={`w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-200 ${
                                       openMenuId === job.job_id
@@ -757,59 +928,71 @@ const filteredJobs = jobs.filter((job: any) => {
                                       className="absolute right-0 top-full mt-2 w-44 bg-white rounded-xl border border-slate-200 shadow-lg shadow-slate-900/10 z-30 overflow-hidden opacity-100 scale-100 origin-top-right transition-all duration-150"
                                     >
                                       {/* Menu header */}
-                                      <div className="px-3 py-2.5 border-b border-slate-100 bg-gradient-to-r from-violet-50 to-transparent">
-                                        <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Actions</p>
+                                      <div className="px-3 py-2.5 bg-gradient-to-r from-violet-50 to-transparent">
+                                        <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                          Actions
+                                        </p>
                                       </div>
-                                      
+
                                       {/* Edit action */}
                                       <button
                                         onClick={() => {
-                                          navigate(`/dashboard/jobs/${job.job_id}/edit`);
+                                          navigate(
+                                            `/dashboard/jobs/${job.job_id}/edit`,
+                                          );
                                           setOpenMenuId(null);
                                         }}
                                         className="w-full text-left px-3 py-2.5 text-xs font-semibold text-slate-700 hover:bg-violet-50 hover:text-violet-700 transition-colors duration-150 flex items-center gap-2 group/item"
                                       >
-                                        <span className="text-sm">✏️</span> Edit Job
+                                        <span className="text-sm">✏️</span> Edit
+                                        Job
                                       </button>
-                                      
+
                                       {/* Divider */}
-                                      <div className="my-1 border-t border-slate-100" />
-                                      
+                                      <div className="my-1" />
+
                                       {/* Additional actions placeholder */}
                                       <button
                                         onClick={() => {
-                                          navigate(`/dashboard/jobs/${job.job_id}`);
+                                          navigate(
+                                            `/dashboard/jobs/${job.job_id}`,
+                                          );
                                           setOpenMenuId(null);
                                         }}
                                         className="w-full text-left px-3 py-2.5 text-xs font-semibold text-slate-700 hover:bg-sky-50 hover:text-sky-700 transition-colors duration-150 flex items-center gap-2"
                                       >
-                                        <span className="text-sm">👁️</span> View Details
+                                        <span className="text-sm">👁️</span> View
+                                        Details
                                       </button>
                                     </div>
                                   )}
                                 </div>
                               </>
                             )}
-
                             {/* Admin review (unfunded route) */}
-                            {(role === "admin" || role === "superadmin") && isUnfundedRoute && (
-                              <>
-                                <ActionBtn
-                                  onClick={() => handleAdminReview(job.job_id, "Active")}
-                                  disabled={isReviewingJob}
-                                  variant="success"
-                                >
-                                  ✓ Approve
-                                </ActionBtn>
-                                <ActionBtn
-                                  onClick={() => handleAdminReview(job.job_id, "Inactive")}
-                                  disabled={isReviewingJob}
-                                  variant="danger"
-                                >
-                                  ✕ Disapprove
-                                </ActionBtn>
-                              </>
-                            )}
+                            {(role === "admin" || role === "superadmin") &&
+                              isUnfundedRoute && (
+                                <>
+                                  <ActionBtn
+                                    onClick={() =>
+                                      handleAdminReview(job.job_id, "Active")
+                                    }
+                                    disabled={isReviewingJob}
+                                    variant="success"
+                                  >
+                                    ✓ Approve
+                                  </ActionBtn>
+                                  <ActionBtn
+                                    onClick={() =>
+                                      handleAdminReview(job.job_id, "Inactive")
+                                    }
+                                    disabled={isReviewingJob}
+                                    variant="danger"
+                                  >
+                                    ✕ Disapprove
+                                  </ActionBtn>
+                                </>
+                              )}
                           </>
                         )}
                       </div>

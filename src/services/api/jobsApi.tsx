@@ -32,6 +32,11 @@ export interface Job {
   paid_at?: string | null;
   amount_paid_to_student?: number | null;
   amount_received_by_you?: number | null;
+  likes_count: number;
+
+  dislikes_count: number;
+
+  user_reaction?: "like" | "dislike" | null;
   created_at: string;
   updated_at: string;
   questions?: JobQuestion[];
@@ -40,6 +45,12 @@ export interface Job {
     full_name: string;
     email: string;
   };
+}
+
+export interface JobReactionResponse {
+  likes_count: number;
+  dislikes_count: number;
+  user_reaction: "like" | "dislike" | null;
 }
 
 export interface CreateJobRequest {
@@ -168,13 +179,19 @@ export const jobsApi = apiSlice.injectEndpoints({
     }),
 
     // Update job
-    updateJob: builder.mutation<JobResponse, { id: string; data: UpdateJobRequest }>({
+    updateJob: builder.mutation<
+      JobResponse,
+      { id: string; data: UpdateJobRequest }
+    >({
       query: ({ id, data }) => ({
         url: `/jobs/${id}`,
         method: "PUT",
         body: data,
       }),
-      invalidatesTags: (_result, _error, { id }) => [{ type: "Job", id }, "Job"],
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: "Job", id },
+        "Job",
+      ],
     }),
 
     // Delete job
@@ -196,13 +213,89 @@ export const jobsApi = apiSlice.injectEndpoints({
     }),
 
     // Admin/Superadmin review job (Approve/Disapprove)
-    reviewJob: builder.mutation<JobResponse, { id: string; status: "Active" | "Inactive" }>({
+    reviewJob: builder.mutation<
+      JobResponse,
+      { id: string; status: "Active" | "Inactive" }
+    >({
       query: ({ id, status }) => ({
         url: `/jobs/${id}/review`,
         method: "PATCH",
         body: { status },
       }),
-      invalidatesTags: (_result, _error, { id }) => [{ type: "Job", id }, "Job"],
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: "Job", id },
+        "Job",
+      ],
+    }),
+
+    // likeJob: builder.mutation<JobReactionResponse, string>({
+    //   query: (jobId: string) => ({
+    //     url: `/jobs/${jobId}/like`,
+    //     method: "POST",
+    //   }),
+    //   invalidatesTags: ["Job"],
+    // }),
+
+    likeJob: builder.mutation<JobReactionResponse, string>({
+      query: (jobId: string) => ({
+        url: `/jobs/${jobId}/like`,
+        method: "POST",
+      }),
+
+      async onQueryStarted(jobId, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+
+          dispatch(
+            jobsApi.util.updateQueryData("getAllJobs", undefined, (draft) => {
+              const job = draft.data.find((j) => j.job_id === jobId);
+
+              if (job) {
+                job.likes_count = data.likes_count;
+                job.dislikes_count = data.dislikes_count;
+                job.user_reaction = data.user_reaction;
+              }
+            }),
+          );
+        } catch {}
+      },
+
+      invalidatesTags: ["Job"],
+    }),
+
+    // dislikeJob: builder.mutation<JobReactionResponse, string>({
+    //   query: (jobId: string) => ({
+    //     url: `/jobs/${jobId}/dislike`,
+    //     method: "POST",
+    //   }),
+    //   invalidatesTags: ["Job"],
+    // }),
+
+    dislikeJob: builder.mutation<JobReactionResponse, string>({
+      query: (jobId: string) => ({
+        url: `/jobs/${jobId}/dislike`,
+        method: "POST",
+      }),
+
+      async onQueryStarted(jobId, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+
+          dispatch(
+            jobsApi.util.updateQueryData("getAllJobs", undefined, (draft) => {
+              const job = draft.data.find((j) => j.job_id === jobId);
+
+              if (job) {
+                job.likes_count = data.likes_count;
+                job.dislikes_count = data.dislikes_count;
+                job.user_reaction = data.user_reaction;
+              }
+            }),
+          );
+        } catch {}
+      },
+
+      invalidatesTags: ["Job"],
     }),
   }),
 });
@@ -218,5 +311,6 @@ export const {
   useDeleteJobMutation,
   useToggleJobStatusMutation,
   useReviewJobMutation,
+  useLikeJobMutation,
+  useDislikeJobMutation,
 } = jobsApi;
-

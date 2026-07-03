@@ -40,7 +40,7 @@ const ProfileMilestones: React.FC<ProfileMilestonesProps> = ({
     <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
       {/* Header */}
       <div className="bg-gradient-to-r from-[#7f56d9] to-[#5b3ba5] px-5 py-3">
-        <h3 className="font-bold text-white text-lg flex items-center gap-2">
+        <h3 className="font-bold text-white text-[19px] flex items-center gap-2">
           <TrophyIcon className="w-5 h-5 text-yellow-400" />
           Achievements
         </h3>

@@ -120,8 +120,8 @@ const MyApplications: React.FC = () => {
       {/* Statistics */}
       {applications.length > 0 && (
         <div className="px-6 py-8 max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+            <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
               <p className="text-xs uppercase tracking-wider text-gray-600 font-semibold">
                 {t("pages.myApplications.totalApplications")}
               </p>
@@ -176,7 +176,7 @@ const MyApplications: React.FC = () => {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
             {applications.map((application: any) => {
               const employerName =
                 application.job?.employer?.full_name || "Unknown Employer";
@@ -191,10 +191,10 @@ const MyApplications: React.FC = () => {
                 >
                   {/* Top colored bar */}
                   <div
-                    className={`h-1.5 bg-linear-to-r ${statusGradient}`}
+                    className={`h-1 bg-linear-to-r ${statusGradient}`}
                   ></div>
 
-                  <div className="p-5">
+                  <div className="flex flex-col h-full p-5">
                     <div className="flex gap-4">
                       {/* Company Logo */}
                       <div className="flex-shrink-0">
@@ -206,7 +206,7 @@ const MyApplications: React.FC = () => {
                       </div>
 
                       {/* Job Details */}
-                      <div className="flex-1 min-w-0">
+                      <div className="flex-1 flex flex-col min-w-0">
                         <div className="flex items-start justify-between mb-2 gap-2">
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1">
@@ -263,13 +263,13 @@ const MyApplications: React.FC = () => {
                         )}
 
                         {/* Action Button */}
-                        <div className="flex gap-2">
+                        <div className="mt-auto pt-4 flex gap-2">
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               navigate(`/dashboard/jobs/${application.job_id}`);
                             }}
-                            className="flex-1 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition shadow-sm text-xs flex items-center justify-center gap-2 cursor-pointer"
+                            className="px-4 py-2 w-30px bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition shadow-sm text-xs flex items-center justify-center gap-2 cursor-pointer"
                           >
                             <ArrowRightIcon className="h-4 w-4" />
                             View Details

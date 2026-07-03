@@ -152,7 +152,7 @@ const Register = ({ formOnly, onRoleChange }: RegisterProps = {}) => {
     if (data && isSuccess && !successShown.current) {
       successShown.current = true;
       toast.success(t("register.registrationSuccess"), { duration: 5000 });
-      const registeredEmail = formik.values.email;
+      // const registeredEmail = formik.values.email;
       resetForm();
       setTimeout(() => {
         navigate("/auth/login");

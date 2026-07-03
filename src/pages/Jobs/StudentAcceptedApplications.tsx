@@ -104,7 +104,7 @@ const StudentAcceptedApplications: React.FC = () => {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
             {acceptedApplications.map((application: any) => {
               const employerName =
                 application.job?.employer?.full_name || "Unknown Employer";
@@ -113,27 +113,27 @@ const StudentAcceptedApplications: React.FC = () => {
               return (
                 <div
                   key={application.application_id}
-                  className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-green-300 transition-all duration-200 overflow-hidden group cursor-pointer"
+                  className="group w-full h-full bg-white rounded-2xl border border-slate-100 hover:border-green-300 shadow-sm hover:shadow-lg hover:shadow-green-100/40 transition-all duration-300 overflow-hidden cursor-pointer"
                   onClick={() => navigate(`/dashboard/jobs/${application.job_id}`)}
                 >
                   {/* Top colored bar - Green for accepted */}
-                  <div className="h-1.5 bg-linear-to-r from-green-500 to-emerald-500"></div>
+                  <div className="h-1 bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500"></div>
 
-                  <div className="p-5">
+                  <div className="flex flex-col h-full p-5">
                     <div className="flex gap-4">
                       {/* Company Logo */}
                       <div className="flex-shrink-0">
-                        <div className="h-12 w-12 rounded-lg bg-linear-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white font-bold text-sm shadow-md group-hover:shadow-lg transition-shadow">
+                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white font-black text-lg shadow-md">
                           {companyInitial}
                         </div>
                       </div>
 
                       {/* Job Details */}
-                      <div className="flex-1 min-w-0">
+                      <div className="flex-1 flex flex-col min-w-0">
                         <div className="flex items-start justify-between mb-2 gap-2">
-                          <div className="flex-1 min-w-0">
+                          <div className="flex-1 flex flex-col min-w-0">
                             <div className="flex items-center gap-2 mb-1">
-                              <h3 className="text-base font-semibold text-green-600 hover:text-green-800 truncate">
+                              <h3 className="text-lg font-bold text-slate-800 hover:text-green-700 truncate">
                                 {application.job?.job_title || "Unknown Job"}
                               </h3>
                               <span className="px-2.5 py-0.5 bg-green-100 text-green-700 rounded-full text-[10px] font-bold flex items-center gap-1 whitespace-nowrap flex-shrink-0">
@@ -141,14 +141,14 @@ const StudentAcceptedApplications: React.FC = () => {
                                 Accepted
                               </span>
                             </div>
-                            <p className="text-gray-700 font-medium text-sm">
+                            <p className="text-xs font-medium text-slate-500">
                               {employerName}
                             </p>
                           </div>
                         </div>
 
                         {/* Job Info Row */}
-                        <div className="flex flex-wrap gap-3 text-xs text-gray-600 mb-3">
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-slate-600 font-medium mb-4">
                           <span className="flex items-center gap-1">
                             <MapPinIcon className="h-3.5 w-3.5" />
                             {application.job?.location || "N/A"}
@@ -171,7 +171,7 @@ const StudentAcceptedApplications: React.FC = () => {
 
                         {/* Cover Letter Preview */}
                         {application.cover_letter && (
-                          <div className="p-3 bg-gray-50 rounded-lg mb-3 border border-gray-200">
+                          <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 mb-4">
                             <p className="text-xs font-semibold text-gray-700 mb-1">
                               Your Cover Letter:
                             </p>
@@ -182,13 +182,13 @@ const StudentAcceptedApplications: React.FC = () => {
                         )}
 
                         {/* Action Button */}
-                        <div className="flex gap-2">
+                        <div className="mt-auto pt-4 flex gap-2">
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               navigate(`/dashboard/jobs/${application.job_id}`);
                             }}
-                            className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition shadow-sm text-xs flex items-center justify-center gap-2 cursor-pointer"
+                            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-bold transition-all shadow-sm shadow-green-200 active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
                           >
                             <ArrowRightIcon className="h-4 w-4" />
                             View Details
