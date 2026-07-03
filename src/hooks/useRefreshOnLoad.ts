@@ -28,6 +28,21 @@ const useRefreshOnLoad = () => {
 
   useEffect(() => {
     const refreshAndFetchUser = async () => {
+
+      const publicRoutes = [
+    "/auth/login",
+    "/auth/register",
+    "/auth/forgot-password",
+    "/auth/reset-password",
+    "/auth/verify-email",
+    "/auth/verification",
+  ];
+
+  if (publicRoutes.includes(window.location.pathname)) {
+    setIsLoading(false);
+    return;
+  }
+
       const hasPersistedAuth = Boolean(currentRole && currentUser);
 
       // Fresh login already placed a valid token in redux.

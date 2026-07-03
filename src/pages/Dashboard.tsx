@@ -617,6 +617,7 @@ const Dashboard: React.FC = () => {
     }
     return [t("common.noData")];
   };
+  
 
   const getSubtitle = () => {
     if (role === "student") return t("dashboard.subtitleStudent");
@@ -658,6 +659,7 @@ const Dashboard: React.FC = () => {
     };
   };
 
+
   const stats = getStats();
   const quickStats = getQuickStats();
   const recentActivity = getRecentActivity();
@@ -668,10 +670,10 @@ const Dashboard: React.FC = () => {
     <div className="space-y-3 animate-fadeIn max-w-full overflow-x-hidden">
       {/* Welcome Section */}
       <div className="bg-[#7f56d9] rounded-lg p-3 text-white shadow-sm">
-        <h1 className="text-sm md:text-base font-bold">
+        <h1 className="text-[16px] md:text-base font-bold">
           {greeting}, {user?.full_name || t("dashboard.user")}
         </h1>
-        <p className="text-[11px] text-white/70 mt-0.5">
+        <p className="text-[13px] text-white/70 mt-0.5">
           {subtitle}
         </p>
       </div>
@@ -788,22 +790,22 @@ const Dashboard: React.FC = () => {
             className="bg-white rounded-lg p-2.5 shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100"
           >
             <div className="flex items-center justify-between mb-1.5">
-              <div className={`p-1.5 rounded ${item.bg}`}>
+              <div className={`p-1.5 rounded text-[35px] ${item.bg}`}>
                 <span className={item.color}>{item.icon}</span>
               </div>
               {item.change ? (
                 <span className={`inline-flex items-center gap-0.5 text-[9px] font-semibold px-1 py-0.5 rounded-full animate-trend ${item.changeBg}`}>
                   {item.trending === "up" ? (
-                    <ArrowTrendingUpIcon className="h-2.5 w-2.5" />
+                    <ArrowTrendingUpIcon className="h-4.5 w-4.5" />
                   ) : (
-                    <ArrowTrendingDownIcon className="h-2.5 w-2.5" />
+                    <ArrowTrendingDownIcon className="h-4.5 w-4.5" />
                   )}
                   {item.change}
                 </span>
               ) : null}
             </div>
-            <p className="text-base font-bold text-gray-900">{item.value}</p>
-            <p className="text-[11px] text-gray-500">{item.title}</p>
+            <p className="text-[15px] font-bold text-gray-900">{item.value}</p>
+            <p className="text-[15px] text-gray-500">{item.title}</p>
           </div>
         ))}
       </div>
@@ -815,13 +817,13 @@ const Dashboard: React.FC = () => {
         return (
           <div className="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
             <div className="flex items-center justify-between mb-2">
-              <h2 className="text-xs font-semibold text-gray-800">
+              <h2 className="text-[15px] font-semibold text-gray-800">
                 {role === "employer" ? "Applications Received — by status" : "Application Status"}
               </h2>
-              <span className="text-[10px] text-gray-500">{b.total} total</span>
+              <span className="text-[15px] text-gray-500">{b.total} total</span>
             </div>
             {b.total === 0 ? (
-              <p className="text-[11px] text-gray-400 italic py-2">
+              <p className="text-[14px] text-gray-400 italic py-2">
                 {role === "employer"
                   ? "No applications received yet. Post a job to attract students."
                   : "No applications yet — apply to a job to see your progress here."}
@@ -837,31 +839,31 @@ const Dashboard: React.FC = () => {
                 <div className="grid grid-cols-4 gap-2 text-center">
                   <div>
                     <div className="flex items-center justify-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-yellow-400" />
+                      <span className="w-2 h-2 rounded-full bg-yellow-400" />
                       <span className="text-sm font-bold text-gray-900">{b.pending}</span>
                     </div>
-                    <p className="text-[9px] text-gray-500">Pending</p>
+                    <p className="text-[13px] text-gray-500">Pending</p>
                   </div>
                   <div>
                     <div className="flex items-center justify-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+                      <span className="w-2 h-2 rounded-full bg-blue-400" />
                       <span className="text-sm font-bold text-gray-900">{b.shortlisted}</span>
                     </div>
-                    <p className="text-[9px] text-gray-500">Shortlisted</p>
+                    <p className="text-[13px] text-gray-500">Shortlisted</p>
                   </div>
                   <div>
                     <div className="flex items-center justify-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                      <span className="w-2 h-2 rounded-full bg-green-500" />
                       <span className="text-sm font-bold text-gray-900">{b.accepted}</span>
                     </div>
-                    <p className="text-[9px] text-gray-500">Accepted</p>
+                    <p className="text-[13px] text-gray-500">Accepted</p>
                   </div>
                   <div>
                     <div className="flex items-center justify-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
+                      <span className="w-2 h-2 rounded-full bg-red-400" />
                       <span className="text-sm font-bold text-gray-900">{b.rejected}</span>
                     </div>
-                    <p className="text-[9px] text-gray-500">Rejected</p>
+                    <p className="text-[13px] text-gray-500">Rejected</p>
                   </div>
                 </div>
               </>
@@ -926,21 +928,21 @@ const Dashboard: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-2.5">
         {/* Graph Section */}
         <div className="bg-white rounded-lg p-3 shadow-sm lg:col-span-2 border border-gray-100">
-          <h2 className="text-xs font-semibold mb-2 text-gray-800">{chartConfig.title}</h2>
+          <h2 className="text-[15px] font-semibold mb-2 text-gray-800">{chartConfig.title}</h2>
           <div className="h-44">
             <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartConfig.data as ChartRow[]} barGap={3}>
+            <BarChart data={chartConfig.data as ChartRow[]} barGap={3} >
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
                 <XAxis
                   dataKey="day"
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: "#9ca3af", fontSize: 10 }}
+                  tick={{ fill: "#9ca3af", fontSize: 12 }}
                 />
                 <YAxis
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: "#9ca3af", fontSize: 10 }}
+                  tick={{ fill: "#9ca3af", fontSize: 11 }}
                   width={25}
                 />
                 <Tooltip
@@ -950,7 +952,7 @@ const Dashboard: React.FC = () => {
                     border: "none",
                     boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
                     padding: "6px 10px",
-                    fontSize: "11px",
+                    fontSize: "12px",
                   }}
                 />
                 {chartConfig.bars.map((bar) => (
@@ -960,7 +962,7 @@ const Dashboard: React.FC = () => {
                     name={bar.name}
                     fill={bar.fill}
                     radius={[3, 3, 0, 0]}
-                    maxBarSize={22}
+                    maxBarSize={25}
                   />
                 ))}
               </BarChart>
@@ -970,14 +972,14 @@ const Dashboard: React.FC = () => {
 
         {/* Quick Stats */}
         <div className="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
-          <h2 className="text-xs font-semibold text-gray-800 mb-2">{t("dashboard.quickStats")}</h2>
+          <h2 className="text-[15px] font-semibold text-gray-800 mb-2">{t("dashboard.quickStats")}</h2>
 
           {/* Student Rating (hidden until reviews source is wired) */}
 
-          <ul className="space-y-1 text-gray-700 text-[11px]">
+          <ul className="space-y-1 text-gray-700 text-[13px]">
             {quickStats.map((stat, index) => (
               <li key={index} className={`flex items-center gap-1.5 p-1.5 rounded ${stat.hoverBg} transition-colors`}>
-                <span className={`${stat.color} font-bold text-xs`}>•</span>
+                <span className={`${stat.color} font-bold text-[15px]`}>•</span>
                 <span>{stat.text}</span>
               </li>
             ))}
@@ -987,14 +989,14 @@ const Dashboard: React.FC = () => {
 
       {/* Recent Activity */}
       <div className="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
-        <h2 className="text-xs font-semibold mb-2 text-gray-800">{t("dashboard.recentActivity")}</h2>
+        <h2 className="text-[15px] font-semibold mb-2 text-gray-800">{t("dashboard.recentActivity")}</h2>
         <ul className="space-y-1">
           {recentActivity.map((activity, index) => (
             <li
               key={index}
-              className="pb-1.5 border-b last:border-none text-[11px] text-gray-600 hover:text-[#7f56d9] transition-colors duration-200 flex items-center gap-1.5 group cursor-pointer"
+              className="pb-1.5 border-b last:border-none text-[13px] text-gray-600 hover:text-[#7f56d9] transition-colors duration-200 flex items-center gap-1.5 group cursor-pointer"
             >
-              <span className="w-1 h-1 rounded-full bg-[#7f56d9] group-hover:bg-[#5b3ba5] transition-colors shrink-0"></span>
+              <span className="w-1.5 h-1.5 rounded-full bg-[#7f56d9] group-hover:bg-[#5b3ba5] transition-colors shrink-0"></span>
               <span>{activity}</span>
             </li>
           ))}
@@ -1008,39 +1010,39 @@ const Dashboard: React.FC = () => {
         const successPct = studentMetrics?.rates?.applicationSuccessRate ?? 0;
         return (
           <div className="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
-            <h2 className="text-xs font-semibold mb-2.5 text-gray-800">{t("dashboard.yourProgress")}</h2>
+            <h2 className="text-[16px] font-semibold mb-2.5 text-gray-800">{t("dashboard.yourProgress")}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="space-y-1">
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] text-gray-600">{t("dashboard.profileCompletion")}</span>
-                  <span className="text-[11px] font-bold text-[#7F56D9]">{profilePct}%</span>
+                  <span className="text-[14px] text-gray-600">{t("dashboard.profileCompletion")}</span>
+                  <span className="text-[13px] font-bold text-[#7F56D9]">{profilePct}%</span>
                 </div>
                 <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
                   <div className="h-full bg-[#7f56d9] rounded-full transition-all duration-500" style={{ width: `${profilePct}%` }} />
                 </div>
-                <p className="text-[9px] text-gray-400">{t("dashboard.addSkillsAndBio")}</p>
+                <p className="text-[11px] text-gray-400">{t("dashboard.addSkillsAndBio")}</p>
               </div>
 
               <div className="space-y-1">
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] text-gray-600">Job Completion</span>
-                  <span className="text-[11px] font-bold text-[#7f56d9]">{jobPct}%</span>
+                  <span className="text-[14px] text-gray-600">Job Completion</span>
+                  <span className="text-[13px] font-bold text-[#7f56d9]">{jobPct}%</span>
                 </div>
                 <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
                   <div className="h-full bg-[#7f56d9] rounded-full transition-all duration-500" style={{ width: `${jobPct}%` }} />
                 </div>
-                <p className="text-[9px] text-gray-400">{t("dashboard.jobsCompletedOnTime")}</p>
+                <p className="text-[11px] text-gray-400">{t("dashboard.jobsCompletedOnTime")}</p>
               </div>
 
               <div className="space-y-1">
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] text-gray-600">{t("dashboard.applicationSuccess")}</span>
-                  <span className="text-[11px] font-bold text-[#7f56d9]">{successPct}%</span>
+                  <span className="text-[14px] text-gray-600">{t("dashboard.applicationSuccess")}</span>
+                  <span className="text-[13px] font-bold text-[#7f56d9]">{successPct}%</span>
                 </div>
                 <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
                   <div className="h-full bg-[#7f56d9] rounded-full transition-all duration-500" style={{ width: `${successPct}%` }} />
                 </div>
-                <p className="text-[9px] text-gray-400">{t("dashboard.applicationsAccepted")}</p>
+                <p className="text-[11px] text-gray-400">{t("dashboard.applicationsAccepted")}</p>
               </div>
             </div>
           </div>

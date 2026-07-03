@@ -17,7 +17,7 @@ const StudentRejectedApplications: React.FC = () => {
   const navigate = useNavigate();
   const { data, isLoading, error } = useGetStudentApplicationsQuery(
     { status: "Rejected" },
-    { refetchOnMountOrArgChange: true }
+    { refetchOnMountOrArgChange: true },
   );
 
   const rejectedApplications = data?.data || [];
@@ -74,10 +74,12 @@ const StudentRejectedApplications: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-red-900 font-semibold text-base">
-                  ✗ {rejectedApplications.length} Rejected Application{rejectedApplications.length !== 1 ? "s" : ""}
+                  ✗ {rejectedApplications.length} Rejected Application
+                  {rejectedApplications.length !== 1 ? "s" : ""}
                 </p>
                 <p className="text-red-700 text-sm mt-1">
-                  Don't be discouraged. Keep applying and improving your applications!
+                  Don't be discouraged. Keep applying and improving your
+                  applications!
                 </p>
               </div>
             </div>
@@ -104,7 +106,7 @@ const StudentRejectedApplications: React.FC = () => {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
             {rejectedApplications.map((application: any) => {
               const employerName =
                 application.job?.employer?.full_name || "Unknown Employer";
@@ -113,13 +115,15 @@ const StudentRejectedApplications: React.FC = () => {
               return (
                 <div
                   key={application.application_id}
-                  className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-red-300 transition-all duration-200 overflow-hidden group cursor-pointer"
-                  onClick={() => navigate(`/dashboard/jobs/${application.job_id}`)}
+                  onClick={() =>
+                    navigate(`/dashboard/jobs/${application.job_id}`)
+                  }
+                  className="group w-full h-full bg-white rounded-2xl border border-slate-100 hover:border-red-300 shadow-sm hover:shadow-lg hover:shadow-red-100/40 transition-all duration-300 overflow-hidden cursor-pointer"
                 >
                   {/* Top colored bar - Red for rejected */}
-                  <div className="h-1.5 bg-linear-to-r from-red-500 to-rose-500"></div>
+                  <div className="h-1 w-full bg-gradient-to-r from-red-500 via-rose-500 to-red-400"></div>
 
-                  <div className="p-5">
+                  <div className="flex flex-col h-full p-5">
                     <div className="flex gap-4">
                       {/* Company Logo */}
                       <div className="flex-shrink-0">
@@ -129,9 +133,9 @@ const StudentRejectedApplications: React.FC = () => {
                       </div>
 
                       {/* Job Details */}
-                      <div className="flex-1 min-w-0">
+                      <div className="flex-1 flex flex-col min-w-0">
                         <div className="flex items-start justify-between mb-2 gap-2">
-                          <div className="flex-1 min-w-0">
+                          <div className="flex-1 flex flex-col min-w-0">
                             <div className="flex items-center gap-2 mb-1">
                               <h3 className="text-base font-semibold text-red-600 hover:text-red-800 truncate">
                                 {application.job?.job_title || "Unknown Job"}
@@ -154,8 +158,8 @@ const StudentRejectedApplications: React.FC = () => {
                             {application.job?.location || "N/A"}
                           </span>
                           <span className="flex items-center gap-1">
-                            <CurrencyDollarIcon className="h-3.5 w-3.5" />
-                            ${application.job?.budget?.toLocaleString() || "N/A"}
+                            <CurrencyDollarIcon className="h-3.5 w-3.5" />$
+                            {application.job?.budget?.toLocaleString() || "N/A"}
                           </span>
                           <span className="flex items-center gap-1">
                             <CalendarIcon className="h-3.5 w-3.5" />
@@ -164,7 +168,8 @@ const StudentRejectedApplications: React.FC = () => {
                           {application.reviewed_at && (
                             <span className="flex items-center gap-1 text-red-600 font-semibold">
                               <XCircleIcon className="h-3.5 w-3.5" />
-                              Rejected {formatRelativeTime(application.reviewed_at)}
+                              Rejected{" "}
+                              {formatRelativeTime(application.reviewed_at)}
                             </span>
                           )}
                         </div>
@@ -182,13 +187,13 @@ const StudentRejectedApplications: React.FC = () => {
                         )}
 
                         {/* Action Button */}
-                        <div className="flex gap-2">
+                        <div className="mt-auto pt-4 flex gap-2">
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               navigate(`/dashboard/jobs/${application.job_id}`);
                             }}
-                            className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition shadow-sm text-xs flex items-center justify-center gap-2 cursor-pointer"
+                            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition shadow-sm text-xs flex items-center justify-center gap-2 cursor-pointer"
                           >
                             <ArrowRightIcon className="h-4 w-4" />
                             View Details
