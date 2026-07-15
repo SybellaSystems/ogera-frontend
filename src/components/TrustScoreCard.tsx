@@ -33,6 +33,11 @@ const TrustScoreCard: React.FC<TrustScoreCardProps> = ({
         "Resume",
       ],
     },
+    {
+      key: "interaction",
+      label: "Interaction (C)",
+      items: ["receive more peer reviews"],
+    },
   ] as const;
 
   if (isLoading) {
@@ -198,13 +203,13 @@ const TrustScoreCard: React.FC<TrustScoreCardProps> = ({
               {group.items.join(", ")}
             </p>
           ))}
-          {trustScore.suggestions.length > 0 && (
+          {/* {trustScore.suggestions.length > 0 && (
             <ul className="list-disc list-inside space-y-1 text-[15px] text-gray-600">
               {trustScore.suggestions.map((s, i) => (
                 <li key={i}>{s}</li>
               ))}
             </ul>
-          )}
+          )} */}
         </div>
       </div>
     </div>
