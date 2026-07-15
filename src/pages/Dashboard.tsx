@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
-import { ProfileMilestones, ProfileCompletionWizard } from "../components/ProfileCompletion";
+import {
+  ProfileMilestones,
+  ProfileCompletionWizard,
+} from "../components/ProfileCompletion";
+import { CommunityWorkspace } from "@/components/CommunityWorkspace";
 import { useGetProfileCompletionQuery } from "../services/api/profileCompletionApi";
 import {
   UserGroupIcon,
@@ -95,8 +99,12 @@ type StatItem = {
 
 const Dashboard: React.FC = () => {
   const ACTIVITY_LIMIT = 5;
-  const apiBaseUrl = (import.meta.env.VITE_API_URL || "/api").replace(/\/$/, "");
-  const getApiUrl = (path: string) => `${apiBaseUrl}${path.startsWith("/") ? path : `/${path}`}`;
+  const apiBaseUrl = (import.meta.env.VITE_API_URL || "/api").replace(
+    /\/$/,
+    "",
+  );
+  const getApiUrl = (path: string) =>
+    `${apiBaseUrl}${path.startsWith("/") ? path : `/${path}`}`;
   const { t } = useTranslation();
   const user = useSelector((state: any) => state.auth.user);
   const roleRaw = useSelector((state: any) => state.auth.role);
@@ -116,19 +124,21 @@ const Dashboard: React.FC = () => {
     useGetStudentLeaderboardQuery(10, {
       skip: role !== "employer" && role !== "superadmin",
     });
-  const isAdminDashboardRole = role === "superadmin" || Boolean(role?.includes("admin"));
+  const isAdminDashboardRole =
+    role === "superadmin" || Boolean(role?.includes("admin"));
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const showProfileCompletion = role === "student" || role === "employer";
   const { data: profileCompletionData } = useGetProfileCompletionQuery();
-  const profileCompletion = profileCompletionData?.data?.profile_completion_percentage ?? 0;
+  const profileCompletion =
+    profileCompletionData?.data?.profile_completion_percentage ?? 0;
   const profileUserId = user?.user_id;
   const hour = new Date().getHours();
   const greeting =
     hour < 12
       ? t("dashboard.goodMorning")
       : hour < 17
-      ? t("dashboard.goodAfternoon")
-      : t("dashboard.goodEvening");
+        ? t("dashboard.goodAfternoon")
+        : t("dashboard.goodEvening");
 
   // State for dashboard metrics
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
@@ -139,17 +149,26 @@ const Dashboard: React.FC = () => {
   const [studentLoading, setStudentLoading] = useState(false);
   const [studentError, setStudentError] = useState<string | null>(null);
   // Employer-specific metrics fetched from backend
-  const [employerMetrics, setEmployerMetrics] = useState<EmployerDashboardResponse | null>(null);
+  const [employerMetrics, setEmployerMetrics] =
+    useState<EmployerDashboardResponse | null>(null);
   const [employerLoading, setEmployerLoading] = useState(false);
   const [employerError, setEmployerError] = useState<string | null>(null);
   // Student recent activity from notifications
-  const [studentActivities, setStudentActivities] = useState<StudentNotificationItem[]>([]);
-  const [studentActivitiesLoading, setStudentActivitiesLoading] = useState(false);
+  const [studentActivities, setStudentActivities] = useState<
+    StudentNotificationItem[]
+  >([]);
+  const [studentActivitiesLoading, setStudentActivitiesLoading] =
+    useState(false);
   // Employer recent activity from notifications
-  const [employerActivities, setEmployerActivities] = useState<EmployerNotificationItem[]>([]);
-  const [employerActivitiesLoading, setEmployerActivitiesLoading] = useState(false);
+  const [employerActivities, setEmployerActivities] = useState<
+    EmployerNotificationItem[]
+  >([]);
+  const [employerActivitiesLoading, setEmployerActivitiesLoading] =
+    useState(false);
   // Superadmin recent activity from notifications
-  const [adminActivities, setAdminActivities] = useState<EmployerNotificationItem[]>([]);
+  const [adminActivities, setAdminActivities] = useState<
+    EmployerNotificationItem[]
+  >([]);
   const [adminActivitiesLoading, setAdminActivitiesLoading] = useState(false);
 
   // Students: persist TrustScore when opening the dashboard (keeps breakdown in sync)
@@ -203,7 +222,10 @@ const Dashboard: React.FC = () => {
           }
         })
         .catch((error) => {
-          console.error("[Dashboard] Failed to fetch dashboard metrics:", error);
+          console.error(
+            "[Dashboard] Failed to fetch dashboard metrics:",
+            error,
+          );
           setMetrics(null);
           setMetricsError(error?.message || String(error));
         })
@@ -215,7 +237,7 @@ const Dashboard: React.FC = () => {
 
   // Fetch student-specific dashboard metrics
   useEffect(() => {
-    if (role === 'student') {
+    if (role === "student") {
       setStudentLoading(true);
       setStudentError(null);
       fetch(getApiUrl("/dashboard/student"), {
@@ -227,11 +249,11 @@ const Dashboard: React.FC = () => {
             setStudentMetrics(data.data);
           } else {
             setStudentMetrics(null);
-            setStudentError('Invalid response from server');
+            setStudentError("Invalid response from server");
           }
         })
         .catch((err) => {
-          console.error('[Dashboard] Failed to fetch student metrics:', err);
+          console.error("[Dashboard] Failed to fetch student metrics:", err);
           setStudentMetrics(null);
           setStudentError(String(err));
         })
@@ -281,7 +303,10 @@ const Dashboard: React.FC = () => {
           }
         })
         .catch((error) => {
-          console.error("[Dashboard] Failed to fetch student notifications:", error);
+          console.error(
+            "[Dashboard] Failed to fetch student notifications:",
+            error,
+          );
           setStudentActivities([]);
         })
         .finally(() => setStudentActivitiesLoading(false));
@@ -304,7 +329,10 @@ const Dashboard: React.FC = () => {
           }
         })
         .catch((error) => {
-          console.error("[Dashboard] Failed to fetch employer notifications:", error);
+          console.error(
+            "[Dashboard] Failed to fetch employer notifications:",
+            error,
+          );
           setEmployerActivities([]);
         })
         .finally(() => setEmployerActivitiesLoading(false));
@@ -327,7 +355,10 @@ const Dashboard: React.FC = () => {
           }
         })
         .catch((error) => {
-          console.error("[Dashboard] Failed to fetch admin-type notifications:", error);
+          console.error(
+            "[Dashboard] Failed to fetch admin-type notifications:",
+            error,
+          );
           setAdminActivities([]);
         })
         .finally(() => setAdminActivitiesLoading(false));
@@ -358,67 +389,103 @@ const Dashboard: React.FC = () => {
 
       const formatNumber = (v: any) => {
         if (v === null || v === undefined) return t("common.na");
-        if (typeof v === 'number') return v.toLocaleString();
+        if (typeof v === "number") return v.toLocaleString();
         return String(v);
       };
 
       return [
         {
           title: t("dashboard.applicationsSent"),
-          value: studentLoading ? "..." : (appsValue !== null ? formatNumber(appsValue) : (studentError ? t("dashboard.error") : (studentMetrics?.applications?.note || t("common.na")))),
-          change: appsChange !== null && appsChange !== undefined ? (appsChange >= 0 ? `+${appsChange}` : String(appsChange)) : undefined,
-          trending: appsChange !== null && appsChange !== undefined ? (appsChange >= 0 ? 'up' as const : 'down' as const) : 'up' as const,
+          value: studentLoading
+            ? "..."
+            : appsValue !== null
+              ? formatNumber(appsValue)
+              : studentError
+                ? t("dashboard.error")
+                : studentMetrics?.applications?.note || t("common.na"),
+          change:
+            appsChange !== null && appsChange !== undefined
+              ? appsChange >= 0
+                ? `+${appsChange}`
+                : String(appsChange)
+              : undefined,
+          trending:
+            appsChange !== null && appsChange !== undefined
+              ? appsChange >= 0
+                ? ("up" as const)
+                : ("down" as const)
+              : ("up" as const),
           icon: <BriefcaseIcon className="h-4 w-4" />,
-          color: 'text-[#7f56d9]',
-          bg: 'bg-[#f5f3ff]',
-          changeBg: 'bg-green-50 text-green-700',
+          color: "text-[#7f56d9]",
+          bg: "bg-[#f5f3ff]",
+          changeBg: "bg-green-50 text-green-700",
         },
         {
           title: t("dashboard.jobsCompleted"),
-          value: studentLoading ? "..." : (jobsCompletedValue !== null && jobsCompletedValue !== undefined ? String(jobsCompletedValue) : (studentMetrics?.jobsCompleted?.note || t("common.na"))),
+          value: studentLoading
+            ? "..."
+            : jobsCompletedValue !== null && jobsCompletedValue !== undefined
+              ? String(jobsCompletedValue)
+              : studentMetrics?.jobsCompleted?.note || t("common.na"),
           change: undefined,
-          trending: 'up' as const,
+          trending: "up" as const,
           icon: <AcademicCapIcon className="h-4 w-4" />,
-          color: 'text-[#7f56d9]',
-          bg: 'bg-[#f5f3ff]',
-          changeBg: 'bg-green-50 text-green-700',
+          color: "text-[#7f56d9]",
+          bg: "bg-[#f5f3ff]",
+          changeBg: "bg-green-50 text-green-700",
         },
         {
           title: t("dashboard.interviews"),
-          value: studentLoading ? "..." : (interviewsValue !== null && interviewsValue !== undefined ? String(interviewsValue) : (studentMetrics?.interviews?.note || t("common.na"))),
-          change: interviewsValue !== null && interviewsValue !== undefined && studentMetrics?.interviews?.growthPercentage !== null && studentMetrics?.interviews?.growthPercentage !== undefined
-            ? (studentMetrics.interviews.growthPercentage >= 0
+          value: studentLoading
+            ? "..."
+            : interviewsValue !== null && interviewsValue !== undefined
+              ? String(interviewsValue)
+              : studentMetrics?.interviews?.note || t("common.na"),
+          change:
+            interviewsValue !== null &&
+            interviewsValue !== undefined &&
+            studentMetrics?.interviews?.growthPercentage !== null &&
+            studentMetrics?.interviews?.growthPercentage !== undefined
+              ? studentMetrics.interviews.growthPercentage >= 0
                 ? `+${studentMetrics.interviews.growthPercentage}%`
-                : `${studentMetrics.interviews.growthPercentage}%`)
-            : undefined,
+                : `${studentMetrics.interviews.growthPercentage}%`
+              : undefined,
           trending:
             studentMetrics?.interviews?.growthPercentage !== null &&
             studentMetrics?.interviews?.growthPercentage !== undefined &&
             studentMetrics.interviews.growthPercentage < 0
-              ? 'down' as const
-              : 'up' as const,
+              ? ("down" as const)
+              : ("up" as const),
           icon: <UserGroupIcon className="h-4 w-4" />,
-          color: 'text-[#7f56d9]',
-          bg: 'bg-[#f5f3ff]',
-          changeBg: 'bg-green-50 text-green-700',
+          color: "text-[#7f56d9]",
+          bg: "bg-[#f5f3ff]",
+          changeBg: "bg-green-50 text-green-700",
         },
         {
           title: t("dashboard.earnings"),
-          value: studentLoading ? "..." : (earningsValue !== null ? `${earningsCurrency ?? "$"}${formatNumber(earningsValue)}` : (studentError ? t("dashboard.error") : t("common.na"))),
+          value: studentLoading
+            ? "..."
+            : earningsValue !== null
+              ? `${earningsCurrency ?? "$"}${formatNumber(earningsValue)}`
+              : studentError
+                ? t("dashboard.error")
+                : t("common.na"),
           change: undefined,
-          trending: 'up' as const,
+          trending: "up" as const,
           icon: <ChartBarIcon className="h-4 w-4" />,
-          color: 'text-[#7F56D9]',
-          bg: 'bg-[#f5f3ff]',
-          changeBg: 'bg-green-50 text-green-700',
+          color: "text-[#7F56D9]",
+          bg: "bg-[#f5f3ff]",
+          changeBg: "bg-green-50 text-green-700",
         },
       ];
     }
     if (role === "employer") {
       const jobsPostedValue = employerMetrics?.jobsPosted?.value ?? null;
       const jobsPostedChange = employerMetrics?.jobsPosted?.change ?? null;
-      const applicationsReceivedValue = employerMetrics?.applicationsReceived?.value ?? null;
-      const applicationsReceivedChange = employerMetrics?.applicationsReceived?.change ?? null;
+      const applicationsReceivedValue =
+        employerMetrics?.applicationsReceived?.value ?? null;
+      const applicationsReceivedChange =
+        employerMetrics?.applicationsReceived?.change ?? null;
       const activeHiresValue = employerMetrics?.activeHires?.value ?? null;
       const activeHiresChange = employerMetrics?.activeHires?.change ?? null;
       const totalSpentValue = employerMetrics?.totalSpent?.value ?? null;
@@ -428,43 +495,85 @@ const Dashboard: React.FC = () => {
       return [
         {
           title: t("dashboard.jobsPosted"),
-          value: employerLoading ? "..." : (jobsPostedValue !== null ? formatNumber(jobsPostedValue) : (employerError ? t("dashboard.error") : t("common.na"))),
+          value: employerLoading
+            ? "..."
+            : jobsPostedValue !== null
+              ? formatNumber(jobsPostedValue)
+              : employerError
+                ? t("dashboard.error")
+                : t("common.na"),
           change: formatChange(jobsPostedChange),
-          trending: (jobsPostedChange ?? 0) >= 0 ? "up" as const : "down" as const,
+          trending:
+            (jobsPostedChange ?? 0) >= 0 ? ("up" as const) : ("down" as const),
           icon: <BriefcaseIcon className="h-4 w-4" />,
           color: "text-[#7f56d9]",
           bg: "bg-[#f5f3ff]",
-          changeBg: (jobsPostedChange ?? 0) >= 0 ? "bg-green-50 text-green-700" : "bg-red-50 text-red-600",
+          changeBg:
+            (jobsPostedChange ?? 0) >= 0
+              ? "bg-green-50 text-green-700"
+              : "bg-red-50 text-red-600",
         },
         {
           title: t("dashboard.applicationsReceived"),
-          value: employerLoading ? "..." : (applicationsReceivedValue !== null ? formatNumber(applicationsReceivedValue) : (employerError ? t("dashboard.error") : t("common.na"))),
+          value: employerLoading
+            ? "..."
+            : applicationsReceivedValue !== null
+              ? formatNumber(applicationsReceivedValue)
+              : employerError
+                ? t("dashboard.error")
+                : t("common.na"),
           change: formatChange(applicationsReceivedChange),
-          trending: (applicationsReceivedChange ?? 0) >= 0 ? "up" as const : "down" as const,
+          trending:
+            (applicationsReceivedChange ?? 0) >= 0
+              ? ("up" as const)
+              : ("down" as const),
           icon: <UserGroupIcon className="h-4 w-4" />,
           color: "text-[#7f56d9]",
           bg: "bg-[#f5f3ff]",
-          changeBg: (applicationsReceivedChange ?? 0) >= 0 ? "bg-green-50 text-green-700" : "bg-red-50 text-red-600",
+          changeBg:
+            (applicationsReceivedChange ?? 0) >= 0
+              ? "bg-green-50 text-green-700"
+              : "bg-red-50 text-red-600",
         },
         {
           title: t("dashboard.activeHires"),
-          value: employerLoading ? "..." : (activeHiresValue !== null ? formatNumber(activeHiresValue) : (employerError ? t("dashboard.error") : t("common.na"))),
+          value: employerLoading
+            ? "..."
+            : activeHiresValue !== null
+              ? formatNumber(activeHiresValue)
+              : employerError
+                ? t("dashboard.error")
+                : t("common.na"),
           change: formatChange(activeHiresChange),
-          trending: (activeHiresChange ?? 0) >= 0 ? "up" as const : "down" as const,
+          trending:
+            (activeHiresChange ?? 0) >= 0 ? ("up" as const) : ("down" as const),
           icon: <AcademicCapIcon className="h-4 w-4" />,
           color: "text-[#7f56d9]",
           bg: "bg-[#f5f3ff]",
-          changeBg: (activeHiresChange ?? 0) >= 0 ? "bg-green-50 text-green-700" : "bg-red-50 text-red-600",
+          changeBg:
+            (activeHiresChange ?? 0) >= 0
+              ? "bg-green-50 text-green-700"
+              : "bg-red-50 text-red-600",
         },
         {
           title: t("dashboard.totalSpent"),
-          value: employerLoading ? "..." : (totalSpentValue !== null ? `${totalSpentCurrency}${formatNumber(totalSpentValue)}` : (employerError ? t("dashboard.error") : t("common.na"))),
+          value: employerLoading
+            ? "..."
+            : totalSpentValue !== null
+              ? `${totalSpentCurrency}${formatNumber(totalSpentValue)}`
+              : employerError
+                ? t("dashboard.error")
+                : t("common.na"),
           change: formatChange(totalSpentChange),
-          trending: (totalSpentChange ?? 0) >= 0 ? "up" as const : "down" as const,
+          trending:
+            (totalSpentChange ?? 0) >= 0 ? ("up" as const) : ("down" as const),
           icon: <ChartBarIcon className="h-4 w-4" />,
           color: "text-[#7F56D9]",
           bg: "bg-[#f5f3ff]",
-          changeBg: (totalSpentChange ?? 0) >= 0 ? "bg-green-50 text-green-700" : "bg-red-50 text-red-600",
+          changeBg:
+            (totalSpentChange ?? 0) >= 0
+              ? "bg-green-50 text-green-700"
+              : "bg-red-50 text-red-600",
         },
       ];
     }
@@ -472,7 +581,13 @@ const Dashboard: React.FC = () => {
     return [
       {
         title: t("dashboard.totalUsers"),
-        value: metricsLoading ? "..." : (metrics ? formatNumber(metrics.totalUsers) : (metricsError ? `ERR (${metricsError})` : t("common.na"))),
+        value: metricsLoading
+          ? "..."
+          : metrics
+            ? formatNumber(metrics.totalUsers)
+            : metricsError
+              ? `ERR (${metricsError})`
+              : t("common.na"),
         change: undefined,
         trending: "up" as const,
         icon: <UserGroupIcon className="h-4 w-4" />,
@@ -482,7 +597,13 @@ const Dashboard: React.FC = () => {
       },
       {
         title: t("dashboard.totalStudents"),
-        value: metricsLoading ? "..." : (metrics ? formatNumber(metrics.totalStudents) : (metricsError ? `ERR (${metricsError})` : t("common.na"))),
+        value: metricsLoading
+          ? "..."
+          : metrics
+            ? formatNumber(metrics.totalStudents)
+            : metricsError
+              ? `ERR (${metricsError})`
+              : t("common.na"),
         change: undefined,
         trending: "up" as const,
         icon: <AcademicCapIcon className="h-4 w-4" />,
@@ -492,7 +613,11 @@ const Dashboard: React.FC = () => {
       },
       {
         title: "FREE Badge Students",
-        value: metricsLoading ? "..." : (metrics?.freeBadgeStudents != null ? formatNumber(metrics.freeBadgeStudents) : t("common.na")),
+        value: metricsLoading
+          ? "..."
+          : metrics?.freeBadgeStudents != null
+            ? formatNumber(metrics.freeBadgeStudents)
+            : t("common.na"),
         change: undefined,
         trending: "up" as const,
         icon: <AcademicCapIcon className="h-4 w-4" />,
@@ -502,7 +627,11 @@ const Dashboard: React.FC = () => {
       },
       {
         title: "PREMIUM Students",
-        value: metricsLoading ? "..." : (metrics?.premiumStudents != null ? formatNumber(metrics.premiumStudents) : t("common.na")),
+        value: metricsLoading
+          ? "..."
+          : metrics?.premiumStudents != null
+            ? formatNumber(metrics.premiumStudents)
+            : t("common.na"),
         change: undefined,
         trending: "up" as const,
         icon: <StarIconSolid className="h-4 w-4" />,
@@ -512,7 +641,11 @@ const Dashboard: React.FC = () => {
       },
       {
         title: "PIONEER Students",
-        value: metricsLoading ? "..." : (metrics?.pioneerStudents != null ? formatNumber(metrics.pioneerStudents) : t("common.na")),
+        value: metricsLoading
+          ? "..."
+          : metrics?.pioneerStudents != null
+            ? formatNumber(metrics.pioneerStudents)
+            : t("common.na"),
         change: undefined,
         trending: "up" as const,
         icon: <StarIconSolid className="h-4 w-4" />,
@@ -522,7 +655,13 @@ const Dashboard: React.FC = () => {
       },
       {
         title: t("dashboard.activeJobs"),
-        value: metricsLoading ? "..." : (metrics ? formatNumber(metrics.activeJobs) : (metricsError ? `ERR (${metricsError})` : t("common.na"))),
+        value: metricsLoading
+          ? "..."
+          : metrics
+            ? formatNumber(metrics.activeJobs)
+            : metricsError
+              ? `ERR (${metricsError})`
+              : t("common.na"),
         change: undefined,
         trending: "up" as const,
         icon: <BriefcaseIcon className="h-4 w-4" />,
@@ -532,7 +671,13 @@ const Dashboard: React.FC = () => {
       },
       {
         title: t("dashboard.totalEarnings"),
-        value: metricsLoading ? "..." : (metrics ? (`$${formatNumber(metrics.totalEarnings)}`) : (metricsError ? `ERR (${metricsError})` : t("common.na"))),
+        value: metricsLoading
+          ? "..."
+          : metrics
+            ? `$${formatNumber(metrics.totalEarnings)}`
+            : metricsError
+              ? `ERR (${metricsError})`
+              : t("common.na"),
         change: undefined,
         trending: "up" as const,
         icon: <ChartBarIcon className="h-4 w-4" />,
@@ -546,25 +691,73 @@ const Dashboard: React.FC = () => {
   const getQuickStats = () => {
     if (role === "student") {
       return [
-        { color: "text-[#7f56d9]", hoverBg: "hover:bg-[#f5f3ff]", text: t("dashboard.applicationsShortlisted") },
-        { color: "text-[#7f56d9]", hoverBg: "hover:bg-[#f5f3ff]", text: t("dashboard.jobsInProgress") },
-        { color: "text-[#7f56d9]", hoverBg: "hover:bg-[#f5f3ff]", text: t("dashboard.interviewScheduled") },
-        { color: "text-[#7f56d9]", hoverBg: "hover:bg-[#f5f3ff]", text: t("dashboard.newJobMatches") },
+        {
+          color: "text-[#7f56d9]",
+          hoverBg: "hover:bg-[#f5f3ff]",
+          text: t("dashboard.applicationsShortlisted"),
+        },
+        {
+          color: "text-[#7f56d9]",
+          hoverBg: "hover:bg-[#f5f3ff]",
+          text: t("dashboard.jobsInProgress"),
+        },
+        {
+          color: "text-[#7f56d9]",
+          hoverBg: "hover:bg-[#f5f3ff]",
+          text: t("dashboard.interviewScheduled"),
+        },
+        {
+          color: "text-[#7f56d9]",
+          hoverBg: "hover:bg-[#f5f3ff]",
+          text: t("dashboard.newJobMatches"),
+        },
       ];
     }
     if (role === "employer") {
       return [
-        { color: "text-[#7f56d9]", hoverBg: "hover:bg-[#f5f3ff]", text: t("dashboard.newApplicantsThisWeek") },
-        { color: "text-[#7f56d9]", hoverBg: "hover:bg-[#f5f3ff]", text: t("dashboard.positionsFilledThisMonth") },
-        { color: "text-[#7f56d9]", hoverBg: "hover:bg-[#f5f3ff]", text: t("dashboard.interviewsPending") },
-        { color: "text-[#7f56d9]", hoverBg: "hover:bg-[#f5f3ff]", text: t("dashboard.contractsExpiringSoon") },
+        {
+          color: "text-[#7f56d9]",
+          hoverBg: "hover:bg-[#f5f3ff]",
+          text: t("dashboard.newApplicantsThisWeek"),
+        },
+        {
+          color: "text-[#7f56d9]",
+          hoverBg: "hover:bg-[#f5f3ff]",
+          text: t("dashboard.positionsFilledThisMonth"),
+        },
+        {
+          color: "text-[#7f56d9]",
+          hoverBg: "hover:bg-[#f5f3ff]",
+          text: t("dashboard.interviewsPending"),
+        },
+        {
+          color: "text-[#7f56d9]",
+          hoverBg: "hover:bg-[#f5f3ff]",
+          text: t("dashboard.contractsExpiringSoon"),
+        },
       ];
     }
     return [
-      { color: "text-[#7f56d9]", hoverBg: "hover:bg-[#f5f3ff]", text: t("dashboard.newStudentsThisWeek") },
-      { color: "text-[#7f56d9]", hoverBg: "hover:bg-[#f5f3ff]", text: t("dashboard.jobsPostedThisWeek") },
-      { color: "text-[#7f56d9]", hoverBg: "hover:bg-[#f5f3ff]", text: t("dashboard.academicVerificationsPending") },
-      { color: "text-[#7f56d9]", hoverBg: "hover:bg-[#f5f3ff]", text: t("dashboard.disputesResolved") },
+      {
+        color: "text-[#7f56d9]",
+        hoverBg: "hover:bg-[#f5f3ff]",
+        text: t("dashboard.newStudentsThisWeek"),
+      },
+      {
+        color: "text-[#7f56d9]",
+        hoverBg: "hover:bg-[#f5f3ff]",
+        text: t("dashboard.jobsPostedThisWeek"),
+      },
+      {
+        color: "text-[#7f56d9]",
+        hoverBg: "hover:bg-[#f5f3ff]",
+        text: t("dashboard.academicVerificationsPending"),
+      },
+      {
+        color: "text-[#7f56d9]",
+        hoverBg: "hover:bg-[#f5f3ff]",
+        text: t("dashboard.disputesResolved"),
+      },
     ];
   };
 
@@ -587,7 +780,15 @@ const Dashboard: React.FC = () => {
       return item.title?.trim() || t("common.na");
     };
 
-    const mapTopFiveMessages = (items: Array<{ type?: string; message?: string; title?: string; created_at?: string; application?: { status?: string; job?: { job_title?: string } } }>) =>
+    const mapTopFiveMessages = (
+      items: Array<{
+        type?: string;
+        message?: string;
+        title?: string;
+        created_at?: string;
+        application?: { status?: string; job?: { job_title?: string } };
+      }>,
+    ) =>
       [...items]
         .sort((a, b) => {
           const aTime = a.created_at ? new Date(a.created_at).getTime() : 0;
@@ -617,7 +818,6 @@ const Dashboard: React.FC = () => {
     }
     return [t("common.noData")];
   };
-  
 
   const getSubtitle = () => {
     if (role === "student") return t("dashboard.subtitleStudent");
@@ -627,28 +827,44 @@ const Dashboard: React.FC = () => {
 
   const getChartData = () => {
     if (role === "student") {
-      const data = (studentMetrics?.weeklyActivity as ChartRow[] | undefined) ?? [];
+      const data =
+        (studentMetrics?.weeklyActivity as ChartRow[] | undefined) ?? [];
       return {
         data,
         bars: [
-          { key: "applications", name: t("dashboard.applications"), fill: "#7F56D9" },
-          { key: "completed", name: t("dashboard.jobsCompleted"), fill: "#E9D5FF" },
+          {
+            key: "applications",
+            name: t("dashboard.applications"),
+            fill: "#7F56D9",
+          },
+          {
+            key: "completed",
+            name: t("dashboard.jobsCompleted"),
+            fill: "#E9D5FF",
+          },
         ],
         title: t("dashboard.weeklyActivity"),
       };
     }
     if (role === "employer") {
-      const data = ((employerMetrics as any)?.weeklyActivity as ChartRow[] | undefined) ?? [];
+      const data =
+        ((employerMetrics as any)?.weeklyActivity as ChartRow[] | undefined) ??
+        [];
       return {
         data,
         bars: [
-          { key: "applications", name: t("dashboard.applications"), fill: "#7F56D9" },
+          {
+            key: "applications",
+            name: t("dashboard.applications"),
+            fill: "#7F56D9",
+          },
           { key: "hires", name: t("dashboard.hires"), fill: "#E9D5FF" },
         ],
         title: t("dashboard.weeklyHiringActivity"),
       };
     }
-    const data = ((metrics as any)?.weeklyGrowth as ChartRow[] | undefined) ?? [];
+    const data =
+      ((metrics as any)?.weeklyGrowth as ChartRow[] | undefined) ?? [];
     return {
       data,
       bars: [
@@ -658,7 +874,6 @@ const Dashboard: React.FC = () => {
       title: t("dashboard.weeklyUserGrowth"),
     };
   };
-
 
   const stats = getStats();
   const quickStats = getQuickStats();
@@ -673,27 +888,55 @@ const Dashboard: React.FC = () => {
         <h1 className="text-[16px] md:text-base font-bold">
           {greeting}, {user?.full_name || t("dashboard.user")}
         </h1>
-        <p className="text-[13px] text-white/70 mt-0.5">
-          {subtitle}
-        </p>
+        <p className="text-[13px] text-white/70 mt-0.5">{subtitle}</p>
       </div>
 
-      {/* Profile Completion */}
-      {showProfileCompletion && (
-        <ProfileMilestones profileCompletion={profileCompletion} userId={profileUserId} onStartWizard={() => setIsWizardOpen(true)} />
-      )}
+      {/* Top Section */}
+      {/* ================= STUDENT DASHBOARD ================= */}
+{role === "student" ? (
+  <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
+    {/* Community Workspace */}
+    <div className="xl:col-span-2">
+      <CommunityWorkspace />
+    </div>
+
+    {/* Performance */}
+    <div className="h-full">
+      <div className="sticky top-4 bg-white rounded-xl border border-gray-200 shadow-sm p-4 h-fit">
+        <div className="space-y-4">
+          {authUserId && trustScoreRes?.data && (
+            <TrustScoreCard
+              trustScore={trustScoreRes.data}
+              isLoading={trustLoading}
+            />
+          )}
+
+          <ProfileMilestones
+            profileCompletion={profileCompletion}
+            userId={profileUserId}
+            onStartWizard={() => setIsWizardOpen(true)}
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+) : (
+  <div className="space-y-4">
+    {showProfileCompletion && (
+      <ProfileMilestones
+        profileCompletion={profileCompletion}
+        userId={profileUserId}
+        onStartWizard={() => setIsWizardOpen(true)}
+      />
+    )}
+  </div>
+)}
+      {/* Keep only the wizard */}
       {showProfileCompletion && (
         <ProfileCompletionWizard
           isOpen={isWizardOpen}
           onClose={() => setIsWizardOpen(false)}
           onComplete={() => setIsWizardOpen(false)}
-        />
-      )}
-
-      {role === "student" && authUserId && trustScoreRes?.data && (
-        <TrustScoreCard
-          trustScore={trustScoreRes.data}
-          isLoading={trustLoading}
         />
       )}
 
@@ -744,10 +987,10 @@ const Dashboard: React.FC = () => {
                         row.rank === 1
                           ? "bg-yellow-100 text-yellow-700"
                           : row.rank === 2
-                          ? "bg-slate-100 text-slate-700"
-                          : row.rank === 3
-                          ? "bg-orange-100 text-orange-700"
-                          : "bg-purple-100 text-purple-700"
+                            ? "bg-slate-100 text-slate-700"
+                            : row.rank === 3
+                              ? "bg-orange-100 text-orange-700"
+                              : "bg-purple-100 text-purple-700"
                       }`}
                     >
                       #{row.rank}
@@ -760,13 +1003,17 @@ const Dashboard: React.FC = () => {
                         {row.full_name}
                       </p>
                       <p className="text-xs text-gray-500">
-                        {row.rank <= 3 ? "Top performer" : "Promising candidate"}
+                        {row.rank <= 3
+                          ? "Top performer"
+                          : "Promising candidate"}
                       </p>
                     </div>
                   </div>
                   <div className="shrink-0 text-right">
                     <div className="inline-flex min-w-[58px] items-center justify-center rounded-full bg-purple-600 px-3 py-1 text-sm font-bold text-white shadow-sm">
-                      {row.trust_score != null ? row.trust_score.toFixed(0) : "—"}
+                      {row.trust_score != null
+                        ? row.trust_score.toFixed(0)
+                        : "—"}
                     </div>
                     <p className="mt-1 text-[11px] text-gray-400">score</p>
                   </div>
@@ -794,7 +1041,9 @@ const Dashboard: React.FC = () => {
                 <span className={item.color}>{item.icon}</span>
               </div>
               {item.change ? (
-                <span className={`inline-flex items-center gap-0.5 text-[9px] font-semibold px-1 py-0.5 rounded-full animate-trend ${item.changeBg}`}>
+                <span
+                  className={`inline-flex items-center gap-0.5 text-[9px] font-semibold px-1 py-0.5 rounded-full animate-trend ${item.changeBg}`}
+                >
                   {item.trending === "up" ? (
                     <ArrowTrendingUpIcon className="h-4.5 w-4.5" />
                   ) : (
@@ -811,128 +1060,193 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Application Status Breakdown — students AND employers */}
-      {(role === "student" || role === "employer") && (() => {
-        const source: any = role === "student" ? studentMetrics : employerMetrics;
-        const b = source?.applicationBreakdown ?? { pending: 0, shortlisted: 0, accepted: 0, rejected: 0, total: 0 };
-        return (
-          <div className="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
-            <div className="flex items-center justify-between mb-2">
-              <h2 className="text-[15px] font-semibold text-gray-800">
-                {role === "employer" ? "Applications Received — by status" : "Application Status"}
-              </h2>
-              <span className="text-[15px] text-gray-500">{b.total} total</span>
+      {(role === "student" || role === "employer") &&
+        (() => {
+          const source: any =
+            role === "student" ? studentMetrics : employerMetrics;
+          const b = source?.applicationBreakdown ?? {
+            pending: 0,
+            shortlisted: 0,
+            accepted: 0,
+            rejected: 0,
+            total: 0,
+          };
+          return (
+            <div className="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
+              <div className="flex items-center justify-between mb-2">
+                <h2 className="text-[15px] font-semibold text-gray-800">
+                  {role === "employer"
+                    ? "Applications Received — by status"
+                    : "Application Status"}
+                </h2>
+                <span className="text-[15px] text-gray-500">
+                  {b.total} total
+                </span>
+              </div>
+              {b.total === 0 ? (
+                <p className="text-[14px] text-gray-400 italic py-2">
+                  {role === "employer"
+                    ? "No applications received yet. Post a job to attract students."
+                    : "No applications yet — apply to a job to see your progress here."}
+                </p>
+              ) : (
+                <>
+                  <div className="flex h-2 rounded-full overflow-hidden bg-gray-100 mb-2">
+                    {b.pending > 0 && (
+                      <div
+                        className="bg-yellow-400"
+                        style={{ width: `${(b.pending / b.total) * 100}%` }}
+                      />
+                    )}
+                    {b.shortlisted > 0 && (
+                      <div
+                        className="bg-blue-400"
+                        style={{ width: `${(b.shortlisted / b.total) * 100}%` }}
+                      />
+                    )}
+                    {b.accepted > 0 && (
+                      <div
+                        className="bg-green-500"
+                        style={{ width: `${(b.accepted / b.total) * 100}%` }}
+                      />
+                    )}
+                    {b.rejected > 0 && (
+                      <div
+                        className="bg-red-400"
+                        style={{ width: `${(b.rejected / b.total) * 100}%` }}
+                      />
+                    )}
+                  </div>
+                  <div className="grid grid-cols-4 gap-2 text-center">
+                    <div>
+                      <div className="flex items-center justify-center gap-1">
+                        <span className="w-2 h-2 rounded-full bg-yellow-400" />
+                        <span className="text-sm font-bold text-gray-900">
+                          {b.pending}
+                        </span>
+                      </div>
+                      <p className="text-[13px] text-gray-500">Pending</p>
+                    </div>
+                    <div>
+                      <div className="flex items-center justify-center gap-1">
+                        <span className="w-2 h-2 rounded-full bg-blue-400" />
+                        <span className="text-sm font-bold text-gray-900">
+                          {b.shortlisted}
+                        </span>
+                      </div>
+                      <p className="text-[13px] text-gray-500">Shortlisted</p>
+                    </div>
+                    <div>
+                      <div className="flex items-center justify-center gap-1">
+                        <span className="w-2 h-2 rounded-full bg-green-500" />
+                        <span className="text-sm font-bold text-gray-900">
+                          {b.accepted}
+                        </span>
+                      </div>
+                      <p className="text-[13px] text-gray-500">Accepted</p>
+                    </div>
+                    <div>
+                      <div className="flex items-center justify-center gap-1">
+                        <span className="w-2 h-2 rounded-full bg-red-400" />
+                        <span className="text-sm font-bold text-gray-900">
+                          {b.rejected}
+                        </span>
+                      </div>
+                      <p className="text-[13px] text-gray-500">Rejected</p>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
-            {b.total === 0 ? (
-              <p className="text-[14px] text-gray-400 italic py-2">
-                {role === "employer"
-                  ? "No applications received yet. Post a job to attract students."
-                  : "No applications yet — apply to a job to see your progress here."}
-              </p>
-            ) : (
-              <>
-                <div className="flex h-2 rounded-full overflow-hidden bg-gray-100 mb-2">
-                  {b.pending > 0 && <div className="bg-yellow-400" style={{ width: `${(b.pending / b.total) * 100}%` }} />}
-                  {b.shortlisted > 0 && <div className="bg-blue-400" style={{ width: `${(b.shortlisted / b.total) * 100}%` }} />}
-                  {b.accepted > 0 && <div className="bg-green-500" style={{ width: `${(b.accepted / b.total) * 100}%` }} />}
-                  {b.rejected > 0 && <div className="bg-red-400" style={{ width: `${(b.rejected / b.total) * 100}%` }} />}
-                </div>
-                <div className="grid grid-cols-4 gap-2 text-center">
-                  <div>
-                    <div className="flex items-center justify-center gap-1">
-                      <span className="w-2 h-2 rounded-full bg-yellow-400" />
-                      <span className="text-sm font-bold text-gray-900">{b.pending}</span>
-                    </div>
-                    <p className="text-[13px] text-gray-500">Pending</p>
-                  </div>
-                  <div>
-                    <div className="flex items-center justify-center gap-1">
-                      <span className="w-2 h-2 rounded-full bg-blue-400" />
-                      <span className="text-sm font-bold text-gray-900">{b.shortlisted}</span>
-                    </div>
-                    <p className="text-[13px] text-gray-500">Shortlisted</p>
-                  </div>
-                  <div>
-                    <div className="flex items-center justify-center gap-1">
-                      <span className="w-2 h-2 rounded-full bg-green-500" />
-                      <span className="text-sm font-bold text-gray-900">{b.accepted}</span>
-                    </div>
-                    <p className="text-[13px] text-gray-500">Accepted</p>
-                  </div>
-                  <div>
-                    <div className="flex items-center justify-center gap-1">
-                      <span className="w-2 h-2 rounded-full bg-red-400" />
-                      <span className="text-sm font-bold text-gray-900">{b.rejected}</span>
-                    </div>
-                    <p className="text-[13px] text-gray-500">Rejected</p>
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-        );
-      })()}
+          );
+        })()}
 
       {/* Recent Applicants — employers only */}
-      {role === "employer" && (() => {
-        const recent: any[] = (employerMetrics as any)?.recentApplicants ?? [];
-        const formatRel = (iso: string) => {
-          const diffMs = Date.now() - new Date(iso).getTime();
-          const mins = Math.round(diffMs / 60000);
-          if (mins < 1) return "just now";
-          if (mins < 60) return `${mins}m ago`;
-          const hours = Math.round(mins / 60);
-          if (hours < 24) return `${hours}h ago`;
-          const days = Math.round(hours / 24);
-          if (days < 7) return `${days}d ago`;
-          return new Date(iso).toLocaleDateString();
-        };
-        return (
-          <div className="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
-            <div className="flex items-center justify-between mb-2">
-              <h2 className="text-xs font-semibold text-gray-800">Recent Applicants</h2>
-              <span className="text-[10px] text-gray-500">{recent.length} latest</span>
+      {role === "employer" &&
+        (() => {
+          const recent: any[] =
+            (employerMetrics as any)?.recentApplicants ?? [];
+          const formatRel = (iso: string) => {
+            const diffMs = Date.now() - new Date(iso).getTime();
+            const mins = Math.round(diffMs / 60000);
+            if (mins < 1) return "just now";
+            if (mins < 60) return `${mins}m ago`;
+            const hours = Math.round(mins / 60);
+            if (hours < 24) return `${hours}h ago`;
+            const days = Math.round(hours / 24);
+            if (days < 7) return `${days}d ago`;
+            return new Date(iso).toLocaleDateString();
+          };
+          return (
+            <div className="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
+              <div className="flex items-center justify-between mb-2">
+                <h2 className="text-xs font-semibold text-gray-800">
+                  Recent Applicants
+                </h2>
+                <span className="text-[10px] text-gray-500">
+                  {recent.length} latest
+                </span>
+              </div>
+              {recent.length === 0 ? (
+                <p className="text-[11px] text-gray-400 italic py-2">
+                  No applicants yet — once students start applying, they'll show
+                  up here.
+                </p>
+              ) : (
+                <ul className="divide-y divide-gray-100">
+                  {recent.map((r) => (
+                    <li
+                      key={r.application_id}
+                      className="flex items-center gap-3 py-2 hover:bg-gray-50 px-1 rounded cursor-pointer transition-colors"
+                      onClick={() =>
+                        (window.location.href = `/dashboard/jobs/${r.job_id}/applications`)
+                      }
+                    >
+                      <div className="h-8 w-8 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                        {r.student_image ? (
+                          <img
+                            src={r.student_image}
+                            alt={r.student_name}
+                            className="h-8 w-8 rounded-full object-cover"
+                          />
+                        ) : (
+                          r.student_name.charAt(0).toUpperCase()
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold text-gray-900 truncate">
+                          {r.student_name}
+                        </p>
+                        <p className="text-[10px] text-gray-500 truncate">
+                          applied for {r.job_title}
+                        </p>
+                      </div>
+                      <span className="text-[10px] text-gray-400 flex-shrink-0">
+                        {formatRel(r.applied_at)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
-            {recent.length === 0 ? (
-              <p className="text-[11px] text-gray-400 italic py-2">
-                No applicants yet — once students start applying, they'll show up here.
-              </p>
-            ) : (
-              <ul className="divide-y divide-gray-100">
-                {recent.map((r) => (
-                  <li
-                    key={r.application_id}
-                    className="flex items-center gap-3 py-2 hover:bg-gray-50 px-1 rounded cursor-pointer transition-colors"
-                    onClick={() => (window.location.href = `/dashboard/jobs/${r.job_id}/applications`)}
-                  >
-                    <div className="h-8 w-8 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                      {r.student_image ? (
-                        <img src={r.student_image} alt={r.student_name} className="h-8 w-8 rounded-full object-cover" />
-                      ) : (
-                        r.student_name.charAt(0).toUpperCase()
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-semibold text-gray-900 truncate">{r.student_name}</p>
-                      <p className="text-[10px] text-gray-500 truncate">applied for {r.job_title}</p>
-                    </div>
-                    <span className="text-[10px] text-gray-400 flex-shrink-0">{formatRel(r.applied_at)}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        );
-      })()}
+          );
+        })()}
 
       {/* Graph + Quick Stats */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-2.5">
         {/* Graph Section */}
         <div className="bg-white rounded-lg p-3 shadow-sm lg:col-span-2 border border-gray-100">
-          <h2 className="text-[15px] font-semibold mb-2 text-gray-800">{chartConfig.title}</h2>
+          <h2 className="text-[15px] font-semibold mb-2 text-gray-800">
+            {chartConfig.title}
+          </h2>
           <div className="h-44">
             <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartConfig.data as ChartRow[]} barGap={3} >
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
+              <BarChart data={chartConfig.data as ChartRow[]} barGap={3}>
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="#f0f0f0"
+                  vertical={false}
+                />
                 <XAxis
                   dataKey="day"
                   axisLine={false}
@@ -972,13 +1286,18 @@ const Dashboard: React.FC = () => {
 
         {/* Quick Stats */}
         <div className="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
-          <h2 className="text-[15px] font-semibold text-gray-800 mb-2">{t("dashboard.quickStats")}</h2>
+          <h2 className="text-[15px] font-semibold text-gray-800 mb-2">
+            {t("dashboard.quickStats")}
+          </h2>
 
           {/* Student Rating (hidden until reviews source is wired) */}
 
           <ul className="space-y-1 text-gray-700 text-[13px]">
             {quickStats.map((stat, index) => (
-              <li key={index} className={`flex items-center gap-1.5 p-1.5 rounded ${stat.hoverBg} transition-colors`}>
+              <li
+                key={index}
+                className={`flex items-center gap-1.5 p-1.5 rounded ${stat.hoverBg} transition-colors`}
+              >
                 <span className={`${stat.color} font-bold text-[15px]`}>•</span>
                 <span>{stat.text}</span>
               </li>
@@ -989,7 +1308,9 @@ const Dashboard: React.FC = () => {
 
       {/* Recent Activity */}
       <div className="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
-        <h2 className="text-[15px] font-semibold mb-2 text-gray-800">{t("dashboard.recentActivity")}</h2>
+        <h2 className="text-[15px] font-semibold mb-2 text-gray-800">
+          {t("dashboard.recentActivity")}
+        </h2>
         <ul className="space-y-1">
           {recentActivity.map((activity, index) => (
             <li
@@ -1004,50 +1325,80 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Student KPIs */}
-      {role === "student" && (() => {
-        const profilePct = profileCompletion ?? 0;
-        const jobPct = studentMetrics?.rates?.jobCompletionRate ?? 0;
-        const successPct = studentMetrics?.rates?.applicationSuccessRate ?? 0;
-        return (
-          <div className="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
-            <h2 className="text-[16px] font-semibold mb-2.5 text-gray-800">{t("dashboard.yourProgress")}</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <span className="text-[14px] text-gray-600">{t("dashboard.profileCompletion")}</span>
-                  <span className="text-[13px] font-bold text-[#7F56D9]">{profilePct}%</span>
+      {role === "student" &&
+        (() => {
+          const profilePct = profileCompletion ?? 0;
+          const jobPct = studentMetrics?.rates?.jobCompletionRate ?? 0;
+          const successPct = studentMetrics?.rates?.applicationSuccessRate ?? 0;
+          return (
+            <div className="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
+              <h2 className="text-[16px] font-semibold mb-2.5 text-gray-800">
+                {t("dashboard.yourProgress")}
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[14px] text-gray-600">
+                      {t("dashboard.profileCompletion")}
+                    </span>
+                    <span className="text-[13px] font-bold text-[#7F56D9]">
+                      {profilePct}%
+                    </span>
+                  </div>
+                  <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-[#7f56d9] rounded-full transition-all duration-500"
+                      style={{ width: `${profilePct}%` }}
+                    />
+                  </div>
+                  <p className="text-[11px] text-gray-400">
+                    {t("dashboard.addSkillsAndBio")}
+                  </p>
                 </div>
-                <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-[#7f56d9] rounded-full transition-all duration-500" style={{ width: `${profilePct}%` }} />
-                </div>
-                <p className="text-[11px] text-gray-400">{t("dashboard.addSkillsAndBio")}</p>
-              </div>
 
-              <div className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <span className="text-[14px] text-gray-600">Job Completion</span>
-                  <span className="text-[13px] font-bold text-[#7f56d9]">{jobPct}%</span>
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[14px] text-gray-600">
+                      Job Completion
+                    </span>
+                    <span className="text-[13px] font-bold text-[#7f56d9]">
+                      {jobPct}%
+                    </span>
+                  </div>
+                  <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-[#7f56d9] rounded-full transition-all duration-500"
+                      style={{ width: `${jobPct}%` }}
+                    />
+                  </div>
+                  <p className="text-[11px] text-gray-400">
+                    {t("dashboard.jobsCompletedOnTime")}
+                  </p>
                 </div>
-                <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-[#7f56d9] rounded-full transition-all duration-500" style={{ width: `${jobPct}%` }} />
-                </div>
-                <p className="text-[11px] text-gray-400">{t("dashboard.jobsCompletedOnTime")}</p>
-              </div>
 
-              <div className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <span className="text-[14px] text-gray-600">{t("dashboard.applicationSuccess")}</span>
-                  <span className="text-[13px] font-bold text-[#7f56d9]">{successPct}%</span>
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[14px] text-gray-600">
+                      {t("dashboard.applicationSuccess")}
+                    </span>
+                    <span className="text-[13px] font-bold text-[#7f56d9]">
+                      {successPct}%
+                    </span>
+                  </div>
+                  <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-[#7f56d9] rounded-full transition-all duration-500"
+                      style={{ width: `${successPct}%` }}
+                    />
+                  </div>
+                  <p className="text-[11px] text-gray-400">
+                    {t("dashboard.applicationsAccepted")}
+                  </p>
                 </div>
-                <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-[#7f56d9] rounded-full transition-all duration-500" style={{ width: `${successPct}%` }} />
-                </div>
-                <p className="text-[11px] text-gray-400">{t("dashboard.applicationsAccepted")}</p>
               </div>
             </div>
-          </div>
-        );
-      })()}
+          );
+        })()}
     </div>
   );
 };
