@@ -892,36 +892,45 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Top Section */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
-        {/* Community Workspace */}
-        <div className="xl:col-span-2">
-          <CommunityWorkspace />
-        </div>
+      {/* ================= STUDENT DASHBOARD ================= */}
+{role === "student" ? (
+  <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
+    {/* Community Workspace */}
+    <div className="xl:col-span-2">
+      <CommunityWorkspace />
+    </div>
 
-        {/* Performance */}
-        <div className="h-full">
-          <div className="sticky top-4 bg-white rounded-xl border border-gray-200 shadow-sm p-4 h-fit">
-            <div className="space-y-4">
-              {/* Trust Score */}
-              {role === "student" && authUserId && trustScoreRes?.data && (
-                <TrustScoreCard
-                  trustScore={trustScoreRes.data}
-                  isLoading={trustLoading}
-                />
-              )}
+    {/* Performance */}
+    <div className="h-full">
+      <div className="sticky top-4 bg-white rounded-xl border border-gray-200 shadow-sm p-4 h-fit">
+        <div className="space-y-4">
+          {authUserId && trustScoreRes?.data && (
+            <TrustScoreCard
+              trustScore={trustScoreRes.data}
+              isLoading={trustLoading}
+            />
+          )}
 
-              {/* Profile Completion */}
-              {showProfileCompletion && (
-                <ProfileMilestones
-                  profileCompletion={profileCompletion}
-                  userId={profileUserId}
-                  onStartWizard={() => setIsWizardOpen(true)}
-                />
-              )}
-            </div>
-          </div>
+          <ProfileMilestones
+            profileCompletion={profileCompletion}
+            userId={profileUserId}
+            onStartWizard={() => setIsWizardOpen(true)}
+          />
         </div>
       </div>
+    </div>
+  </div>
+) : (
+  <div className="space-y-4">
+    {showProfileCompletion && (
+      <ProfileMilestones
+        profileCompletion={profileCompletion}
+        userId={profileUserId}
+        onStartWizard={() => setIsWizardOpen(true)}
+      />
+    )}
+  </div>
+)}
       {/* Keep only the wizard */}
       {showProfileCompletion && (
         <ProfileCompletionWizard
