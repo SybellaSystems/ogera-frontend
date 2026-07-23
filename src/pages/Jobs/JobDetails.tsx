@@ -11,10 +11,17 @@ import {
   BookmarkIcon,
 } from "@heroicons/react/24/outline";
 import { BookmarkIcon as BookmarkSolidIcon } from "@heroicons/react/24/solid";
-import { useGetJobByIdQuery, useReviewJobMutation } from "../../services/api/jobsApi";
+import {
+  useGetJobByIdQuery,
+  useReviewJobMutation,
+} from "../../services/api/jobsApi";
 import { useGetUserProfileQuery } from "../../services/api/authApi";
 import { useCheckStudentApplicationQuery } from "../../services/api/jobApplicationApi";
-import { useFundJobMutation, useLazyGetMoMoStatusQuery, useApproveWorkAndPayMutation } from "../../services/api/momoApi";
+import {
+  useFundJobMutation,
+  useLazyGetMoMoStatusQuery,
+  useApproveWorkAndPayMutation,
+} from "../../services/api/momoApi";
 import { useGetJobPaymentDetailQuery } from "../../services/api/momoApi";
 import { apiSlice } from "../../services/api/apiSlice";
 import ApplyJobModal from "../../components/ApplyJobModal";
@@ -34,9 +41,10 @@ const JobDetails: React.FC = () => {
   const normalizedRole = role ? String(role).toLowerCase().trim() : "";
   const { data, isLoading, error, refetch } = useGetJobByIdQuery(id || "");
   const { data: profileData } = useGetUserProfileQuery(undefined);
-  const { data: applicationCheck, refetch: refetchApplicationCheck } = useCheckStudentApplicationQuery(id || "", {
-    skip: !id || role !== "student",
-  });
+  const { data: applicationCheck, refetch: refetchApplicationCheck } =
+    useCheckStudentApplicationQuery(id || "", {
+      skip: !id || role !== "student",
+    });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [savedJobs, setSavedJobs] = useState<Set<string>>(new Set());
   const [momoError, setMomoError] = useState("");
@@ -44,15 +52,20 @@ const JobDetails: React.FC = () => {
   const [isFundModalOpen, setIsFundModalOpen] = useState(false);
   const [fundJob, { isLoading: isFunding }] = useFundJobMutation();
   const [getMoMoStatus] = useLazyGetMoMoStatusQuery();
-  const [approveWorkAndPay, { isLoading: isPaying }] = useApproveWorkAndPayMutation();
+  const [approveWorkAndPay, { isLoading: isPaying }] =
+    useApproveWorkAndPayMutation();
   const { data: paymentDetailData } = useGetJobPaymentDetailQuery(id || "", {
-    skip: !id || (normalizedRole !== "employer" && normalizedRole !== "superadmin" && normalizedRole !== "admin"),
+    skip:
+      !id ||
+      (normalizedRole !== "employer" &&
+        normalizedRole !== "superadmin" &&
+        normalizedRole !== "admin"),
   });
   const [reviewJob, { isLoading: isUpdatingJob }] = useReviewJobMutation();
 
-   const job = data?.data;
+  const job = data?.data;
   const currentUserId = profileData?.data?.user_id;
-    const isSaved = id ? savedJobs.has(id) : false;
+  const isSaved = id ? savedJobs.has(id) : false;
 
   const hasApplied = applicationCheck?.data?.hasApplied || false;
   const isCompletedJob = job?.status === "Completed";
@@ -71,7 +84,10 @@ const JobDetails: React.FC = () => {
     }
   }, [searchParams, role, job, hasApplied, isCompletedJob]);
   const fundingStatus = job?.funding_status || "Unfunded";
-  const isEmployerView = (role === "employer" || role === "superadmin") && currentUserId && job?.employer_id === currentUserId;
+  const isEmployerView =
+    (role === "employer" || role === "superadmin") &&
+    currentUserId &&
+    job?.employer_id === currentUserId;
   const isAlreadyApproved = job?.status === "Active";
   const isAlreadyDisapproved = job?.status === "Inactive";
   const isReviewLocked = isAlreadyApproved || isAlreadyDisapproved;
@@ -81,8 +97,6 @@ const JobDetails: React.FC = () => {
     return { budget };
   }, [job?.budget]);
   const jobPayment = paymentDetailData?.data;
-
-  
 
   const toggleSaveJob = (jobId: string) => {
     setSavedJobs((prev) => {
@@ -134,7 +148,11 @@ const JobDetails: React.FC = () => {
   }
 
   // Check if employer can view this job (only their own jobs)
-  if (role === "employer" && currentUserId && job.employer_id !== currentUserId) {
+  if (
+    role === "employer" &&
+    currentUserId &&
+    job.employer_id !== currentUserId
+  ) {
     return (
       <div className="space-y-6 animate-fadeIn">
         <div className="bg-red-50 border border-red-200 rounded-xl p-6">
@@ -152,7 +170,8 @@ const JobDetails: React.FC = () => {
     );
   }
 
-  const employerName = job.employer?.full_name || t("pages.jobs.unknownEmployer");
+  const employerName =
+    job.employer?.full_name || t("pages.jobs.unknownEmployer");
   const companyInitial = employerName.charAt(0).toUpperCase();
 
   return (
@@ -175,7 +194,7 @@ const JobDetails: React.FC = () => {
           <div className="flex flex-wrap items-center gap-3 mt-2">
             <span
               className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(
-                job.status
+                job.status,
               )}`}
             >
               {job.status}
@@ -188,27 +207,35 @@ const JobDetails: React.FC = () => {
                   job.funding_status === "Paid"
                     ? "bg-emerald-100 text-emerald-700"
                     : job.funding_status === "Funded"
-                    ? "bg-green-100 text-green-700"
-                    : "bg-amber-100 text-amber-700"
+                      ? "bg-green-100 text-green-700"
+                      : "bg-amber-100 text-amber-700"
                 }`}
               >
                 {job.funding_status === "Paid"
                   ? "Paid"
                   : job.funding_status === "Funded"
-                  ? "Funded"
-                  : "Payment pending"}
+                    ? "Funded"
+                    : "Payment pending"}
               </span>
             )}
-            {role === "student" && job.funding_status === "Paid" && job.amount_received_by_you != null && (
-              <span className="px-3 py-1 rounded-full text-sm font-semibold bg-emerald-100 text-emerald-700">
-                You received {(job.amount_received_by_you as number).toLocaleString()} for this job
-              </span>
-            )}
+            {role === "student" &&
+              job.funding_status === "Paid" &&
+              job.amount_received_by_you != null && (
+                <span className="px-3 py-1 rounded-full text-sm font-semibold bg-emerald-100 text-emerald-700">
+                  You received{" "}
+                  {(job.amount_received_by_you as number).toLocaleString()} for
+                  this job
+                </span>
+              )}
             {role === "student" && (
               <button
                 onClick={() => id && toggleSaveJob(id)}
                 className="p-2 hover:bg-gray-100 rounded-full transition"
-                title={isSaved ? t("pages.jobs.removeFromSaved") : t("pages.jobs.saveJob")}
+                title={
+                  isSaved
+                    ? t("pages.jobs.removeFromSaved")
+                    : t("pages.jobs.saveJob")
+                }
               >
                 {isSaved ? (
                   <BookmarkSolidIcon className="h-5 w-5 text-blue-600" />
@@ -227,8 +254,8 @@ const JobDetails: React.FC = () => {
                 hasApplied
                   ? t("pages.jobs.applied")
                   : isCompletedJob
-                  ? t("pages.jobs.completed", { defaultValue: "Completed" })
-                  : t("pages.jobs.applyNow")
+                    ? t("pages.jobs.completed", { defaultValue: "Completed" })
+                    : t("pages.jobs.applyNow")
               }
               onClick={() => !isApplyDisabled && setIsModalOpen(true)}
               disabled={isApplyDisabled}
@@ -236,7 +263,8 @@ const JobDetails: React.FC = () => {
             {isCompletedJob && (
               <div className="pointer-events-none absolute left-1/2 top-full z-10 mt-2 w-64 -translate-x-1/2 rounded-md bg-gray-900 px-3 py-2 text-center text-xs text-white opacity-0 shadow-lg transition-opacity duration-200 group-hover:opacity-100">
                 {t("pages.jobs.completedNoApplyMessage", {
-                  defaultValue: "This job is already completed, so applications are closed.",
+                  defaultValue:
+                    "This job is already completed, so applications are closed.",
                 })}
               </div>
             )}
@@ -260,7 +288,13 @@ const JobDetails: React.FC = () => {
           <div className="flex flex-col sm:flex-row gap-2">
             <Button
               backgroundcolor="#059669"
-              text={isAlreadyApproved ? "Approved" : isUpdatingJob ? "Approving..." : "Approve"}
+              text={
+                isAlreadyApproved
+                  ? "Approved"
+                  : isUpdatingJob
+                    ? "Approving..."
+                    : "Approve"
+              }
               onClick={async () => {
                 if (!id) return;
                 if (isReviewLocked) return;
@@ -270,15 +304,28 @@ const JobDetails: React.FC = () => {
                   refetch();
                 } catch (error) {
                   console.error("Failed to approve job:", error);
-                  const err = error as { data?: { message?: string }; message?: string };
-                  toast.error(err?.data?.message || err?.message || "Failed to approve job. Please try again.");
+                  const err = error as {
+                    data?: { message?: string };
+                    message?: string;
+                  };
+                  toast.error(
+                    err?.data?.message ||
+                      err?.message ||
+                      "Failed to approve job. Please try again.",
+                  );
                 }
               }}
               disabled={isUpdatingJob || isReviewLocked}
             />
             <Button
               backgroundcolor="#dc2626"
-              text={isAlreadyDisapproved ? "Disapproved" : isUpdatingJob ? "Updating..." : "Disapprove"}
+              text={
+                isAlreadyDisapproved
+                  ? "Disapproved"
+                  : isUpdatingJob
+                    ? "Updating..."
+                    : "Disapprove"
+              }
               onClick={async () => {
                 if (!id) return;
                 if (isReviewLocked) return;
@@ -288,8 +335,15 @@ const JobDetails: React.FC = () => {
                   refetch();
                 } catch (error) {
                   console.error("Failed to disapprove job:", error);
-                  const err = error as { data?: { message?: string }; message?: string };
-                  toast.error(err?.data?.message || err?.message || "Failed to disapprove job. Please try again.");
+                  const err = error as {
+                    data?: { message?: string };
+                    message?: string;
+                  };
+                  toast.error(
+                    err?.data?.message ||
+                      err?.message ||
+                      "Failed to disapprove job. Please try again.",
+                  );
                 }
               }}
               disabled={isUpdatingJob || isReviewLocked}
@@ -331,7 +385,8 @@ const JobDetails: React.FC = () => {
               <div className="flex items-center gap-2 text-gray-700">
                 <CurrencyDollarIcon className="h-5 w-5 text-gray-500" />
                 <span className="text-sm md:text-base">
-                  <strong>{t("pages.jobs.budget")}:</strong> {formatBudgetWithCurrency(job.budget, job.currency || "USD")}
+                  <strong>{t("pages.jobs.budget")}:</strong>{" "}
+                  {formatBudgetWithCurrency(job.budget, job.currency || "USD")}
                 </span>
               </div>
               <div className="flex items-center gap-2 text-gray-700">
@@ -344,31 +399,44 @@ const JobDetails: React.FC = () => {
                 <ClockIcon className="h-5 w-5 text-gray-500" />
                 <span className="text-sm md:text-base">
                   <strong>Posted:</strong>{" "}
-                  {job.created_at ? formatRelativeTime(job.created_at) : "Unknown"}
+                  {job.created_at
+                    ? formatRelativeTime(job.created_at)
+                    : "Unknown"}
                 </span>
               </div>
             </div>
 
             {/* Student: amount received for this job (when Paid) */}
-            {role === "student" && job.funding_status === "Paid" && job.amount_received_by_you != null && (
-              <div className="p-4 bg-emerald-50 rounded-lg border border-emerald-200">
-                <p className="text-sm font-medium text-emerald-800">Amount you received from Ogera</p>
-                <p className="text-xl font-bold text-emerald-900 mt-1">
-                  {(job.amount_received_by_you as number).toLocaleString()} (paid to your MoMo)
-                </p>
-              </div>
-            )}
+            {role === "student" &&
+              job.funding_status === "Paid" &&
+              job.amount_received_by_you != null && (
+                <div className="p-4 bg-emerald-50 rounded-lg border border-emerald-200">
+                  <p className="text-sm font-medium text-emerald-800">
+                    Amount you received from Ogera
+                  </p>
+                  <p className="text-xl font-bold text-emerald-900 mt-1">
+                    {(job.amount_received_by_you as number).toLocaleString()}{" "}
+                    (paid to your MoMo)
+                  </p>
+                </div>
+              )}
 
             {/* Fund with MoMo (employer only) */}
             {/* Approve work & pay student (employer, job Funded, not yet Paid) */}
             {isEmployerView && fundingStatus === "Funded" && (
               <div className="mt-4 p-4 bg-emerald-50 rounded-lg border border-emerald-200">
-                <h3 className="text-lg font-semibold text-emerald-900 mb-2">Approve work & pay student</h3>
+                <h3 className="text-lg font-semibold text-emerald-900 mb-2">
+                  Approve work & pay student
+                </h3>
                 <p className="text-sm text-emerald-700 mb-3">
-                  When the student has completed the work, click below to pay them the job budget via MoMo. The student must have a mobile number in their profile.
+                  When the student has completed the work, click below to pay
+                  them the job budget via MoMo. The student must have a mobile
+                  number in their profile.
                 </p>
                 {payError && (
-                  <div className="mb-3 p-2 bg-red-100 text-red-700 rounded text-sm">{payError}</div>
+                  <div className="mb-3 p-2 bg-red-100 text-red-700 rounded text-sm">
+                    {payError}
+                  </div>
                 )}
                 <Button
                   backgroundcolor="#059669"
@@ -379,8 +447,15 @@ const JobDetails: React.FC = () => {
                       await approveWorkAndPay({ jobId: id! }).unwrap();
                       refetch();
                     } catch (e: unknown) {
-                      const err = e as { data?: { message?: string }; message?: string };
-                      setPayError(err?.data?.message || err?.message || "Failed to pay student.");
+                      const err = e as {
+                        data?: { message?: string };
+                        message?: string;
+                      };
+                      setPayError(
+                        err?.data?.message ||
+                          err?.message ||
+                          "Failed to pay student.",
+                      );
                     }
                   }}
                   disabled={isPaying}
@@ -388,32 +463,42 @@ const JobDetails: React.FC = () => {
               </div>
             )}
 
-            {isEmployerView && fundingStatus !== "Funded" && fundingStatus !== "Paid" && (
-              <div className="mt-4 p-4 bg-purple-50 rounded-lg border border-purple-200">
-                <h3 className="text-lg font-semibold text-purple-900 mb-2">Fund job with MoMo</h3>
-                <p className="text-sm text-purple-700 mb-3">
-                  Pay the job budget via MTN Mobile Money. A payment request will be sent to your MoMo number (from your profile). Approve on your phone to fund this job.
-                </p>
-                {momoError && (
-                  <div className="mb-3 p-2 bg-red-100 text-red-700 rounded text-sm">{momoError}</div>
-                )}
-                {fundingStatus === "Pending" ? (
-                  <p className="text-amber-700 font-medium">
-                    Payment request sent. Approve on your MoMo app. This page will update when payment is confirmed (wait up to 2 minutes).
+            {isEmployerView &&
+              fundingStatus !== "Funded" &&
+              fundingStatus !== "Paid" && (
+                <div className="mt-4 p-4 bg-purple-50 rounded-lg border border-purple-200">
+                  <h3 className="text-lg font-semibold text-purple-900 mb-2">
+                    Fund job with MoMo
+                  </h3>
+                  <p className="text-sm text-purple-700 mb-3">
+                    Pay the job budget via MTN Mobile Money. A payment request
+                    will be sent to your MoMo number (from your profile).
+                    Approve on your phone to fund this job.
                   </p>
-                ) : (
-                  <Button
-                    backgroundcolor="#7c3aed"
-                    text={isFunding ? "Sending request…" : "Fund with MoMo"}
-                    onClick={() => {
-                      setMomoError("");
-                      setIsFundModalOpen(true);
-                    }}
-                    disabled={isFunding}
-                  />
-                )}
-              </div>
-            )}
+                  {momoError && (
+                    <div className="mb-3 p-2 bg-red-100 text-red-700 rounded text-sm">
+                      {momoError}
+                    </div>
+                  )}
+                  {fundingStatus === "Pending" ? (
+                    <p className="text-amber-700 font-medium">
+                      Payment request sent. Approve on your MoMo app. This page
+                      will update when payment is confirmed (wait up to 2
+                      minutes).
+                    </p>
+                  ) : (
+                    <Button
+                      backgroundcolor="#7c3aed"
+                      text={isFunding ? "Sending request…" : "Fund with MoMo"}
+                      onClick={() => {
+                        setMomoError("");
+                        setIsFundModalOpen(true);
+                      }}
+                      disabled={isFunding}
+                    />
+                  )}
+                </div>
+              )}
 
             {/* Fund confirmation modal */}
             {isFundModalOpen && (
@@ -427,9 +512,12 @@ const JobDetails: React.FC = () => {
                 >
                   <div className="flex items-start justify-between gap-4 mb-4">
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900">Confirm job funding</h3>
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        Confirm job funding
+                      </h3>
                       <p className="text-sm text-gray-500 mt-1">
-                        This payment will be sent to the <strong>Ogera wallet</strong> for this job.
+                        This payment will be sent to the{" "}
+                        <strong>Ogera wallet</strong> for this job.
                       </p>
                     </div>
                     <button
@@ -445,26 +533,50 @@ const JobDetails: React.FC = () => {
                   <div className="border border-gray-200 rounded-xl p-4 bg-gray-50">
                     <div className="flex items-center justify-between text-sm text-gray-700">
                       <span>Job amount</span>
-                      <span className="font-semibold">{feeInfo.budget.toLocaleString()} {job.currency || "USD"}</span>
+                      <span className="font-semibold">
+                        {feeInfo.budget.toLocaleString()}{" "}
+                        {job.currency || "USD"}
+                      </span>
                     </div>
                     <div className="h-px bg-gray-200 my-3" />
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-900 font-semibold">Total to pay</span>
-                      <span className="text-xl font-extrabold text-purple-700">{feeInfo.budget.toLocaleString()} {job.currency || "USD"}</span>
+                      <span className="text-gray-900 font-semibold">
+                        Total to pay
+                      </span>
+                      <span className="text-xl font-extrabold text-purple-700">
+                        {feeInfo.budget.toLocaleString()}{" "}
+                        {job.currency || "USD"}
+                      </span>
                     </div>
                     {jobPayment?.transaction_details?.funding && (
                       <div className="mt-3 text-xs text-gray-600">
-                        Wallet credit preview: {jobPayment.transaction_details.funding.original_amount.toLocaleString()} {jobPayment.transaction_details.funding.original_currency} to {jobPayment.transaction_details.funding.converted_amount.toLocaleString()} {jobPayment.transaction_details.funding.converted_currency} @ {jobPayment.transaction_details.funding.exchange_rate}
+                        Wallet credit preview:{" "}
+                        {jobPayment.transaction_details.funding.original_amount.toLocaleString()}{" "}
+                        {
+                          jobPayment.transaction_details.funding
+                            .original_currency
+                        }{" "}
+                        to{" "}
+                        {jobPayment.transaction_details.funding.converted_amount.toLocaleString()}{" "}
+                        {
+                          jobPayment.transaction_details.funding
+                            .converted_currency
+                        }{" "}
+                        @ {jobPayment.transaction_details.funding.exchange_rate}
                       </div>
                     )}
                   </div>
 
                   <p className="text-sm text-gray-600 mt-4">
-                    After you submit, you’ll receive an MTN MoMo prompt on your phone. Approve it to mark this job as <strong>Funded</strong>.
+                    After you submit, you’ll receive an MTN MoMo prompt on your
+                    phone. Approve it to mark this job as{" "}
+                    <strong>Funded</strong>.
                   </p>
 
                   {momoError && (
-                    <div className="mt-3 p-2 bg-red-100 text-red-700 rounded text-sm">{momoError}</div>
+                    <div className="mt-3 p-2 bg-red-100 text-red-700 rounded text-sm">
+                      {momoError}
+                    </div>
                   )}
 
                   <div className="mt-5 flex gap-2 justify-end">
@@ -489,11 +601,16 @@ const JobDetails: React.FC = () => {
                             const refId = res.data.referenceId;
                             const interval = setInterval(async () => {
                               try {
-                                const statusRes = await getMoMoStatus(refId).unwrap();
+                                const statusRes =
+                                  await getMoMoStatus(refId).unwrap();
                                 const status = statusRes.data?.status;
                                 if (status === "SUCCESSFUL") {
                                   clearInterval(interval);
-                                  dispatch(apiSlice.util.invalidateTags(["MoMoPayments"]));
+                                  dispatch(
+                                    apiSlice.util.invalidateTags([
+                                      "MoMoPayments",
+                                    ]),
+                                  );
                                   refetch();
                                 }
                               } catch {
@@ -504,12 +621,21 @@ const JobDetails: React.FC = () => {
                             refetch();
                           }
                         } catch (e: unknown) {
-                          const err = e as { data?: { message?: string }; message?: string };
-                          setMomoError(err?.data?.message || err?.message || "Failed to send payment request.");
+                          const err = e as {
+                            data?: { message?: string };
+                            message?: string;
+                          };
+                          setMomoError(
+                            err?.data?.message ||
+                              err?.message ||
+                              "Failed to send payment request.",
+                          );
                         }
                       }}
                     >
-                      {isFunding ? "Sending…" : `Pay ${feeInfo.budget.toLocaleString()} ${job.currency || "USD"}`}
+                      {isFunding
+                        ? "Sending…"
+                        : `Pay ${feeInfo.budget.toLocaleString()} ${job.currency || "USD"}`}
                     </button>
                   </div>
                 </div>
@@ -519,24 +645,72 @@ const JobDetails: React.FC = () => {
             {/* Employer transaction details with FX breakdown */}
             {isEmployerView && jobPayment && (
               <div className="mt-4 p-4 bg-slate-50 rounded-lg border border-slate-200">
-                <h3 className="text-lg font-semibold text-slate-900 mb-2">Transaction conversion details</h3>
+                <h3 className="text-lg font-semibold text-slate-900 mb-2">
+                  Transaction conversion details
+                </h3>
                 <div className="space-y-2 text-sm text-slate-700">
                   <div>
-                    Job currency: <strong>{jobPayment.currency || job.currency || "USD"}</strong> | Wallet currency: <strong>{jobPayment.wallet_currency || "USD"}</strong>
+                    Job currency:{" "}
+                    <strong>
+                      {jobPayment.currency || job.currency || "USD"}
+                    </strong>{" "}
+                    | Wallet currency:{" "}
+                    <strong>{jobPayment.wallet_currency || "USD"}</strong>
                   </div>
                   {jobPayment.transaction_details?.funding && (
                     <div>
-                      Funding: {jobPayment.transaction_details.funding.original_amount.toLocaleString()} {jobPayment.transaction_details.funding.original_currency} to {jobPayment.transaction_details.funding.converted_amount.toLocaleString()} {jobPayment.transaction_details.funding.converted_currency} @ {jobPayment.transaction_details.funding.exchange_rate}
+                      Funding:{" "}
+                      {jobPayment.transaction_details.funding.original_amount.toLocaleString()}{" "}
+                      {jobPayment.transaction_details.funding.original_currency}{" "}
+                      to{" "}
+                      {jobPayment.transaction_details.funding.converted_amount.toLocaleString()}{" "}
+                      {
+                        jobPayment.transaction_details.funding
+                          .converted_currency
+                      }{" "}
+                      @ {jobPayment.transaction_details.funding.exchange_rate}
                     </div>
                   )}
                   {jobPayment.transaction_details?.wallet_deduction && (
                     <div>
-                      Wallet deduction: {jobPayment.transaction_details.wallet_deduction.original_amount.toLocaleString()} {jobPayment.transaction_details.wallet_deduction.original_currency} to {jobPayment.transaction_details.wallet_deduction.converted_amount.toLocaleString()} {jobPayment.transaction_details.wallet_deduction.converted_currency} @ {jobPayment.transaction_details.wallet_deduction.exchange_rate}
+                      Wallet deduction:{" "}
+                      {jobPayment.transaction_details.wallet_deduction.original_amount.toLocaleString()}{" "}
+                      {
+                        jobPayment.transaction_details.wallet_deduction
+                          .original_currency
+                      }{" "}
+                      to{" "}
+                      {jobPayment.transaction_details.wallet_deduction.converted_amount.toLocaleString()}{" "}
+                      {
+                        jobPayment.transaction_details.wallet_deduction
+                          .converted_currency
+                      }{" "}
+                      @{" "}
+                      {
+                        jobPayment.transaction_details.wallet_deduction
+                          .exchange_rate
+                      }
                     </div>
                   )}
                   {jobPayment.transaction_details?.student_payout && (
                     <div>
-                      Student payout: {jobPayment.transaction_details.student_payout.original_amount.toLocaleString()} {jobPayment.transaction_details.student_payout.original_currency} to {jobPayment.transaction_details.student_payout.converted_amount.toLocaleString()} {jobPayment.transaction_details.student_payout.converted_currency} @ {jobPayment.transaction_details.student_payout.exchange_rate}
+                      Student payout:{" "}
+                      {jobPayment.transaction_details.student_payout.original_amount.toLocaleString()}{" "}
+                      {
+                        jobPayment.transaction_details.student_payout
+                          .original_currency
+                      }{" "}
+                      to{" "}
+                      {jobPayment.transaction_details.student_payout.converted_amount.toLocaleString()}{" "}
+                      {
+                        jobPayment.transaction_details.student_payout
+                          .converted_currency
+                      }{" "}
+                      @{" "}
+                      {
+                        jobPayment.transaction_details.student_payout
+                          .exchange_rate
+                      }
                     </div>
                   )}
                 </div>
@@ -613,11 +787,15 @@ const JobDetails: React.FC = () => {
             {job.questions.length > 1 ? "s" : ""} when applying for this job.
           </p>
           <ul className="space-y-2">
-            {job.questions
+            {[...(job.questions ?? [])]
               .sort((a, b) => (a.display_order || 0) - (b.display_order || 0))
               .map((question, index) => (
-                <li key={question.question_id || index} className="text-sm md:text-base text-blue-800">
-                  <span className="font-medium">{index + 1}.</span> {question.question_text}
+                <li
+                  key={question.question_id || index}
+                  className="text-sm md:text-base text-blue-800"
+                >
+                  <span className="font-medium">{index + 1}.</span>{" "}
+                  {question.question_text}
                   {question.is_required && (
                     <span className="text-red-600 ml-1">*</span>
                   )}
@@ -645,6 +823,3 @@ const JobDetails: React.FC = () => {
 };
 
 export default JobDetails;
-
-
-
