@@ -690,29 +690,39 @@ const Dashboard: React.FC = () => {
 
   const getQuickStats = () => {
     if (role === "student") {
-      return [
-        {
-          color: "text-[#7f56d9]",
-          hoverBg: "hover:bg-[#f5f3ff]",
-          text: t("dashboard.applicationsShortlisted"),
-        },
-        {
-          color: "text-[#7f56d9]",
-          hoverBg: "hover:bg-[#f5f3ff]",
-          text: t("dashboard.jobsInProgress"),
-        },
-        {
-          color: "text-[#7f56d9]",
-          hoverBg: "hover:bg-[#f5f3ff]",
-          text: t("dashboard.interviewScheduled"),
-        },
-        {
-          color: "text-[#7f56d9]",
-          hoverBg: "hover:bg-[#f5f3ff]",
-          text: t("dashboard.newJobMatches"),
-        },
-      ];
-    }
+    const quick = studentMetrics?.quickStats;
+
+    return [
+      {
+        color: "text-[#7f56d9]",
+        hoverBg: "hover:bg-[#f5f3ff]",
+        text: `${
+          studentLoading ? "..." : quick?.applicationsShortlisted ?? 0
+        } ${t("dashboard.applicationsShortlisted")}`,
+      },
+      {
+        color: "text-[#7f56d9]",
+        hoverBg: "hover:bg-[#f5f3ff]",
+        text: `${
+          studentLoading ? "..." : quick?.jobsInProgress ?? 0
+        } ${t("dashboard.jobsInProgress")}`,
+      },
+      {
+        color: "text-[#7f56d9]",
+        hoverBg: "hover:bg-[#f5f3ff]",
+        text: `${
+          studentLoading ? "..." : quick?.interviewScheduled ?? 0
+        } ${t("dashboard.interviewScheduled")}`,
+      },
+      {
+        color: "text-[#7f56d9]",
+        hoverBg: "hover:bg-[#f5f3ff]",
+        text: `${
+          studentLoading ? "..." : quick?.newJobMatches ?? 0
+        } ${t("dashboard.newJobMatches")}`,
+      },
+    ];
+  }
     if (role === "employer") {
       return [
         {
@@ -893,44 +903,44 @@ const Dashboard: React.FC = () => {
 
       {/* Top Section */}
       {/* ================= STUDENT DASHBOARD ================= */}
-{role === "student" ? (
-  <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
-    {/* Community Workspace */}
-    <div className="xl:col-span-2">
-      <CommunityWorkspace />
-    </div>
+      {role === "student" ? (
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
+          {/* Community Workspace */}
+          <div className="xl:col-span-2">
+            <CommunityWorkspace />
+          </div>
 
-    {/* Performance */}
-    <div className="h-full">
-      <div className="sticky top-4 bg-white rounded-xl border border-gray-200 shadow-sm p-4 h-fit">
+          {/* Performance */}
+          <div className="h-full">
+            <div className="sticky top-4 bg-white rounded-xl border border-gray-200 shadow-sm p-4 h-fit">
+              <div className="space-y-4">
+                {authUserId && trustScoreRes?.data && (
+                  <TrustScoreCard
+                    trustScore={trustScoreRes.data}
+                    isLoading={trustLoading}
+                  />
+                )}
+
+                <ProfileMilestones
+                  profileCompletion={profileCompletion}
+                  userId={profileUserId}
+                  onStartWizard={() => setIsWizardOpen(true)}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
         <div className="space-y-4">
-          {authUserId && trustScoreRes?.data && (
-            <TrustScoreCard
-              trustScore={trustScoreRes.data}
-              isLoading={trustLoading}
+          {showProfileCompletion && (
+            <ProfileMilestones
+              profileCompletion={profileCompletion}
+              userId={profileUserId}
+              onStartWizard={() => setIsWizardOpen(true)}
             />
           )}
-
-          <ProfileMilestones
-            profileCompletion={profileCompletion}
-            userId={profileUserId}
-            onStartWizard={() => setIsWizardOpen(true)}
-          />
         </div>
-      </div>
-    </div>
-  </div>
-) : (
-  <div className="space-y-4">
-    {showProfileCompletion && (
-      <ProfileMilestones
-        profileCompletion={profileCompletion}
-        userId={profileUserId}
-        onStartWizard={() => setIsWizardOpen(true)}
-      />
-    )}
-  </div>
-)}
+      )}
       {/* Keep only the wizard */}
       {showProfileCompletion && (
         <ProfileCompletionWizard
@@ -1034,27 +1044,43 @@ const Dashboard: React.FC = () => {
         {stats.map((item, index) => (
           <div
             key={index}
-            className="bg-white rounded-lg p-2.5 shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100"
+            className="bg-white rounded-lg p-3 shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100"
           >
-            <div className="flex items-center justify-between mb-1.5">
-              <div className={`p-1.5 rounded text-[35px] ${item.bg}`}>
-                <span className={item.color}>{item.icon}</span>
+            {/* Top Row */}
+            <div className="flex items-start justify-between">
+              {/* Left - Icon */}
+              <div className={`p-2 rounded-lg ${item.bg}`}>
+                <span className={`${item.color} text-[34px]`}>{item.icon}</span>
               </div>
-              {item.change ? (
-                <span
-                  className={`inline-flex items-center gap-0.5 text-[9px] font-semibold px-1 py-0.5 rounded-full animate-trend ${item.changeBg}`}
-                >
-                  {item.trending === "up" ? (
-                    <ArrowTrendingUpIcon className="h-4.5 w-4.5" />
-                  ) : (
-                    <ArrowTrendingDownIcon className="h-4.5 w-4.5" />
-                  )}
-                  {item.change}
-                </span>
-              ) : null}
+
+              {/* Center - Title */}
+              <div className="flex-1 px-2 text-center">
+                <p className="text-[15px] font-semibold text-gray-800">
+                  {item.title}
+                </p>
+              </div>
+
+              {/* Right - Trend */}
+              <div>
+                {item.change && (
+                  <span
+                    className={`inline-flex items-center gap-0.5 text-[10px] font-semibold px-2 py-1 rounded-full ${item.changeBg}`}
+                  >
+                    {item.trending === "up" ? (
+                      <ArrowTrendingUpIcon className="h-3.5 w-3.5" />
+                    ) : (
+                      <ArrowTrendingDownIcon className="h-3.5 w-3.5" />
+                    )}
+                    {item.change}
+                  </span>
+                )}
+              </div>
             </div>
-            <p className="text-[15px] font-bold text-gray-900">{item.value}</p>
-            <p className="text-[15px] text-gray-500">{item.title}</p>
+
+            {/* Center Value */}
+            <div className="mt-5 flex justify-center">
+              <p className="text-2xl font-bold text-gray-800">{item.value}</p>
+            </div>
           </div>
         ))}
       </div>
@@ -1241,7 +1267,16 @@ const Dashboard: React.FC = () => {
           </h2>
           <div className="h-44">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartConfig.data as ChartRow[]} barGap={3}>
+              <BarChart
+                data={chartConfig.data as ChartRow[]}
+                margin={{
+                  top: 10,
+                  right: 10,
+                  left: 0,
+                  bottom: 0,
+                }}
+                barGap={3}
+              >
                 <CartesianGrid
                   strokeDasharray="3 3"
                   stroke="#f0f0f0"
@@ -1296,7 +1331,7 @@ const Dashboard: React.FC = () => {
             {quickStats.map((stat, index) => (
               <li
                 key={index}
-                className={`flex items-center gap-1.5 p-1.5 rounded ${stat.hoverBg} transition-colors`}
+                className={`flex items-center gap-1.5 p-2 rounded-md transition-all duration-200 hover:bg-[#7F56D9]/15 hover:translate-x-1`}
               >
                 <span className={`${stat.color} font-bold text-[15px]`}>•</span>
                 <span>{stat.text}</span>
@@ -1315,7 +1350,7 @@ const Dashboard: React.FC = () => {
           {recentActivity.map((activity, index) => (
             <li
               key={index}
-              className="pb-1.5 border-b last:border-none text-[13px] text-gray-600 hover:text-[#7f56d9] transition-colors duration-200 flex items-center gap-1.5 group cursor-pointer"
+              className="pb-1.5 border-b last:border-none text-[13px] text-gray-700 dashboard-white-text hover:text-[#7f56d9] transition-colors duration-200 flex items-center gap-1.5 group cursor-pointer"
             >
               <span className="w-1.5 h-1.5 rounded-full bg-[#7f56d9] group-hover:bg-[#5b3ba5] transition-colors shrink-0"></span>
               <span>{activity}</span>
@@ -1338,7 +1373,7 @@ const Dashboard: React.FC = () => {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="space-y-1">
                   <div className="flex items-center justify-between">
-                    <span className="text-[14px] text-gray-600">
+                    <span className="text-[14px] text-gray-700">
                       {t("dashboard.profileCompletion")}
                     </span>
                     <span className="text-[13px] font-bold text-[#7F56D9]">
@@ -1351,15 +1386,15 @@ const Dashboard: React.FC = () => {
                       style={{ width: `${profilePct}%` }}
                     />
                   </div>
-                  <p className="text-[11px] text-gray-400">
+                  <p className="text-[11px] text-gray-700">
                     {t("dashboard.addSkillsAndBio")}
                   </p>
                 </div>
 
                 <div className="space-y-1">
                   <div className="flex items-center justify-between">
-                    <span className="text-[14px] text-gray-600">
-                      Job Completion
+                    <span className="text-[14px] text-gray-700">
+                      {t("dashboard.jobCompletion")}
                     </span>
                     <span className="text-[13px] font-bold text-[#7f56d9]">
                       {jobPct}%
@@ -1371,14 +1406,14 @@ const Dashboard: React.FC = () => {
                       style={{ width: `${jobPct}%` }}
                     />
                   </div>
-                  <p className="text-[11px] text-gray-400">
+                  <p className="text-[11px] text-gray-700">
                     {t("dashboard.jobsCompletedOnTime")}
                   </p>
                 </div>
 
                 <div className="space-y-1">
                   <div className="flex items-center justify-between">
-                    <span className="text-[14px] text-gray-600">
+                    <span className="text-[14px] text-gray-700">
                       {t("dashboard.applicationSuccess")}
                     </span>
                     <span className="text-[13px] font-bold text-[#7f56d9]">
@@ -1391,7 +1426,7 @@ const Dashboard: React.FC = () => {
                       style={{ width: `${successPct}%` }}
                     />
                   </div>
-                  <p className="text-[11px] text-gray-400">
+                  <p className="text-[11px] text-gray-700">
                     {t("dashboard.applicationsAccepted")}
                   </p>
                 </div>
