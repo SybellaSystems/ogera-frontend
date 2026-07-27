@@ -162,7 +162,9 @@ const ProfileCompletionWizard: React.FC<ProfileCompletionWizardProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [bio, setBio] = useState("");
+  const [bioError, setBioError] = useState("");
   const [skills, setSkills] = useState("");
+  const [skillsError, setSkillsError] = useState("");
   const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
   const [profileImagePreview, setProfileImagePreview] = useState("");
 
@@ -174,6 +176,12 @@ const ProfileCompletionWizard: React.FC<ProfileCompletionWizardProps> = ({
     end_year: undefined as number | undefined,
     is_current: true,
     description: "",
+  });
+  const [educationErrors, setEducationErrors] = useState({
+    institution_name: "",
+    degree: "",
+    start_year: "",
+    end_year: "",
   });
 
   const [employmentForm, setEmploymentForm] = useState({
@@ -189,6 +197,12 @@ const ProfileCompletionWizard: React.FC<ProfileCompletionWizardProps> = ({
     end_date: "",
     is_current: false,
     description: "",
+  });
+  const [employmentErrors, setEmploymentErrors] = useState({
+    company_name: "",
+    job_title: "",
+    start_date: "",
+    end_date: "",
   });
 
   React.useEffect(() => {
@@ -280,56 +294,132 @@ const ProfileCompletionWizard: React.FC<ProfileCompletionWizardProps> = ({
               toast.success("Profile image updated!");
             }
             break;
-
           case "bio":
             if (bio.trim().length > 20) {
-              await updateExtendedProfile({ profile_summary: bio }).unwrap();
+              setBioError("");
+
+              await updateExtendedProfile({
+                profile_summary: bio,
+              }).unwrap();
+
               toast.success("Bio updated!");
             } else {
-              toast.error("Bio must be at least 20 characters");
+              setBioError("Bio must be at least 20 characters");
               setIsSubmitting(false);
-              return;
+              return; 
             }
             break;
-
           case "skills": {
             const skillNames = skills
               .split(",")
               .map((s) => s.trim())
               .filter((s) => s);
+
             if (skillNames.length >= 3) {
+              setSkillsError("");
+
               const skillsArray = skillNames.map((name) => ({
                 skill_name: name,
                 skill_type: "key_skill" as const,
               }));
+
               await addBulkSkills({ skills: skillsArray }).unwrap();
               toast.success("Skills added!");
             } else {
-              toast.error("Please add at least 3 skills");
+              setSkillsError("Please add at least 3 skills");
               setIsSubmitting(false);
               return;
             }
+
             break;
           }
+          case "education": {
+            const currentYear = new Date().getFullYear();
 
-          case "education":
-            if (educationForm.institution_name && educationForm.degree) {
-              await addEducation(educationForm).unwrap();
-              toast.success("Education added!");
-            } else {
-              toast.error("Please fill in required education fields");
+            const errors = {
+              institution_name: "",
+              degree: "",
+              start_year: "",
+              end_year: "",
+            };
+
+            if (!educationForm.institution_name.trim()) {
+              errors.institution_name = "Institution name is required";
+            }
+
+            if (!educationForm.degree.trim()) {
+              errors.degree = "Degree is required";
+            }
+
+            if (!educationForm.start_year) {
+              errors.start_year = "Start year is required";
+            } else if (educationForm.start_year > currentYear) {
+              errors.start_year =
+                "Start year cannot be greater than the current year";
+            }
+
+            if (
+              educationForm.end_year &&
+              educationForm.end_year < educationForm.start_year
+            ) {
+              errors.end_year =
+                "End year cannot be earlier than the start year";
+            }
+
+            setEducationErrors(errors);
+
+            if (Object.values(errors).some((error) => error !== "")) {
               setIsSubmitting(false);
               return;
             }
-            break;
 
-          case "employment":
-            if (employmentForm.company_name && employmentForm.job_title) {
-              await addEmployment(employmentForm).unwrap();
-              toast.success("Employment added!");
+            await addEducation(educationForm).unwrap();
+            toast.success("Education added!");
+            break;
+          }
+          case "employment": {
+            const today = new Date().toISOString().split("T")[0];
+
+            const errors = {
+              company_name: "",
+              job_title: "",
+              start_date: "",
+              end_date: "",
+            };
+
+            if (!employmentForm.company_name.trim()) {
+              errors.company_name = "Company name is required";
             }
-            break;
 
+            if (!employmentForm.job_title.trim()) {
+              errors.job_title = "Job title is required";
+            }
+
+            if (!employmentForm.start_date) {
+              errors.start_date = "Joining date is required";
+            } else if (employmentForm.start_date > today) {
+              errors.start_date = "Joining date cannot be in the future";
+            }
+
+            if (!employmentForm.is_current && employmentForm.end_date) {
+              if (employmentForm.end_date > today) {
+                errors.end_date = "End date cannot be in the future";
+              } else if (employmentForm.end_date < employmentForm.start_date) {
+                errors.end_date = "End date cannot be earlier than join date";
+              }
+            }
+
+            setEmploymentErrors(errors);
+
+            if (Object.values(errors).some((error) => error !== "")) {
+              setIsSubmitting(false);
+              return;
+            }
+
+            await addEmployment(employmentForm).unwrap();
+            toast.success("Employment added!");
+            break;
+          }
           case "email_verified":
             await resendVerificationEmail(profileData.email).unwrap();
             toast.success("Verification email sent. Please check your inbox.");
@@ -467,14 +557,25 @@ const ProfileCompletionWizard: React.FC<ProfileCompletionWizardProps> = ({
 
       case "bio":
         return (
-          <div className="space-y-4">
+          <div className="space-y-2">
             <textarea
               value={bio}
-              onChange={(e) => setBio(e.target.value)}
+              onChange={(e) => {
+                setBio(e.target.value);
+
+                if (bioError) {
+                  setBioError("");
+                }
+              }}
               placeholder="Tell us about yourself... (minimum 20 characters)"
               rows={5}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7f56d9] focus:border-transparent outline-none resize-none"
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-[#7f56d9] focus:border-transparent outline-none resize-none ${
+                bioError ? "border-red-500" : "border-gray-300"
+              }`}
             />
+
+            {bioError && <p className="text-sm text-red-500">{bioError}</p>}
+
             <p className="text-sm text-gray-500">
               {bio.length}/20 characters minimum
             </p>
@@ -483,17 +584,30 @@ const ProfileCompletionWizard: React.FC<ProfileCompletionWizardProps> = ({
 
       case "skills":
         return (
-          <div className="space-y-4">
+          <div className="space-y-2">
             <textarea
               value={skills}
-              onChange={(e) => setSkills(e.target.value)}
+              onChange={(e) => {
+                setSkills(e.target.value);
+
+                if (skillsError) {
+                  setSkillsError("");
+                }
+              }}
               placeholder="Enter your skills separated by commas (e.g., JavaScript, React, Node.js)"
               rows={4}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7f56d9] focus:border-transparent outline-none resize-none"
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-[#7f56d9] focus:border-transparent outline-none resize-none ${
+                skillsError ? "border-red-500" : "border-gray-300"
+              }`}
             />
+
+            {skillsError && (
+              <p className="text-sm text-red-500">{skillsError}</p>
+            )}
+
             <p className="text-sm text-gray-500">
-              {skills.split(",").filter((s) => s.trim()).length}/3 skills
-              minimum
+              {skills.split(",").filter((s) => s.trim()).length}
+              /3 skills minimum
             </p>
           </div>
         );
@@ -501,27 +615,69 @@ const ProfileCompletionWizard: React.FC<ProfileCompletionWizardProps> = ({
       case "education":
         return (
           <div className="space-y-4">
-            <input
-              type="text"
-              value={educationForm.institution_name}
-              onChange={(e) =>
-                setEducationForm({
-                  ...educationForm,
-                  institution_name: e.target.value,
-                })
-              }
-              placeholder="Institution Name *"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7f56d9] focus:border-transparent outline-none"
-            />
-            <input
-              type="text"
-              value={educationForm.degree}
-              onChange={(e) =>
-                setEducationForm({ ...educationForm, degree: e.target.value })
-              }
-              placeholder="Degree *"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7f56d9] focus:border-transparent outline-none"
-            />
+            {/* Institution */}
+            <div>
+              <input
+                type="text"
+                value={educationForm.institution_name}
+                onChange={(e) => {
+                  setEducationForm({
+                    ...educationForm,
+                    institution_name: e.target.value,
+                  });
+
+                  if (educationErrors.institution_name) {
+                    setEducationErrors({
+                      ...educationErrors,
+                      institution_name: "",
+                    });
+                  }
+                }}
+                placeholder="Institution Name *"
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-[#7f56d9] focus:border-transparent outline-none ${
+                  educationErrors.institution_name
+                    ? "border-red-500"
+                    : "border-gray-300"
+                }`}
+              />
+              {educationErrors.institution_name && (
+                <p className="mt-1 text-sm text-red-500">
+                  {educationErrors.institution_name}
+                </p>
+              )}
+            </div>
+
+            {/* Degree */}
+            <div>
+              <input
+                type="text"
+                value={educationForm.degree}
+                onChange={(e) => {
+                  setEducationForm({
+                    ...educationForm,
+                    degree: e.target.value,
+                  });
+
+                  if (educationErrors.degree) {
+                    setEducationErrors({
+                      ...educationErrors,
+                      degree: "",
+                    });
+                  }
+                }}
+                placeholder="Degree *"
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-[#7f56d9] focus:border-transparent outline-none ${
+                  educationErrors.degree ? "border-red-500" : "border-gray-300"
+                }`}
+              />
+              {educationErrors.degree && (
+                <p className="mt-1 text-sm text-red-500">
+                  {educationErrors.degree}
+                </p>
+              )}
+            </div>
+
+            {/* Field of Study */}
             <input
               type="text"
               value={educationForm.field_of_study}
@@ -534,38 +690,77 @@ const ProfileCompletionWizard: React.FC<ProfileCompletionWizardProps> = ({
               placeholder="Field of Study"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7f56d9] focus:border-transparent outline-none"
             />
+
             <div className="grid grid-cols-2 gap-4">
-              <input
-                type="number"
-                min="1950"
-                max={new Date().getFullYear() + 5}
-                value={educationForm.start_year}
-                onChange={(e) =>
-                  setEducationForm({
-                    ...educationForm,
-                    start_year:
-                      parseInt(e.target.value) || new Date().getFullYear(),
-                  })
-                }
-                placeholder="Start Year"
-                className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7f56d9] focus:border-transparent outline-none"
-              />
-              <input
-                type="number"
-                min="1950"
-                max={new Date().getFullYear() + 10}
-                value={educationForm.end_year || ""}
-                onChange={(e) =>
-                  setEducationForm({
-                    ...educationForm,
-                    end_year: e.target.value
-                      ? parseInt(e.target.value)
-                      : undefined,
-                  })
-                }
-                placeholder="End Year (optional)"
-                className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7f56d9] focus:border-transparent outline-none"
-              />
+              {/* Start Year */}
+              <div>
+                <input
+                  type="number"
+                  min="1950"
+                  max={new Date().getFullYear()}
+                  value={educationForm.start_year}
+                  onChange={(e) => {
+                    setEducationForm({
+                      ...educationForm,
+                      start_year: parseInt(e.target.value) || 0,
+                    });
+
+                    if (educationErrors.start_year) {
+                      setEducationErrors({
+                        ...educationErrors,
+                        start_year: "",
+                      });
+                    }
+                  }}
+                  placeholder="Start Year"
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-[#7f56d9] focus:border-transparent outline-none ${
+                    educationErrors.start_year
+                      ? "border-red-500"
+                      : "border-gray-300"
+                  }`}
+                />
+                {educationErrors.start_year && (
+                  <p className="mt-1 text-sm text-red-500">
+                    {educationErrors.start_year}
+                  </p>
+                )}
+              </div>
+
+              {/* End Year */}
+              <div>
+                <input
+                  type="number"
+                  min="1950"
+                  max={new Date().getFullYear() + 10}
+                  value={educationForm.end_year || ""}
+                  onChange={(e) => {
+                    setEducationForm({
+                      ...educationForm,
+                      end_year: e.target.value
+                        ? parseInt(e.target.value)
+                        : undefined,
+                    });
+
+                    if (educationErrors.end_year) {
+                      setEducationErrors({
+                        ...educationErrors,
+                        end_year: "",
+                      });
+                    }
+                  }}
+                  placeholder="End Year (optional)"
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-[#7f56d9] focus:border-transparent outline-none ${
+                    educationErrors.end_year
+                      ? "border-red-500"
+                      : "border-gray-300"
+                  }`}
+                />
+                {educationErrors.end_year && (
+                  <p className="mt-1 text-sm text-red-500">
+                    {educationErrors.end_year}
+                  </p>
+                )}
+              </div>
             </div>
           </div>
         );
@@ -573,30 +768,71 @@ const ProfileCompletionWizard: React.FC<ProfileCompletionWizardProps> = ({
       case "employment":
         return (
           <div className="space-y-4">
-            <input
-              type="text"
-              value={employmentForm.company_name}
-              onChange={(e) =>
-                setEmploymentForm({
-                  ...employmentForm,
-                  company_name: e.target.value,
-                })
-              }
-              placeholder="Company Name *"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7f56d9] focus:border-transparent outline-none"
-            />
-            <input
-              type="text"
-              value={employmentForm.job_title}
-              onChange={(e) =>
-                setEmploymentForm({
-                  ...employmentForm,
-                  job_title: e.target.value,
-                })
-              }
-              placeholder="Job Title *"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7f56d9] focus:border-transparent outline-none"
-            />
+            {/* Company Name */}
+            <div>
+              <input
+                type="text"
+                value={employmentForm.company_name}
+                onChange={(e) => {
+                  setEmploymentForm({
+                    ...employmentForm,
+                    company_name: e.target.value,
+                  });
+
+                  if (employmentErrors.company_name) {
+                    setEmploymentErrors({
+                      ...employmentErrors,
+                      company_name: "",
+                    });
+                  }
+                }}
+                placeholder="Company Name *"
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-[#7f56d9] focus:border-transparent outline-none ${
+                  employmentErrors.company_name
+                    ? "border-red-500"
+                    : "border-gray-300"
+                }`}
+              />
+              {employmentErrors.company_name && (
+                <p className="mt-1 text-sm text-red-500">
+                  {employmentErrors.company_name}
+                </p>
+              )}
+            </div>
+
+            {/* Job Title */}
+            <div>
+              <input
+                type="text"
+                value={employmentForm.job_title}
+                onChange={(e) => {
+                  setEmploymentForm({
+                    ...employmentForm,
+                    job_title: e.target.value,
+                  });
+
+                  if (employmentErrors.job_title) {
+                    setEmploymentErrors({
+                      ...employmentErrors,
+                      job_title: "",
+                    });
+                  }
+                }}
+                placeholder="Job Title *"
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-[#7f56d9] focus:border-transparent outline-none ${
+                  employmentErrors.job_title
+                    ? "border-red-500"
+                    : "border-gray-300"
+                }`}
+              />
+              {employmentErrors.job_title && (
+                <p className="mt-1 text-sm text-red-500">
+                  {employmentErrors.job_title}
+                </p>
+              )}
+            </div>
+
+            {/* Description */}
             <textarea
               value={employmentForm.description}
               onChange={(e) =>
@@ -609,31 +845,72 @@ const ProfileCompletionWizard: React.FC<ProfileCompletionWizardProps> = ({
               rows={3}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7f56d9] focus:border-transparent outline-none resize-none"
             />
+
             <div className="grid grid-cols-2 gap-4">
-              <input
-                type="date"
-                value={employmentForm.start_date}
-                onChange={(e) =>
-                  setEmploymentForm({
-                    ...employmentForm,
-                    start_date: e.target.value,
-                  })
-                }
-                className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7f56d9] focus:border-transparent outline-none"
-              />
-              <input
-                type="date"
-                value={employmentForm.end_date}
-                onChange={(e) =>
-                  setEmploymentForm({
-                    ...employmentForm,
-                    end_date: e.target.value,
-                  })
-                }
-                disabled={employmentForm.is_current}
-                className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7f56d9] focus:border-transparent outline-none disabled:bg-gray-100"
-              />
+              {/* Start Date */}
+              <div>
+                <input
+                  type="date"
+                  value={employmentForm.start_date}
+                  onChange={(e) => {
+                    setEmploymentForm({
+                      ...employmentForm,
+                      start_date: e.target.value,
+                    });
+
+                    if (employmentErrors.start_date) {
+                      setEmploymentErrors({
+                        ...employmentErrors,
+                        start_date: "",
+                      });
+                    }
+                  }}
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-[#7f56d9] focus:border-transparent outline-none ${
+                    employmentErrors.start_date
+                      ? "border-red-500"
+                      : "border-gray-300"
+                  }`}
+                />
+                {employmentErrors.start_date && (
+                  <p className="mt-1 text-sm text-red-500">
+                    {employmentErrors.start_date}
+                  </p>
+                )}
+              </div>
+
+              {/* End Date */}
+              <div>
+                <input
+                  type="date"
+                  value={employmentForm.end_date}
+                  onChange={(e) => {
+                    setEmploymentForm({
+                      ...employmentForm,
+                      end_date: e.target.value,
+                    });
+
+                    if (employmentErrors.end_date) {
+                      setEmploymentErrors({
+                        ...employmentErrors,
+                        end_date: "",
+                      });
+                    }
+                  }}
+                  disabled={employmentForm.is_current}
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-[#7f56d9] focus:border-transparent outline-none disabled:bg-gray-100 ${
+                    employmentErrors.end_date
+                      ? "border-red-500"
+                      : "border-gray-300"
+                  }`}
+                />
+                {employmentErrors.end_date && (
+                  <p className="mt-1 text-sm text-red-500">
+                    {employmentErrors.end_date}
+                  </p>
+                )}
+              </div>
             </div>
+
             <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
@@ -642,6 +919,7 @@ const ProfileCompletionWizard: React.FC<ProfileCompletionWizardProps> = ({
                   setEmploymentForm({
                     ...employmentForm,
                     is_current: e.target.checked,
+                    end_date: e.target.checked ? "" : employmentForm.end_date,
                   })
                 }
                 className="w-4 h-4 text-[#7f56d9] rounded focus:ring-[#7f56d9]"
