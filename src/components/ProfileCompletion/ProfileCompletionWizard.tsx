@@ -292,8 +292,8 @@ const ProfileCompletionWizard: React.FC<ProfileCompletionWizardProps> = ({
                 );
               }
               toast.success("Profile image updated!");
-              break;
             }
+            break;
           case "bio":
             if (bio.trim().length > 20) {
               setBioError("");
@@ -306,9 +306,9 @@ const ProfileCompletionWizard: React.FC<ProfileCompletionWizardProps> = ({
             } else {
               setBioError("Bio must be at least 20 characters");
               setIsSubmitting(false);
-              return;
-              break;
+              return; 
             }
+            break;
           case "skills": {
             const skillNames = skills
               .split(",")
