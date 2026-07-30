@@ -22,7 +22,7 @@ const PeerReviewFeed: React.FC<PeerReviewFeedProps> = ({ onReview }) => {
 const students = data?.data ?? [];
 
     return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-8 h-[390px] flex flex-col">
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-8 h-[490px] flex flex-col">
       {/* Header */}
       <div className="mb-5">
         <h2 className="text-lg font-semibold text-gray-900">
@@ -36,7 +36,7 @@ const students = data?.data ?? [];
 
       {/* Loading */}
       {isLoading && (
-        <div className="space-y-4">
+        <div className="space-y-2 p-3">
           {[1, 2, 3].map((item) => (
             <div
               key={item}

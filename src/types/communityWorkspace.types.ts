@@ -42,6 +42,22 @@ export interface PeerReview {
     full_name: string;
     profile_image?: string | null;
   };
+
+  reply?: {
+    id: string;
+
+    reply: string;
+
+    created_at: string;
+
+    updated_at: string;
+
+    author: {
+      user_id: string;
+      full_name: string;
+      profile_image_url?: string;
+    };
+  } | null;
 }
 
 // ==============================
