@@ -62,9 +62,7 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
 
       onClose();
     } catch (error: any) {
-      toast.error(
-        error?.data?.message ?? "You have already reviewed this profile.",
-      );
+      toast.error(error?.data?.message ?? "Failed to submit review.");
     }
   };
 
@@ -161,7 +159,11 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
             />
           </div>
 
-          {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-600">{error}</p>}
+          {error && (
+            <p className="rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-600">
+              {error}
+            </p>
+          )}
         </div>
 
         {/* Footer */}

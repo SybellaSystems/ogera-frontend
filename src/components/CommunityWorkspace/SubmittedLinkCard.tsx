@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { TrashIcon } from "@heroicons/react/24/outline";
 import toast from "react-hot-toast";
 import type { StudentLink } from "@/services/api/communityWorkspace.api";
+import ReplyModal from "./ReplyModal";
 
 import {
   useDeleteStudentLinkMutation,
@@ -19,6 +20,9 @@ const SubmittedLinkCard: React.FC<Props> = ({ submittedLink }) => {
 
   const { data: reviewsData } = useGetReviewsQuery(submittedLink.id);
 
+  const [selectedReview, setSelectedReview] = useState<any>(null);
+  const [replyModalOpen, setReplyModalOpen] = useState(false);
+
   const reviews = reviewsData?.data ?? [];
 
   const handleDelete = async () => {
@@ -34,6 +38,11 @@ const SubmittedLinkCard: React.FC<Props> = ({ submittedLink }) => {
     } finally {
       setIsDeleting(false);
     }
+  };
+
+  const openReplyModal = (review: any) => {
+    setSelectedReview(review);
+    setReplyModalOpen(true);
   };
 
   return (
@@ -61,12 +70,12 @@ const SubmittedLinkCard: React.FC<Props> = ({ submittedLink }) => {
         </div>
 
         <button
-  onClick={() => setShowDeleteModal(true)}
-  className="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl border border-red-200 bg-red-50 text-red-600 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-red-500 hover:bg-red-500 hover:text-white hover:shadow-md active:scale-95"
-  title="Delete"
->
-  <TrashIcon className="h-5 w-5" />
-</button>
+          onClick={() => setShowDeleteModal(true)}
+          className="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl border border-red-200 bg-red-50 text-red-600 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-red-500 hover:bg-red-500 hover:text-white hover:shadow-md active:scale-95"
+          title="Delete"
+        >
+          <TrashIcon className="h-5 w-5" />
+        </button>
       </div>
 
       <div className="mt-5">
@@ -132,9 +141,44 @@ const SubmittedLinkCard: React.FC<Props> = ({ submittedLink }) => {
                     </div>
 
                     {/* Review */}
-                    <p className="mt-2 text-sm leading-5 text-gray-600 line-clamp-3">
+                    <p className="mt-2 text-sm leading-5 text-gray-600">
                       {review.review}
                     </p>
+
+                    {/* Reply Section */}
+                    <div className="mt-3 border-l-4 border-purple-500 bg-purple-50 rounded-md px-3 py-2">
+                      {review.reply ? (
+                        <>
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-semibold text-purple-700">
+                              Your Reply
+                            </span>
+
+                            <button
+                              onClick={() => openReplyModal(review)}
+                              className="text-xs font-medium text-purple-600 hover:text-purple-800"
+                            >
+                              Edit Reply
+                            </button>
+                          </div>
+
+                          <p className="mt-1 text-sm text-gray-700">
+                            {review.reply.reply}
+                          </p>
+
+                          <p className="mt-1 text-[11px] text-gray-500">
+                            {new Date(review.reply.created_at).toLocaleString()}
+                          </p>
+                        </>
+                      ) : (
+                        <button
+                          onClick={() => openReplyModal(review)}
+                          className="rounded-lg bg-purple-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-purple-700"
+                        >
+                          Reply
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -142,6 +186,15 @@ const SubmittedLinkCard: React.FC<Props> = ({ submittedLink }) => {
           </div>
         )}
       </div>
+
+      <ReplyModal
+        open={replyModalOpen}
+        review={selectedReview}
+        onClose={() => {
+          setReplyModalOpen(false);
+          setSelectedReview(null);
+        }}
+      />
 
       {showDeleteModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">

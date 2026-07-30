@@ -54,6 +54,22 @@ export interface PeerReview {
 
     profile_image_url?: string;
   };
+
+  reply?: {
+    id: string;
+
+    reply: string;
+
+    created_at: string;
+
+    updated_at: string;
+
+    author: {
+      user_id: string;
+      full_name: string;
+      profile_image_url?: string;
+    };
+  } | null;
 }
 
 export interface SubmitLinkRequest {
@@ -68,6 +84,39 @@ export interface SubmitReviewRequest {
   rating: number;
 
   review: string;
+}
+
+export interface MyReview {
+  id: string;
+
+  reviewer_id: string;
+
+  rating: number;
+
+  review: string;
+
+  created_at: string;
+
+  studentLink: {
+    id: string;
+
+    link_type: "github" | "linkedin" | "portfolio" | "other";
+
+    url: string;
+
+    student: {
+      user_id: string;
+      full_name: string;
+      profile_image_url?: string;
+    };
+  };
+
+  reply?: {
+    id: string;
+    reply: string;
+    created_at: string;
+    updated_at: string;
+  } | null;
 }
 
 /* ============================
@@ -101,146 +150,173 @@ export interface ReviewResponse {
   data: PeerReview[];
 }
 
+export interface MyReviewsResponse {
+  success: boolean;
+  status: number;
+  message: string;
+  data: MyReview[];
+}
+
 /* ============================
+
    API
 ============================ */
 
-export const communityWorkspaceApi =
-  apiSlice.injectEndpoints({
-    endpoints: (builder) => ({
-      /* Submit Link */
+export const communityWorkspaceApi = apiSlice.injectEndpoints({
+  endpoints: (builder) => ({
+    /* Submit Link */
 
-      submitStudentLink:
-        builder.mutation<
-          StudentLinkResponse,
-          SubmitLinkRequest
-        >({
-          query: (body) => ({
-            url: "/community-workspace/link",
-            method: "POST",
-            body,
-          }),
-
-          invalidatesTags: [
-            "CommunityWorkspace",
-          ],
+    submitStudentLink: builder.mutation<StudentLinkResponse, SubmitLinkRequest>(
+      {
+        query: (body) => ({
+          url: "/community-workspace/link",
+          method: "POST",
+          body,
         }),
 
-      /* My Link */
+        invalidatesTags: ["CommunityWorkspace"],
+      },
+    ),
 
-      getMyStudentLink:
-        builder.query<StudentLinkResponse, void>({
-          query: () => ({
-            url: "/community-workspace/my-link",
+    /* My Link */
 
-            method: "GET",
-          }),
+    getMyStudentLink: builder.query<StudentLinkResponse, void>({
+      query: () => ({
+        url: "/community-workspace/my-link",
 
-          providesTags: [
-            "CommunityWorkspace",
-          ],
-        }),
+        method: "GET",
+      }),
 
-      /* Feed */
-
-      getCommunityFeed:
-        builder.query<FeedResponse, void>({
-          query: () => ({
-            url: "/community-workspace/feed",
-
-            method: "GET",
-          }),
-
-          providesTags: [
-            "CommunityWorkspace",
-          ],
-        }),
-
-      /* Submit Review */
-
-      submitPeerReview:
-        builder.mutation<
-          { success: boolean; message: string },
-          {
-            linkId: string;
-
-            data: SubmitReviewRequest;
-          }
-        >({
-          query: ({ linkId, data }) => ({
-            url: `/community-workspace/review/${linkId}`,
-
-            method: "POST",
-
-            body: data,
-          }),
-
-          invalidatesTags: [
-            "CommunityWorkspace",
-          ],
-        }),
-
-      /* Review History */
-
-      getReviews:
-        builder.query<
-          ReviewResponse,
-          string
-        >({
-          query: (linkId) => ({
-            url: `/community-workspace/review/${linkId}`,
-
-            method: "GET",
-          }),
-
-          providesTags: [
-            "CommunityWorkspace",
-          ],
-        }),
-
-      /* Update Link */
-
-      updateStudentLink:
-        builder.mutation<
-          StudentLinkResponse,
-          {
-            id: string;
-
-            data: SubmitLinkRequest;
-          }
-        >({
-          query: ({ id, data }) => ({
-            url: `/community-workspace/link/${id}`,
-
-            method: "PUT",
-
-            body: data,
-          }),
-
-          invalidatesTags: [
-            "CommunityWorkspace",
-          ],
-        }),
-
-      /* Delete Link */
-
-      deleteStudentLink:
-        builder.mutation<
-          { success: boolean; message: string },
-          string
-        >({
-          query: (id) => ({
-            url: `/community-workspace/link/${id}`,
-
-            method: "DELETE",
-          }),
-
-          invalidatesTags: [
-            "CommunityWorkspace",
-          ],
-        }),
+      providesTags: ["CommunityWorkspace"],
     }),
-  });
+
+    /* Feed */
+
+    getCommunityFeed: builder.query<FeedResponse, void>({
+      query: () => ({
+        url: "/community-workspace/feed",
+
+        method: "GET",
+      }),
+
+      providesTags: ["CommunityWorkspace"],
+    }),
+
+    /* Submit Review */
+
+    submitPeerReview: builder.mutation<
+      { success: boolean; message: string },
+      {
+        linkId: string;
+
+        data: SubmitReviewRequest;
+      }
+    >({
+      query: ({ linkId, data }) => ({
+        url: `/community-workspace/review/${linkId}`,
+
+        method: "POST",
+
+        body: data,
+      }),
+
+      invalidatesTags: ["CommunityWorkspace"],
+    }),
+
+    /* Review History */
+
+    getReviews: builder.query<ReviewResponse, string>({
+      query: (linkId) => ({
+        url: `/community-workspace/review/${linkId}`,
+
+        method: "GET",
+      }),
+
+      providesTags: ["CommunityWorkspace"],
+    }),
+
+    /* Update Link */
+
+    updateStudentLink: builder.mutation<
+      StudentLinkResponse,
+      {
+        id: string;
+
+        data: SubmitLinkRequest;
+      }
+    >({
+      query: ({ id, data }) => ({
+        url: `/community-workspace/link/${id}`,
+
+        method: "PUT",
+
+        body: data,
+      }),
+
+      invalidatesTags: ["CommunityWorkspace"],
+    }),
+
+    /* Delete Link */
+
+    deleteStudentLink: builder.mutation<
+      { success: boolean; message: string },
+      string
+    >({
+      query: (id) => ({
+        url: `/community-workspace/link/${id}`,
+
+        method: "DELETE",
+      }),
+
+      invalidatesTags: ["CommunityWorkspace"],
+    }),
+
+    submitReply: builder.mutation<
+      any,
+      {
+        reviewId: string;
+        data: {
+          reply: string;
+        };
+      }
+    >({
+      query: ({ reviewId, data }) => ({
+        url: `/community-workspace/review/${reviewId}/reply`,
+        method: "POST",
+        body: data,
+      }),
+
+      invalidatesTags: ["CommunityWorkspace"],
+    }),
+
+    updateReply: builder.mutation<
+      any,
+      {
+        reviewId: string;
+        data: {
+          reply: string;
+        };
+      }
+    >({
+      query: ({ reviewId, data }) => ({
+        url: `/community-workspace/review/${reviewId}/reply`,
+        method: "PUT",
+        body: data,
+      }),
+
+      invalidatesTags: ["CommunityWorkspace"],
+    }),
+
+    getMyReviews: builder.query<MyReviewsResponse, void>({
+      query: () => ({
+        url: "/community-workspace/my-reviews",
+        method: "GET",
+      }),
+
+      providesTags: ["CommunityWorkspace"],
+    }),
+  }),
+});
 
 export const {
   useSubmitStudentLinkMutation,
@@ -250,4 +326,7 @@ export const {
   useGetReviewsQuery,
   useUpdateStudentLinkMutation,
   useDeleteStudentLinkMutation,
+  useSubmitReplyMutation,
+  useUpdateReplyMutation,
+  useGetMyReviewsQuery,
 } = communityWorkspaceApi;

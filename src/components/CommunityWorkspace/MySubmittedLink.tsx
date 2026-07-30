@@ -29,7 +29,7 @@ const MySubmittedLink: React.FC = () => {
 
   if (submittedLinks.length === 0) {
      return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 h-[520px] flex flex-col">
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 h-[420px] flex flex-col">
       <h2 className="text-2xl font-semibold text-gray-900">
         My Submitted Link
       </h2>
@@ -55,7 +55,7 @@ const MySubmittedLink: React.FC = () => {
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 h-[520px] flex flex-col">
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 h-[420px] flex flex-col">
       {/* Header */}
       <div className="mb-3">
         <h3 className="text-lg font-semibold text-gray-900">
