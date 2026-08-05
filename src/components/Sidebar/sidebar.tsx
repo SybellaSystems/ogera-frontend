@@ -374,8 +374,255 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             </span>
           </div>
 
+          {/* Jobs - Student, Employer, Admin, or users with permission (not verifyDocAdmin) */}
+          {/* Jobs - Student, Admin, or users with permission (not verifyDocAdmin).
+              Employers use their own dedicated Jobs menu rendered above. */}
+          {(() => {
+            // Employers are excluded here because they get a dedicated employer Jobs menu above.
+            const roleCheck = role === "student" || isBuiltInAdmin;
+            const permissionCheck = hasAnyPermission(
+              permissions,
+              "/jobs",
+              role,
+            );
+            const shouldShow =
+              (roleCheck || permissionCheck) &&
+              role !== "verifyDocAdmin" &&
+              role !== "employer";
+
+            console.log("🔍 [SIDEBAR] Jobs check:");
+            console.log("  - Role:", role);
+            console.log("  - Is built-in admin:", isBuiltInAdmin);
+            console.log("  - Is custom admin:", isCustomAdmin);
+            console.log(
+              "  - Role check (student/employer/built-in-admin):",
+              roleCheck,
+            );
+            console.log("  - Permission check result:", permissionCheck);
+            console.log("  - Should show:", shouldShow);
+
+            return shouldShow;
+          })() && (
+            <div>
+              <div
+                className={`flex items-center justify-between px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 group ${isActiveGroup("/dashboard/jobs") ? "bg-[#9F7AEA]/15 border-l-2 border-[#9F7AEA]" : "hover:bg-[#9F7AEA]/10"}`}
+                onClick={() => toggleMenu("jobs")}
+              >
+                <div className="flex items-center gap-3">
+                  <BriefcaseIcon className="h-5 w-5 text-white/70 group-hover:text-white transition-colors" />
+                  <div className="flex flex-col">
+                    <span className="font-medium group-hover:text-white transition-colors">
+                      {t("sidebar.jobs")}
+                    </span>
+                    {isActiveGroup("/dashboard/jobs") &&
+                      openMenu !== "jobs" && (
+                        <span className="text-xs text-[#9F7AEA] font-medium">
+                          {location.pathname === "/dashboard/jobs/create" &&
+                            t("sidebar.createJob")}
+                          {location.pathname ===
+                            "/dashboard/jobs/applications" &&
+                            t("sidebar.applications")}
+                          {location.pathname ===
+                            "/dashboard/jobs/applications/accepted" &&
+                            t("sidebar.approved")}
+                          {location.pathname ===
+                            "/dashboard/jobs/applications/rejected" &&
+                            t("sidebar.rejected")}
+                          {location.pathname ===
+                            "/dashboard/jobs/my-applications" &&
+                            t("sidebar.myApplications")}
+                          {location.pathname ===
+                            "/dashboard/jobs/my-applications/accepted" &&
+                            t("sidebar.approved")}
+                          {location.pathname ===
+                            "/dashboard/jobs/my-applications/rejected" &&
+                            t("sidebar.rejected")}
+                          {location.pathname ===
+                            "/dashboard/jobs/my-applications/completed" &&
+                            t("sidebar.completed")}
+                          {location.pathname === "/dashboard/jobs/categories" &&
+                            t("sidebar.jobCategories")}
+                          {location.pathname === "/dashboard/jobs/all" &&
+                            t("sidebar.allJobs")}
+                        </span>
+                      )}
+                  </div>
+                </div>
+                <ChevronDownIcon
+                  className={`h-4 w-4 transition-transform duration-200 text-white/50 group-hover:text-white ${
+                    openMenu === "jobs" ? "rotate-180 text-white" : ""
+                  }`}
+                />
+              </div>
+
+              {openMenu === "jobs" && (
+                <ul className="pl-11 space-y-1 text-sm mt-2 animate-fadeIn">
+                  {(role === "employer" || role === "superadmin") && (
+                    <>
+                      <li
+                        className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
+                        onClick={() =>
+                          handleNavigation("/dashboard/jobs/create")
+                        }
+                      >
+                        <PlusIcon className="h-4 w-4 text-white/40 group-hover/item:text-[#9F7AEA] transition-colors" />
+                        <span className="text-white/60 group-hover/item:text-white transition-colors">
+                          {t("sidebar.createJob")}
+                        </span>
+                      </li>
+                      <li
+                        className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
+                        onClick={() =>
+                          handleNavigation("/dashboard/jobs/unfunded")
+                        }
+                      >
+                        <ClockIcon className="h-4 w-4 text-white/40 group-hover/item:text-[#9F7AEA] transition-colors" />
+                        <span className="text-white/60 group-hover/item:text-white transition-colors">
+                          Unfunded Jobs
+                        </span>
+                      </li>
+                      <li
+                        className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
+                        onClick={() =>
+                          handleNavigation("/dashboard/jobs/applications")
+                        }
+                      >
+                        <BriefcaseIcon className="h-4 w-4 text-white/40 group-hover/item:text-[#9F7AEA] transition-colors" />
+                        <span className="text-white/60 group-hover/item:text-white transition-colors">
+                          {t("sidebar.applications")}
+                        </span>
+                      </li>
+                      <li
+                        className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
+                        onClick={() =>
+                          handleNavigation(
+                            "/dashboard/jobs/applications/accepted",
+                          )
+                        }
+                      >
+                        <CheckCircleIcon className="h-4 w-4 text-white/40 group-hover/item:text-green-400 transition-colors" />
+                        <span className="text-white/60 group-hover/item:text-white transition-colors">
+                          {t("sidebar.approved")}
+                        </span>
+                      </li>
+                      <li
+                        className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
+                        onClick={() =>
+                          handleNavigation(
+                            "/dashboard/jobs/applications/rejected",
+                          )
+                        }
+                      >
+                        <XCircleIcon className="h-4 w-4 text-white/40 group-hover/item:text-red-400 transition-colors" />
+                        <span className="text-white/60 group-hover/item:text-white transition-colors">
+                          {t("sidebar.rejected")}
+                        </span>
+                      </li>
+                    </>
+                  )}
+                  {role === "student" && (
+                    <>
+                      <li
+                        className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
+                        onClick={() =>
+                          handleNavigation("/dashboard/jobs/my-applications")
+                        }
+                      >
+                        <BriefcaseIcon className="h-4 w-4 text-white/40 group-hover/item:text-[#9F7AEA] transition-colors" />
+                        <span className="text-white/60 group-hover/item:text-white transition-colors">
+                          {t("sidebar.myApplications")}
+                        </span>
+                      </li>
+                      <li
+                        className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
+                        onClick={() =>
+                          handleNavigation(
+                            "/dashboard/jobs/my-applications/accepted",
+                          )
+                        }
+                      >
+                        <CheckCircleIcon className="h-4 w-4 text-white/40 group-hover/item:text-green-400 transition-colors" />
+                        <span className="text-white/60 group-hover/item:text-white transition-colors">
+                          {t("sidebar.approved")}
+                        </span>
+                      </li>
+                      <li
+                        className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
+                        onClick={() =>
+                          handleNavigation(
+                            "/dashboard/jobs/my-applications/rejected",
+                          )
+                        }
+                      >
+                        <XCircleIcon className="h-4 w-4 text-white/40 group-hover/item:text-red-400 transition-colors" />
+                        <span className="text-white/60 group-hover/item:text-white transition-colors">
+                          {t("sidebar.rejected")}
+                        </span>
+                      </li>
+                    </>
+                  )}
+                  <li
+                    className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
+                    onClick={() => handleNavigation("/dashboard/jobs/all")}
+                  >
+                    <FolderIcon className="h-4 w-4 text-white/40 group-hover/item:text-[#9F7AEA] transition-colors" />
+                    <span className="text-white/60 group-hover/item:text-white transition-colors">
+                      {t("sidebar.allJobs")}
+                    </span>
+                  </li>
+                  <li
+                    className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
+                    onClick={() => handleNavigation("/dashboard/jobs/active")}
+                  >
+                    <FireIcon className="h-4 w-4 text-white/40 group-hover/item:text-orange-400 transition-colors" />
+                    <span className="text-white/60 group-hover/item:text-white transition-colors">
+                      {t("sidebar.activeJobs")}
+                    </span>
+                  </li>
+                  <li
+                    className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
+                    onClick={() =>
+                      handleNavigation("/dashboard/jobs/completed")
+                    }
+                  >
+                    <CheckBadgeIcon className="h-4 w-4 text-white/40 group-hover/item:text-green-400 transition-colors" />
+                    <span className="text-white/60 group-hover/item:text-white transition-colors">
+                      {t("sidebar.completed")}
+                    </span>
+                  </li>
+                  {/* {isBuiltInAdmin && (
+                      <li
+                        className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
+                        onClick={() =>
+                          handleNavigation("/dashboard/jobs/pending")
+                        }
+                      >
+                        <ClockIcon className="h-4 w-4 text-white/40 group-hover/item:text-[#9F7AEA] transition-colors" />
+                        <span className="text-white/60 group-hover/item:text-white transition-colors">
+                          Pending Approval
+                        </span>
+                      </li>
+                    )} */}
+                  {isBuiltInAdmin && (
+                    <li
+                      className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
+                      onClick={() =>
+                        handleNavigation("/dashboard/jobs/categories")
+                      }
+                    >
+                      <BriefcaseIcon className="h-4 w-4 text-white/40 group-hover/item:text-[#9F7AEA] transition-colors" />
+                      <span className="text-white/60 group-hover/item:text-white transition-colors">
+                        {t("sidebar.jobCategories")}
+                      </span>
+                    </li>
+                  )}
+                </ul>
+              )}
+            </div>
+          )}
+
           {/* Profile - All Users */}
-          <div
+          {/* <div
             className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 group ${
               isActive("/dashboard/profile")
                 ? "bg-[#9F7AEA]/15 text-white border-l-2 border-[#9F7AEA]"
@@ -391,7 +638,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             >
               {t("sidebar.profile")}
             </span>
-          </div>
+          </div> */}
 
           {/* Interviews - Students only */}
           {role === "student" && (
@@ -415,7 +662,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           )}
 
           {/* Notifications - All Users */}
-          <div
+          {/* <div
             className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 group ${
               isActive("/dashboard/notifications")
                 ? "bg-[#9F7AEA]/15 text-white border-l-2 border-[#9F7AEA]"
@@ -431,7 +678,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             >
               {t("sidebar.notifications")}
             </span>
-          </div>
+          </div> */}
 
           {/* Messages - Students only */}
           {role === "student" && (
@@ -1710,7 +1957,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           {/* Jobs - Student, Employer, Admin, or users with permission (not verifyDocAdmin) */}
           {/* Jobs - Student, Admin, or users with permission (not verifyDocAdmin).
               Employers use their own dedicated Jobs menu rendered above. */}
-          {(() => {
+          {/* {(() => {
             // Employers are excluded here because they get a dedicated employer Jobs menu above.
             const roleCheck = role === "student" || isBuiltInAdmin;
             const permissionCheck = hasAnyPermission(
@@ -1936,7 +2183,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         </span>
                       </li>
                     )} */}
-                  {isBuiltInAdmin && (
+          {/* {isBuiltInAdmin && (
                     <li
                       className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
                       onClick={() =>
@@ -1952,7 +2199,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 </ul>
               )}
             </div>
-          )}
+          )} */}
 
           {showCognitiveSection && (
             <div>
@@ -2580,6 +2827,44 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 </div>
               );
             })}
+
+          {/* Notifications - All Users */}
+          <div
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 group ${
+              isActive("/dashboard/notifications")
+                ? "bg-[#9F7AEA]/15 text-white border-l-2 border-[#9F7AEA]"
+                : "hover:bg-[#9F7AEA]/10"
+            }`}
+            onClick={() => handleNavigation("/dashboard/notifications")}
+          >
+            <BellIcon
+              className={`h-5 w-5 transition-colors ${isActive("/dashboard/notifications") ? "text-white" : "text-white/70 group-hover:text-white"}`}
+            />
+            <span
+              className={`font-medium transition-colors ${isActive("/dashboard/notifications") ? "text-white" : "group-hover:text-white"}`}
+            >
+              {t("sidebar.notifications")}
+            </span>
+          </div>
+
+          {/* Profile - All Users */}
+          <div
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 group ${
+              isActive("/dashboard/profile")
+                ? "bg-[#9F7AEA]/15 text-white border-l-2 border-[#9F7AEA]"
+                : "hover:bg-[#9F7AEA]/10"
+            }`}
+            onClick={() => handleNavigation("/dashboard/profile")}
+          >
+            <UserCircleIcon
+              className={`h-5 w-5 transition-colors ${isActive("/dashboard/profile") ? "text-white" : "text-white/70 group-hover:text-white"}`}
+            />
+            <span
+              className={`font-medium transition-colors ${isActive("/dashboard/profile") ? "text-white" : "group-hover:text-white"}`}
+            >
+              {t("sidebar.profile")}
+            </span>
+          </div>
         </nav>
       </div>
     </>
