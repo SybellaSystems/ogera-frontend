@@ -445,11 +445,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                           {location.pathname === "/dashboard/jobs/all" &&
                             t("sidebar.allJobs")}
                           {location.pathname === "/dashboard/jobs/referrals" &&
-                            t("sidebar.jobReferrals")}
+                            "Job Referrals"}
                             {location.pathname === "/dashboard/jobs/referral-analytics" &&
   "Referral Analytics"}
                           {location.pathname === "/dashboard/jobs/recommended" &&
-                            t("sidebar.recommendedJobs")}
+                            "Recommended Jobs"}
                         </span>
                       )}
                   </div>
