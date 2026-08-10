@@ -1,3 +1,5 @@
+import type { JobReferral } from "../../type/jobs/referral";
+import { saveReferral } from "../../services/referralStorage";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -33,13 +35,35 @@ const CreateReferral: React.FC = () => {
   };
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    console.log("Referral:", formData);
+  const referral: JobReferral = {
+    id: `REF-${Date.now()}`,
+    title: formData.title,
+    company: formData.company,
+    location: formData.location,
+    type: formData.type,
+    category: formData.category,
+    description: formData.description,
+    source: formData.source,
+    originalUrl: formData.originalUrl,
 
-    // Database/API connection will be added later.
-    navigate("/dashboard/jobs/referrals");
+    verificationStatus: formData.verificationStatus as JobReferral["verificationStatus"],
+    permissionStatus: formData.permissionStatus as JobReferral["permissionStatus"],
+
+    verificationNotes: formData.verificationNotes,
+    expiryDate: formData.expiryDate,
+
+    status: "draft",
+
+    createdAt: new Date().toISOString(),
+    createdBy: "admin",
   };
+
+  saveReferral(referral);
+
+  navigate("/dashboard/jobs/referrals");
+};
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
