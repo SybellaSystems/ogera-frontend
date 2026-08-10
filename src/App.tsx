@@ -62,6 +62,8 @@ import JobTasksKanban from "./pages/Jobs/JobTasksKanban";
 import StudentTasks from "./pages/StudentTasks";
 import ReferralDetails from "./pages/Jobs/ReferralDetails";
 import JobReferrals from "./pages/Jobs/JobReferrals";
+import RecommendedJobs from "./pages/Jobs/RecommendedJobs";
+import RecommendedJobDetails from "./pages/Jobs/RecommendedJobDetails";
 
 // Dispute Pages
 import Disputes from "./pages/Disputes";
@@ -458,6 +460,26 @@ function App() {
                 },
               ],
             },
+            {
+  path: "jobs/recommended",
+  element: <ProtectedRoute allowedRoles={["student"]} />,
+  children: [
+    {
+      index: true,
+      Component: RecommendedJobs,
+    },
+  ],
+},
+{
+  path: "jobs/recommended/:id",
+  element: <ProtectedRoute allowedRoles={["student"]} />,
+  children: [
+    {
+      index: true,
+      Component: RecommendedJobDetails,
+    },
+  ],
+},
             {
               path: "jobs/:id",
               Component: JobDetails,
