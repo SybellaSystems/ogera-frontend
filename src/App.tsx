@@ -77,6 +77,7 @@ import MyDisputes from "./pages/Disputes/MyDisputes";
 
 // Other Pages
 import Analytics from "./pages/Analytics";
+import ReferralAnalytics from "./pages/Jobs/ReferralAnalytics";
 import Notifications from "./pages/Notifications";
 import Interviews from "./pages/Interviews";
 import Messages from "./pages/Messages";
@@ -441,6 +442,18 @@ function App() {
                 },
               ],
             },
+            {
+  path: "jobs/referral-analytics",
+  element: (
+    <ProtectedRoute allowedRoles={["superadmin"]} />
+  ),
+  children: [
+    {
+      index: true,
+      Component: ReferralAnalytics,
+    },
+  ],
+},
             {
               path: "jobs/:id/edit",
               element: <ProtectedRoute allowedRoles={["employer", "superadmin"]} />,
