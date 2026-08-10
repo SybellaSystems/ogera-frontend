@@ -444,6 +444,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                             t("sidebar.jobCategories")}
                           {location.pathname === "/dashboard/jobs/all" &&
                             t("sidebar.allJobs")}
+                          {location.pathname === "/dashboard/jobs/referrals" &&
+                            t("sidebar.jobReferrals")}
                         </span>
                       )}
                   </div>
