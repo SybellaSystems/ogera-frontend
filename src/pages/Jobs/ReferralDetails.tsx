@@ -1,6 +1,8 @@
 import React from "react";
+import { useParams } from "react-router-dom";
 
 const ReferralDetails: React.FC = () => {
+     const { id } = useParams();
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       {/* Back */}
@@ -22,6 +24,10 @@ const ReferralDetails: React.FC = () => {
             <h1 className="mt-1 text-2xl font-bold text-gray-900">
               Nigeria Recruitment Intern
             </h1>
+
+            <p className="mt-1 text-xs font-medium text-gray-400">
+  Referral ID: {id}
+</p>
 
             <p className="mt-2 text-sm text-gray-500">
               Minna, Niger State, Nigeria · Internship

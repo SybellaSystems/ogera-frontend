@@ -53,6 +53,13 @@ const JobReferrals: React.FC = () => {
           Verified job opportunities curated by the Ogera team.
         </p>
       </div>
+      <button
+  type="button"
+  onClick={() => navigate("/dashboard/jobs/referrals/create")}
+  className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+>
+  + Create Referral
+</button>
 
       {/* Status Tabs */}
       <div className="mt-6 flex gap-2 border-b border-gray-200">

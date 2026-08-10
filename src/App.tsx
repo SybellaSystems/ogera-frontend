@@ -64,6 +64,7 @@ import ReferralDetails from "./pages/Jobs/ReferralDetails";
 import JobReferrals from "./pages/Jobs/JobReferrals";
 import RecommendedJobs from "./pages/Jobs/RecommendedJobs";
 import RecommendedJobDetails from "./pages/Jobs/RecommendedJobDetails";
+import CreateReferral from "./pages/Jobs/CreateReferral";
 
 // Dispute Pages
 import Disputes from "./pages/Disputes";
@@ -353,6 +354,16 @@ function App() {
               path: "jobs/categories",
               Component: JobCategories,
             },
+            {
+  path: "jobs/referrals/create",
+  element: <ProtectedRoute allowedRoles={["superadmin"]} />,
+  children: [
+    {
+      index: true,
+      Component: CreateReferral,
+    },
+  ],
+},
             {
   path: "jobs/referrals",
   element: <ProtectedRoute allowedRoles={["superadmin"]} />,
