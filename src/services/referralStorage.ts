@@ -52,3 +52,65 @@ export const deleteReferral = (id: string): void => {
     ),
   );
 };
+
+
+export const incrementReferralViews = (id: string): void => {
+  const referrals = getReferrals();
+
+  const updatedReferrals = referrals.map((referral) => {
+    if (referral.id !== id) {
+      return referral;
+    }
+
+    return {
+      ...referral,
+      views: (referral.views || 0) + 1,
+    };
+  });
+
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify(updatedReferrals),
+  );
+};
+
+export const incrementReferralApplyClicks = (id: string): void => {
+  const referrals = getReferrals();
+
+  const updatedReferrals = referrals.map((referral) => {
+    if (referral.id !== id) {
+      return referral;
+    }
+
+    return {
+      ...referral,
+      applyClicks: (referral.applyClicks || 0) + 1,
+    };
+  });
+
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify(updatedReferrals),
+  );
+};
+
+export const reportReferralApplication = (id: string): void => {
+  const referrals = getReferrals();
+
+  const updatedReferrals = referrals.map((referral) => {
+    if (referral.id !== id) {
+      return referral;
+    }
+
+    return {
+      ...referral,
+      reportedApplications:
+        (referral.reportedApplications || 0) + 1,
+    };
+  });
+
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify(updatedReferrals),
+  );
+};

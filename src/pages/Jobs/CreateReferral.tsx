@@ -58,6 +58,9 @@ const CreateReferral: React.FC = () => {
 
     createdAt: new Date().toISOString(),
     createdBy: "admin",
+    views: 0,
+applyClicks: 0,
+reportedApplications: 0,
   };
 
   saveReferral(referral);

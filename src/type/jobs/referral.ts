@@ -36,10 +36,14 @@ export interface JobReferral {
   permissionStatus: PermissionStatus;
   verificationNotes: string;
 
-  expiryDate: string;
-
   status: ReferralStatus;
+
+  expiryDate: string;
 
   createdAt: string;
   createdBy: string;
+
+  views: number;
+  applyClicks: number;
+  reportedApplications: number;
 }
