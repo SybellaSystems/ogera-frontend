@@ -60,6 +60,8 @@ import EmployerRejectedApplications from "./pages/Jobs/EmployerRejectedApplicati
 import EmployerTasks from "./pages/Jobs/EmployerTasks";
 import JobTasksKanban from "./pages/Jobs/JobTasksKanban";
 import StudentTasks from "./pages/StudentTasks";
+import ReferralDetails from "./pages/Jobs/ReferralDetails";
+import JobReferrals from "./pages/Jobs/JobReferrals";
 
 // Dispute Pages
 import Disputes from "./pages/Disputes";
@@ -349,6 +351,26 @@ function App() {
               path: "jobs/categories",
               Component: JobCategories,
             },
+            {
+  path: "jobs/referrals",
+  element: <ProtectedRoute allowedRoles={["superadmin"]} />,
+  children: [
+    {
+      index: true,
+      Component: JobReferrals,
+    },
+  ],
+},
+{
+  path: "jobs/referrals/:id",
+  element: <ProtectedRoute allowedRoles={["superadmin"]} />,
+  children: [
+    {
+      index: true,
+      Component: ReferralDetails,
+    },
+  ],
+},
             {
               path: "jobs/tasks",
               element: <ProtectedRoute allowedRoles={["employer", "superadmin"]} />,

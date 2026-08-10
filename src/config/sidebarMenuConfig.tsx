@@ -47,6 +47,7 @@ export const SIDEBAR_MENU_CONFIG: MenuItemConfig[] = [
     hasSubmenu: true,
     submenuItems: [
       { label: "All Jobs", path: "/dashboard/jobs/all", labelKey: "sidebar.allJobs" },
+      { label: "Job Referrals", path: "/dashboard/jobs/referrals", labelKey: "sidebar.jobReferrals" },
       { label: "Active Jobs", path: "/dashboard/jobs/active", labelKey: "sidebar.activeJobs" },
       { label: "My Applications", path: "/dashboard/jobs/my-applications", labelKey: "sidebar.myApplications" },
       { label: "Accepted", path: "/dashboard/jobs/my-applications/accepted", labelKey: "sidebar.acceptedApplications" },
