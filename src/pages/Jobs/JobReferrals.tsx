@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 type ReferralStatus = "all" | "pending" | "verified" | "active";
 
@@ -30,6 +31,7 @@ const referralJobs: JobReferral[] = [
 ];
 
 const JobReferrals: React.FC = () => {
+  const navigate = useNavigate();
   const [status, setStatus] = useState<ReferralStatus>("all");
 
   const tabs: { label: string; value: ReferralStatus }[] = [
@@ -118,11 +120,14 @@ const JobReferrals: React.FC = () => {
           </span>
 
           <button
-            type="button"
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
-          >
-            View Opportunity
-          </button>
+  type="button"
+  onClick={() =>
+    navigate(`/dashboard/jobs/referrals/${job.id}`)
+  }
+  className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
+>
+  View Opportunity
+</button>
         </div>
       </div>
     ))}
