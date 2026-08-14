@@ -6,7 +6,7 @@ const STORAGE_KEY = "ogera_job_referrals";
  * Temporary frontend opportunities.
  *
  * These are hardcoded only until the backend referral system is connected.
- * The backend engineer can later replace this localStorage layer with the
+ * Prashant will later replace this localStorage layer with the
  * real API without changing the referral UI.
  */
 const DEFAULT_REFERRALS: JobReferral[] = [
@@ -63,7 +63,7 @@ One Acre Fund states that it never asks candidates to pay for tests or any stage
     originalUrl:
       "https://oneacrefund.org/vacancies/rwanda-recrutement-stagiaire",
 
-    verificationStatus: "verified",
+    verificationStatus: "Confirmed",
 
     status: "active",
 
@@ -76,6 +76,12 @@ One Acre Fund states that it never asks candidates to pay for tests or any stage
     reportedApplications: 0,
 
     createdBy: "ogera-admin",
+
+    permissionStatus: "Granted",
+
+    verificationNotes: "Verified directly from official source.",
+
+    createdAt: new Date().toISOString(),
   },
 
   {
@@ -136,7 +142,7 @@ One Acre Fund states that it never asks candidates to pay money for tests or any
     originalUrl:
       "https://oneacrefund.org/vacancies/rwanda-procurement-store-intern",
 
-    verificationStatus: "verified",
+    verificationStatus: "Confirmed",
 
     status: "active",
 
@@ -149,6 +155,12 @@ One Acre Fund states that it never asks candidates to pay money for tests or any
     reportedApplications: 0,
 
     createdBy: "ogera-admin",
+
+    permissionStatus: "Granted",
+
+    verificationNotes: "Verified directly from official source.",
+
+    createdAt: new Date().toISOString(),
   },
 
   {
@@ -202,7 +214,7 @@ One Acre Fund states that it never asks candidates to pay money for tests or any
     originalUrl:
       "https://oneacrefund.org/vacancies/mel-data-automation-officer",
 
-    verificationStatus: "verified",
+    verificationStatus: "Confirmed",
 
     status: "active",
 
@@ -215,6 +227,12 @@ One Acre Fund states that it never asks candidates to pay money for tests or any
     reportedApplications: 0,
 
     createdBy: "ogera-admin",
+
+    permissionStatus: "Granted",
+
+    verificationNotes: "Verified directly from official source.",
+
+    createdAt: new Date().toISOString(),
   },
 ];
 
