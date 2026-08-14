@@ -3,74 +3,6 @@ import { useNavigate } from "react-router-dom";
 import type { JobReferral } from "../../type/jobs/referral";
 import { getReferrals } from "../../services/referralStorage";
 
-/**
- * Helper component to cleanly format raw job descriptions with embedded bullet points
- * into structured headings, paragraphs, and list items without modifying data.
- */
-const FormattedDescription: React.FC<{ content: string }> = ({ content }) => {
-  // Split the description into chunks based on common text patterns/newlines
-  const lines = content.split("\n").map((line) => line.trim()).filter(Boolean);
-
-  const elements: React.ReactNode[] = [];
-  let currentListItems: string[] = [];
-
-  const flushList = (keyPrefix: string) => {
-    if (currentListItems.length > 0) {
-      elements.push(
-        <ul key={`${keyPrefix}-list`} className="my-2 list-disc space-y-1.5 pl-5 text-sm text-gray-600">
-          {currentListItems.map((item, idx) => (
-            <li key={idx} className="leading-relaxed">
-              {item.replace(/^[•\-*]\s*/, "")}
-            </li>
-          ))}
-        </ul>
-      );
-      currentListItems = [];
-    }
-  };
-
-  lines.forEach((line, index) => {
-    // Check if it's a heading-like line (e.g., ends with ':' or matches common sections)
-    const isHeading =
-      line.endsWith(":") ||
-      [
-        "Responsibilities include:",
-        "Qualifications:",
-        "Start date:",
-        "Work location:",
-        "Benefits:",
-        "Eligibility:",
-        "Application deadline:",
-      ].some((h) => line.toLowerCase() === h.toLowerCase());
-
-    // Check if line is a bullet point
-    const isBullet = line.startsWith("•") || line.startsWith("- ") || line.startsWith("* ");
-
-    if (isBullet) {
-      currentListItems.push(line);
-    } else {
-      flushList(`flush-${index}`);
-      if (isHeading) {
-        elements.push(
-          <h4 key={index} className="mt-4 mb-1.5 text-xs font-bold tracking-wider text-gray-900 uppercase">
-            {line}
-          </h4>
-        );
-      } else {
-        elements.push(
-          <p key={index} className="mt-2 text-sm leading-relaxed text-gray-600">
-            {line}
-          </p>
-        );
-      }
-    }
-  });
-
-  flushList("final");
-
-  return <div className="space-y-1">{elements}</div>;
-};
-
 const RecommendedJobs: React.FC = () => {
   const navigate = useNavigate();
   const [referrals, setReferrals] = useState<JobReferral[]>([]);
@@ -166,52 +98,19 @@ const RecommendedJobs: React.FC = () => {
                   </span>
                 </div>
 
-                {/* Formatted Description Block */}
-                <div className="mt-5 rounded-xl bg-gray-50/50 p-4 border border-gray-100">
-                  <FormattedDescription content={job.description} />
-                </div>
-
-                {/* Metadata Grid */}
-                <div className="mt-6 grid gap-4 border-t border-gray-100 pt-5 md:grid-cols-3">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gray-100 text-gray-500">
-                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">Category</p>
-                      <p className="text-sm font-semibold text-gray-800">{job.category || "Not specified"}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gray-100 text-gray-500">
-                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">Source</p>
-                      <p className="text-sm font-semibold text-gray-800">{job.source || "External employer"}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gray-100 text-gray-500">
-                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">Deadline</p>
-                      <p className="text-sm font-semibold text-gray-800">{job.expiryDate || "See original posting"}</p>
-                    </div>
-                  </div>
+                {/* Description Preview (Clean Truncation) */}
+                <div className="mt-4">
+                  <p className="text-sm leading-relaxed text-gray-600 line-clamp-3">
+                    {job.description}
+                  </p>
                 </div>
 
                 {/* Card Footer Actions */}
-                <div className="mt-6 flex items-center justify-end border-t border-gray-100 pt-4">
+                <div className="mt-6 flex items-center justify-between border-t border-gray-100 pt-4">
+                  <span className="text-xs font-medium text-gray-400">
+                    Deadline: <span className="text-gray-700 font-semibold">{job.expiryDate || "See details"}</span>
+                  </span>
+
                   <button
                     type="button"
                     onClick={() =>
