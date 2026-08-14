@@ -20,7 +20,7 @@ const FormattedDescription: React.FC<{ content: string }> = ({ content }) => {
         <ul key={`${keyPrefix}-list`} className="my-2 list-disc space-y-1.5 pl-5 text-sm text-gray-600">
           {currentListItems.map((item, idx) => (
             <li key={idx} className="leading-relaxed">
-              {item.replace(/^[•\-\*]\s*/, "")}
+              {item.replace(/^[•\-*]\s*/, "")}
             </li>
           ))}
         </ul>
