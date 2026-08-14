@@ -77,6 +77,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   // Note: Custom admin roles like "admin1", "admin2" etc. are NOT built-in admins and must check permissions
   const isBuiltInAdmin = role === "superadmin" || role === "admin";
 
+  // Strict role gates for job recommendation/referral tools.
+  // These are UI visibility rules; the corresponding routes must also remain protected.
+  const canSeeRecommendedJobs = role === "student";
+  const canSeeReferralTools = role === "superadmin";
+
   // Check if this is a custom admin role (has roleType "admin" but roleName is not exactly "admin")
   // For custom admin roles, we only check permissions, not role-based checks
   const isCustomAdmin =
@@ -132,7 +137,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const showCognitiveStudent = role === "student";
   const showCognitiveSection =
     (showCognitiveAdmin || showCognitiveStudent) &&
-    role !== "verifyDocAdmin" &&
+    role !== "verifydocadmin" &&
     role !== "employer";
 
   const skipCognitiveAdminList =
@@ -150,7 +155,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const showProblemMetricStudent = role === "student";
   const showProblemMetricSection =
     (showProblemMetricAdmin || showProblemMetricStudent) &&
-    role !== "verifyDocAdmin" &&
+    role !== "verifydocadmin" &&
     role !== "employer";
 
   const skipProblemMetricAdminList =
@@ -387,7 +392,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             );
             const shouldShow =
               (roleCheck || permissionCheck) &&
-              role !== "verifyDocAdmin" &&
+              role !== "verifydocadmin" &&
               role !== "employer";
 
             console.log("🔍 [SIDEBAR] Jobs check:");
@@ -444,12 +449,22 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                             t("sidebar.jobCategories")}
                           {location.pathname === "/dashboard/jobs/all" &&
                             t("sidebar.allJobs")}
-                          {location.pathname === "/dashboard/jobs/referrals" &&
-                            "Job Referrals"}
-                            {location.pathname === "/dashboard/jobs/referral-analytics" &&
-  "Referral Analytics"}
-                          {location.pathname === "/dashboard/jobs/recommended" &&
-                            "Recommended Jobs"}
+                          {canSeeReferralTools &&
+                            location.pathname === "/dashboard/jobs/referrals" &&
+                            t("sidebar.jobReferrals", {
+                              defaultValue: "Job Referrals",
+                            })}
+                          {canSeeReferralTools &&
+                            location.pathname ===
+                              "/dashboard/jobs/referral-analytics" &&
+                            t("sidebar.referralAnalytics", {
+                              defaultValue: "Referral Analytics",
+                            })}
+                          {canSeeRecommendedJobs &&
+                            location.pathname === "/dashboard/jobs/recommended" &&
+                            t("sidebar.recommendedJobs", {
+                              defaultValue: "Recommended Jobs",
+                            })}
                         </span>
                       )}
                   </div>
@@ -576,38 +591,103 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                       {t("sidebar.allJobs")}
                     </span>
                   </li>
-                  <li
-  className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
-  onClick={() =>
-    handleNavigation("/dashboard/jobs/recommended")
-  }
->
-  <FolderIcon className="h-4 w-4 text-white/40 group-hover/item:text-[#9F7AEA] transition-colors" />
-  <span className="text-white/60 group-hover/item:text-white transition-colors">
-    {t("sidebar.recommendedJobs")}
-  </span>
-</li>
-                  <li
-  className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
-  onClick={() => handleNavigation("/dashboard/jobs/referrals")}
->
-  <FolderIcon className="h-4 w-4 text-white/40 group-hover/item:text-[#9F7AEA] transition-colors" />
-  <span className="text-white/60 group-hover/item:text-white transition-colors">
-    {t("sidebar.jobReferrals")}
-  </span>
-</li>
-<li
-  className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
-  onClick={() =>
-    handleNavigation("/dashboard/jobs/referral-analytics")
-  }
->
-  <ChartBarIcon className="h-4 w-4 text-white/40 group-hover/item:text-[#9F7AEA] transition-colors" />
+                  {canSeeRecommendedJobs && (
+                    <li
+                      className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
+                        isActive("/dashboard/jobs/recommended")
+                          ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
+                          : "hover:text-purple-300 hover:bg-[#9F7AEA]/10 text-white/60"
+                      }`}
+                      onClick={() =>
+                        handleNavigation("/dashboard/jobs/recommended")
+                      }
+                    >
+                      <FolderIcon
+                        className={`h-4 w-4 transition-colors ${
+                          isActive("/dashboard/jobs/recommended")
+                            ? "text-[#9F7AEA]"
+                            : "text-white/40 group-hover/item:text-[#9F7AEA]"
+                        }`}
+                      />
+                      <span
+                        className={`transition-colors ${
+                          isActive("/dashboard/jobs/recommended")
+                            ? "text-white font-medium"
+                            : "group-hover/item:text-white"
+                        }`}
+                      >
+                        {t("sidebar.recommendedJobs", {
+                          defaultValue: "Recommended Jobs",
+                        })}
+                      </span>
+                    </li>
+                  )}
 
-  <span className="text-white/60 group-hover/item:text-white transition-colors">
-    Referral Analytics
-  </span>
-</li>
+                  {canSeeReferralTools && (
+                    <>
+                      <li
+                        className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
+                          isActive("/dashboard/jobs/referrals")
+                            ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
+                            : "hover:text-purple-300 hover:bg-[#9F7AEA]/10 text-white/60"
+                        }`}
+                        onClick={() =>
+                          handleNavigation("/dashboard/jobs/referrals")
+                        }
+                      >
+                        <FolderIcon
+                          className={`h-4 w-4 transition-colors ${
+                            isActive("/dashboard/jobs/referrals")
+                              ? "text-[#9F7AEA]"
+                              : "text-white/40 group-hover/item:text-[#9F7AEA]"
+                          }`}
+                        />
+                        <span
+                          className={`transition-colors ${
+                            isActive("/dashboard/jobs/referrals")
+                              ? "text-white font-medium"
+                              : "group-hover/item:text-white"
+                          }`}
+                        >
+                          {t("sidebar.jobReferrals", {
+                            defaultValue: "Job Referrals",
+                          })}
+                        </span>
+                      </li>
+
+                      <li
+                        className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
+                          isActive("/dashboard/jobs/referral-analytics")
+                            ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
+                            : "hover:text-purple-300 hover:bg-[#9F7AEA]/10 text-white/60"
+                        }`}
+                        onClick={() =>
+                          handleNavigation(
+                            "/dashboard/jobs/referral-analytics",
+                          )
+                        }
+                      >
+                        <ChartBarIcon
+                          className={`h-4 w-4 transition-colors ${
+                            isActive("/dashboard/jobs/referral-analytics")
+                              ? "text-[#9F7AEA]"
+                              : "text-white/40 group-hover/item:text-[#9F7AEA]"
+                          }`}
+                        />
+                        <span
+                          className={`transition-colors ${
+                            isActive("/dashboard/jobs/referral-analytics")
+                              ? "text-white font-medium"
+                              : "group-hover/item:text-white"
+                          }`}
+                        >
+                          {t("sidebar.referralAnalytics", {
+                            defaultValue: "Referral Analytics",
+                          })}
+                        </span>
+                      </li>
+                    </>
+                  )}
                   <li
                     className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
                     onClick={() => handleNavigation("/dashboard/jobs/active")}
@@ -1079,7 +1159,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           )}
 
           {/* For verifyDocAdmin: Show only Academic Verification */}
-          {role === "verifyDocAdmin" && (
+          {role === "verifydocadmin" && (
             <div>
               <div
                 className={`flex items-center justify-between px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 group ${isActiveGroup("/dashboard/academic") ? "bg-[#9F7AEA]/15 border-l-2 border-[#9F7AEA]" : "hover:bg-[#9F7AEA]/10"}`}
@@ -1727,7 +1807,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             );
             const shouldShow =
               (roleCheck || permissionCheck) &&
-              role !== "verifyDocAdmin" &&
+              role !== "verifydocadmin" &&
               role !== "employer";
 
             console.log("🔍 [SIDEBAR] Academic Verification check:");
@@ -2005,7 +2085,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             );
             const shouldShow =
               (roleCheck || permissionCheck) &&
-              role !== "verifyDocAdmin" &&
+              role !== "verifydocadmin" &&
               role !== "employer";
 
             console.log("🔍 [SIDEBAR] Jobs check:");
@@ -2471,12 +2551,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
           {/* Disputes - Student, Admin (not verifyDocAdmin, not employer) */}
           {/* {((role === "student" || isBuiltInAdmin) &&
-            role !== "verifyDocAdmin" &&
+            role !== "verifydocadmin" &&
             role !== "employer" &&
             (isBuiltInAdmin || hasAnyPermission(permissions, "/disputes", role))) && ( */}
           {(isBuiltInAdmin ||
             role === "superadmin" ||
-            (role !== "verifyDocAdmin" &&
+            (role !== "verifydocadmin" &&
               hasAnyPermission(permissions, "/disputes", role)) ||
             ((role === "student" || role === "employer") &&
               hasAnyPermission(permissions, "/disputes", role))) && (
@@ -2606,7 +2686,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           )}
 
           {/* Analytics - All roles with permission check (not verifyDocAdmin) */}
-          {role !== "verifyDocAdmin" &&
+          {role !== "verifydocadmin" &&
             (isBuiltInAdmin ||
               hasAnyPermission(permissions, "/analytics", role)) && (
               <div
@@ -2621,7 +2701,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             )}
 
           {/* Transaction - All roles with permission check (not verifyDocAdmin) */}
-          {role !== "verifyDocAdmin" &&
+          {role !== "verifydocadmin" &&
             (isBuiltInAdmin ||
               hasAnyPermission(permissions, "/transactions", role)) && (
               <div>
