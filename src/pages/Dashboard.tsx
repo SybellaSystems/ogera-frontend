@@ -40,6 +40,14 @@ interface DashboardMetrics {
   freeBadgeStudents?: number;
   premiumStudents?: number;
   pioneerStudents?: number;
+
+  // Super Admin Quick Stats
+  quickStats?: {
+    newStudentsThisWeek: number;
+    newJobsPostedThisWeek: number;
+    pendingAcademicVerifications: number;
+    resolvedDisputes: number;
+  };
 }
 
 interface ApiErrorPayload {
@@ -74,12 +82,12 @@ interface StudentNotificationItem {
   };
 }
 
-interface EmployerDashboardResponse {
-  jobsPosted: { value: number; change: number | null };
-  applicationsReceived: { value: number; change: number | null };
-  activeHires: { value: number; change: number | null };
-  totalSpent: { value: number; change: number | null; currency: string | null };
-}
+// interface EmployerDashboardResponse {
+//   jobsPosted: { value: number; change: number | null };
+//   applicationsReceived: { value: number; change: number | null };
+//   activeHires: { value: number; change: number | null };
+//   totalSpent: { value: number; change: number | null; currency: string | null };
+// }
 
 type ChartRow = {
   day: string;
@@ -149,8 +157,7 @@ const Dashboard: React.FC = () => {
   const [studentLoading, setStudentLoading] = useState(false);
   const [studentError, setStudentError] = useState<string | null>(null);
   // Employer-specific metrics fetched from backend
-  const [employerMetrics, setEmployerMetrics] =
-    useState<EmployerDashboardResponse | null>(null);
+  const [employerMetrics, setEmployerMetrics] = useState<any | null>(null);
   const [employerLoading, setEmployerLoading] = useState(false);
   const [employerError, setEmployerError] = useState<string | null>(null);
   // Student recent activity from notifications
@@ -690,50 +697,55 @@ const Dashboard: React.FC = () => {
 
   const getQuickStats = () => {
     if (role === "student") {
-    const quick = studentMetrics?.quickStats;
+      const quick = studentMetrics?.quickStats;
 
-    return [
-      {
-        color: "text-[#7f56d9]",
-        hoverBg: "hover:bg-[#f5f3ff]",
-        text: `${
-          studentLoading ? "..." : quick?.applicationsShortlisted ?? 0
-        } ${t("dashboard.applicationsShortlisted")}`,
-      },
-      {
-        color: "text-[#7f56d9]",
-        hoverBg: "hover:bg-[#f5f3ff]",
-        text: `${
-          studentLoading ? "..." : quick?.jobsInProgress ?? 0
-        } ${t("dashboard.jobsInProgress")}`,
-      },
-      {
-        color: "text-[#7f56d9]",
-        hoverBg: "hover:bg-[#f5f3ff]",
-        text: `${
-          studentLoading ? "..." : quick?.interviewScheduled ?? 0
-        } ${t("dashboard.interviewScheduled")}`,
-      },
-      {
-        color: "text-[#7f56d9]",
-        hoverBg: "hover:bg-[#f5f3ff]",
-        text: `${
-          studentLoading ? "..." : quick?.newJobMatches ?? 0
-        } ${t("dashboard.newJobMatches")}`,
-      },
-    ];
-  }
-    if (role === "employer") {
       return [
         {
           color: "text-[#7f56d9]",
           hoverBg: "hover:bg-[#f5f3ff]",
-          text: t("dashboard.newApplicantsThisWeek"),
+          text: `${
+            studentLoading ? "..." : (quick?.applicationsShortlisted ?? 0)
+          } ${t("dashboard.applicationsShortlisted")}`,
         },
         {
           color: "text-[#7f56d9]",
           hoverBg: "hover:bg-[#f5f3ff]",
-          text: t("dashboard.positionsFilledThisMonth"),
+          text: `${
+            studentLoading ? "..." : (quick?.jobsInProgress ?? 0)
+          } ${t("dashboard.jobsInProgress")}`,
+        },
+        {
+          color: "text-[#7f56d9]",
+          hoverBg: "hover:bg-[#f5f3ff]",
+          text: `${
+            studentLoading ? "..." : (quick?.interviewScheduled ?? 0)
+          } ${t("dashboard.interviewScheduled")}`,
+        },
+        {
+          color: "text-[#7f56d9]",
+          hoverBg: "hover:bg-[#f5f3ff]",
+          text: `${
+            studentLoading ? "..." : (quick?.newJobMatches ?? 0)
+          } ${t("dashboard.newJobMatches")}`,
+        },
+      ];
+    }
+    if (role === "employer") {
+      const quick = employerMetrics?.quickStats;
+      return [
+        {
+          color: "text-[#7f56d9]",
+          hoverBg: "hover:bg-[#f5f3ff]",
+          text: `${
+            employerLoading ? "..." : (quick?.newApplicantsThisWeek ?? 0)
+          } ${t("dashboard.newApplicantsThisWeek")}`,
+        },
+        {
+          color: "text-[#7f56d9]",
+          hoverBg: "hover:bg-[#f5f3ff]",
+          text: `${
+            employerLoading ? "..." : (quick?.positionsFilledThisMonth ?? 0)
+          } ${t("dashboard.positionsFilledThisMonth")}`,
         },
         {
           color: "text-[#7f56d9]",
@@ -747,26 +759,41 @@ const Dashboard: React.FC = () => {
         },
       ];
     }
+
+    // ==============================
+    // SUPER ADMIN QUICK STATS
+    // ==============================
+    // Superadmin
+    const quick = metrics?.quickStats;
+
     return [
       {
         color: "text-[#7f56d9]",
         hoverBg: "hover:bg-[#f5f3ff]",
-        text: t("dashboard.newStudentsThisWeek"),
+        text: `${
+          metricsLoading ? "..." : (quick?.newStudentsThisWeek ?? 0)
+        } ${t("dashboard.newStudentsThisWeek")}`,
       },
       {
         color: "text-[#7f56d9]",
         hoverBg: "hover:bg-[#f5f3ff]",
-        text: t("dashboard.jobsPostedThisWeek"),
+        text: `${
+          metricsLoading ? "..." : (quick?.newJobsPostedThisWeek ?? 0)
+        } ${t("dashboard.jobsPostedThisWeek")}`,
       },
       {
         color: "text-[#7f56d9]",
         hoverBg: "hover:bg-[#f5f3ff]",
-        text: t("dashboard.academicVerificationsPending"),
+        text: `${
+          metricsLoading ? "..." : (quick?.pendingAcademicVerifications ?? 0)
+        } ${t("dashboard.academicVerificationsPending")}`,
       },
       {
         color: "text-[#7f56d9]",
         hoverBg: "hover:bg-[#f5f3ff]",
-        text: t("dashboard.disputesResolved"),
+        text: `${
+          metricsLoading ? "..." : (quick?.resolvedDisputes ?? 0)
+        } ${t("dashboard.disputesResolved")}`,
       },
     ];
   };
@@ -950,95 +977,6 @@ const Dashboard: React.FC = () => {
         />
       )}
 
-      {(role === "employer" || role === "superadmin") && (
-        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-          <div className="flex items-center justify-between gap-3 mb-4">
-            <div>
-              <h2 className="text-sm font-semibold text-gray-900">
-                {t("dashboard.topCandidatesTrust")}
-              </h2>
-              <p className="text-xs text-gray-500 mt-1">
-                Top 10 students ranked by TrustScore
-              </p>
-            </div>
-            <div className="flex items-center gap-1 rounded-full bg-purple-50 text-purple-700 px-3 py-1 text-xs font-semibold">
-              <StarIconSolid className="h-3.5 w-3.5" />
-              TrustScore
-            </div>
-          </div>
-          {leaderboardLoading ? (
-            <div className="space-y-2">
-              {Array.from({ length: 5 }).map((_, index) => (
-                <div
-                  key={index}
-                  className="animate-pulse flex items-center justify-between rounded-xl border border-gray-100 px-3 py-3"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-gray-200" />
-                    <div>
-                      <div className="h-3 w-24 rounded bg-gray-200 mb-2" />
-                      <div className="h-2.5 w-16 rounded bg-gray-100" />
-                    </div>
-                  </div>
-                  <div className="h-8 w-14 rounded-full bg-gray-200" />
-                </div>
-              ))}
-            </div>
-          ) : (
-            <ul className="space-y-2.5">
-              {(leaderboardRes?.data?.leaderboard || []).map((row) => (
-                <li
-                  key={row.user_id}
-                  className="flex items-center justify-between gap-3 rounded-xl border border-gray-100 bg-gradient-to-r from-white to-purple-50/40 px-3 py-3 transition-all hover:border-purple-200 hover:shadow-sm"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div
-                      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
-                        row.rank === 1
-                          ? "bg-yellow-100 text-yellow-700"
-                          : row.rank === 2
-                            ? "bg-slate-100 text-slate-700"
-                            : row.rank === 3
-                              ? "bg-orange-100 text-orange-700"
-                              : "bg-purple-100 text-purple-700"
-                      }`}
-                    >
-                      #{row.rank}
-                    </div>
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 text-sm font-semibold text-white">
-                      {(row.full_name || "S").trim().charAt(0).toUpperCase()}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-gray-900">
-                        {row.full_name}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {row.rank <= 3
-                          ? "Top performer"
-                          : "Promising candidate"}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="shrink-0 text-right">
-                    <div className="inline-flex min-w-[58px] items-center justify-center rounded-full bg-purple-600 px-3 py-1 text-sm font-bold text-white shadow-sm">
-                      {row.trust_score != null
-                        ? row.trust_score.toFixed(0)
-                        : "—"}
-                    </div>
-                    <p className="mt-1 text-[11px] text-gray-400">score</p>
-                  </div>
-                </li>
-              ))}
-              {!leaderboardRes?.data?.leaderboard?.length && (
-                <li className="rounded-xl border border-dashed border-gray-200 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500">
-                  {t("common.noData")}
-                </li>
-              )}
-            </ul>
-          )}
-        </div>
-      )}
-
       {/* Stats Cards */}
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-2">
         {stats.map((item, index) => (
@@ -1084,6 +1022,122 @@ const Dashboard: React.FC = () => {
           </div>
         ))}
       </div>
+
+      {(role === "employer" || role === "superadmin") && (
+        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+          <div className="flex items-center justify-between gap-3 mb-4">
+            <div>
+              <h2 className="text-sm font-semibold text-gray-900">
+                {t("dashboard.topCandidatesTrust")}
+              </h2>
+              <p className="text-xs text-gray-500 mt-1">
+                Top students ranked by TrustScore
+              </p>
+            </div>
+            <div className="flex items-center gap-1 rounded-full bg-purple-50 text-purple-700 px-3 py-1 text-xs font-semibold">
+              <StarIconSolid className="h-3.5 w-3.5" />
+              TrustScore
+            </div>
+          </div>
+          {leaderboardLoading ? (
+            <div className="space-y-2">
+              {Array.from({ length: 5 }).map((_, index) => (
+                <div
+                  key={index}
+                  className="animate-pulse flex items-center justify-between rounded-xl border border-gray-100 px-3 py-3"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-gray-200" />
+                    <div>
+                      <div className="h-3 w-24 rounded bg-gray-200 mb-2" />
+                      <div className="h-2.5 w-16 rounded bg-gray-100" />
+                    </div>
+                  </div>
+                  <div className="h-8 w-14 rounded-full bg-gray-200" />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {(leaderboardRes?.data?.leaderboard || []).map((row, index) => {
+                const rank = index + 1;
+
+                // Mobile: top 10
+                // Tablet: top 8
+                // Desktop: top 9
+                let visibilityClass = "flex";
+
+                if (rank === 9) {
+                  // Hidden on tablet, visible on mobile and desktop
+                  visibilityClass = "flex sm:hidden lg:flex";
+                }
+
+                if (rank === 10) {
+                  // Visible only on mobile
+                  visibilityClass = "flex sm:hidden";
+                }
+
+                return (
+                  <li
+                    key={row.user_id}
+                    className={`${visibilityClass} min-w-0 items-center justify-between gap-2 rounded-xl border border-gray-100 bg-gradient-to-r from-white to-purple-50/40 px-3 py-3 transition-all hover:border-purple-200 hover:shadow-sm`}
+                  >
+                    <div className="flex min-w-0 items-center gap-2">
+                      {/* Rank */}
+                      <div
+                        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
+                          rank === 1
+                            ? "bg-purple-100 text-purple-700"
+                            : rank === 2
+                              ? "bg-purple-100 text-purple-700"
+                              : rank === 3
+                                ? "bg-purple-100 text-purple-700"
+                                : "bg-purple-100 text-purple-700"
+                        }`}
+                      >
+                        #{rank}
+                      </div>
+
+                      {/* Avatar */}
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 text-sm font-semibold text-white">
+                        {(row.full_name || "S").trim().charAt(0).toUpperCase()}
+                      </div>
+
+                      {/* Candidate */}
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-gray-900">
+                          {row.full_name}
+                        </p>
+
+                        <p className="truncate text-[11px] text-gray-500">
+                          {rank <= 3 ? "Top performer" : "Promising candidate"}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* TrustScore */}
+                    <div className="shrink-0 text-right">
+                      <div className="inline-flex min-w-[50px] items-center justify-center rounded-full bg-purple-600 px-2.5 py-1 text-sm font-bold text-white shadow-sm">
+                        {row.trust_score != null
+                          ? row.trust_score.toFixed(0)
+                          : "—"}
+                      </div>
+
+                      <p className="mt-1 text-[10px] text-gray-400">score</p>
+                    </div>
+                  </li>
+                );
+              })}
+
+              {!leaderboardRes?.data?.leaderboard?.length && (
+                <li className="col-span-1 rounded-xl border border-dashed border-gray-200 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500 sm:col-span-2 lg:col-span-3">
+                  {t("common.noData")}
+                </li>
+              )}
+            </ul>
+          )}
+        </div>
+      )}
 
       {/* Application Status Breakdown — students AND employers */}
       {(role === "student" || role === "employer") &&
