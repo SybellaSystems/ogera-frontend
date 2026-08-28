@@ -52,6 +52,48 @@ console.log(referrals, "referrals");
   }
 };
 
+const getEmptyStateContent = () => {
+  switch (tab) {
+    case "pending":
+      return {
+        title: "No Pending Referrals",
+        description:
+          "There are no job referrals waiting for verification at the moment.",
+      };
+
+    case "verified":
+      return {
+        title: "No Verified Referrals",
+        description:
+          "There are no verified job referrals available right now.",
+      };
+
+    case "active":
+      return {
+        title: "No Active Referrals",
+        description:
+          "There are currently no active job referrals available.",
+      };
+
+    case "closed":
+      return {
+        title: "No Closed Referrals",
+        description:
+          "There are no closed job referrals to display.",
+      };
+
+    case "all":
+    default:
+      return {
+        title: "No Job Referrals Yet",
+        description:
+          "There are currently no job referrals available. Create a new referral to start building your job opportunities.",
+      };
+  }
+};
+
+const emptyState = getEmptyStateContent();
+
  const handleViewMore = () => {
     navigate(
       `/dashboard/jobs/referrals/all?status=${tab}`
@@ -82,7 +124,51 @@ console.log(referrals, "referrals");
       </div>
 
       <JobTabs count={counts} onTabChange={handleTabChange} />
-      <JobCards jobs={referrals} />
+      {/* <JobCards jobs={referrals} /> */}
+      {referrals.length > 0 ? (
+  <JobCards jobs={referrals} />
+) : (
+  <div className="mt-8 flex min-h-[320px] items-center justify-center rounded-xl border border-gray-200 bg-white px-6 py-12 shadow-sm">
+    <div className="max-w-md text-center">
+      {/* Icon */}
+      <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-violet-100">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-8 w-8 text-violet-600"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={1.8}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M20 13V7a2 2 0 00-2-2h-3.5l-1.2-1.5a2 2 0 00-1.56-.75H7a2 2 0 00-2 2v8m15 0v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4m16 0H4m8 0v3"
+          />
+        </svg>
+      </div>
+
+      <h2 className="text-xl font-bold text-gray-900">
+        {emptyState.title}
+      </h2>
+
+      <p className="mt-2 text-sm leading-6 text-gray-500">
+        {emptyState.description}
+      </p>
+
+      <div className="mt-6 flex justify-center gap-3">
+
+        <button
+          type="button"
+          onClick={() => navigate("/dashboard/jobs/referrals/create")}
+          className="rounded-lg bg-gradient-to-r from-violet-600 to-purple-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-violet-200/50 transition-all hover:from-violet-700 hover:to-purple-700 active:scale-95"
+        >
+          + Create Referral
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
       {/* View More */}
       {referrals.length >= 9&& (
