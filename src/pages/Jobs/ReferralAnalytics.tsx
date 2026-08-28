@@ -1,74 +1,79 @@
-import React, { useEffect, useMemo, useState } from "react";
-import type { JobReferral } from "../../type/jobs/referral";
-import { getReferrals } from "../../services/referralStorage";
+
+import React from "react";
+
+import {
+  useGetAllJobReferralsQuery,
+  useGetJobReferralStatisticsQuery,
+} from "../../services/api/jobReferralsApi";
+import { useNavigate } from "react-router-dom";
+import type { JobReferral } from "../../services/api/jobReferralsApi";
 
 const ReferralAnalytics: React.FC = () => {
-  const [referrals, setReferrals] = useState<JobReferral[]>([]);
+  const navigate = useNavigate();
+  /*
+   * Get all referrals from the backend.
+   * No localStorage is used.
+   */
+  const {
+    data: referralsData,
+    isLoading: referralsLoading,
+  } = useGetAllJobReferralsQuery({
+    page: 1,
+    limit: 100,
+    status: "all",
+  });
 
-  useEffect(() => {
-    setReferrals(getReferrals());
-  }, []);
+  /*
+   * Get analytics/statistics from the backend.
+   */
+  const {
+    data: statisticsData,
+    isLoading: statisticsLoading,
+  } = useGetJobReferralStatisticsQuery();
 
-  const metrics = useMemo(() => {
-    const totalReferrals = referrals.length;
+  // const referrals = referralsData?.data ?? [];
+  const referrals: JobReferral[] = referralsData?.data?.referrals ?? [];
+  const statistics = statisticsData?.data;
 
-    const pending = referrals.filter(
-      (referral) => referral.status === "pending_verification",
-    ).length;
+  /*
+   * Use backend statistics.
+   */
+  const totalReferrals = statistics?.totalReferrals ?? 0;
+  const pending = statistics?.pendingReferrals ?? 0;
+  const verified = statistics?.verifiedReferrals ?? 0;
+  const active = statistics?.activeReferrals ?? 0;
+  const totalViews = statistics?.totalViews ?? 0;
+  const applyClicks = statistics?.totalApplyClicks ?? 0;
+  const reportedApplications =
+    statistics?.totalReportedApplications ?? 0;
 
-    const verified = referrals.filter(
-      (referral) => referral.status === "verified",
-    ).length;
+  const clickRate =
+    totalViews > 0
+      ? (applyClicks / totalViews) * 100
+      : 0;
 
-    const active = referrals.filter(
-      (referral) => referral.status === "active",
-    ).length;
+  const isLoading =
+    referralsLoading || statisticsLoading;
 
-    const totalViews = referrals.reduce(
-      (total, referral) =>
-        total + (referral.views || 0),
-      0,
-    );
-
-    const applyClicks = referrals.reduce(
-      (total, referral) =>
-        total + (referral.applyClicks || 0),
-      0,
-    );
-
-    const reportedApplications = referrals.reduce(
-      (total, referral) =>
-        total + (referral.reportedApplications || 0),
-      0,
-    );
-
-    const clickRate =
-      totalViews > 0
-        ? (applyClicks / totalViews) * 100
-        : 0;
-
-    return {
-      totalReferrals,
-      pending,
-      verified,
-      active,
-      totalViews,
-      applyClicks,
-      reportedApplications,
-      clickRate,
-    };
-  }, [referrals]);
-
-  const getStatusClasses = (status: JobReferral["status"]) => {
+  const getStatusClasses = (status: string) => {
     switch (status) {
-      case "active":
+      case "Active":
         return "bg-green-100 text-green-700";
 
-      case "verified":
+      case "Verified":
         return "bg-blue-100 text-blue-700";
 
-      case "pending_verification":
+      case "Pending":
         return "bg-yellow-100 text-yellow-700";
+
+      case "Inactive":
+        return "bg-gray-100 text-gray-700";
+
+      case "Expired":
+        return "bg-gray-200 text-gray-600";
+
+      case "Rejected":
+        return "bg-red-100 text-red-700";
 
       default:
         return "bg-gray-100 text-gray-700";
@@ -80,7 +85,8 @@ const ReferralAnalytics: React.FC = () => {
       <div className="mx-auto max-w-7xl">
 
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
           <h1 className="text-2xl font-bold text-gray-900">
             Referral Analytics
           </h1>
@@ -89,6 +95,17 @@ const ReferralAnalytics: React.FC = () => {
             Monitor how students are engaging with curated job
             opportunities.
           </p>
+          </div>
+
+          <button
+          type="button"
+          onClick={() =>
+            navigate("/dashboard/jobs/referrals")
+          }
+          className="mb-6 text-sm font-medium text-blue-600 hover:text-blue-800"
+        >
+          ← Back to Job Referrals
+        </button>
         </div>
 
         {/* Metrics */}
@@ -101,7 +118,7 @@ const ReferralAnalytics: React.FC = () => {
             </p>
 
             <p className="mt-2 text-3xl font-bold text-gray-900">
-              {metrics.totalReferrals}
+              {totalReferrals}
             </p>
           </div>
 
@@ -112,7 +129,7 @@ const ReferralAnalytics: React.FC = () => {
             </p>
 
             <p className="mt-2 text-3xl font-bold text-yellow-600">
-              {metrics.pending}
+              {pending}
             </p>
           </div>
 
@@ -123,7 +140,7 @@ const ReferralAnalytics: React.FC = () => {
             </p>
 
             <p className="mt-2 text-3xl font-bold text-green-600">
-              {metrics.active}
+              {active}
             </p>
           </div>
 
@@ -134,7 +151,7 @@ const ReferralAnalytics: React.FC = () => {
             </p>
 
             <p className="mt-2 text-3xl font-bold text-blue-600">
-              {metrics.totalViews}
+              {totalViews}
             </p>
           </div>
 
@@ -145,7 +162,7 @@ const ReferralAnalytics: React.FC = () => {
             </p>
 
             <p className="mt-2 text-3xl font-bold text-purple-600">
-              {metrics.applyClicks}
+              {applyClicks}
             </p>
           </div>
 
@@ -156,7 +173,7 @@ const ReferralAnalytics: React.FC = () => {
             </p>
 
             <p className="mt-2 text-3xl font-bold text-green-600">
-              {metrics.reportedApplications}
+              {reportedApplications}
             </p>
           </div>
 
@@ -167,7 +184,7 @@ const ReferralAnalytics: React.FC = () => {
             </p>
 
             <p className="mt-2 text-3xl font-bold text-indigo-600">
-              {metrics.clickRate.toFixed(1)}%
+              {clickRate.toFixed(1)}%
             </p>
 
             <p className="mt-1 text-xs text-gray-400">
@@ -182,7 +199,7 @@ const ReferralAnalytics: React.FC = () => {
             </p>
 
             <p className="mt-2 text-3xl font-bold text-blue-600">
-              {metrics.verified}
+              {verified}
             </p>
           </div>
         </div>
@@ -200,7 +217,13 @@ const ReferralAnalytics: React.FC = () => {
             </p>
           </div>
 
-          {referrals.length === 0 ? (
+          {isLoading ? (
+            <div className="p-10 text-center">
+              <p className="text-sm text-gray-500">
+                Loading referral analytics...
+              </p>
+            </div>
+          ) : referrals.length === 0 ? (
             <div className="p-10 text-center">
               <h3 className="text-base font-semibold text-gray-900">
                 No referrals yet
@@ -246,22 +269,26 @@ const ReferralAnalytics: React.FC = () => {
                 <tbody className="divide-y divide-gray-100 bg-white">
 
                   {referrals.map((referral) => {
-                    const views = referral.views || 0;
-                    const applyClicks =
-                      referral.applyClicks || 0;
-                    const applications =
-                      referral.reportedApplications || 0;
+                    const views =
+                      referral.views_count ?? 0;
 
-                    const clickRate =
+                    const applyClicks =
+                      referral.apply_clicks ?? 0;
+
+                    const applications =
+                      referral.reported_applications ?? 0;
+
+                    const referralClickRate =
                       views > 0
                         ? (applyClicks / views) * 100
                         : 0;
 
                     return (
                       <tr
-                        key={referral.id}
+                        key={referral.referral_id}
                         className="hover:bg-gray-50"
                       >
+                        {/* Opportunity */}
                         <td className="px-6 py-4">
                           <div>
                             <p className="text-sm font-semibold text-gray-900">
@@ -274,6 +301,7 @@ const ReferralAnalytics: React.FC = () => {
                           </div>
                         </td>
 
+                        {/* Status */}
                         <td className="px-6 py-4">
                           <span
                             className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${getStatusClasses(
@@ -284,18 +312,22 @@ const ReferralAnalytics: React.FC = () => {
                           </span>
                         </td>
 
+                        {/* Views */}
                         <td className="px-6 py-4 text-right text-sm font-medium text-gray-700">
                           {views}
                         </td>
 
+                        {/* Apply Clicks */}
                         <td className="px-6 py-4 text-right text-sm font-medium text-gray-700">
                           {applyClicks}
                         </td>
 
+                        {/* Click Rate */}
                         <td className="px-6 py-4 text-right text-sm font-medium text-purple-600">
-                          {clickRate.toFixed(1)}%
+                          {referralClickRate.toFixed(1)}%
                         </td>
 
+                        {/* Applications */}
                         <td className="px-6 py-4 text-right text-sm font-medium text-green-600">
                           {applications}
                         </td>

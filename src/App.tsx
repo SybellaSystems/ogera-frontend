@@ -62,6 +62,7 @@ import JobTasksKanban from "./pages/Jobs/JobTasksKanban";
 import StudentTasks from "./pages/StudentTasks";
 import ReferralDetails from "./pages/Jobs/ReferralDetails";
 import JobReferrals from "./pages/Jobs/JobReferrals";
+import AllJobReferrals from "./pages/Jobs/AllJobReferrals";
 import RecommendedJobs from "./pages/Jobs/RecommendedJobs";
 import RecommendedJobDetails from "./pages/Jobs/RecommendedJobDetails";
 import CreateReferral from "./pages/Jobs/CreateReferral";
@@ -373,6 +374,10 @@ function App() {
       index: true,
       Component: JobReferrals,
     },
+    {
+      path: "all",
+      Component: AllJobReferrals,
+    }
   ],
 },
 {

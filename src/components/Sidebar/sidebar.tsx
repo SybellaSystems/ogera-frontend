@@ -38,6 +38,7 @@ import {
   CpuChipIcon,
   ClipboardDocumentListIcon,
   PuzzlePieceIcon,
+  SparklesIcon,
 } from "@heroicons/react/24/outline";
 import { useListCognitiveTestsAdminQuery } from "../../services/api/cognitiveTestApi";
 import { useListProblemMetricsAdminQuery } from "../../services/api/problemMetricApi";
@@ -446,10 +447,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                             t("sidebar.allJobs")}
                           {location.pathname === "/dashboard/jobs/referrals" &&
                             "Job Referrals"}
-                            {location.pathname === "/dashboard/jobs/referral-analytics" &&
-  "Referral Analytics"}
-                          {location.pathname === "/dashboard/jobs/recommended" &&
-                            "Recommended Jobs"}
+                          {location.pathname ===
+                            "/dashboard/jobs/referral-analytics" &&
+                            "Referral Analytics"}
+                          {location.pathname ===
+                            "/dashboard/jobs/recommended" && "Recommended Jobs"}
                         </span>
                       )}
                   </div>
@@ -576,38 +578,62 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                       {t("sidebar.allJobs")}
                     </span>
                   </li>
-                  <li
-  className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
-  onClick={() =>
-    handleNavigation("/dashboard/jobs/recommended")
-  }
->
-  <FolderIcon className="h-4 w-4 text-white/40 group-hover/item:text-[#9F7AEA] transition-colors" />
-  <span className="text-white/60 group-hover/item:text-white transition-colors">
-    {t("sidebar.recommendedJobs")}
-  </span>
-</li>
-                  <li
-  className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
-  onClick={() => handleNavigation("/dashboard/jobs/referrals")}
->
-  <FolderIcon className="h-4 w-4 text-white/40 group-hover/item:text-[#9F7AEA] transition-colors" />
-  <span className="text-white/60 group-hover/item:text-white transition-colors">
-    {t("sidebar.jobReferrals")}
-  </span>
-</li>
-<li
-  className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
-  onClick={() =>
-    handleNavigation("/dashboard/jobs/referral-analytics")
-  }
->
-  <ChartBarIcon className="h-4 w-4 text-white/40 group-hover/item:text-[#9F7AEA] transition-colors" />
+                  {/*
+                   * Recommended Jobs
+                   * Visible to students, admins and superadmins
+                   */}
+                  {(role === "student" ||
+                    role === "admin" ||
+                    role === "superadmin") && (
+                    <li
+                      className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
+                      onClick={() =>
+                        handleNavigation("/dashboard/jobs/recommended")
+                      }
+                    >
+                      <SparklesIcon className="h-4 w-4 text-white/40 group-hover/item:text-[#9F7AEA] transition-colors" />
 
-  <span className="text-white/60 group-hover/item:text-white transition-colors">
-    Referral Analytics
-  </span>
-</li>
+                      <span className="text-white/60 group-hover/item:text-white transition-colors">
+                        Recommended Jobs
+                      </span>
+                    </li>
+                  )}
+
+                  {/*
+                   * Job Referrals and Referral Analytics
+                   * Admin and superadmin only
+                   */}
+                  {(role === "admin" || role === "superadmin") && (
+                    <>
+                      {/* Job Referrals */}
+                      <li
+                        className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
+                        onClick={() =>
+                          handleNavigation("/dashboard/jobs/referrals")
+                        }
+                      >
+                        <UserGroupIcon className="h-4 w-4 text-white/40 group-hover/item:text-[#9F7AEA] transition-colors" />
+
+                        <span className="text-white/60 group-hover/item:text-white transition-colors">
+                          Job Referrals
+                        </span>
+                      </li>
+
+                      {/* Referral Analytics */}
+                      <li
+                        className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
+                        onClick={() =>
+                          handleNavigation("/dashboard/jobs/referral-analytics")
+                        }
+                      >
+                        <ChartBarIcon className="h-4 w-4 text-white/40 group-hover/item:text-[#9F7AEA] transition-colors" />
+
+                        <span className="text-white/60 group-hover/item:text-white transition-colors">
+                          Referral Analytics
+                        </span>
+                      </li>
+                    </>
+                  )}
                   <li
                     className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
                     onClick={() => handleNavigation("/dashboard/jobs/active")}
