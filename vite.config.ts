@@ -14,7 +14,10 @@ export default defineConfig({
     host: '0.0.0.0',
     port: 5173,
     strictPort: true,
-
+    watch: {
+      usePolling: true,
+      interval: 100,
+    },
     proxy: {
       '/api': {
         target: 'http://localhost:5000',
@@ -23,11 +26,11 @@ export default defineConfig({
       },
     },
 
-    hmr: {
-      host: 'app.ogera.sybellasystems.co.rw',
-      protocol: 'ws',
-      port: 5173
-    },
+    // hmr: {
+    //   host: 'app.ogera.sybellasystems.co.rw',
+    //   protocol: 'ws',
+    //   port: 5173
+    // },
 
     allowedHosts: [
       'app.ogera.sybellasystems.co.rw'
