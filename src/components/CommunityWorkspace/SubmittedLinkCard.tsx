@@ -3,6 +3,7 @@ import { TrashIcon } from "@heroicons/react/24/outline";
 import toast from "react-hot-toast";
 import type { StudentLink } from "@/services/api/communityWorkspace.api";
 import ReplyModal from "./ReplyModal";
+import { GlobeAltIcon, LinkIcon } from "@heroicons/react/24/outline";
 
 import {
   useDeleteStudentLinkMutation,
@@ -45,28 +46,63 @@ const SubmittedLinkCard: React.FC<Props> = ({ submittedLink }) => {
     setReplyModalOpen(true);
   };
 
+  const getLinkTypeIcon = (linkType: string) => {
+    switch (linkType?.toLowerCase()) {
+      case "github":
+        return (
+          <svg
+            className="h-5 w-5"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <path d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.009-.866-.014-1.7-2.782.604-3.369-1.34-3.369-1.34-.455-1.157-1.11-1.465-1.11-1.465-.908-.621.069-.608.069-.608 1.004.071 1.532 1.032 1.532 1.032.892 1.53 2.341 1.088 2.91.832.091-.647.349-1.088.635-1.339-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.564 9.564 0 0 1 12 6.844a9.56 9.56 0 0 1 2.504.337c1.909-1.294 2.748-1.025 2.748-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.744 0 .267.18.578.688.48A10.002 10.002 0 0 0 22 12c0-5.523-4.477-10-10-10Z" />
+          </svg>
+        );
+
+      case "linkedin":
+        return (
+          <svg
+            className="h-5 w-5"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.606 0 4.27 2.373 4.27 5.467v6.274ZM5.337 7.433a2.062 2.062 0 1 1 0-4.124 2.062 2.062 0 0 1 0 4.124ZM3.555 20.452h3.56V9h-3.56v11.452ZM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.454C23.205 24 24 23.227 24 22.271V1.729C24 .774 23.205 0 22.225 0Z" />
+          </svg>
+        );
+
+      case "portfolio":
+        return <GlobeAltIcon className="h-5 w-5" />;
+
+      default:
+        return <LinkIcon className="h-5 w-5" />;
+    }
+  };
+
   return (
-    <div className="border border-gray-200 rounded-lg p-4 bg-gray-50 mb-5">
+    <div className="border border-gray-200 rounded-lg pt-2 px-4 pb-2 bg-gray-50 mb-2">
       <div className="flex justify-between gap-4">
         <div className="flex-1">
-          <span className="inline-flex items-center rounded-full bg-purple-100 px-2 py-1 text-xs font-medium text-purple-700">
-            {submittedLink.link_type}
-          </span>
+          {/* Link Type + Status */}
+          <div className="flex items-center gap-4">
+            <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-purple-100 text-purple-700">
+              {getLinkTypeIcon(submittedLink.link_type)}
+            </span>
+
+            <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-700">
+              {submittedLink.status}
+            </span>
+          </div>
 
           <a
             href={submittedLink.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="block mt-2 text-sm text-blue-600 hover:underline break-all"
+            className="block mt-1.5 cursor-pointer text-sm text-blue-600 hover:underline break-all"
           >
             {submittedLink.url}
           </a>
-
-          <div className="mt-3">
-            <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-700">
-              {submittedLink.status}
-            </span>
-          </div>
         </div>
 
         <button
@@ -74,12 +110,12 @@ const SubmittedLinkCard: React.FC<Props> = ({ submittedLink }) => {
           className="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl border border-red-200 bg-red-50 text-red-600 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-red-500 hover:bg-red-500 hover:text-white hover:shadow-md active:scale-95"
           title="Delete"
         >
-          <TrashIcon className="h-5 w-5" />
+          <TrashIcon className="h-3 w-3" />
         </button>
       </div>
 
-      <div className="mt-5">
-        <h4 className="mb-3 font-semibold text-gray-900">
+      <div className="mt-1.5">
+        <h4 className="mb-1 font-semibold text-gray-900">
           Peer Reviews ({reviews.length})
         </h4>
 
@@ -92,7 +128,7 @@ const SubmittedLinkCard: React.FC<Props> = ({ submittedLink }) => {
             {reviews.map((review) => (
               <div
                 key={review.id}
-                className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm transition-all hover:border-purple-200 hover:shadow-md"
+                className="rounded-xl border border-gray-200 bg-white p-2 shadow-sm transition-all hover:border-purple-200 hover:shadow-md"
               >
                 <div className="flex items-start gap-3">
                   {/* Avatar */}
@@ -115,44 +151,55 @@ const SubmittedLinkCard: React.FC<Props> = ({ submittedLink }) => {
                   <div className="min-w-0 flex-1">
                     {/* Name + Date */}
                     <div className="flex items-center justify-between gap-2">
-                      <h5 className="truncate text-sm font-semibold text-gray-900">
-                        {review.reviewer?.full_name}
-                      </h5>
+                      <div className="flex min-w-0 items-center gap-3">
+                        <h5 className="truncate text-sm font-semibold text-gray-900">
+                          {review.reviewer?.full_name}
+                        </h5>
+
+                        {/* Rating */}
+                        <div className="flex shrink-0 text-[15px] leading-none">
+                          {Array.from({ length: 5 }).map((_, index) => (
+                            <span
+                              key={index}
+                              className={
+                                index < review.rating
+                                  ? "text-amber-400"
+                                  : "text-gray-300"
+                              }
+                            >
+                              ★
+                            </span>
+                          ))}
+                        </div>
+                      </div>
 
                       <span className="shrink-0 text-[11px] text-gray-400">
                         {new Date(review.created_at).toLocaleDateString()}
                       </span>
                     </div>
 
-                    {/* Rating */}
-                    <div className="mt-1 flex text-[15px] leading-none">
-                      {Array.from({ length: 5 }).map((_, index) => (
-                        <span
-                          key={index}
-                          className={
-                            index < review.rating
-                              ? "text-amber-400"
-                              : "text-gray-300"
-                          }
-                        >
-                          ★
-                        </span>
-                      ))}
-                    </div>
-
                     {/* Review */}
-                    <p className="mt-2 text-sm leading-5 text-gray-600">
+                    <p className="mt-1 text-sm leading-5 text-gray-600">
                       {review.review}
                     </p>
 
                     {/* Reply Section */}
-                    <div className="mt-3 border-l-4 border-purple-500 bg-purple-50 rounded-md px-3 py-2">
+                    <div className="mt-2 border-l-4 border-purple-500 bg-purple-50 rounded-md px-3 py-1">
                       {review.reply ? (
                         <>
                           <div className="flex items-center justify-between">
-                            <span className="text-xs font-semibold text-purple-700">
-                              Your Reply
-                            </span>
+                            {/* Your Reply + Date */}
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-semibold text-purple-700">
+                                Your Reply
+                              </span>
+
+                              <span className="text-[11px] text-gray-500">
+                                {new Date(
+                                  review.reply.created_at,
+                                ).toLocaleDateString("en-GB")}
+                              </span>
+                            </div>
 
                             <button
                               onClick={() => openReplyModal(review)}
@@ -162,12 +209,8 @@ const SubmittedLinkCard: React.FC<Props> = ({ submittedLink }) => {
                             </button>
                           </div>
 
-                          <p className="mt-1 text-sm text-gray-700">
+                          <p className="text-sm text-gray-700">
                             {review.reply.reply}
-                          </p>
-
-                          <p className="mt-1 text-[11px] text-gray-500">
-                            {new Date(review.reply.created_at).toLocaleString()}
                           </p>
                         </>
                       ) : (

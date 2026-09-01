@@ -467,7 +467,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 <ul className="pl-11 space-y-1 text-sm mt-2 animate-fadeIn">
                   {(role === "employer" || role === "superadmin") && (
                     <>
-                      <li
+                      {/* <li
                         className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
                         onClick={() =>
                           handleNavigation("/dashboard/jobs/create")
@@ -477,7 +477,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         <span className="text-white/60 group-hover/item:text-white transition-colors">
                           {t("sidebar.createJob")}
                         </span>
-                      </li>
+                      </li> */}
                       <li
                         className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
                         onClick={() =>
@@ -620,7 +620,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                       </li>
 
                       {/* Referral Analytics */}
-                      <li
+                      {/* <li
                         className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
                         onClick={() =>
                           handleNavigation("/dashboard/jobs/referral-analytics")
@@ -631,7 +631,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         <span className="text-white/60 group-hover/item:text-white transition-colors">
                           Referral Analytics
                         </span>
-                      </li>
+                      </li> */}
                     </>
                   )}
                   <li

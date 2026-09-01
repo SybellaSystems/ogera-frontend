@@ -26,11 +26,11 @@ const CommunityWorkspace: React.FC = () => {
 
   return (
     <>
-      <div className="">
+      <div className="mt-0">
 
         {/* Header */}
 
-        <div className=" px-6 py-5">
+        <div className=" px-6 pt-2 pb-4">
           <h2 className="text-xl font-semibold text-gray-900">
             Community Workspace
           </h2>
@@ -43,7 +43,7 @@ const CommunityWorkspace: React.FC = () => {
 
         {/* Body */}
 
-        <div className="space-y-6 p-6">
+        <div className="space-y-3 px-6 pt-0 pb-6">
 
           <SubmitLink />
 
