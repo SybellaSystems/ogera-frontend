@@ -22,9 +22,9 @@ const PeerReviewFeed: React.FC<PeerReviewFeedProps> = ({ onReview }) => {
 const students = data?.data ?? [];
 
     return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-8 h-[490px] flex flex-col">
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm px-8 pt-2 pb-4 h-[570px] flex flex-col">
       {/* Header */}
-      <div className="mb-5">
+      <div className="mb-3">
         <h2 className="text-lg font-semibold text-gray-900">
           Peer Review Feed
         </h2>
@@ -36,7 +36,7 @@ const students = data?.data ?? [];
 
       {/* Loading */}
       {isLoading && (
-        <div className="space-y-2 p-3">
+        <div className="space-y-2 px-3 pt-0 pb-3">
           {[1, 2, 3].map((item) => (
             <div
               key={item}
@@ -65,7 +65,7 @@ const students = data?.data ?? [];
       )}
 
       {isError && (
-  <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center">
+  <div className="rounded-xl border border-red-200 bg-red-50 px-6 py-3 text-center">
     <p className="text-sm text-red-600">
       Failed to load peer review feed.
     </p>
@@ -74,7 +74,7 @@ const students = data?.data ?? [];
 
       {/* Empty State */}
       {!isLoading && !isError && students.length === 0 && (
-        <div className="flex-1 mt-4 rounded-xl border border-dashed border-gray-300 flex flex-col items-center justify-center text-center">
+        <div className="flex-1 rounded-xl border border-dashed border-gray-300 flex flex-col items-center justify-center text-center">
           <div className="text-5xl mb-3">📭</div>
 
           <h3 className="text-lg font-semibold text-gray-800">
@@ -91,7 +91,7 @@ const students = data?.data ?? [];
       {!isLoading && !isError && students.length > 0 && (
         <div
           className="
-      max-h-[330px]
+      max-h-[460px]
       overflow-y-auto
       pr-2
       space-y-3

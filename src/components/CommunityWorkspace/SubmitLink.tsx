@@ -48,10 +48,10 @@ const SubmitLink: React.FC = () => {
   return (
     <form
       onSubmit={handleSubmit}
-      className="bg-white rounded-lg border border-gray-200 shadow-sm p-4"
+      className="bg-white rounded-lg border border-gray-200 shadow-sm px-4 py-2"
     >
       {/* Header */}
-      <div className="mb-3">
+      <div className="mb-1.5">
         <h3 className="text-lg font-semibold text-gray-900 mt-1">
           Submit Your Profile
         </h3>

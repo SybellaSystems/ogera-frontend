@@ -34,7 +34,7 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
   );
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm hover:border-purple-300 hover:shadow-md transition-all duration-200">
+    <div className="rounded-xl border border-gray-200 bg-white px-4 pt-2 pb-2 shadow-sm hover:border-purple-300 hover:shadow-md transition-all duration-200">
       {/* Top */}
       <div className="flex items-start gap-2.5">
         {/* Avatar */}
@@ -42,7 +42,7 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
           <img
             src={student.profile_image_url}
             alt={student.full_name}
-            className="h-12 w-12 rounded-full object-cover border border-gray-200"
+            className="h-11 w-11 rounded-full object-cover border border-gray-200"
           />
         ) : (
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-purple-100 font-semibold text-purple-700">
@@ -56,9 +56,9 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
             {student.full_name}
           </h4>
 
-          <p className="text-xs text-gray-500 mt-1">{student.profession}</p>
+          {/* <p className="text-xs text-gray-500 mt-1">{student.profession}</p> */}
 
-          <p className="text-sm text-gray-700 mt-2">
+          <p className="text-sm text-gray-700 mt-1">
             Needs feedback on their{" "}
             <span className="font-medium">{student.link_type}</span>.
           </p>
@@ -66,7 +66,7 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
       </div>
 
       {/* Link */}
-      <div className="mt-4 flex items-center gap-2 rounded-lg bg-gray-50 p-3">
+      <div className="mt-2 flex items-center gap-2 rounded-lg bg-gray-50 p-3">
         <a
           href={`https://${student.url.replace(/^https?:\/\//, "")}`}
           target="_blank"
@@ -80,18 +80,18 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
       {/* Footer */}
       <div
         className="
-    mt-4
-    max-h-[380px]
+    mt-1
+    max-h-[400px]
     overflow-y-auto
-    space-y-4
+    space-y-1
     pr-2
     scrollbar-thin
-    scrollbar-thumb-purple-500
+    scrollbar-thumb-purple-500s
     scrollbar-track-gray-100
   "
       >
         {/* Sticky Header */}
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-200 bg-white px-4 py-3">
+        <div className="sticky top-0 z-10 flex items-center justify-between bg-white px-4 ">
           <h3 className="text-base font-semibold text-gray-900">
             Peer Reviews ({reviews.length})
           </h3>
@@ -113,35 +113,35 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
               key={review.id}
               className="rounded-lg border border-gray-200 bg-white shadow-sm"
             >
-              <div className="p-3">
+              <div className="p-2">
                 <div className="flex items-start gap-2.5">
                   {review.reviewer?.profile_image_url ? (
                     <img
                       src={review.reviewer.profile_image_url}
-                      className="h-11 w-11 rounded-full object-cover"
+                      className="h-10 w-10 rounded-full object-cover"
                     />
                   ) : (
-                    <div className="flex h-11 w-11 items-center justify-center rounded-full bg-purple-600 text-sm font-semibold text-white">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-600 text-sm font-semibold text-white">
                       {isMine ? "Y" : reviewerInitials}
                     </div>
                   )}
 
                   <div className="flex-1">
-                    <div className="flex items-center justify-between">
-                      <div>
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex items-center gap-3">
                         <h4 className="font-semibold text-gray-900">
                           {isMine ? "You" : review.reviewer?.full_name}
                         </h4>
 
-                        <div className="flex mt-1">
+                        <div className="flex items-center gap-0.5">
                           {Array.from({ length: 5 }).map((_, index) => (
                             <span
                               key={index}
-                              className={
+                              className={`text-sm ${
                                 index < review.rating
                                   ? "text-yellow-400"
                                   : "text-gray-300"
-                              }
+                              }`}
                             >
                               ★
                             </span>
@@ -149,7 +149,7 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
                         </div>
                       </div>
 
-                      <span className="text-xs text-gray-400">
+                      <span className="shrink-0 text-xs text-gray-400">
                         {new Date(review.created_at).toLocaleDateString()}
                       </span>
                     </div>
@@ -162,39 +162,48 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
               </div>
 
               {review.reply && (
-                <div className="mx-3 mb-3 rounded-lg border border-gray-200 bg-gray-50 p-3">
+                <div className="ml-13 mr-3 mb-3 rounded-lg border border-gray-200 bg-gray-50 p-2">
                   <div className="flex items-start gap-2.5">
+                    {/* Profile Image */}
                     {student.profile_image_url ? (
                       <img
                         src={student.profile_image_url}
-                        className="h-10 w-10 rounded-full object-cover"
+                        alt={student.full_name}
+                        className="h-9 w-9 shrink-0 rounded-full object-cover"
                       />
                     ) : (
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-100 text-purple-700 font-semibold">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-purple-100 font-semibold text-purple-700">
                         {initials}
                       </div>
                     )}
 
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h5 className="font-semibold text-gray-900">
+                    {/* Reply Content */}
+                    <div className="min-w-0 flex-1">
+                      {/* Name + Student + Date */}
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex min-w-0 items-center gap-2">
+                          <h5 className="truncate font-semibold text-gray-900">
                             {student.full_name}
                           </h5>
 
-                          <p className="text-xs text-gray-500">Student</p>
+                          <span className="shrink-0 text-xs text-gray-500">
+                            (Student Reply)
+                          </span>
                         </div>
 
-                        <span className="text-xs text-gray-400">
+                        <span className="shrink-0 text-xs text-gray-400">
                           {new Date(
                             review.reply.updated_at,
                           ).toLocaleDateString()}
                         </span>
                       </div>
 
-                      <p className="mt-1 text-sm leading-5 text-gray-700">
-                        {review.reply.reply}
-                      </p>
+                      {/* Reply Text */}
+                      <div className="mt-1 w-full">
+                        <p className="text-sm leading-5 text-gray-700 break-words">
+                          {review.reply.reply}
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -204,12 +213,12 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
         })}
 
         {!myReview && (
-          <div className="mt-5 flex justify-end border-t border-gray-100 pt-4">
+          <div className="mt-2 flex justify-end">
             <button
               onClick={() => onReview(student)}
-              className="inline-flex items-center gap-2 rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700"
+              className="inline-flex items-center gap-2 rounded-lg bg-purple-600 px-2 py-1.5 cursor-pointer text-sm font-medium text-white hover:bg-purple-700"
             >
-              <ChatBubbleLeftRightIcon className="h-5 w-5" />
+              <ChatBubbleLeftRightIcon className="h-4 w-4" />
               Write Review
             </button>
           </div>
