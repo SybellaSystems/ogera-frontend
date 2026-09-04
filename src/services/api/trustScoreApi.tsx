@@ -50,6 +50,27 @@ export interface TrustAdminSummary {
   students_with_score: number;
   top_users: LeaderboardStudentRow[];
   distribution: { label: string; min: number; max: number; count: number }[];
+
+
+  // ----------------------------------------------------------
+  // User analytics
+  // ----------------------------------------------------------
+
+  total_users: number;
+
+  total_students: number;
+
+  total_employers: number;
+
+  user_growth_percent: number;
+
+  // ----------------------------------------------------------
+  // Job analytics
+  // ----------------------------------------------------------
+
+  total_jobs_posted: number;
+
+  job_growth_percent: number;
 }
 
 export interface TrustHistoryResponse {

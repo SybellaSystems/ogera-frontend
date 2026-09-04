@@ -94,10 +94,18 @@ export interface JobResponse {
   message: string;
 }
 
+export interface JobsPagination {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
 export interface JobsListResponse {
   success: boolean;
   status: number;
   data: Job[];
+  pagination: JobsPagination;
   message: string;
 }
 
@@ -109,6 +117,9 @@ export interface JobsQueryParams {
   category?: string;
   currency?: string;
   payment_range?: string;
+  // Pagination
+  page?: number;
+  limit?: number;
 }
 
 export interface DeleteJobResponse {

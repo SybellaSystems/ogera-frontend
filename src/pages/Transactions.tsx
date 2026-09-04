@@ -61,8 +61,8 @@ const Transactions: React.FC = () => {
   const columns: Column<Transaction>[] = [
     {
       id: "transactionId",
-      label: t("pages.transactions.transactionId"),
-      minWidth: 150,
+      label: t("Transaction ID"),
+      minWidth: 250,
       format: (value) => (
         <Typography
           sx={{
@@ -77,19 +77,19 @@ const Transactions: React.FC = () => {
     },
     {
       id: "student",
-      label: t("pages.transactions.student"),
-      minWidth: 150,
+      label: t("Student"),
+      minWidth: 200,
     },
     {
       id: "employer",
-      label: t("pages.transactions.employer"),
-      minWidth: 150,
+      label: t("Employer"),
+      minWidth: 200,
     },
     {
       id: "amount",
-      label: t("pages.transactions.amount"),
-      minWidth: 120,
-      align: "right",
+      label: t("Amount"),
+      minWidth: 200,
+      // align: "right",
       format: (value) => (
         <Typography
           sx={{
@@ -104,7 +104,7 @@ const Transactions: React.FC = () => {
     },
     {
       id: "type",
-      label: t("pages.transactions.type"),
+      label: t("Type"),
       minWidth: 120,
       format: (value) => (
         <Chip
@@ -130,7 +130,7 @@ const Transactions: React.FC = () => {
     },
     {
       id: "status",
-      label: t("pages.transactions.status"),
+      label: t("Status"),
       minWidth: 120,
       format: (value) => (
         <Chip
@@ -156,7 +156,7 @@ const Transactions: React.FC = () => {
     },
     {
       id: "date",
-      label: t("pages.transactions.date"),
+      label: t("Date"),
       minWidth: 120,
     },
   ];
