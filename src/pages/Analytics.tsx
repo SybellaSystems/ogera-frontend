@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
@@ -15,28 +16,77 @@ import { useGetAdminTrustSummaryQuery } from "../services/api/trustScoreApi";
 
 const Analytics: React.FC = () => {
   const { t } = useTranslation();
-  const roleRaw = useSelector((state: any) => state.auth.role);
-  const role = roleRaw ? String(roleRaw).toLowerCase().trim() : "";
-  const isAdminAnalytics =
-    role === "superadmin" || role === "admin" || Boolean(role?.includes("admin"));
 
-  const { data: trustApi, isLoading: trustLoading, isError: trustError } =
-    useGetAdminTrustSummaryQuery(undefined, {
-      skip: !isAdminAnalytics,
-    });
+  const roleRaw = useSelector((state: any) => state.auth.role);
+
+  const role = roleRaw
+    ? String(roleRaw).toLowerCase().trim()
+    : "";
+
+  const isAdminAnalytics =
+    role === "superadmin" ||
+    role === "admin" ||
+    Boolean(role?.includes("admin"));
+
+  const {
+    data: trustApi,
+    isLoading: trustLoading,
+    isError: trustError,
+  } = useGetAdminTrustSummaryQuery(undefined, {
+    skip: !isAdminAnalytics,
+  });
 
   const trust = trustApi?.data;
 
+  /**
+   * Format growth percentage.
+   *
+   * Positive:
+   * ↑ 12% from last month
+   *
+   * Negative:
+   * ↓ 5% from last month
+   *
+   * Zero:
+   * 0% from last month
+   */
+  const getGrowthText = (percentage: number | null | undefined) => {
+    if (percentage == null || !Number.isFinite(Number(percentage))) {
+      return "—";
+    }
+
+    const value = Number(percentage);
+
+    if (value > 0) {
+      return `↑ ${Math.abs(value)}% from last month`;
+    }
+
+    if (value < 0) {
+      return `↓ ${Math.abs(value)}% from last month`;
+    }
+
+    return `0% from last month`;
+  };
+
   return (
     <div className="space-y-6 animate-fadeIn">
+      {/* ============================================================
+          PAGE HEADER
+      ============================================================ */}
       <div>
         <h1 className="text-4xl font-extrabold text-gray-900 flex items-center gap-3">
           <ChartBarIcon className="h-10 w-10 text-purple-600" />
           {t("pages.analytics.title")}
         </h1>
-        <p className="text-gray-500 mt-2">{t("pages.analytics.subtitle")}</p>
+
+        <p className="text-gray-500 mt-2">
+          {t("pages.analytics.subtitle")}
+        </p>
       </div>
 
+      {/* ============================================================
+          TRUST SCORE ANALYTICS
+      ============================================================ */}
       {isAdminAnalytics && (
         <div className="space-y-6">
           <h2 className="text-xl font-semibold text-gray-900">
@@ -44,71 +94,110 @@ const Analytics: React.FC = () => {
           </h2>
 
           {trustLoading && (
-            <p className="text-sm text-gray-500">{t("common.loading")}</p>
+            <p className="text-sm text-gray-500">
+              {t("common.loading")}
+            </p>
           )}
+
           {trustError && (
-            <p className="text-sm text-red-600">{t("common.error")}</p>
+            <p className="text-sm text-red-600">
+              {t("common.error")}
+            </p>
           )}
 
           {trust && !trustLoading && (
             <>
+              {/* ======================================================
+                  TRUST SCORE SUMMARY
+              ====================================================== */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="bg-gradient-to-br from-violet-50 to-violet-100 rounded-xl p-6 shadow-md border border-violet-200">
                   <p className="text-sm text-violet-700 font-medium">
                     {t("pages.analytics.avgTrustScore")}
                   </p>
+
                   <p className="text-3xl font-bold text-violet-900 mt-2">
                     {trust.average_trust_score != null
                       ? trust.average_trust_score.toFixed(1)
                       : "—"}
                   </p>
                 </div>
+
                 <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl p-6 shadow-md border border-slate-200 md:col-span-2">
                   <p className="text-sm text-slate-700 font-medium">
                     {t("pages.analytics.studentsWithScore")}
                   </p>
+
                   <p className="text-3xl font-bold text-slate-900 mt-2">
                     {trust.students_with_score}
                   </p>
                 </div>
               </div>
 
+              {/* ======================================================
+                  TRUST DISTRIBUTION + TOP STUDENTS
+              ====================================================== */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
+                {/* Trust Score Distribution */}
+                <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100 h-fit">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">
                     {t("pages.analytics.trustDistribution")}
                   </h3>
-                  <div className="h-72">
+
+                  <div className="h-56">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
                         data={trust.distribution.map((d) => ({
                           name: d.label,
                           count: d.count,
                         }))}
-                        margin={{ top: 8, right: 8, left: 0, bottom: 32 }}
+                        margin={{
+                          top: 8,
+                          right: 8,
+                          left: 0,
+                          bottom: 28,
+                        }}
                       >
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                        <CartesianGrid
+                          strokeDasharray="3 3"
+                          vertical={false}
+                        />
+
                         <XAxis
                           dataKey="name"
                           tick={{ fontSize: 10 }}
                           interval={0}
                           angle={-18}
                           textAnchor="end"
-                          height={60}
+                          height={50}
                         />
-                        <YAxis allowDecimals={false} width={36} />
+
+                        <YAxis
+                          allowDecimals={false}
+                          width={36}
+                          domain={[0, 5]}
+                          ticks={[0, 1, 2, 3, 4, 5]}
+                        />
+
                         <Tooltip />
-                        <Bar dataKey="count" fill="#7f56d9" radius={[4, 4, 0, 0]} />
+
+                        <Bar
+                          dataKey="count"
+                          fill="#7f56d9"
+                          radius={[4, 4, 0, 0]}
+                        />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
                 </div>
 
+                {/* Top Students */}
                 <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">
                     {t("pages.analytics.topStudentsTrust")}
                   </h3>
-                  <ul className="space-y-3">
+
+                  <ul className="space-y-5">
                     {trust.top_users.map((u) => (
                       <li
                         key={u.user_id}
@@ -117,8 +206,12 @@ const Analytics: React.FC = () => {
                         <span className="font-medium text-gray-800 truncate pr-2">
                           {u.full_name}
                         </span>
+
                         <span className="shrink-0 text-purple-700 font-bold">
-                          {u.trust_score != null ? u.trust_score.toFixed(0) : "—"}
+                          {u.trust_score != null
+                            ? u.trust_score.toFixed(0)
+                            : "—"}
+
                           {u.trust_level ? (
                             <span className="text-gray-400 font-normal text-xs ml-2">
                               {u.trust_level}
@@ -127,8 +220,11 @@ const Analytics: React.FC = () => {
                         </span>
                       </li>
                     ))}
+
                     {!trust.top_users.length && (
-                      <li className="text-sm text-gray-500">{t("common.noData")}</li>
+                      <li className="text-sm text-gray-500">
+                        {t("common.noData")}
+                      </li>
                     )}
                   </ul>
                 </div>
@@ -138,33 +234,104 @@ const Analytics: React.FC = () => {
         </div>
       )}
 
+      {/* ============================================================
+          NON ADMIN MESSAGE
+      ============================================================ */}
       {!isAdminAnalytics && (
         <p className="text-sm text-gray-500 bg-gray-50 border border-gray-200 rounded-lg p-4">
           {t("pages.analytics.trustAdminOnly")}
         </p>
       )}
 
-      {/* Key Metrics (existing placeholders) */}
+      {/* ============================================================
+          KEY METRICS
+      ============================================================ */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+
+        {/* ==========================================================
+            TOTAL REVENUE
+            Backend currently doesn't provide revenue.
+        ========================================================== */}
         <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 shadow-md border border-blue-200">
-          <p className="text-sm text-blue-700 font-medium">{t("pages.analytics.totalRevenue")}</p>
-          <p className="text-3xl font-bold text-blue-900 mt-2">$2.4M</p>
-          <p className="text-sm text-blue-600 mt-2">{t("pages.analytics.fromLastMonth", { percent: 18 })}</p>
+          <p className="text-sm text-blue-700 font-medium">
+            {t("pages.analytics.totalRevenue")}
+          </p>
+
+          <p className="text-3xl font-bold text-blue-900 mt-2">
+            $2.4M
+          </p>
+
+          <p className="text-sm text-blue-600 mt-2">
+            {t("pages.analytics.fromLastMonth", {
+              percent: 18,
+            })}
+          </p>
         </div>
+
+        {/* ==========================================================
+            TOTAL USERS
+            Dynamic from:
+            trust.data.total_users
+        ========================================================== */}
         <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 shadow-md border border-green-200">
-          <p className="text-sm text-green-700 font-medium">{t("pages.analytics.activeUsers")}</p>
-          <p className="text-3xl font-bold text-green-900 mt-2">12,450</p>
-          <p className="text-sm text-green-600 mt-2">{t("pages.analytics.fromLastMonth", { percent: 12 })}</p>
+          <p className="text-sm text-green-700 font-medium">
+            Active Users
+          </p>
+
+          <p className="text-3xl font-bold text-green-900 mt-2">
+            {trust?.total_users != null
+              ? trust.total_users.toLocaleString()
+              : "—"}
+          </p>
+
+          <p className="text-sm text-green-600 mt-2">
+            {trust
+              ? getGrowthText(trust.user_growth_percent)
+              : "—"}
+          </p>
         </div>
+
+        {/* ==========================================================
+            JOBS POSTED
+            Dynamic from:
+            trust.data.total_jobs_posted
+        ========================================================== */}
         <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-6 shadow-md border border-purple-200">
-          <p className="text-sm text-purple-700 font-medium">{t("pages.analytics.jobsPosted")}</p>
-          <p className="text-3xl font-bold text-purple-900 mt-2">1,480</p>
-          <p className="text-sm text-purple-600 mt-2">{t("pages.analytics.fromLastMonth", { percent: 8 })}</p>
+          <p className="text-sm text-purple-700 font-medium">
+            {t("pages.analytics.jobsPosted")}
+          </p>
+
+          <p className="text-3xl font-bold text-purple-900 mt-2">
+            {trust?.total_jobs_posted != null
+              ? trust.total_jobs_posted.toLocaleString()
+              : "—"}
+          </p>
+
+          <p className="text-sm text-purple-600 mt-2">
+            {trust
+              ? getGrowthText(trust.job_growth_percent)
+              : "—"}
+          </p>
         </div>
+
+        {/* ==========================================================
+            SUCCESS RATE
+            Backend currently doesn't provide this metric.
+        ========================================================== */}
         <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-6 shadow-md border border-orange-200">
-          <p className="text-sm text-orange-700 font-medium">{t("pages.analytics.successRate")}</p>
-          <p className="text-3xl font-bold text-orange-900 mt-2">94%</p>
-          <p className="text-sm text-orange-600 mt-2">{t("pages.analytics.fromLastMonth", { percent: 3 })}</p>
+          <p className="text-sm text-orange-700 font-medium">
+            {t("pages.analytics.successRate")}
+          </p>
+
+          <p className="text-3xl font-bold text-orange-900 mt-2">
+            94%
+          </p>
+
+          <p className="text-sm text-orange-600 mt-2">
+            {t("pages.analytics.fromLastMonth", {
+              percent: 3,
+            })}
+          </p>
         </div>
       </div>
     </div>

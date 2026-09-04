@@ -28,7 +28,6 @@ import {
   FolderIcon,
   FireIcon,
   ArrowPathIcon,
-  CheckBadgeIcon,
   ShieldCheckIcon,
   PlusIcon,
   EyeIcon,
@@ -58,6 +57,10 @@ type SidebarAuthState = {
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const { t } = useTranslation();
   const [openMenu, setOpenMenu] = useState<string | null>(null);
+   // Separate state for Tests submenu
+  const [openTestMenu, setOpenTestMenu] = useState<
+    "cognitive" | "problemMetrics" | null
+  >(null);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -137,7 +140,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     role !== "employer";
 
   const skipCognitiveAdminList =
-    !showCognitiveAdmin || openMenu !== "cognitive";
+    !showCognitiveAdmin || openTestMenu !== "cognitive";
   const { data: cognitiveAdminList } = useListCognitiveTestsAdminQuery(
     undefined,
     {
@@ -155,7 +158,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     role !== "employer";
 
   const skipProblemMetricAdminList =
-    !showProblemMetricAdmin || openMenu !== "problemMetrics";
+    !showProblemMetricAdmin || openTestMenu !== "problemMetrics";
   const { data: problemMetricAdminList } = useListProblemMetricsAdminQuery(
     undefined,
     {
@@ -166,16 +169,26 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
   React.useEffect(() => {
     if (location.pathname.startsWith("/dashboard/cognitive-tests")) {
-      setOpenMenu("cognitive");
+      setOpenMenu("tests");
+    setOpenTestMenu("cognitive");
     }
     if (location.pathname.startsWith("/dashboard/problem-metrics")) {
-      setOpenMenu("problemMetrics");
+      setOpenMenu("tests");
+    setOpenTestMenu("problemMetrics");
     }
   }, [location.pathname]);
 
   const toggleMenu = (menu: string) => {
     setOpenMenu(openMenu === menu ? null : menu);
   };
+
+  const toggleTestMenu = (
+  menu: "cognitive" | "problemMetrics",
+) => {
+  setOpenTestMenu((prev) =>
+    prev === menu ? null : menu,
+  );
+};
 
   const handleNavigation = (path: string) => {
     navigate(path);
@@ -500,7 +513,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                           {t("sidebar.applications")}
                         </span>
                       </li>
-                      <li
+                      {/* <li
                         className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
                         onClick={() =>
                           handleNavigation(
@@ -512,8 +525,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         <span className="text-white/60 group-hover/item:text-white transition-colors">
                           {t("sidebar.approved")}
                         </span>
-                      </li>
-                      <li
+                      </li> */}
+                      {/* <li
                         className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
                         onClick={() =>
                           handleNavigation(
@@ -525,7 +538,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         <span className="text-white/60 group-hover/item:text-white transition-colors">
                           {t("sidebar.rejected")}
                         </span>
-                      </li>
+                      </li> */}
                     </>
                   )}
                   {role === "student" && (
@@ -634,7 +647,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                       </li> */}
                     </>
                   )}
-                  <li
+                  {/* <li
                     className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
                     onClick={() => handleNavigation("/dashboard/jobs/active")}
                   >
@@ -642,8 +655,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     <span className="text-white/60 group-hover/item:text-white transition-colors">
                       {t("sidebar.activeJobs")}
                     </span>
-                  </li>
-                  <li
+                  </li> */}
+                  {/* <li
                     className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
                     onClick={() =>
                       handleNavigation("/dashboard/jobs/completed")
@@ -653,7 +666,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     <span className="text-white/60 group-hover/item:text-white transition-colors">
                       {t("sidebar.completed")}
                     </span>
-                  </li>
+                  </li> */}
                   {/* {isBuiltInAdmin && (
                       <li
                         className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
@@ -2265,7 +2278,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             </div>
           )} */}
 
-          {showCognitiveSection && (
+          {/* {showCognitiveSection && (
             <div>
               <div
                 className={`flex items-center justify-between px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 group ${
@@ -2493,7 +2506,328 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 </ul>
               )}
             </div>
-          )}
+          )} */}
+
+          
+{/* ========================= TESTS ========================= */}
+{(showCognitiveSection || showProblemMetricSection) && (
+  <div>
+    {/* Tests Parent Menu */}
+    <div
+      className={`flex items-center justify-between px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 group ${
+        isActiveGroup("/dashboard/cognitive-tests") ||
+        isActiveGroup("/dashboard/problem-metrics")
+          ? "bg-[#9F7AEA]/15 border-l-2 border-[#9F7AEA]"
+          : "hover:bg-[#9F7AEA]/10"
+      }`}
+      onClick={() => toggleMenu("tests")}
+    >
+      <div className="flex items-center gap-3">
+        <CpuChipIcon className="h-5 w-5 text-white/70 group-hover:text-white transition-colors" />
+
+        <span className="font-medium group-hover:text-white transition-colors">
+          {t("sidebar.tests", {
+            defaultValue: "Tests",
+          })}
+        </span>
+      </div>
+
+      <ChevronDownIcon
+        className={`h-4 w-4 transition-transform duration-200 text-white/50 group-hover:text-white ${
+          openMenu === "tests" ? "rotate-180 text-white" : ""
+        }`}
+      />
+    </div>
+
+    {/* Tests Sub Menu */}
+    {openMenu === "tests" && (
+      <ul className="pl-11 space-y-1 text-sm mt-2 animate-fadeIn max-h-96 overflow-y-auto scrollbar-hide">
+
+        {/* =====================================================
+            COGNITIVE TESTS
+        ====================================================== */}
+        {showCognitiveSection && (
+          <li>
+            <div
+              className={`flex items-center justify-between gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
+                isActiveGroup("/dashboard/cognitive-tests")
+                  ? "bg-[#9F7AEA]/10"
+                  : "hover:bg-[#9F7AEA]/10"
+              }`}
+              onClick={() => toggleTestMenu("cognitive")}
+            >
+              <div className="flex items-center gap-2">
+                <CpuChipIcon className="h-4 w-4 text-white/50 group-hover/item:text-[#9F7AEA]" />
+
+                <span className="text-white/80 group-hover/item:text-white font-medium">
+                  {t("sidebar.cognitiveTests", {
+                    defaultValue: "Cognitive Tests",
+                  })}
+                </span>
+              </div>
+
+              <ChevronDownIcon
+                className={`h-3.5 w-3.5 text-white/40 transition-transform duration-200 ${
+                  openTestMenu === "cognitive"
+                    ? "rotate-180 text-[#9F7AEA]"
+                    : ""
+                }`}
+              />
+            </div>
+
+            {openTestMenu === "cognitive" && (
+              <ul className="pl-6 space-y-1 mt-1">
+
+                {/* Cognitive Practice */}
+                {showCognitiveStudent && (
+                  <li
+                    className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
+                      isActive(
+                        "/dashboard/cognitive-tests/available"
+                      )
+                        ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
+                        : "hover:text-purple-300 hover:bg-[#9F7AEA]/10 text-white/60"
+                    }`}
+                    onClick={() =>
+                      handleNavigation(
+                        "/dashboard/cognitive-tests/available"
+                      )
+                    }
+                  >
+                    <CpuChipIcon
+                      className={`h-4 w-4 ${
+                        isActive(
+                          "/dashboard/cognitive-tests/available"
+                        )
+                          ? "text-[#9F7AEA]"
+                          : "text-white/40 group-hover/item:text-[#9F7AEA]"
+                      }`}
+                    />
+
+                    <span
+                      className={
+                        isActive(
+                          "/dashboard/cognitive-tests/available"
+                        )
+                          ? "text-white font-medium"
+                          : "group-hover/item:text-white"
+                      }
+                    >
+                      {t("sidebar.cognitivePractice", {
+                        defaultValue: "Practice tests",
+                      })}
+                    </span>
+                  </li>
+                )}
+
+                {/* Cognitive Manage */}
+                {showCognitiveAdmin && (
+                  <li
+                    className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
+                      isActive("/dashboard/cognitive-tests") &&
+                      !location.pathname.includes("/edit/") &&
+                      !location.pathname.includes("/available") &&
+                      !location.pathname.includes("/attempt/")
+                        ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
+                        : "hover:text-purple-300 hover:bg-[#9F7AEA]/10 text-white/60"
+                    }`}
+                    onClick={() =>
+                      handleNavigation("/dashboard/cognitive-tests")
+                    }
+                  >
+                    <PlusIcon className="h-4 w-4 text-white/40 group-hover/item:text-[#9F7AEA]" />
+
+                    <span className="group-hover/item:text-white">
+                      {t("sidebar.cognitiveManage", {
+                        defaultValue: "Manage tests",
+                      })}
+                    </span>
+                  </li>
+                )}
+
+                {/* Existing Cognitive Tests */}
+                {showCognitiveAdmin &&
+                  cognitiveTestsForMenu.map((ct) => (
+                    <li
+                      key={ct.cognitive_test_id}
+                      className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
+                        location.pathname ===
+                        `/dashboard/cognitive-tests/edit/${ct.cognitive_test_id}`
+                          ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
+                          : "hover:text-purple-300 hover:bg-[#9F7AEA]/10 text-white/60"
+                      }`}
+                      onClick={() =>
+                        handleNavigation(
+                          `/dashboard/cognitive-tests/edit/${ct.cognitive_test_id}`
+                        )
+                      }
+                    >
+                      <DocumentTextIcon className="h-4 w-4 text-white/40 group-hover/item:text-[#9F7AEA]" />
+
+                      <span
+                        className={`truncate max-w-[11rem] ${
+                          location.pathname ===
+                          `/dashboard/cognitive-tests/edit/${ct.cognitive_test_id}`
+                            ? "text-white font-medium"
+                            : "group-hover/item:text-white"
+                        }`}
+                        title={ct.title}
+                      >
+                        {ct.title}
+                      </span>
+                    </li>
+                  ))}
+              </ul>
+            )}
+          </li>
+        )}
+
+        {/* =====================================================
+            PROBLEM METRICS
+        ====================================================== */}
+        {showProblemMetricSection && (
+          <li>
+            <div
+              className={`flex items-center justify-between gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
+                isActiveGroup("/dashboard/problem-metrics")
+                  ? "bg-[#9F7AEA]/10"
+                  : "hover:bg-[#9F7AEA]/10"
+              }`}
+              onClick={() => toggleTestMenu("problemMetrics")}
+            >
+              <div className="flex items-center gap-2">
+                <PuzzlePieceIcon className="h-4 w-4 text-white/50 group-hover/item:text-[#9F7AEA]" />
+
+                <span className="text-white/80 group-hover/item:text-white font-medium">
+                  {t("sidebar.problemMetrics", {
+                    defaultValue: "Problem Metrics",
+                  })}
+                </span>
+              </div>
+
+              <ChevronDownIcon
+                className={`h-3.5 w-3.5 text-white/40 transition-transform duration-200 ${
+                  openTestMenu === "problemMetrics"
+                    ? "rotate-180 text-[#9F7AEA]"
+                    : ""
+                }`}
+              />
+            </div>
+
+            {openTestMenu === "problemMetrics" && (
+              <ul className="pl-6 space-y-1 mt-1">
+
+                {/* Problem Metrics Practice */}
+                {showProblemMetricStudent && (
+                  <li
+                    className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
+                      isActive(
+                        "/dashboard/problem-metrics/available"
+                      )
+                        ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
+                        : "hover:text-purple-300 hover:bg-[#9F7AEA]/10 text-white/60"
+                    }`}
+                    onClick={() =>
+                      handleNavigation(
+                        "/dashboard/problem-metrics/available"
+                      )
+                    }
+                  >
+                    <PuzzlePieceIcon
+                      className={`h-4 w-4 ${
+                        isActive(
+                          "/dashboard/problem-metrics/available"
+                        )
+                          ? "text-[#9F7AEA]"
+                          : "text-white/40 group-hover/item:text-[#9F7AEA]"
+                      }`}
+                    />
+
+                    <span
+                      className={
+                        isActive(
+                          "/dashboard/problem-metrics/available"
+                        )
+                          ? "text-white font-medium"
+                          : "group-hover/item:text-white"
+                      }
+                    >
+                      {t("sidebar.problemMetricsPractice", {
+                        defaultValue: "Practice puzzles",
+                      })}
+                    </span>
+                  </li>
+                )}
+
+                {/* Problem Metrics Manage */}
+                {showProblemMetricAdmin && (
+                  <li
+                    className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
+                      isActive("/dashboard/problem-metrics") &&
+                      !location.pathname.includes("/edit/") &&
+                      !location.pathname.includes("/available") &&
+                      !location.pathname.includes("/attempt/")
+                        ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
+                        : "hover:text-purple-300 hover:bg-[#9F7AEA]/10 text-white/60"
+                    }`}
+                    onClick={() =>
+                      handleNavigation(
+                        "/dashboard/problem-metrics"
+                      )
+                    }
+                  >
+                    <PlusIcon className="h-4 w-4 text-white/40 group-hover/item:text-[#9F7AEA]" />
+
+                    <span className="group-hover/item:text-white">
+                      {t("sidebar.problemMetricsManage", {
+                        defaultValue: "Manage puzzles",
+                      })}
+                    </span>
+                  </li>
+                )}
+
+                {/* Existing Problem Metrics */}
+                {showProblemMetricAdmin &&
+                  problemMetricsForMenu.map((metric) => (
+                    <li
+                      key={metric.problem_metric_id}
+                      className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
+                        location.pathname ===
+                        `/dashboard/problem-metrics/edit/${metric.problem_metric_id}`
+                          ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
+                          : "hover:text-purple-300 hover:bg-[#9F7AEA]/10 text-white/60"
+                      }`}
+                      onClick={() =>
+                        handleNavigation(
+                          `/dashboard/problem-metrics/edit/${metric.problem_metric_id}`
+                        )
+                      }
+                    >
+                      <DocumentTextIcon className="h-4 w-4 text-white/40 group-hover/item:text-[#9F7AEA]" />
+
+                      <span
+                        className={`truncate max-w-[11rem] ${
+                          location.pathname ===
+                          `/dashboard/problem-metrics/edit/${metric.problem_metric_id}`
+                            ? "text-white font-medium"
+                            : "group-hover/item:text-white"
+                        }`}
+                        title={metric.title}
+                      >
+                        {metric.title}
+                      </span>
+                    </li>
+                  ))}
+              </ul>
+            )}
+          </li>
+        )}
+      </ul>
+    )}
+  </div>
+)}
+
+
 
           {/* Disputes - Student, Admin (not verifyDocAdmin, not employer) */}
           {/* {((role === "student" || isBuiltInAdmin) &&

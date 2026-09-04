@@ -63,9 +63,21 @@ export interface JobApplicationsListResponse {
   status: number;
   data: JobApplication[];
   message: string;
+   pagination?: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
 }
 
 export type JobApplicationStatusFilter = "Pending" | "Accepted" | "Rejected";
+
+export interface EmployerApplicationsQueryParams {
+  status?: JobApplicationStatusFilter;
+  page?: number;
+  limit?: number;
+}
 
 export const jobApplicationApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -100,19 +112,36 @@ export const jobApplicationApi = apiSlice.injectEndpoints({
 
     // Get all applications for an employer (employer/superadmin only)
     getEmployerApplications: builder.query<
-      JobApplicationsListResponse,
-      { status?: JobApplicationStatusFilter } | void
-    >({
-      query: (arg) => {
-        const status = arg && "status" in arg ? arg.status : undefined;
-        const qs = status ? `?status=${encodeURIComponent(status)}` : "";
-        return {
-          url: `/employer/applications${qs}`,
-          method: "GET",
-        };
-      },
-      providesTags: ["Job"],
-    }),
+  JobApplicationsListResponse,
+  EmployerApplicationsQueryParams | void
+>({
+  query: (arg) => {
+    const params = new URLSearchParams();
+
+    if (arg?.status) {
+      params.append("status", arg.status);
+    }
+
+    if (arg?.page !== undefined) {
+      params.append("page", String(arg.page));
+    }
+
+    if (arg?.limit !== undefined) {
+      params.append("limit", String(arg.limit));
+    }
+
+    const queryString = params.toString();
+
+    return {
+      url: `/employer/applications${
+        queryString ? `?${queryString}` : ""
+      }`,
+      method: "GET",
+    };
+  },
+
+  providesTags: ["Job"],
+}),
 
     // Get student's own applications
     getStudentApplications: builder.query<
