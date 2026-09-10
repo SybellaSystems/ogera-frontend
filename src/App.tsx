@@ -53,6 +53,7 @@ import JobApplications from "./pages/Jobs/JobApplications";
 import ViewJobApplications from "./pages/Jobs/ViewJobApplications";
 import JobDetails from "./pages/Jobs/JobDetails";
 import MyApplications from "./pages/Jobs/MyApplications";
+import ViewAllStudentApplications from "./pages/Jobs/ViewAllStudentApplications";
 import StudentAcceptedApplications from "./pages/Jobs/StudentAcceptedApplications";
 import StudentRejectedApplications from "./pages/Jobs/StudentRejectedApplications";
 import EmployerAcceptedApplications from "./pages/Jobs/EmployerAcceptedApplications";
@@ -66,6 +67,8 @@ import AllJobReferrals from "./pages/Jobs/AllJobReferrals";
 import RecommendedJobs from "./pages/Jobs/RecommendedJobs";
 import RecommendedJobDetails from "./pages/Jobs/RecommendedJobDetails";
 import CreateReferral from "./pages/Jobs/CreateReferral";
+import ViewAllJobs from "./pages/Jobs/ViewAllJobs";
+import AllJobApplications from "./pages/Jobs/AllJobApplications";
 
 // Dispute Pages
 import Disputes from "./pages/Disputes";
@@ -140,10 +143,10 @@ function App() {
     role === "admin" || role === "superadmin" || role === "verifydocadmin"
       ? AdminLayout
       : role === "student"
-      ? StudentLayout
-      : role === "employer"
-      ? EmployerLayout
-      : AdminLayout; // Default to AdminLayout (ProtectedRoute will handle auth)
+        ? StudentLayout
+        : role === "employer"
+          ? EmployerLayout
+          : AdminLayout; // Default to AdminLayout (ProtectedRoute will handle auth)
 
   const router = createBrowserRouter([
     /** ---------------- ROOT REDIRECT ---------------- **/
@@ -163,7 +166,11 @@ function App() {
     },
     {
       path: "/auth/register",
-      element: role ? <Navigate to="/dashboard" replace /> : <Login initialView="register" />,
+      element: role ? (
+        <Navigate to="/dashboard" replace />
+      ) : (
+        <Login initialView="register" />
+      ),
     },
     { path: "/auth/forgot-password", Component: ForgotPassword },
     { path: "/auth/reset-password", Component: ResetPassword },
@@ -318,7 +325,9 @@ function App() {
             // Jobs Routes - Order matters: specific routes first, then dynamic routes
             {
               path: "jobs/create",
-              element: <ProtectedRoute allowedRoles={["employer", "superadmin"]} />,
+              element: (
+                <ProtectedRoute allowedRoles={["employer", "superadmin"]} />
+              ),
               children: [
                 {
                   index: true,
@@ -331,8 +340,14 @@ function App() {
               Component: AllJobs,
             },
             {
+              path: "jobs/view-all",
+              Component: ViewAllJobs,
+            },
+            {
               path: "jobs/unfunded",
-              element: <ProtectedRoute allowedRoles={["employer", "superadmin"]} />,
+              element: (
+                <ProtectedRoute allowedRoles={["employer", "superadmin"]} />
+              ),
               children: [
                 {
                   index: true,
@@ -357,42 +372,44 @@ function App() {
               Component: JobCategories,
             },
             {
-  path: "jobs/referrals/create",
-  element: <ProtectedRoute allowedRoles={["superadmin"]} />,
-  children: [
-    {
-      index: true,
-      Component: CreateReferral,
-    },
-  ],
-},
+              path: "jobs/referrals/create",
+              element: <ProtectedRoute allowedRoles={["superadmin"]} />,
+              children: [
+                {
+                  index: true,
+                  Component: CreateReferral,
+                },
+              ],
+            },
             {
-  path: "jobs/referrals",
-  element: <ProtectedRoute allowedRoles={["superadmin"]} />,
-  children: [
-    {
-      index: true,
-      Component: JobReferrals,
-    },
-    {
-      path: "all",
-      Component: AllJobReferrals,
-    }
-  ],
-},
-{
-  path: "jobs/referrals/:id",
-  element: <ProtectedRoute allowedRoles={["superadmin"]} />,
-  children: [
-    {
-      index: true,
-      Component: ReferralDetails,
-    },
-  ],
-},
+              path: "jobs/referrals",
+              element: <ProtectedRoute allowedRoles={["superadmin"]} />,
+              children: [
+                {
+                  index: true,
+                  Component: JobReferrals,
+                },
+                {
+                  path: "all",
+                  Component: AllJobReferrals,
+                },
+              ],
+            },
+            {
+              path: "jobs/referrals/:id",
+              element: <ProtectedRoute allowedRoles={["superadmin"]} />,
+              children: [
+                {
+                  index: true,
+                  Component: ReferralDetails,
+                },
+              ],
+            },
             {
               path: "jobs/tasks",
-              element: <ProtectedRoute allowedRoles={["employer", "superadmin"]} />,
+              element: (
+                <ProtectedRoute allowedRoles={["employer", "superadmin"]} />
+              ),
               children: [
                 {
                   index: true,
@@ -413,11 +430,18 @@ function App() {
             {
               path: "jobs/applications",
               // Employer/superadmin manage incoming applications. Students should use "My Applications".
-              element: <ProtectedRoute allowedRoles={["employer", "superadmin"]} />,
+              element: (
+                <ProtectedRoute allowedRoles={["employer", "superadmin"]} />
+              ),
               children: [
                 {
                   index: true,
                   Component: JobApplications,
+                },
+                // View all applications with status filter
+                {
+                  path: "view-all",
+                  Component: AllJobApplications,
                 },
                 {
                   path: "accepted",
@@ -429,6 +453,7 @@ function App() {
                 },
               ],
             },
+
             {
               path: "jobs/my-applications",
               element: <ProtectedRoute allowedRoles={["student"]} />,
@@ -436,6 +461,10 @@ function App() {
                 {
                   index: true,
                   Component: MyApplications,
+                },
+                {
+                  path: "view-all",
+                  Component: ViewAllStudentApplications,
                 },
                 {
                   path: "accepted",
@@ -448,20 +477,20 @@ function App() {
               ],
             },
             {
-  path: "jobs/referral-analytics",
-  element: (
-    <ProtectedRoute allowedRoles={["superadmin"]} />
-  ),
-  children: [
-    {
-      index: true,
-      Component: ReferralAnalytics,
-    },
-  ],
-},
+              path: "jobs/referral-analytics",
+              element: <ProtectedRoute allowedRoles={["superadmin"]} />,
+              children: [
+                {
+                  index: true,
+                  Component: ReferralAnalytics,
+                },
+              ],
+            },
             {
               path: "jobs/:id/edit",
-              element: <ProtectedRoute allowedRoles={["employer", "superadmin"]} />,
+              element: (
+                <ProtectedRoute allowedRoles={["employer", "superadmin"]} />
+              ),
               children: [
                 {
                   index: true,
@@ -471,7 +500,9 @@ function App() {
             },
             {
               path: "jobs/:id/tasks",
-              element: <ProtectedRoute allowedRoles={["employer", "superadmin"]} />,
+              element: (
+                <ProtectedRoute allowedRoles={["employer", "superadmin"]} />
+              ),
               children: [
                 {
                   index: true,
@@ -481,7 +512,9 @@ function App() {
             },
             {
               path: "jobs/:id/applications",
-              element: <ProtectedRoute allowedRoles={["employer", "superadmin"]} />,
+              element: (
+                <ProtectedRoute allowedRoles={["employer", "superadmin"]} />
+              ),
               children: [
                 {
                   index: true,
@@ -490,25 +523,25 @@ function App() {
               ],
             },
             {
-  path: "jobs/recommended",
-  element: <ProtectedRoute allowedRoles={["student"]} />,
-  children: [
-    {
-      index: true,
-      Component: RecommendedJobs,
-    },
-  ],
-},
-{
-  path: "jobs/recommended/:id",
-  element: <ProtectedRoute allowedRoles={["student"]} />,
-  children: [
-    {
-      index: true,
-      Component: RecommendedJobDetails,
-    },
-  ],
-},
+              path: "jobs/recommended",
+              element: <ProtectedRoute allowedRoles={["student"]} />,
+              children: [
+                {
+                  index: true,
+                  Component: RecommendedJobs,
+                },
+              ],
+            },
+            {
+              path: "jobs/recommended/:id",
+              element: <ProtectedRoute allowedRoles={["student"]} />,
+              children: [
+                {
+                  index: true,
+                  Component: RecommendedJobDetails,
+                },
+              ],
+            },
             {
               path: "jobs/:id",
               Component: JobDetails,
@@ -586,7 +619,9 @@ function App() {
             },
             {
               path: "messages",
-              element: <ProtectedRoute allowedRoles={["employer", "student"]} />,
+              element: (
+                <ProtectedRoute allowedRoles={["employer", "student"]} />
+              ),
               children: [
                 {
                   index: true,
@@ -604,7 +639,9 @@ function App() {
             },
             {
               path: "transactions/momo-payments",
-              element: <ProtectedRoute allowedRoles={["superadmin", "admin"]} />,
+              element: (
+                <ProtectedRoute allowedRoles={["superadmin", "admin"]} />
+              ),
               children: [
                 {
                   index: true,
@@ -622,7 +659,18 @@ function App() {
             },
             {
               path: "courses/analytics",
-              element: <ProtectedRoute allowedRoles={["employer", "superadmin", "superAdmin", "admin", "courseAdmin", "CourseAdmin"]} />,
+              element: (
+                <ProtectedRoute
+                  allowedRoles={[
+                    "employer",
+                    "superadmin",
+                    "superAdmin",
+                    "admin",
+                    "courseAdmin",
+                    "CourseAdmin",
+                  ]}
+                />
+              ),
               children: [
                 {
                   index: true,
@@ -632,7 +680,18 @@ function App() {
             },
             {
               path: "courses/analytics/:courseId",
-              element: <ProtectedRoute allowedRoles={["employer", "superadmin", "superAdmin", "admin", "courseAdmin", "CourseAdmin"]} />,
+              element: (
+                <ProtectedRoute
+                  allowedRoles={[
+                    "employer",
+                    "superadmin",
+                    "superAdmin",
+                    "admin",
+                    "courseAdmin",
+                    "CourseAdmin",
+                  ]}
+                />
+              ),
               children: [
                 {
                   index: true,
@@ -646,7 +705,9 @@ function App() {
             },
             {
               path: "cognitive-tests",
-              element: <ProtectedRoute allowedRoles={["superadmin", "admin"]} />,
+              element: (
+                <ProtectedRoute allowedRoles={["superadmin", "admin"]} />
+              ),
               children: [
                 {
                   index: true,
@@ -680,7 +741,9 @@ function App() {
             },
             {
               path: "academic-records",
-              element: <ProtectedRoute allowedRoles={["student", "superadmin"]} />,
+              element: (
+                <ProtectedRoute allowedRoles={["student", "superadmin"]} />
+              ),
               children: [
                 {
                   index: true,
@@ -690,7 +753,9 @@ function App() {
             },
             {
               path: "problem-metrics",
-              element: <ProtectedRoute allowedRoles={["superadmin", "admin"]} />,
+              element: (
+                <ProtectedRoute allowedRoles={["superadmin", "admin"]} />
+              ),
               children: [
                 {
                   index: true,

@@ -554,7 +554,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                           {t("sidebar.myApplications")}
                         </span>
                       </li>
-                      <li
+                      {/* <li
                         className="flex items-center gap-2 hover:text-purple-300 cursor-pointer py-2 px-2 rounded-md hover:bg-[#9F7AEA]/10 transition-all duration-200 group/item"
                         onClick={() =>
                           handleNavigation(
@@ -579,7 +579,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         <span className="text-white/60 group-hover/item:text-white transition-colors">
                           {t("sidebar.rejected")}
                         </span>
-                      </li>
+                      </li> */}
                     </>
                   )}
                   <li

@@ -146,13 +146,27 @@ export const jobApplicationApi = apiSlice.injectEndpoints({
     // Get student's own applications
     getStudentApplications: builder.query<
       JobApplicationsListResponse,
-      { status?: JobApplicationStatusFilter } | void
+      EmployerApplicationsQueryParams | void
     >({
       query: (arg) => {
-        const status = arg && "status" in arg ? arg.status : undefined;
-        const qs = status ? `?status=${encodeURIComponent(status)}` : "";
+        const params = new URLSearchParams();
+
+        if (arg?.status) {
+          params.append("status", arg.status);
+        }
+
+        if (arg?.page !== undefined) {
+          params.append("page", String(arg.page));
+        }
+
+        if (arg?.limit !== undefined) {
+          params.append("limit", String(arg.limit));
+        }
+
+        const queryString = params.toString();
+
         return {
-          url: `/student/applications${qs}`,
+          url: `/student/applications${queryString ? `?${queryString}` : ""}`,
           method: "GET",
         };
       },

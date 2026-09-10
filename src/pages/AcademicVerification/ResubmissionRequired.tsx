@@ -5,6 +5,18 @@ import type { AcademicVerification } from "../../services/api/academicVerificati
 import { getAcademicVerificationsByStatus } from "../../services/api/academicVerificationApi";
 import api from "../../services/api/axiosInstance";
 
+const getDocumentName = (documentPath?: string | null): string => {
+  if (!documentPath) return "Document";
+
+  const fileName = documentPath.split(/[\\/]/).pop() || "Document";
+
+  try {
+    return decodeURIComponent(fileName).replace(/^\d+-/, "");
+  } catch {
+    return fileName.replace(/^\d+-/, "");
+  }
+};
+
 const ResubmissionRequired: React.FC = () => {
   const { t } = useTranslation();
   const [items, setItems] = useState<AcademicVerification[]>([]);
@@ -176,7 +188,7 @@ const ResubmissionRequired: React.FC = () => {
                       </td>
                       <td className="px-4 py-3">
                         <span className="text-gray-700 text-xs truncate max-w-[150px] block">
-                          {(item.document_path?.split('/').pop() || "Document").replace(/^\d+-/, '')}
+                          {getDocumentName(item.document_path)}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-xs max-w-[200px]">

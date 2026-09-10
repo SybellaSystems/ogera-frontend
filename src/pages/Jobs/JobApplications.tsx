@@ -11,18 +11,14 @@ import {
   XCircleIcon,
   ClockIcon,
   FunnelIcon,
-  EnvelopeIcon,
-  MapPinIcon,
-  CurrencyDollarIcon,
-  DocumentTextIcon,
 } from "@heroicons/react/24/outline";
 import Loader from "../../components/Loader";
 import toast from "react-hot-toast";
 import api from "../../services/api/axiosInstance";
-import TrustScoreCard from "../../components/TrustScoreCard";
-import { StudentBadgeChip } from "../../components/Profile/StudentBadgeCard";
+
 import type { TrustScore, TrustLevel } from "../../services/api/trustScoreApi";
 import CardsPerRowSelector from "../../components/Jobs/CardsPerRowSelector";
+import ApplicationJobCard from "../../components/Jobs/ApplicationJobCard";
 
 function levelFromNumericScore(score: number): TrustLevel {
   if (score >= 85) return "Exceptional";
@@ -69,15 +65,15 @@ const JobApplications: React.FC = () => {
     "All" | "Pending" | "Accepted" | "Rejected"
   >("All");
   const [currentPage, setCurrentPage] = useState(1);
-  
-const [cardsPerRow, setCardsPerRow] = useState<2 | 3>(2);
 
-  const pageLimit = 20;
+  const [cardsPerRow, setCardsPerRow] = useState<2 | 3>(2);
+  const [, setShowViewAllMenu] = useState(false);
+
+  const pageLimit = 10;
 
   const {
     data: applicationsData,
     isLoading,
-    isFetching,
     error,
     refetch,
   } = useGetEmployerApplicationsQuery({
@@ -119,6 +115,13 @@ const [cardsPerRow, setCardsPerRow] = useState<2 | 3>(2);
       default:
         return status;
     }
+  };
+
+  const handleViewAllStatus = (
+    status: "all" | "pending" | "accepted" | "rejected",
+  ) => {
+    navigate(`/dashboard/jobs/applications/view-all?status=${status}`);
+    setShowViewAllMenu(false);
   };
 
   const handleStatusUpdate = async (
@@ -258,10 +261,10 @@ const [cardsPerRow, setCardsPerRow] = useState<2 | 3>(2);
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100 animate-fadeIn">
+    <div className="min-h-screen animate-fadeIn">
       {/* Header Section */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="px-6 py-8">
+      <div className="bg-white">
+        <div className="px-6 ">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
             <div>
               <div className="flex items-center gap-3 mb-2">
@@ -289,7 +292,7 @@ const [cardsPerRow, setCardsPerRow] = useState<2 | 3>(2);
 
       {/* Statistics Section */}
       {totalCount > 0 && (
-        <div className="px-6 py-8 max-w-7xl mx-auto">
+        <div className="px-6 py-4 max-w-7xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {/* Total Applications */}
             <div
@@ -386,364 +389,127 @@ const [cardsPerRow, setCardsPerRow] = useState<2 | 3>(2);
         </div>
       )}
 
-      {applications.length === 0 ? (
-        <div className="px-6 py-16">
-          <div className="max-w-md mx-auto bg-white rounded-xl p-12 shadow-sm border border-gray-200 text-center">
-            <div className="h-16 w-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
+      <div className="px-6 py-3 max-w-7xl mx-auto">
+        {/* Filter and Sort Section */}
+        <div className="mb-2 space-y-4">
+          {/* Filter Tabs */}
+          <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+            <div className="flex items-center gap-2 mb-4">
+              <FunnelIcon className="h-5 w-5 text-gray-600" />
+              <span className="text-sm font-semibold text-gray-700">
+                Filter by Status
+              </span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {(["All", "Pending", "Accepted", "Rejected"] as const).map(
+                (status) => (
+                  <button
+                    key={status}
+                    onClick={() => {
+                      setFilterStatus(status);
+                      setCurrentPage(1);
+                    }}
+                    className={`px-4 py-2 rounded-lg font-medium transition-all text-sm ${
+                      filterStatus === status
+                        ? status === "All"
+                          ? "bg-purple-500 text-white shadow-md"
+                          : status === "Pending"
+                            ? "bg-orange-500 text-white shadow-md"
+                            : status === "Accepted"
+                              ? "bg-green-500 text-white shadow-md"
+                              : "bg-red-500 text-white shadow-md"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    }`}
+                  >
+                    {status}
+                  </button>
+                ),
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Result Count + View All + Cards Per Row */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          {/* Left Side */}
+          <div className="flex items-center gap-3 flex-wrap">
+            {/* Result Count */}
+            <div className="text-sm text-gray-600">
+              Showing{" "}
+              <span className="font-semibold text-gray-900">
+                {applications.length}
+              </span>{" "}
+              of{" "}
+              <span className="font-semibold text-gray-900">
+                {pagination?.total || 0}
+              </span>{" "}
+              applications
+            </div>
+
+            {/* View All Status Button */}
+            <button
+              type="button"
+              onClick={() =>
+                handleViewAllStatus(
+                  filterStatus === "All"
+                    ? "all"
+                    : (filterStatus.toLowerCase() as
+                        | "pending"
+                        | "accepted"
+                        | "rejected"),
+                )
+              }
+              className="inline-flex items-center cursor-pointer gap-1.5 rounded-lg border border-violet-200 bg-violet-50 px-3 py-1.5 text-xs font-bold text-violet-700 transition hover:bg-violet-100 active:scale-95"
+            >
+              {filterStatus === "All" ? "View All" : `View All ${filterStatus}`}
+            </button>
+          </div>
+
+          {/* Cards Per Row */}
+          <CardsPerRowSelector
+            cardsPerRow={cardsPerRow}
+            setCardsPerRow={setCardsPerRow}
+          />
+        </div>
+
+        {applications.length === 0 ? (
+          <div className="mt-6 rounded-2xl border border-gray-200 bg-white p-12 text-center shadow-sm">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
               <BriefcaseIcon className="h-8 w-8 text-gray-400" />
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              {t("pages.jobs.noApplicationsYet")}
+            <h3 className="text-2xl font-bold text-gray-900">
+              No applications yet
             </h3>
-            <p className="text-gray-600 text-sm">
-              {t("pages.jobs.noApplicationsCheckBack")}
+            <p className="mt-3 text-base text-gray-600">
+              You haven&apos;t received any job applications yet. Check back
+              later!
             </p>
           </div>
-        </div>
-      ) : (
-        <div className="px-6 py-8 max-w-7xl mx-auto">
-          {/* Filter and Sort Section */}
-          <div className="mb-2 space-y-4">
-            {/* Filter Tabs */}
-            <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
-              <div className="flex items-center gap-2 mb-4">
-                <FunnelIcon className="h-5 w-5 text-gray-600" />
-                <span className="text-sm font-semibold text-gray-700">
-                  Filter by Status
-                </span>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {(["All", "Pending", "Accepted", "Rejected"] as const).map(
-                  (status) => (
-                    <button
-                      key={status}
-                      onClick={() => {
-                        setFilterStatus(status);
-                        setCurrentPage(1);
-                      }}
-                      className={`px-4 py-2 rounded-lg font-medium transition-all text-sm ${
-                        filterStatus === status
-                          ? status === "All"
-                            ? "bg-purple-500 text-white shadow-md"
-                            : status === "Pending"
-                              ? "bg-orange-500 text-white shadow-md"
-                              : status === "Accepted"
-                                ? "bg-green-500 text-white shadow-md"
-                                : "bg-red-500 text-white shadow-md"
-                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                      }`}
-                    >
-                      {status}
-                    </button>
-                  ),
-                )}
-              </div>
-            </div>
-            </div>
-
-            {/* Result Count + Cards Per Row */}
-<div className="flex items-center justify-between gap-4">
-  {/* Result Count */}
-  <div className="text-sm text-gray-600">
-    Showing{" "}
-    <span className="font-semibold text-gray-900">
-      {applications.length}
-    </span>{" "}
-    of{" "}
-    <span className="font-semibold text-gray-900">
-      {pagination?.total || 0}
-    </span>{" "}
-    applications
-  </div>
-
-  {/* Cards Per Row - Desktop Only */}
-  <CardsPerRowSelector
-  cardsPerRow={cardsPerRow}
-  setCardsPerRow={setCardsPerRow}
-/>
-</div>
-
-          {/* Applications Grid */}
-         {applications.length === 0 ? (
-  <div className="text-center py-12">
-    <BriefcaseIcon className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-
-    <p className="text-gray-600 font-medium">
-      No applications with status: {filterStatus}
-    </p>
-  </div>
-) : (
-  <>
-    {/* Applications Grid */}
-    <div
-      className={`grid grid-cols-1 md:grid-cols-2 gap-4 ${
-        cardsPerRow === 3
-          ? "lg:grid-cols-3"
-          : "lg:grid-cols-2"
-      }`}
-    >
-      {applications.map((application) => (
-        <div
-          key={application.application_id}
-          className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-purple-300 transition-all overflow-hidden group"
-        >
-          {/* Status Bar */}
+        ) : (
           <div
-            className={`h-1.5 ${
-              application.status === "Accepted"
-                ? "bg-green-500"
-                : application.status === "Rejected"
-                  ? "bg-red-500"
-                  : "bg-orange-500"
+            className={`grid grid-cols-1 md:grid-cols-2 gap-4 ${
+              cardsPerRow === 3 ? "lg:grid-cols-3" : "lg:grid-cols-2"
             }`}
-          />
-
-          <div className="p-4">
-            {/* Student Info Section */}
-            <div className="flex gap-3 mb-4 pb-4 border-b border-gray-100">
-              <div className="h-11 w-11 rounded-lg bg-linear-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm shrink-0 group-hover:shadow-md transition-shadow">
-                {application.student?.full_name?.charAt(0) || "S"}
-              </div>
-
-              <div className="flex-1 min-w-0">
-                <h3 className="text-base font-semibold text-gray-900 truncate flex items-center gap-2 flex-wrap">
-                  {application.student?.full_name ||
-                    t("pages.jobs.unknownStudent")}
-
-                  {(application.student as any)?.badge && (
-                    <StudentBadgeChip
-                      badge={(application.student as any).badge}
-                    />
-                  )}
-                </h3>
-
-                <div className="flex items-center gap-1 text-gray-600 text-xs mb-1">
-                  <EnvelopeIcon className="h-3 w-3 text-gray-400 shrink-0" />
-
-                  <span className="truncate">
-                    {application.student?.email ||
-                      t("pages.jobs.noEmail")}
-                  </span>
-                </div>
-
-                {application.student?.mobile_number && (
-                  <p className="text-xs text-gray-600">
-                    📞 {application.student.mobile_number}
-                  </p>
-                )}
-
-                {(() => {
-                  const ts = application.student
-                    ? trustScoreFromStudentUser(application.student)
-                    : null;
-
-                  return ts ? (
-                    <div className="mt-1">
-                      <TrustScoreCard
-                        variant="compact"
-                        trustScore={ts}
-                      />
-                    </div>
-                  ) : (
-                    <p className="text-xs text-gray-400 mt-1">
-                      {t("pages.jobs.trustScoreNotCalculated")}
-                    </p>
-                  );
-                })()}
-              </div>
-            </div>
-
-            {/* Job Details Section */}
-            <div className="space-y-3 mb-4 pb-4 border-b border-gray-100">
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <BriefcaseIcon className="h-4 w-4 text-purple-600 shrink-0" />
-
-                  <span className="text-gray-700 font-semibold text-sm">
-                    {application.job?.job_title ||
-                      t("pages.jobs.unknownJob")}
-                  </span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <div className="flex items-center gap-2">
-                  <MapPinIcon className="h-3.5 w-3.5 text-gray-400 shrink-0" />
-
-                  <span className="text-gray-600 truncate">
-                    {application.job?.location || "N/A"}
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <CurrencyDollarIcon className="h-3.5 w-3.5 text-gray-400 shrink-0" />
-
-                  <span className="text-gray-600">
-                    $
-                    {application.job?.budget?.toLocaleString() ||
-                      "N/A"}
-                  </span>
-                </div>
-              </div>
-
-              {application.cover_letter && (
-                <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
-                  <p className="text-xs font-semibold text-gray-700 mb-1 uppercase tracking-wide">
-                    {t("pages.jobs.coverLetter")}
-                  </p>
-
-                  <p className="text-xs text-gray-600 line-clamp-2 leading-relaxed">
-                    {application.cover_letter}
-                  </p>
-                </div>
-              )}
-
-              {application.resume_url && (
-                <button
-                  onClick={() =>
-                    handleViewResume(application.resume_url!)
-                  }
-                  className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-500 font-semibold rounded-lg transition-colors text-xs border border-blue-200"
-                >
-                  <DocumentTextIcon className="h-4 w-4" />
-                  {t("pages.jobs.viewResume")}
-                </button>
-              )}
-            </div>
-
-            {/* Footer Section */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-              <div className="flex flex-col gap-1.5 flex-1">
-                <div className="flex items-center gap-2">
-                  {getStatusIcon(application.status)}
-
-                  <span
-                    className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${getStatusColor(
-                      application.status,
-                    )}`}
-                  >
-                    {getStatusLabel(application.status)}
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-1 text-xs text-gray-500">
-                  <ClockIcon className="h-3 w-3" />
-                  <span>
-                    {formatDate(application.applied_at)}
-                  </span>
-                </div>
-
-                {application.reviewed_at && (
-                  <p className="text-xs text-gray-500">
-                    ✓ {t("pages.jobs.reviewed")}:{" "}
-                    {formatDate(application.reviewed_at)}
-                  </p>
-                )}
-              </div>
-
-              {application.status === "Pending" && (
-                <div className="flex gap-2 w-full sm:w-auto">
-                  <button
-                    onClick={() =>
-                      handleStatusUpdate(
-                        application.application_id,
-                        "Accepted",
-                      )
-                    }
-                    disabled={
-                      isUpdating &&
-                      updatingId ===
-                        `${application.application_id}_Accepted`
-                    }
-                    className="flex-1 sm:flex-none px-3 py-1.5 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white rounded-lg font-semibold transition text-xs whitespace-nowrap cursor-pointer"
-                  >
-                    {isUpdating &&
-                    updatingId ===
-                      `${application.application_id}_Accepted`
-                      ? t("pages.jobs.updating")
-                      : t("pages.jobs.accept")}
-                  </button>
-
-                  <button
-                    onClick={() =>
-                      handleStatusUpdate(
-                        application.application_id,
-                        "Rejected",
-                      )
-                    }
-                    disabled={
-                      isUpdating &&
-                      updatingId ===
-                        `${application.application_id}_Rejected`
-                    }
-                    className="flex-1 sm:flex-none px-3 py-1.5 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white rounded-lg font-semibold transition text-xs whitespace-nowrap cursor-pointer"
-                  >
-                    {isUpdating &&
-                    updatingId ===
-                      `${application.application_id}_Rejected`
-                      ? t("pages.jobs.updating")
-                      : t("pages.jobs.reject")}
-                  </button>
-                </div>
-              )}
-            </div>
+          >
+            {applications.map((application) => (
+              <ApplicationJobCard
+                key={application.application_id}
+                application={application}
+                isUpdating={isUpdating}
+                updatingId={updatingId}
+                onStatusUpdate={handleStatusUpdate}
+                onViewResume={handleViewResume}
+                getStatusLabel={getStatusLabel}
+                getStatusColor={getStatusColor}
+                getStatusIcon={getStatusIcon}
+                formatDate={formatDate}
+                trustScoreFromStudentUser={trustScoreFromStudentUser}
+                t={t}
+              />
+            ))}
           </div>
-        </div>
-      ))}
-    </div>
-
-    {/* Pagination - unchanged */}
-    {pagination && pagination.totalPages > 1 && (
-      <div className="flex items-center justify-center gap-2 mt-8">
-        <button
-          onClick={() =>
-            setCurrentPage((prev) => Math.max(prev - 1, 1))
-          }
-          disabled={currentPage === 1 || isFetching}
-          className="px-4 py-2 rounded-lg border border-gray-200 bg-white text-gray-700 font-medium text-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Previous
-        </button>
-
-        <div className="flex items-center gap-1">
-          {Array.from(
-            { length: pagination.totalPages },
-            (_, index) => index + 1,
-          ).map((page) => (
-            <button
-              key={page}
-              onClick={() => setCurrentPage(page)}
-              disabled={isFetching}
-              className={`min-w-9 h-9 px-3 rounded-lg text-sm font-medium transition ${
-                currentPage === page
-                  ? "bg-purple-600 text-white"
-                  : "bg-white border border-gray-200 text-gray-700 hover:bg-gray-50"
-              }`}
-            >
-              {page}
-            </button>
-          ))}
-        </div>
-
-        <button
-          onClick={() =>
-            setCurrentPage((prev) =>
-              Math.min(prev + 1, pagination.totalPages),
-            )
-          }
-          disabled={
-            currentPage === pagination.totalPages || isFetching
-          }
-          className="px-4 py-2 rounded-lg border border-gray-200 bg-white text-gray-700 font-medium text-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Next
-        </button>
+        )}
       </div>
-    )}
-  </>
-)}
-        </div>
-      )}
     </div>
   );
 };

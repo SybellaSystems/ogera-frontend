@@ -36,6 +36,18 @@ const PendingReviews: React.FC = () => {
   const [viewerBlob, setViewerBlob] = useState<Blob | null>(null);
   const [viewerContentType, setViewerContentType] = useState<string | null>(null);
 
+  const getDocumentName = (documentPath?: string | null): string => {
+    if (!documentPath) return "Document";
+
+    const fileName = documentPath.split(/[\\/]/).pop() || "Document";
+
+    try {
+      return decodeURIComponent(fileName).replace(/^\d+-/, "");
+    } catch {
+      return fileName.replace(/^\d+-/, "");
+    }
+  };
+
   // ---------- helpers ----------
   const loadMyVerification = async () => {
     try {
@@ -345,7 +357,7 @@ const PendingReviews: React.FC = () => {
                               <DocumentCheckIcon className="w-4 h-4 text-[#7f56d9]" />
                             </div>
                             <span className="font-medium text-gray-800 truncate max-w-[200px]">
-                              {(doc.document_path?.split('/').pop() || "Document").replace(/^\d+-/, '')}
+                              {getDocumentName(doc.document_path)}
                             </span>
                           </div>
                         </td>
