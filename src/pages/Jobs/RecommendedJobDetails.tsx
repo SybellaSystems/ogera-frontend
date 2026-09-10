@@ -154,7 +154,7 @@ const RecommendedJobDetails: React.FC = () => {
    */
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
+      <div className="min-h-full bg-white p-6">
         <div className="mx-auto max-w-4xl">
           <button
             type="button"
@@ -186,8 +186,8 @@ const RecommendedJobDetails: React.FC = () => {
     !referral
   ) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="mx-auto max-w-4xl">
+      <div className="min-h-full bg-white">
+        <div className="">
           <button
             type="button"
             onClick={() =>
@@ -195,7 +195,7 @@ const RecommendedJobDetails: React.FC = () => {
                 "/dashboard/jobs/recommended",
               )
             }
-            className="mb-6 text-sm font-medium text-blue-600 hover:text-blue-800"
+            className="text-sm font-medium text-blue-600 hover:text-blue-800"
           >
             ← Back to Recommended Jobs
           </button>
@@ -239,7 +239,7 @@ const RecommendedJobDetails: React.FC = () => {
     referral.permission_status !== "Approved"
   ) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
+      <div className="min-h-full bg-white p-6">
         <div className="mx-auto max-w-4xl">
           <button
             type="button"
@@ -281,8 +281,8 @@ const RecommendedJobDetails: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-slate-50 px-3 py-5 sm:px-6 sm:py-6 lg:py-10">
-      <div className="mx-auto max-w-4xl">
+    <div className="min-h-full overflow-x-hidden bg-white px-3 pb-5 sm:px-6 sm:pb-6 lg:pb-10">
+      <div className="">
         <button
           type="button"
           onClick={() =>
@@ -290,24 +290,24 @@ const RecommendedJobDetails: React.FC = () => {
               "/dashboard/jobs/recommended",
             )
           }
-          className="mb-6 inline-flex text-sm font-semibold text-indigo-600 transition hover:text-indigo-800"
+          className="inline-flex mb-2 text-sm font-semibold text-purple-500 transition hover:text-purple-700"
         >
           ← Back to Recommended Jobs
         </button>
 
-        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6 md:p-8">
+        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5 md:p-6">
           {/* Header */}
           <div className="flex min-w-0 flex-row items-start justify-between gap-3 sm:gap-4">
             <div className="min-w-0">
-              <h1 className="wrap-break-word text-2xl -mt-2 font-bold tracking-tight text-slate-900 md:text-3xl">
+              <h1 className="wrap-break-word text-xl font-bold tracking-tight text-slate-900 md:text-2xl">
                 {referral.title}
               </h1>
 
-             <div className="mt-4 flex min-w-0 flex-wrap items-center gap-x-4 gap-y-3 sm:gap-x-6">
+             <div className="mt-2 flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2 sm:gap-x-5">
                   {/* Company */}
                   <div className="flex items-center gap-2">
                     <BuildingOffice2Icon className="h-4 w-4 text-purple-500" />
-                    <span className="min-w-0 wrap-break-word text-lg font-medium text-gray-700">
+                    <span className="min-w-0 wrap-break-word text-base font-medium text-gray-700">
                       {referral.company}
                     </span>
                   </div>
@@ -315,7 +315,7 @@ const RecommendedJobDetails: React.FC = () => {
                   {/* Location */}
                   <div className="flex items-center gap-2">
                     <MapPinIcon className="h-4 w-4 text-purple-500" />
-                    <span className="min-w-0 wrap-break-word text-lg text-gray-600">
+                    <span className="min-w-0 wrap-break-word text-base text-gray-600">
                       {referral.location}
                     </span>
                   </div>
@@ -323,7 +323,7 @@ const RecommendedJobDetails: React.FC = () => {
                   {/* Job Type */}
                   <div className="flex items-center gap-2">
                     <BriefcaseIcon className="h-4 w-4 text-purple-500" />
-                    <span className="min-w-0 wrap-break-word text-lg text-gray-600">{referral.employment_type || "Not specified"}</span>
+                    <span className="min-w-0 wrap-break-word text-base text-gray-600">{referral.employment_type || "Not specified"}</span>
                   </div>
                 </div>
             </div>
@@ -333,58 +333,58 @@ const RecommendedJobDetails: React.FC = () => {
             </span>
           </div>
 
-          <div className="mt-8 grid items-stretch gap-6 sm:gap-8 lg:grid-cols-2">
+          <div className="mt-4 grid items-stretch gap-4 sm:gap-5 lg:grid-cols-2">
           {/* Description */}
-          <div className="order-2 grid min-h-0 grid-rows-[auto_minmax(0,1fr)] p-0 lg:order-2 lg:h-full lg:p-5">
+          <div className="order-2 grid min-h-0 grid-rows-[auto_minmax(0,1fr)] p-0 lg:order-2 lg:h-full lg:p-3">
             <h2 className="text-lg font-bold text-slate-800">
               About this opportunity
             </h2>
 
-            <p className="mt-3 h-auto min-h-0 overflow-y-visible rounded-xl border border-purple-200 bg-purple-50 px-4 py-4 whitespace-pre-line wrap-break-word text-sm leading-7 text-slate-600 lg:h-full lg:overflow-y-auto">
+            <p className="mt-2 h-auto min-h-0 overflow-visible rounded-xl border border-purple-200 bg-purple-50 px-3 py-3 whitespace-pre-line wrap-break-word text-sm leading-6 text-slate-600">
               {referral.description}
             </p>
           </div>
 
           {/* Opportunity Information */}
-          <div className="order-1 grid gap-3 border-t border-slate-100 pt-6 sm:grid-cols-2 lg:order-1">
-            <div className="rounded-lg bg-purple-50 p-4">
+          <div className="order-1 grid gap-2 border-t border-slate-100 pt-3 sm:grid-cols-2 lg:order-1">
+            <div className="rounded-lg bg-purple-50 p-3">
               <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
                 Category
               </p>
 
-                <p className="mt-2 wrap-break-word text-sm font-semibold text-slate-700">
+                <p className="mt-1 wrap-break-word text-sm font-semibold text-slate-700">
                 {referral.category ||
                   "Not specified"}
               </p>
             </div>
 
-            <div className="rounded-lg bg-purple-50 p-4">
+            <div className="rounded-lg bg-purple-50 p-3">
               <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
                 Source
               </p>
 
-                <p className="mt-2 wrap-break-word text-sm font-semibold text-slate-700">
+                <p className="mt-1 wrap-break-word text-sm font-semibold text-slate-700">
                 {referral.source ||
                   "External employer"}
               </p>
             </div>
 
-            <div className="rounded-lg bg-purple-50 p-4">
+            <div className="rounded-lg bg-purple-50 p-3">
               <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
                 Deadline
               </p>
 
-                <p className="mt-2 wrap-break-word text-sm font-semibold text-slate-700">
+                <p className="mt-1 wrap-break-word text-sm font-semibold text-slate-700">
                 {referral.expiry_date ? referral.expiry_date.split("T")[0] : "Check original posting"}
               </p>
             </div>
 
-            <div className="rounded-lg bg-purple-50 p-4">
+            <div className="rounded-lg bg-purple-50 p-3">
               <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
                 Referral Status
               </p>
 
-                <p className="mt-2 wrap-break-word text-sm font-semibold capitalize text-green-600">
+                <p className="mt-1 wrap-break-word text-sm font-semibold capitalize text-green-600">
                 {referral.status}
               </p>
             </div>
@@ -392,7 +392,7 @@ const RecommendedJobDetails: React.FC = () => {
           </div>
 
           {/* External Application Notice */}
-          <div className="mt-8 rounded-xl border border-purple-200 bg-purple-100 p-4">
+          <div className="mt-4 rounded-xl border border-purple-200 bg-purple-100 p-3">
             <p className="wrap-break-word text-sm leading-6 text-purple-800">
               You will complete your application on the original
               employer or job platform. Ogera does not collect your
@@ -401,7 +401,7 @@ const RecommendedJobDetails: React.FC = () => {
           </div>
 
           {/* Application Actions */}
-          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+          <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
             <a
               href={
                 referral.original_url ||
@@ -410,7 +410,7 @@ const RecommendedJobDetails: React.FC = () => {
               target="_blank"
               rel="noopener noreferrer"
               onClick={handleApplyClick}
-              className="inline-flex w-full items-center justify-center rounded-lg bg-purple-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 sm:w-auto"
+              className="inline-flex w-full items-center justify-center rounded-lg bg-purple-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 sm:w-auto"
             >
               Apply on Original Site
             </a>
@@ -419,7 +419,7 @@ const RecommendedJobDetails: React.FC = () => {
               type="button"
               onClick={handleReportApplication}
               disabled={reportedApplication}
-              className={`w-full rounded-lg border px-5 py-3 text-sm font-semibold transition sm:w-auto ${
+              className={`w-full rounded-lg border px-5 py-2.5 text-sm font-semibold transition sm:w-auto ${
                 reportedApplication
                   ? "cursor-not-allowed border-emerald-200 bg-emerald-50 text-emerald-600"
                   : "border-emerald-300 text-emerald-700 hover:bg-emerald-50"
@@ -437,7 +437,7 @@ const RecommendedJobDetails: React.FC = () => {
                   "/dashboard/jobs/recommended",
                 )
               }
-              className="w-full rounded-lg border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 sm:w-auto"
+              className="w-full rounded-lg border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 sm:w-auto"
             >
               Back to Opportunities
             </button>

@@ -82,14 +82,14 @@ const TrustScoreCard: React.FC<TrustScoreCardProps> = ({
     if (score >= 85) return "bg-green-500";
     if (score >= 70) return "bg-blue-500";
     if (score >= 55) return "bg-orange-500";
-    return "bg-red-500";
+    return "bg-red-400";
   };
 
   const getScoreColor = (score: number) => {
-    if (score >= 85) return "text-green-500";
-    if (score >= 70) return "text-blue-500";
-    if (score >= 55) return "text-orange-500";
-    return "text-red-500";
+    if (score >= 85) return "text-green-400";
+    if (score >= 70) return "text-blue-400";
+    if (score >= 55) return "text-orange-400";
+    return "text-red-400";
   };
 
   if (variant === "compact") {
@@ -165,7 +165,7 @@ const TrustScoreCard: React.FC<TrustScoreCardProps> = ({
             [
               ["intelligence", trustScore.intelligence_percent, "#6366f1"],
               ["experience", trustScore.experience_percent, "#8b5cf6"],
-              ["interaction", trustScore.interaction_percent, "#10b981"],
+              ["interaction", trustScore.interaction_percent, "#e7b40d"],
             ] as const
           ).map(([key, pct, color]) => (
             <div key={key}>

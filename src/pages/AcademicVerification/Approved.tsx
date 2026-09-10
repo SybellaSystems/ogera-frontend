@@ -5,6 +5,32 @@ import type { AcademicVerification } from "../../services/api/academicVerificati
 import { getAcademicVerificationsByStatus } from "../../services/api/academicVerificationApi";
 import api from "../../services/api/axiosInstance";
 
+const getDocumentName = (documentPath?: string | null): string => {
+  if (!documentPath) return "Document";
+
+  const fileName = documentPath.split(/[\\/]/).pop() || "Document";
+
+  try {
+    return decodeURIComponent(fileName).replace(/^\d+-/, "");
+  } catch {
+    return fileName.replace(/^\d+-/, "");
+  }
+};
+
+const getStudentName = (item: AcademicVerification): string => {
+  const record = item as AcademicVerification & {
+    student?: { full_name?: string };
+    full_name?: string;
+  };
+
+  return (
+    record.user?.full_name ||
+    record.student?.full_name ||
+    record.full_name ||
+    "Unknown"
+  );
+};
+
 const Approved: React.FC = () => {
   const { t } = useTranslation();
   const [approved, setApproved] = useState<AcademicVerification[]>([]);
@@ -171,18 +197,18 @@ const Approved: React.FC = () => {
                         <div className="flex items-center gap-2">
                           <div className="w-7 h-7 bg-[#7f56d9] rounded-full flex items-center justify-center flex-shrink-0">
                             <span className="text-white font-bold text-[10px]">
-                              {(item.user?.full_name || "U").split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
+                              {getStudentName(item).split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
                             </span>
                           </div>
                           <div>
-                            <p className="font-medium text-gray-800 text-sm">{item.user?.full_name || "Unknown"}</p>
+                            <p className="font-medium text-gray-800 text-sm">{getStudentName(item)}</p>
                             <p className="text-gray-400 text-[10px]">{item.user?.email || ""}</p>
                           </div>
                         </div>
                       </td>
                       <td className="px-4 py-3">
                         <span className="text-gray-700 text-xs truncate max-w-[180px] block">
-                          {(item.document_path?.split('/').pop() || "Document").replace(/^\d+-/, '')}
+                          {getDocumentName(item.document_path)}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-gray-600 text-xs">{item.reviewer?.full_name || "—"}</td>
