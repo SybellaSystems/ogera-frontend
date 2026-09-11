@@ -9,6 +9,7 @@ import {
   ChartBarIcon,
   GlobeAltIcon,
   LockClosedIcon,
+  FunnelIcon,
 } from "@heroicons/react/24/outline";
 import {
   useListProblemMetricsAdminQuery,
@@ -20,6 +21,7 @@ import type { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import ConfirmDeleteModal from "../../components/AssessmentAdmin/ConfirmDeleteModal";
 import AssessmentHubCard from "../../components/AssessmentAdmin/AssessmentHubCard";
 import AssessmentPageLoading from "../../components/AssessmentAdmin/AssessmentPageLoading";
+import PaginationControls from "../../components/Jobs/PaginationControls";
 
 const CATEGORY_LABELS: Record<ProblemMetricCategory, string> = {
   visual_puzzle: "Visual puzzle",
@@ -30,7 +32,9 @@ const CATEGORY_LABELS: Record<ProblemMetricCategory, string> = {
 
 const ProblemMetricsHub: React.FC = () => {
   const navigate = useNavigate();
-  const { data, isLoading } = useListProblemMetricsAdminQuery();
+  const [categoryFilter, setCategoryFilter] = useState<ProblemMetricCategory | undefined>(undefined);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageLimit = 1;
   const [createMetric, { isLoading: creating }] = useCreateProblemMetricMutation();
   const [deleteMetric, { isLoading: deleting }] = useDeleteProblemMetricMutation();
 
@@ -41,26 +45,23 @@ const ProblemMetricsHub: React.FC = () => {
   const [category, setCategory] = useState<ProblemMetricCategory>("visual_puzzle");
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null);
 
-  const metrics = data?.data ?? [];
+  const { data, isLoading, isFetching } = useListProblemMetricsAdminQuery({
+    category: categoryFilter,
+    search: search.trim() || undefined,
+    page: currentPage,
+    limit: pageLimit,
+  });
 
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    if (!q) return metrics;
-    return metrics.filter(
-      (m) =>
-        m.title.toLowerCase().includes(q) ||
-        m.category.replaceAll("_", " ").toLowerCase().includes(q) ||
-        (m.description?.toLowerCase().includes(q) ?? false)
-    );
-  }, [metrics, search]);
+  const metrics = data?.data ?? [];
+  const filtered = metrics;
 
   const stats = useMemo(
     () => ({
-      total: metrics.length,
+      total: data?.pagination?.total ?? metrics.length,
       published: metrics.filter((m) => m.published).length,
       draft: metrics.filter((m) => !m.published).length,
     }),
-    [metrics]
+    [metrics, data?.pagination?.total]
   );
 
   const handleCreate = async () => {
@@ -127,22 +128,40 @@ const ProblemMetricsHub: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {[
-          { label: "Total sets", value: stats.total, icon: ChartBarIcon, color: "text-indigo-600" },
-          { label: "Published", value: stats.published, icon: GlobeAltIcon, color: "text-emerald-600" },
-          { label: "Drafts", value: stats.draft, icon: LockClosedIcon, color: "text-amber-600" },
-        ].map(({ label, value, icon: Icon, color }) => (
+          {
+            label: "Total tests",
+            value: stats.total,
+            icon: ChartBarIcon,
+            iconColor: "bg-[#7F56D9]",
+            cardColor: "bg-[#f8f7ff] border-[#eeebff]",
+          },
+          {
+            label: "Published",
+            value: stats.published,
+            icon: GlobeAltIcon,
+            iconColor: "bg-emerald-500",
+            cardColor: "bg-[#f2fcf8] border-[#e2f5ed]",
+          },
+          {
+            label: "Drafts",
+            value: stats.draft,
+            icon: LockClosedIcon,
+            iconColor: "bg-amber-500",
+            cardColor: "bg-[#f4f9fd] border-[#e6f0f8]",
+          },
+        ].map(({ label, value, icon: Icon, iconColor, cardColor }) => (
           <div
             key={label}
-            className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900/50 p-5 flex items-center gap-4 shadow-sm"
+            className={`rounded-xl border p-5 flex items-center gap-3 shadow-sm ${cardColor}`}
           >
-            <div className={`p-2.5 rounded-xl bg-gray-50 dark:bg-gray-800 ${color}`}>
-              <Icon className="h-6 w-6" />
+            <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white shadow-sm ${iconColor}`}>
+              <Icon className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{value}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">{label}</p>
+              <p className="text-sm font-semibold leading-tight text-gray-700">{label}</p>
+              <p className="mt-1 text-2xl font-bold leading-none text-gray-900">{value}</p>
             </div>
           </div>
         ))}
@@ -154,9 +173,49 @@ const ProblemMetricsHub: React.FC = () => {
           type="text"
           placeholder="Search puzzle sets…"
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setCurrentPage(1);
+          }}
           className="w-full rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900/50 pl-12 pr-4 py-3 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#7F56D9]/40 focus:border-[#7F56D9]"
         />
+      </div>
+
+      <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+        <div className="mb-4 flex items-center gap-2">
+          <FunnelIcon className="h-5 w-5 text-gray-600" />
+          <span className="text-sm font-semibold text-gray-700">Filter by Puzzle Type</span>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {[
+            { label: "All", value: undefined },
+            ...Object.entries(CATEGORY_LABELS).map(([value, label]) => ({
+              label,
+              value: value as ProblemMetricCategory,
+            })),
+          ].map(({ label, value }) => (
+            <button
+              key={label}
+              type="button"
+              onClick={() => {
+                setCategoryFilter(value);
+                setCurrentPage(1);
+              }}
+              className={`rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+                categoryFilter === value
+                  ? "bg-purple-500 text-white shadow-md"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="px-1 text-sm text-gray-600">
+        Showing <span className="font-semibold text-gray-900">{metrics.length}</span> of{" "}
+        <span className="font-semibold text-gray-900">{data?.pagination?.total ?? metrics.length}</span> puzzle sets
       </div>
 
       {showCreate && (
@@ -267,6 +326,15 @@ const ProblemMetricsHub: React.FC = () => {
             />
           ))}
         </div>
+      )}
+
+      {data?.pagination && data.pagination.totalPages > 1 && (
+        <PaginationControls
+          currentPage={currentPage}
+          totalPages={data.pagination.totalPages}
+          isFetching={isFetching}
+          onPageChange={setCurrentPage}
+        />
       )}
 
       <ConfirmDeleteModal

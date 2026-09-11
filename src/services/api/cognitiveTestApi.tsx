@@ -73,12 +73,32 @@ export interface TakeTestPayload {
   questions: TakeTestQuestion[];
 }
 
-type Wrapped<T> = { success: boolean; status: number; data: T; message: string };
+export interface CognitiveTestsPagination {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+type Wrapped<T> = {
+  success: boolean;
+  status: number;
+  data: T;
+  message: string;
+  pagination?: CognitiveTestsPagination;
+};
 
 export const cognitiveTestApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-    listCognitiveTestsAdmin: builder.query<Wrapped<CognitiveTestSummary[]>, void>({
-      query: () => ({ url: "/cognitive-tests", method: "GET" }),
+    listCognitiveTestsAdmin: builder.query<
+      Wrapped<CognitiveTestSummary[]>,
+      { category?: CognitiveCategory; search?: string; page?: number; limit?: number } | undefined
+    >({
+      query: (params) => ({
+        url: "/cognitive-tests",
+        method: "GET",
+        params: params ?? undefined,
+      }),
       providesTags: ["CognitiveTest"],
     }),
     getCognitiveTestAdmin: builder.query<Wrapped<CognitiveTestDetail>, string>({

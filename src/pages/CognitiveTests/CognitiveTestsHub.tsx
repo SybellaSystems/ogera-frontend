@@ -9,6 +9,7 @@ import {
   ChartBarIcon,
   GlobeAltIcon,
   LockClosedIcon,
+  FunnelIcon,
 } from "@heroicons/react/24/outline";
 import {
   useListCognitiveTestsAdminQuery,
@@ -20,6 +21,7 @@ import type { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import ConfirmDeleteModal from "../../components/AssessmentAdmin/ConfirmDeleteModal";
 import AssessmentHubCard from "../../components/AssessmentAdmin/AssessmentHubCard";
 import AssessmentPageLoading from "../../components/AssessmentAdmin/AssessmentPageLoading";
+import PaginationControls from "../../components/Jobs/PaginationControls";
 
 const CATEGORY_LABELS: Record<CognitiveCategory, string> = {
   numerical: "Numerical",
@@ -30,7 +32,9 @@ const CATEGORY_LABELS: Record<CognitiveCategory, string> = {
 
 const CognitiveTestsHub: React.FC = () => {
   const navigate = useNavigate();
-  const { data, isLoading } = useListCognitiveTestsAdminQuery();
+  const [categoryFilter, setCategoryFilter] = useState<CognitiveCategory | undefined>(undefined);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageLimit = 10;
   const [createTest, { isLoading: creating }] = useCreateCognitiveTestMutation();
   const [deleteTest, { isLoading: deleting }] = useDeleteCognitiveTestMutation();
 
@@ -41,26 +45,24 @@ const CognitiveTestsHub: React.FC = () => {
   const [category, setCategory] = useState<CognitiveCategory>("numerical");
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null);
 
+  const { data, isLoading, isFetching } = useListCognitiveTestsAdminQuery({
+    category: categoryFilter,
+    search: search.trim() || undefined,
+    page: currentPage,
+    limit: pageLimit,
+  });
+
   const tests = data?.data ?? [];
 
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    if (!q) return tests;
-    return tests.filter(
-      (t) =>
-        t.title.toLowerCase().includes(q) ||
-        t.category.toLowerCase().includes(q) ||
-        (t.description?.toLowerCase().includes(q) ?? false)
-    );
-  }, [tests, search]);
+  const filtered = tests;
 
   const stats = useMemo(
     () => ({
-      total: tests.length,
+      total: data?.pagination?.total ?? tests.length,
       published: tests.filter((t) => t.published).length,
       draft: tests.filter((t) => !t.published).length,
     }),
-    [tests]
+    [tests, data?.pagination?.total]
   );
 
   const handleCreate = async () => {
@@ -129,22 +131,40 @@ const CognitiveTestsHub: React.FC = () => {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {[
-          { label: "Total tests", value: stats.total, icon: ChartBarIcon, color: "text-[#7F56D9]" },
-          { label: "Published", value: stats.published, icon: GlobeAltIcon, color: "text-emerald-600" },
-          { label: "Drafts", value: stats.draft, icon: LockClosedIcon, color: "text-amber-600" },
-        ].map(({ label, value, icon: Icon, color }) => (
+          {
+            label: "Total tests",
+            value: stats.total,
+            icon: ChartBarIcon,
+            iconColor: "bg-[#7F56D9]",
+            cardColor: "bg-[#f8f7ff] border-[#eeebff]",
+          },
+          {
+            label: "Published",
+            value: stats.published,
+            icon: GlobeAltIcon,
+            iconColor: "bg-emerald-500",
+            cardColor: "bg-[#f2fcf8] border-[#e2f5ed]",
+          },
+          {
+            label: "Drafts",
+            value: stats.draft,
+            icon: LockClosedIcon,
+            iconColor: "bg-amber-500",
+            cardColor: "bg-[#f4f9fd] border-[#e6f0f8]",
+          },
+        ].map(({ label, value, icon: Icon, iconColor, cardColor }) => (
           <div
             key={label}
-            className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900/50 p-5 flex items-center gap-4 shadow-sm"
+            className={`rounded-xl border p-5 flex items-center gap-3 shadow-sm ${cardColor}`}
           >
-            <div className={`p-2.5 rounded-xl bg-gray-50 dark:bg-gray-800 ${color}`}>
-              <Icon className="h-6 w-6" />
+            <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white shadow-sm ${iconColor}`}>
+              <Icon className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{value}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">{label}</p>
+              <p className="text-sm font-semibold leading-tight text-gray-700">{label}</p>
+              <p className="mt-1 text-2xl font-bold leading-none text-gray-900">{value}</p>
             </div>
           </div>
         ))}
@@ -157,9 +177,49 @@ const CognitiveTestsHub: React.FC = () => {
           type="text"
           placeholder="Search tests by title or category…"
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setCurrentPage(1);
+          }}
           className="w-full rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900/50 pl-12 pr-4 py-3 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#7F56D9]/40 focus:border-[#7F56D9]"
         />
+      </div>
+
+      <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+        <div className="mb-4 flex items-center gap-2">
+          <FunnelIcon className="h-5 w-5 text-gray-600" />
+          <span className="text-sm font-semibold text-gray-700">Filter by Category</span>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {[
+            { label: "All", value: undefined },
+            ...Object.entries(CATEGORY_LABELS).map(([value, label]) => ({
+              label,
+              value: value as CognitiveCategory,
+            })),
+          ].map(({ label, value }) => (
+            <button
+              key={label}
+              type="button"
+              onClick={() => {
+                setCategoryFilter(value);
+                setCurrentPage(1);
+              }}
+              className={`rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+                categoryFilter === value
+                  ? "bg-purple-500 text-white shadow-md"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="px-1 text-sm text-gray-600">
+        Showing <span className="font-semibold text-gray-900">{tests.length}</span> of{" "}
+        <span className="font-semibold text-gray-900">{data?.pagination?.total ?? tests.length}</span> tests
       </div>
 
       {/* Create panel */}
@@ -270,6 +330,15 @@ const CognitiveTestsHub: React.FC = () => {
             />
           ))}
         </div>
+      )}
+
+      {data?.pagination && data.pagination.totalPages > 1 && (
+        <PaginationControls
+          currentPage={currentPage}
+          totalPages={data.pagination.totalPages}
+          isFetching={isFetching}
+          onPageChange={setCurrentPage}
+        />
       )}
 
       <ConfirmDeleteModal

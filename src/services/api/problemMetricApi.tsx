@@ -78,12 +78,32 @@ export interface TakeProblemMetricPayload {
   questions: TakeProblemMetricQuestion[];
 }
 
-type Wrapped<T> = { success: boolean; status: number; data: T; message: string };
+export interface ProblemMetricsPagination {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+type Wrapped<T> = {
+  success: boolean;
+  status: number;
+  data: T;
+  message: string;
+  pagination?: ProblemMetricsPagination;
+};
 
 export const problemMetricApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-    listProblemMetricsAdmin: builder.query<Wrapped<ProblemMetricSummary[]>, void>({
-      query: () => ({ url: "/problem-metrics", method: "GET" }),
+    listProblemMetricsAdmin: builder.query<
+      Wrapped<ProblemMetricSummary[]>,
+      { category?: ProblemMetricCategory; search?: string; page?: number; limit?: number } | undefined
+    >({
+      query: (params) => ({
+        url: "/problem-metrics",
+        method: "GET",
+        params: params ?? undefined,
+      }),
       providesTags: ["ProblemMetric"],
     }),
     getProblemMetricAdmin: builder.query<Wrapped<ProblemMetricDetail>, string>({

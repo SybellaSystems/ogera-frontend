@@ -39,8 +39,6 @@ import {
   PuzzlePieceIcon,
   SparklesIcon,
 } from "@heroicons/react/24/outline";
-import { useListCognitiveTestsAdminQuery } from "../../services/api/cognitiveTestApi";
-import { useListProblemMetricsAdminQuery } from "../../services/api/problemMetricApi";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -139,16 +137,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     role !== "verifyDocAdmin" &&
     role !== "employer";
 
-  const skipCognitiveAdminList =
-    !showCognitiveAdmin || openTestMenu !== "cognitive";
-  const { data: cognitiveAdminList } = useListCognitiveTestsAdminQuery(
-    undefined,
-    {
-      skip: skipCognitiveAdminList,
-    },
-  );
-  const cognitiveTestsForMenu = cognitiveAdminList?.data ?? [];
-
   const showProblemMetricAdmin =
     isBuiltInAdmin || hasAnyPermission(permissions, "/problem-metrics", role);
   const showProblemMetricStudent = role === "student";
@@ -156,16 +144,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     (showProblemMetricAdmin || showProblemMetricStudent) &&
     role !== "verifyDocAdmin" &&
     role !== "employer";
-
-  const skipProblemMetricAdminList =
-    !showProblemMetricAdmin || openTestMenu !== "problemMetrics";
-  const { data: problemMetricAdminList } = useListProblemMetricsAdminQuery(
-    undefined,
-    {
-      skip: skipProblemMetricAdminList,
-    },
-  );
-  const problemMetricsForMenu = problemMetricAdminList?.data ?? [];
 
   React.useEffect(() => {
     if (location.pathname.startsWith("/dashboard/cognitive-tests")) {
@@ -2645,38 +2623,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                   </li>
                 )}
 
-                {/* Existing Cognitive Tests */}
-                {showCognitiveAdmin &&
-                  cognitiveTestsForMenu.map((ct) => (
-                    <li
-                      key={ct.cognitive_test_id}
-                      className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
-                        location.pathname ===
-                        `/dashboard/cognitive-tests/edit/${ct.cognitive_test_id}`
-                          ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
-                          : "hover:text-purple-300 hover:bg-[#9F7AEA]/10 text-white/60"
-                      }`}
-                      onClick={() =>
-                        handleNavigation(
-                          `/dashboard/cognitive-tests/edit/${ct.cognitive_test_id}`
-                        )
-                      }
-                    >
-                      <DocumentTextIcon className="h-4 w-4 text-white/40 group-hover/item:text-[#9F7AEA]" />
-
-                      <span
-                        className={`truncate max-w-[11rem] ${
-                          location.pathname ===
-                          `/dashboard/cognitive-tests/edit/${ct.cognitive_test_id}`
-                            ? "text-white font-medium"
-                            : "group-hover/item:text-white"
-                        }`}
-                        title={ct.title}
-                      >
-                        {ct.title}
-                      </span>
-                    </li>
-                  ))}
               </ul>
             )}
           </li>
@@ -2786,38 +2732,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                   </li>
                 )}
 
-                {/* Existing Problem Metrics */}
-                {showProblemMetricAdmin &&
-                  problemMetricsForMenu.map((metric) => (
-                    <li
-                      key={metric.problem_metric_id}
-                      className={`flex items-center gap-2 cursor-pointer py-2 px-2 rounded-md transition-all duration-200 group/item ${
-                        location.pathname ===
-                        `/dashboard/problem-metrics/edit/${metric.problem_metric_id}`
-                          ? "bg-[#9F7AEA]/20 text-[#9F7AEA]"
-                          : "hover:text-purple-300 hover:bg-[#9F7AEA]/10 text-white/60"
-                      }`}
-                      onClick={() =>
-                        handleNavigation(
-                          `/dashboard/problem-metrics/edit/${metric.problem_metric_id}`
-                        )
-                      }
-                    >
-                      <DocumentTextIcon className="h-4 w-4 text-white/40 group-hover/item:text-[#9F7AEA]" />
-
-                      <span
-                        className={`truncate max-w-[11rem] ${
-                          location.pathname ===
-                          `/dashboard/problem-metrics/edit/${metric.problem_metric_id}`
-                            ? "text-white font-medium"
-                            : "group-hover/item:text-white"
-                        }`}
-                        title={metric.title}
-                      >
-                        {metric.title}
-                      </span>
-                    </li>
-                  ))}
               </ul>
             )}
           </li>
