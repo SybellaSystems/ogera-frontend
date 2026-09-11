@@ -271,7 +271,7 @@ const CognitiveTestEditor: React.FC = () => {
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-red-700 bg-red-50 border border-red-200 cursor-pointer disabled:cursor-not-allowed"
             >
               <TrashIcon className="w-4 h-4" />
-              Delete test
+              
             </button>
           </div>
         </div>
@@ -478,7 +478,7 @@ const CognitiveTestEditor: React.FC = () => {
                     onClick={() => handleDeleteQuestion(q.question_id)}
                     className="text-sm text-red-600 hover:underline cursor-pointer"
                   >
-                    Remove
+                    <TrashIcon className="w-4 h-4" />
                   </button>
                 </div>
               </li>
