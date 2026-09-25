@@ -167,10 +167,10 @@ const CourseDetail: React.FC = () => {
             </a>
           </div>
         );
-      case "pdf":
+      case "pdf": {
         // Check if step_content is already a full URL (S3)
         const isFullUrl = step.step_content.startsWith('http://') || step.step_content.startsWith('https://');
-        
+
         if (isFullUrl) {
           // For S3 URLs, use direct link
           return (
@@ -187,7 +187,7 @@ const CourseDetail: React.FC = () => {
             </div>
           );
         }
-        
+
         // For local files, use download handler with authentication
         const fileName = step.step_content.split('/').pop() || 'course-content.pdf';
         return (
@@ -201,13 +201,14 @@ const CourseDetail: React.FC = () => {
             </button>
           </div>
         );
-      case "image":
+      }
+      case "image": {
         // Check if step_content is already a full URL (S3) or needs API endpoint
         const isImageFullUrl = step.step_content.startsWith('http://') || step.step_content.startsWith('https://');
-        const imageUrl = isImageFullUrl 
-          ? step.step_content 
+        const imageUrl = isImageFullUrl
+          ? step.step_content
           : `${BASE_URL}/courses/content/download?path=${encodeURIComponent(step.step_content)}`;
-        
+
         return (
           <div className="mt-4">
             <img
@@ -217,6 +218,7 @@ const CourseDetail: React.FC = () => {
             />
           </div>
         );
+      }
       case "text":
         return (
           <div className="mt-4 p-4 bg-gray-50 rounded-lg">

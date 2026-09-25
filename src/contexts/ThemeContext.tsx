@@ -15,7 +15,9 @@ const getStoredTheme = (): AppTheme => {
   try {
     const stored = localStorage.getItem(THEME_STORAGE_KEY);
     if (stored === "dark" || stored === "bright") return stored;
-  } catch (_) {}
+  } catch {
+    // Ignore storage access errors and use the default theme.
+  }
   return "bright";
 };
 
@@ -26,7 +28,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     document.documentElement.setAttribute("data-theme", theme);
     try {
       localStorage.setItem(THEME_STORAGE_KEY, theme);
-    } catch (_) {}
+    } catch {
+      // Ignore storage write failures and continue with the in-memory theme.
+    }
   }, [theme]);
 
   const setTheme = useCallback((newTheme: AppTheme) => {
