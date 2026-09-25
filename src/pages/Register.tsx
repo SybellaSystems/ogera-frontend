@@ -251,7 +251,14 @@ const Register = ({ formOnly, onRoleChange }: RegisterProps = {}) => {
             </SkillsStep>
           ) : (
           /* ══════════════ STEP 1 — Basic Info ══════════════ */
-          <RegisterFormContainer onSubmit={(e) => { e.preventDefault(); isStudent ? handleStep1Continue() : formik.handleSubmit(e as any); }}>
+          <RegisterFormContainer onSubmit={(e) => {
+            e.preventDefault();
+            if (isStudent) {
+              handleStep1Continue();
+            } else {
+              formik.handleSubmit(e as any);
+            }
+          }}>
             <ToggleGroup>
               {(["student", "employer"] as const).map((type) => (
                 <ToggleOption key={type}>
@@ -391,7 +398,14 @@ const Register = ({ formOnly, onRoleChange }: RegisterProps = {}) => {
                 </StepButtonRow>
               </SkillsStep>
             ) : (
-            <RegisterFormContainer onSubmit={(e) => { e.preventDefault(); isStudent ? handleStep1Continue() : formik.handleSubmit(e as any); }}>
+            <RegisterFormContainer onSubmit={(e) => {
+              e.preventDefault();
+              if (isStudent) {
+                handleStep1Continue();
+              } else {
+                formik.handleSubmit(e as any);
+              }
+            }}>
               {/* Account Type Toggle */}
               <ToggleGroup>
                 {(["student", "employer"] as const).map((type) => (
