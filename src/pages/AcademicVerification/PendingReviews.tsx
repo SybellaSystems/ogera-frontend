@@ -537,13 +537,13 @@ const PendingReviews: React.FC = () => {
                   {/* Actions */}
                   <div className="flex lg:flex-col gap-2 lg:min-w-[130px] flex-shrink-0">
                     <button
-                      className={`cursor-pointer flex-1 px-3 py-2 bg-[#7f56d9] hover:bg-[#5b3ba5] text-white rounded-lg font-medium transition-all text-xs disabled:opacity-50`}
+                      className={`cursor-pointer flex-1 px-3 py-2 bg-purple-400 hover:bg-purple-500 text-white rounded-lg font-medium transition-all text-xs disabled:opacity-50`}
                       onClick={() => handleViewDocument(item)}
                     >
                       {t("pages.academic.view")}
                     </button>
                     <button
-                      className={`cursor-pointer flex-1 px-3 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition-all text-xs disabled:opacity-50 ${
+                      className={`cursor-pointer flex-1 px-3 py-2 bg-green-400 hover:bg-green-500 text-white rounded-lg font-medium transition-all text-xs disabled:opacity-50 ${
                         reviewLoadingId === item.id ? 'animate-pulse' : ''
                       }`}
                       disabled={reviewLoadingId === item.id}
@@ -553,7 +553,7 @@ const PendingReviews: React.FC = () => {
                     </button>
                     
                     <button
-                      className={`cursor-pointer flex-1 px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-all text-xs disabled:opacity-50 ${
+                      className={`cursor-pointer flex-1 px-3 py-2 bg-red-400 hover:bg-red-500 text-white rounded-lg font-medium transition-all text-xs disabled:opacity-50 ${
                         reviewLoadingId === item.id ? 'animate-pulse' : ''
                       }`}
                       disabled={reviewLoadingId === item.id}
@@ -562,7 +562,7 @@ const PendingReviews: React.FC = () => {
                       {reviewLoadingId === item.id ? t("pages.academic.rejecting") : t("pages.academic.reject")}
                     </button>
                     <button
-                      className={`cursor-pointer flex-1 px-3 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-medium transition-all text-xs disabled:opacity-50 ${
+                      className={`cursor-pointer flex-1 px-3 py-2 bg-orange-400 hover:bg-orange-500 text-white rounded-lg font-medium transition-all text-xs disabled:opacity-50 ${
                         reviewLoadingId === item.id ? 'animate-pulse' : ''
                       }`}
                       disabled={reviewLoadingId === item.id}

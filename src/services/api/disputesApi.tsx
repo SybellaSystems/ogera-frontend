@@ -80,6 +80,11 @@ export type DisputeStats = {
   underReview: number;
   resolved: number;
   highPriority: number;
+  inProgressPriorityCounts?: {
+    high: number;
+    medium: number;
+    low: number;
+  };
 };
 
 export type DisputeResponse = {

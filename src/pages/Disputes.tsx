@@ -9,6 +9,7 @@ import Loader from "../components/Loader";
 const Disputes: React.FC = () => {
   const { t } = useTranslation();
   const [disputes, setDisputes] = useState<Dispute[]>([]);
+  const [totalDisputes, setTotalDisputes] = useState(0);
   const [stats, setStats] = useState<DisputeStats>({ open: 0, underReview: 0, resolved: 0, highPriority: 0 });
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -27,6 +28,7 @@ const Disputes: React.FC = () => {
         getDisputeStats(),
       ]);
       setDisputes(disputesData.data || []);
+      setTotalDisputes(disputesData.pagination?.total ?? disputesData.data?.length ?? 0);
       setStats(statsData);
     } catch (error) {
       console.error("Failed to fetch disputes:", error);
@@ -51,8 +53,8 @@ const Disputes: React.FC = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-red-50 rounded-xl p-6 border border-red-200">
-          <p className="text-sm text-red-700 font-medium">{t("disputes.openDisputes")}</p>
-                    <p className="text-3xl font-bold text-red-900 mt-2">{stats.open}</p>
+          <p className="text-sm text-red-700 font-medium">{t("sidebar.allDisputes")}</p>
+          <p className="text-3xl font-bold text-red-900 mt-2">{totalDisputes}</p>
         </div>
         <div className="bg-orange-50 rounded-xl p-6 border border-orange-200">
           <p className="text-sm text-orange-700 font-medium">{t("disputes.underReview")}</p>
@@ -128,24 +130,19 @@ const Disputes: React.FC = () => {
                <div className="flex flex-col gap-2 ml-6">
                   <button
                     onClick={() => navigate(`/dashboard/disputes/${dispute.dispute_id}`)}
-                    className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition shadow-md whitespace-nowrap"
+                    className="px-6 py-2.5 bg-purple-500 hover:bg-purple-700 text-white rounded-lg font-semibold transition shadow-md whitespace-nowrap"
                   >
                     {t("disputes.viewDetails")}
                   </button>
                   {dispute.status !== "Resolved" && (
                     <button
                       onClick={() => navigate(`/dashboard/disputes/${dispute.dispute_id}`)}
-                      className="px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition shadow-md whitespace-nowrap"
+                      className="px-6 py-2.5 bg-green-500 hover:bg-green-700 text-white rounded-lg font-semibold transition shadow-md whitespace-nowrap"
                     >
                       {t("disputes.resolve")}
                     </button>
                   )}
-                  <button
-                    onClick={() => navigate(`/dashboard/disputes/${dispute.dispute_id}`)}
-                    className="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition shadow-md whitespace-nowrap"
-                  >
-                    {t("disputes.messageParties")}
-                  </button>
+                  
                 </div>
               </div>
             </div>
