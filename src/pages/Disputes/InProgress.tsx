@@ -11,13 +11,22 @@ import {
   MessageOutlined as MessageIcon,
 } from "@mui/icons-material";
 
-import { getAllDisputes, type Dispute } from "../../services/api/disputesApi";
+import {
+  getAllDisputes,
+  getDisputeStats,
+  type Dispute,
+} from "../../services/api/disputesApi";
 import { useNavigate } from "react-router-dom";
 import Loader from "../../components/Loader";
 
 const InProgress: React.FC = () => {
   const { t } = useTranslation();
   const [disputes, setDisputes] = useState<Dispute[]>([]);
+  const [priorityCounts, setPriorityCounts] = useState({
+    high: 0,
+    medium: 0,
+    low: 0,
+  });
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -29,12 +38,23 @@ const InProgress: React.FC = () => {
     try {
       setLoading(true);
       // Fetch disputes with status "Under Review" or "Mediation" (in progress)
-      const result = await getAllDisputes({ 
-        status: ["Under Review", "Mediation"], 
-        page: 1, 
-        limit: 100 
-      });
+      const [result, statsResult] = await Promise.all([
+        getAllDisputes({
+          status: ["Under Review", "Mediation"],
+          page: 1,
+          limit: 100,
+        }),
+        getDisputeStats().catch((error) => {
+          console.error("Failed to fetch in-progress priority counts:", error);
+          return null;
+        }),
+      ]);
       setDisputes(result.data || []);
+      if (statsResult) {
+        setPriorityCounts(
+          statsResult.inProgressPriorityCounts || { high: 0, medium: 0, low: 0 },
+        );
+      }
     } catch (error) {
       console.error("Failed to fetch in-progress disputes:", error);
       setDisputes([]);
@@ -88,9 +108,7 @@ const InProgress: React.FC = () => {
       id: "employer",
       label: t("disputes.employer"),
       minWidth: 150,
-      format: (value: any, row: any) => {
-        return row.reported_by === 'employer' ? (value?.full_name || t("disputes.na")) : "-";
-      },
+      format: (value: any) => value?.full_name || t("disputes.na"),
     },
     {
       id: "moderator",
@@ -155,6 +173,21 @@ const InProgress: React.FC = () => {
         <p className="text-orange-800 font-medium text-sm md:text-base">
           🔄 {t("disputes.inProgressCountMessage", { count: disputes.length })}
         </p>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="rounded-lg border border-red-200 bg-red-50 p-5">
+          <p className="text-sm font-medium text-red-700">{t("disputes.highPriority")}</p>
+          <p className="mt-2 text-3xl font-bold text-red-900">{priorityCounts.high}</p>
+        </div>
+        <div className="rounded-lg border border-orange-200 bg-orange-50 p-5">
+          <p className="text-sm font-medium text-orange-700">{t("disputes.mediumPriority")}</p>
+          <p className="mt-2 text-3xl font-bold text-orange-900">{priorityCounts.medium}</p>
+        </div>
+        <div className="rounded-lg border border-blue-200 bg-blue-50 p-5">
+          <p className="text-sm font-medium text-blue-700">{t("disputes.lowPriority")}</p>
+          <p className="mt-2 text-3xl font-bold text-blue-900">{priorityCounts.low}</p>
+        </div>
       </div>
 
       <CustomTable

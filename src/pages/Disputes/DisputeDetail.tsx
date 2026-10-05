@@ -208,7 +208,6 @@ const DisputeDetail: React.FC = () => {
               <ExclamationTriangleIcon className="h-8 w-8 text-red-600" />
               {dispute.title}
             </h1>
-            <p className="text-gray-500 mt-1">Dispute ID: {dispute.dispute_id.slice(0, 8)}...</p>
           </div>
         </div>
         {canResolve && (
