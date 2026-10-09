@@ -26,7 +26,7 @@ const CommunityWorkspace: React.FC = () => {
 
   return (
     <>
-      <div className="mt-0">
+      <div className="community-workspace mt-0">
 
         {/* Header */}
 

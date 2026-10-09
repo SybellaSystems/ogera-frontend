@@ -139,9 +139,9 @@ const ConversationList: React.FC<ConversationListProps> = ({
   }, [conversations, searchQuery]);
 
   return (
-    <div className="flex flex-col h-full bg-white">
+    <div className="messages-conversation-list flex flex-col h-full bg-white">
       {/* Header */}
-      <div className="px-4 pt-5 pb-3 border-b border-gray-100">
+      <div className="messages-conversation-list__header px-4 pt-5 pb-3 border-b border-gray-100">
         <h2 className="text-lg font-bold text-gray-900 tracking-tight mb-3">Messages</h2>
         {/* Search */}
         <div className="relative">
@@ -151,7 +151,7 @@ const ConversationList: React.FC<ConversationListProps> = ({
             placeholder="Search by name or role…"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+            className="messages-conversation-list__search w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
           />
           {searchQuery && (
             <button

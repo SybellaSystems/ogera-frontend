@@ -86,11 +86,11 @@ const SubmittedLinkCard: React.FC<Props> = ({ submittedLink }) => {
         <div className="flex-1">
           {/* Link Type + Status */}
           <div className="flex items-center gap-4">
-            <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-purple-100 text-purple-700">
+            <span className="community-workspace__platform-icon inline-flex h-8 w-8 items-center justify-center rounded-full bg-purple-100 text-purple-700">
               {getLinkTypeIcon(submittedLink.link_type)}
             </span>
 
-            <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-700">
+            <span className="community-workspace__link-status inline-flex items-center rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-700">
               {submittedLink.status}
             </span>
           </div>
@@ -107,10 +107,10 @@ const SubmittedLinkCard: React.FC<Props> = ({ submittedLink }) => {
 
         <button
           onClick={() => setShowDeleteModal(true)}
-          className="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl border border-red-200 bg-red-50 text-red-600 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-red-500 hover:bg-red-500 hover:text-white hover:shadow-md active:scale-95"
+          className="community-workspace__delete-button inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl border border-red-200 bg-red-50 text-red-600 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-red-500 hover:bg-red-500 hover:text-white hover:shadow-md active:scale-95"
           title="Delete"
         >
-          <TrashIcon className="h-3 w-3" />
+          <TrashIcon className="h-4 w-4" />
         </button>
       </div>
 
@@ -136,10 +136,10 @@ const SubmittedLinkCard: React.FC<Props> = ({ submittedLink }) => {
                     <img
                       src={review.reviewer.profile_image_url}
                       alt={review.reviewer.full_name}
-                      className="h-9 w-9 rounded-full object-cover"
+                      className="community-workspace__reviewer-avatar h-9 w-9 rounded-full object-cover"
                     />
                   ) : (
-                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-purple-100 text-xs font-semibold text-purple-700">
+                    <div className="community-workspace__reviewer-avatar-fallback flex h-9 w-9 items-center justify-center rounded-full bg-purple-100 text-xs font-semibold text-purple-700">
                       {(review.reviewer?.full_name ?? "U")
                         .split(" ")
                         .map((x) => x[0])

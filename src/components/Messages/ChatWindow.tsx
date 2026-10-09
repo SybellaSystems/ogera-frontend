@@ -109,11 +109,11 @@ const MessageSkeleton: React.FC = () => (
 
 const DateDivider: React.FC<{ label: string }> = ({ label }) => (
   <div className="flex items-center gap-3 my-4 px-2">
-    <div className="flex-1 h-px bg-gray-100" />
-    <span className="text-[11px] font-medium text-gray-400 px-2 py-1 bg-gray-50 rounded-full whitespace-nowrap">
+    <div className="messages-chat-window__divider flex-1 h-px bg-gray-100" />
+    <span className="messages-chat-window__date text-[11px] font-medium text-gray-400 px-2 py-1 bg-gray-50 rounded-full whitespace-nowrap">
       {label}
     </span>
-    <div className="flex-1 h-px bg-gray-100" />
+    <div className="messages-chat-window__divider flex-1 h-px bg-gray-100" />
   </div>
 );
 
@@ -223,9 +223,9 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   const role = currentUserId === conversation.employer_id ? 'Student' : 'Employer';
 
   return (
-    <div className="flex flex-col h-full bg-white">
+    <div className="messages-chat-window flex flex-col h-full bg-white">
       {/* ── Header ── */}
-      <div className="flex items-center gap-3 px-5 py-3.5 border-b border-gray-100 bg-white shadow-sm flex-shrink-0">
+      <div className="messages-chat-window__header flex items-center gap-3 px-5 py-3.5 border-b border-gray-100 bg-white shadow-sm flex-shrink-0">
         <Avatar name={otherUser?.full_name} imageUrl={otherUser?.profile_image_url} size="md" />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
@@ -247,7 +247,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
       </div>
 
       {/* ── Messages ── */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-1" role="log" aria-live="polite">
+      <div className="messages-chat-window__history flex-1 overflow-y-auto px-4 py-4 space-y-1" role="log" aria-live="polite">
         {loading && <MessageSkeleton />}
 
         {!loading && messages.length === 0 && (
@@ -282,7 +282,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
                 <DateDivider label={formatDateDivider(message.created_at)} />
               )}
 
-              <div className={`flex items-end gap-2 ${isOwn ? 'justify-end' : 'justify-start'} ${isLastInGroup ? 'mb-3' : 'mb-0.5'}`}>
+              <div className={`flex items-center gap-2 ${isOwn ? 'justify-end' : 'justify-start'} ${isLastInGroup ? 'mb-3' : 'mb-0.5'}`}>
                 {/* Other user avatar — only on last in group */}
                 {!isOwn && (
                   <div className="w-8 flex-shrink-0">
@@ -303,7 +303,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
                   {/* File attachment */}
                   {message.file_url && (
                     <div className={`overflow-hidden ${radius} ${
-                      isOwn ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-900'
+                      isOwn ? 'bg-purple-600 text-white' : 'messages-chat-window__incoming bg-gray-100 text-gray-900'
                     }`}>
                       {isImageFile(message.file_type) ? (
                         <img
@@ -347,7 +347,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
                     <div className={`px-4 py-2.5 ${radius} ${
                       isOwn
                         ? 'bg-purple-600 text-white'
-                        : 'bg-gray-100 text-gray-900'
+                        : 'messages-chat-window__incoming bg-gray-100 text-gray-900'
                     }`}>
                       <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">{message.content}</p>
                     </div>
@@ -372,7 +372,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
       </div>
 
       {/* ── Composer ── */}
-      <div className="flex-shrink-0 border-t border-gray-100 bg-white px-4 py-3">
+      <div className="messages-chat-window__composer flex-shrink-0 border-t border-gray-100 bg-white px-4 py-3">
         {/* File preview */}
         {selectedFile && (
           <div className="mb-2.5 flex items-center gap-3 px-3 py-2.5 bg-purple-50 border border-purple-100 rounded-xl">
@@ -425,7 +425,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
               placeholder="Type a message… (Enter to send)"
               disabled={sendLoading}
               rows={1}
-              className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-2xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent focus:bg-white disabled:cursor-not-allowed transition-all resize-none leading-relaxed overflow-hidden"
+              className="messages-chat-window__input w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-2xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent focus:bg-white disabled:cursor-not-allowed transition-all resize-none leading-relaxed overflow-hidden"
               style={{ minHeight: '40px' }}
               aria-label="Message input"
             />

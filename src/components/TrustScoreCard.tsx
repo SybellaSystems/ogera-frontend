@@ -55,7 +55,7 @@ const TrustScoreCard: React.FC<TrustScoreCardProps> = ({
 
   if (!trustScore) {
     return (
-      <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+      <div className="dashboard-trustscore-card bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
         <p className="text-gray-600 text-center">{t("common.noData")}</p>
       </div>
     );
@@ -112,27 +112,27 @@ const TrustScoreCard: React.FC<TrustScoreCardProps> = ({
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
-      <div className="bg-gradient-to-r from-violet-500 to-purple-700 px-6 py-4 rounded-t-2xl -mx-8 -mt-8 mb-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
+    <div className="dashboard-trustscore-card bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+    <div className="bg-linear-to-r from-violet-500 to-purple-700 px-6 py-4 rounded-t-2xl -mx-8 -mt-8 mb-6">
+        <div className="flex flex-nowrap items-center gap-3">
+          <div className="flex shrink-0 items-center gap-2">
             <FaShieldAlt className="text-yellow-400 text-xl" />
 
-            <h2 className="text-xl font-bold text-white">
+            <h2 className="whitespace-nowrap text-lg font-bold text-white ">
               {t("profile.trustScore")}
             </h2>
           </div>
 
           <span
-          className={`px-4 py-2 rounded-full text-2sm font-bold border ${getLevelColor(
-            trustScore.level
-          )}`}
-        >
-          {t(`profile.trustScoreLevel.${trustScore.level}`)}
-        </span>
+            className={`inline-flex shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 mx-3 text-xs font-bold ${getLevelColor(
+              trustScore.level,
+            )}`}
+          >
+            {t(`profile.trustScoreLevel.${trustScore.level}`)}
+          </span>
         </div>
       </div>
-      <div className="mb-2 flex flex-wrap gap-2 text-sm text-gray-500">
+      <div className="dashboard-trustscore-card__formula mb-4 flex flex-wrap gap-2 text-sm text-gray-500">
         <span>I/E/C · {t("profile.trustScoreFormulaHint")}</span>
       </div>
 
@@ -145,7 +145,7 @@ const TrustScoreCard: React.FC<TrustScoreCardProps> = ({
           </span>
           <span className="text-gray-500 text-xl mb-2">/ 100</span>
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-3 mt-4">
+        <div className="progress-track w-full rounded-full h-3 mt-4 border border-slate-300 bg-slate-200/90 shadow-inner shadow-slate-200/40">
           <div
             className={`h-3 rounded-full transition-all duration-500 ${barColor(
               trustScore.trust_score,
@@ -156,7 +156,7 @@ const TrustScoreCard: React.FC<TrustScoreCardProps> = ({
       </div>
 
 
-      <div className="pt-6 border-t border-gray-200 mb-6">
+      <div className="dashboard-trustscore-card__section pt-6 border-t border-gray-200 mb-6">
         <h3 className="text-xl font-semibold text-gray-900 mb-4">
           {t("profile.trustScoreBreakdownIEC")}
         </h3>
@@ -177,7 +177,7 @@ const TrustScoreCard: React.FC<TrustScoreCardProps> = ({
                   {pct.toFixed(0)}%
                 </span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
+              <div className="axis-progress-track w-full rounded-full h-2 border border-slate-300 bg-slate-200/90 shadow-inner shadow-slate-200/40">
                 <div
                   className="h-2 rounded-full transition-all"
                   style={{
@@ -191,7 +191,7 @@ const TrustScoreCard: React.FC<TrustScoreCardProps> = ({
         </div>
       </div>
 
-      <div className="pt-6 border-t border-gray-200">
+      <div className="dashboard-trustscore-card__section pt-6 border-t border-gray-200">
         <h3 className="text-xl font-semibold text-gray-900 mb-3">
           {t("profile.trustScoreSuggestions")}
         </h3>

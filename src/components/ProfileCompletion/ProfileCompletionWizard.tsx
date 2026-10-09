@@ -533,7 +533,7 @@ const ProfileCompletionWizard: React.FC<ProfileCompletionWizardProps> = ({
                   className="w-32 h-32 rounded-full object-cover border-4 border-[#f5f3ff]"
                 />
               ) : (
-                <div className="w-32 h-32 rounded-full bg-gray-100 flex items-center justify-center border-4 border-dashed border-gray-300">
+                <div className="dashboard-profile-wizard__photo-placeholder w-32 h-32 rounded-full bg-gray-100 flex items-center justify-center border-4 border-dashed border-gray-300">
                   <CameraIcon className="h-12 w-12 text-gray-400" />
                 </div>
               )}
@@ -546,7 +546,7 @@ const ProfileCompletionWizard: React.FC<ProfileCompletionWizardProps> = ({
               />
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="mt-4 px-4 py-2 bg-[#f5f3ff] text-[#7f56d9] rounded-lg hover:bg-[#b794f4] transition-colors flex items-center gap-2"
+                className="dashboard-profile-wizard__photo-upload mt-4 px-4 py-2 bg-[#f5f3ff] text-[#7f56d9] rounded-lg hover:bg-[#b794f4] transition-colors flex items-center gap-2"
               >
                 <CloudArrowUpIcon className="h-5 w-5" />
                 Upload Photo
@@ -984,8 +984,8 @@ const ProfileCompletionWizard: React.FC<ProfileCompletionWizardProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden my-auto max-h-[90vh] overflow-y-auto">
+    <div className="dashboard-profile-wizard fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+      <div className="dashboard-profile-wizard__panel bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden my-auto max-h-[90vh] overflow-y-auto">
         <div className="bg-gradient-to-r from-[#7f56d9] to-[#5b3ba5] px-6 py-4 text-white">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -1006,7 +1006,7 @@ const ProfileCompletionWizard: React.FC<ProfileCompletionWizardProps> = ({
               <XMarkIcon className="h-5 w-5" />
             </button>
           </div>
-          <div className="mt-4 h-2 bg-white/20 rounded-full overflow-hidden">
+          <div className="dashboard-profile-wizard__progress-track mt-4 h-2 bg-white/20 rounded-full overflow-hidden">
             <div
               className="h-full bg-white rounded-full transition-all duration-300"
               style={{
@@ -1028,7 +1028,7 @@ const ProfileCompletionWizard: React.FC<ProfileCompletionWizardProps> = ({
           {renderStepContent()}
         </div>
 
-        <div className="px-6 py-4 bg-gray-50 flex items-center justify-between">
+        <div className="dashboard-profile-wizard__footer px-6 py-4 bg-gray-50 flex items-center justify-between">
           <button
             onClick={handlePrevious}
             disabled={currentStepIndex === 0}
