@@ -12,25 +12,26 @@ import {
 interface JobCardsProps {
   jobs: any[];
   detailsPath?: string;
+  cardClassName?: string;
 }
-const JobCards: React.FC<JobCardsProps> = ({ jobs, detailsPath = "/dashboard/jobs/referrals", }) => {
+const JobCards: React.FC<JobCardsProps> = ({ jobs, detailsPath = "/dashboard/jobs/referrals", cardClassName = "", }) => {
   const navigate = useNavigate();
   return (
 <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
   {jobs.map((job) => (
     <div
       key={job.referral_id}
-      className="flex h-full min-w-0 flex-col space-y-4 overflow-hidden rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition hover:shadow-md"
+      className={`recommended-job-card flex h-full min-w-0 flex-col space-y-4 overflow-hidden rounded-xl border border-[var(--theme-border)] bg-[var(--theme-card-bg)] p-4 shadow-sm transition hover:shadow-md ${cardClassName}`}
     >
       {/* Header */}
       <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
-          <h2 className="min-w-0 break-words text-lg font-semibold text-gray-900">
+          <h2 className="min-w-0 break-words text-lg font-semibold text-[var(--theme-text-primary)]">
             {job.title}
           </h2>
 
           <span
-            className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${getStatusClasses(
+            className={`recommended-job-card__status shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${getStatusClasses(
               job.status,
             )}`}
           >
@@ -42,7 +43,7 @@ const JobCards: React.FC<JobCardsProps> = ({ jobs, detailsPath = "/dashboard/job
         <div className="flex min-w-0 shrink-0 items-center gap-2 sm:mt-1.5">
           <IdentificationIcon className="h-4 w-4 shrink-0 text-purple-500" />
 
-          <span className="break-all text-xs font-medium text-gray-400">
+          <span className="break-all text-xs font-medium text-[var(--theme-text-secondary)]">
             {job.created_referral_id}
           </span>
         </div>
@@ -54,7 +55,7 @@ const JobCards: React.FC<JobCardsProps> = ({ jobs, detailsPath = "/dashboard/job
         <div className="flex min-w-0 items-center gap-2">
           <BuildingOffice2Icon className="h-4 w-4 shrink-0 text-purple-500" />
 
-          <span className="min-w-0 break-words text-sm font-medium text-gray-700">
+          <span className="min-w-0 break-words text-sm font-medium text-[var(--theme-text-primary)]">
             {job.company}
           </span>
         </div>
@@ -63,7 +64,7 @@ const JobCards: React.FC<JobCardsProps> = ({ jobs, detailsPath = "/dashboard/job
         <div className="flex min-w-0 items-center gap-2">
           <MapPinIcon className="h-4 w-4 shrink-0 text-purple-500" />
 
-          <span className="min-w-0 break-words text-sm text-gray-600">
+          <span className="min-w-0 break-words text-sm text-[var(--theme-text-secondary)]">
             {job.location}
           </span>
         </div>
@@ -72,7 +73,7 @@ const JobCards: React.FC<JobCardsProps> = ({ jobs, detailsPath = "/dashboard/job
         <div className="flex min-w-0 items-center gap-2">
           <BriefcaseIcon className="h-4 w-4 shrink-0 text-purple-500" />
 
-          <span className="min-w-0 break-words text-sm text-gray-600">
+          <span className="min-w-0 break-words text-sm text-[var(--theme-text-secondary)]">
             {job.employment_type}
           </span>
         </div>
@@ -80,12 +81,12 @@ const JobCards: React.FC<JobCardsProps> = ({ jobs, detailsPath = "/dashboard/job
 
       {/* Description */}
       <div className="mt-1 min-w-0">
-        <p className="mb-2 text-xs font-semibold tracking-wide text-gray-400">
+        <p className="mb-2 text-xs font-semibold tracking-wide text-[var(--theme-text-secondary)]">
           Description
         </p>
 
-        <div className="w-full overflow-hidden rounded-lg border border-[#D6BBFB] bg-[#F9F5FF] px-3 py-1.5 sm:px-4">
-          <p className="line-clamp-1 break-words text-sm leading-6 text-gray-600">
+        <div className="recommended-job-card__description w-full overflow-hidden rounded-lg border border-[var(--theme-border)] bg-[var(--theme-input-bg)] px-3 py-1.5 sm:px-4">
+          <p className="line-clamp-1 break-words text-sm leading-6 text-[var(--theme-text-primary)]">
             {job.description || "No description available"}
           </p>
         </div>
@@ -95,42 +96,42 @@ const JobCards: React.FC<JobCardsProps> = ({ jobs, detailsPath = "/dashboard/job
       <div className="grid min-w-0 grid-cols-1 gap-3 text-sm sm:grid-cols-2 md:grid-cols-3">
         {/* Category */}
         <div className="min-w-0">
-          <p className="text-xs text-gray-400">Category</p>
+          <p className="text-xs text-[var(--theme-text-secondary)]">Category</p>
 
-          <p className="mt-1 break-words font-medium text-gray-700">
+          <p className="mt-1 break-words font-medium text-[var(--theme-text-primary)]">
             {job.category || "Not specified"}
           </p>
         </div>
 
         {/* Source */}
         <div className="min-w-0">
-          <p className="text-xs text-gray-400">Source</p>
+          <p className="text-xs text-[var(--theme-text-secondary)]">Source</p>
 
-          <p className="mt-1 break-words font-medium text-gray-700">
+          <p className="mt-1 break-words font-medium text-[var(--theme-text-primary)]">
             {job.source || "Not specified"}
           </p>
         </div>
 
         {/* Verification */}
         <div className="min-w-0">
-          <p className="text-xs text-gray-400">Verification</p>
+          <p className="text-xs text-[var(--theme-text-secondary)]">Verification</p>
 
-          <p className="mt-1 break-words font-medium text-gray-700">
+          <p className="mt-1 break-words font-medium text-[var(--theme-text-primary)]">
             {job.verification_status || "Not specified"}
           </p>
         </div>
       </div>
 
       {/* Footer */}
-      <div className="mt-auto flex flex-col gap-3 border-t border-gray-100 pt-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mt-auto flex flex-col gap-3 border-t border-[var(--theme-border)] pt-3 sm:flex-row sm:items-center sm:justify-between">
         {/* Expiry Date */}
         <div className="min-w-0">
           {job.expiry_date ? (
-            <p className="break-words text-xs text-gray-500">
+            <p className="break-words text-xs text-[var(--theme-text-secondary)]">
               Expiry: {job.expiry_date.split("T")[0]}
             </p>
           ) : (
-            <p className="text-xs text-gray-400">No expiry date set</p>
+            <p className="text-xs text-[var(--theme-text-secondary)]">No expiry date set</p>
           )}
         </div>
 

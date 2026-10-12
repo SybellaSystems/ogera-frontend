@@ -138,7 +138,7 @@ const TaskTableView: React.FC<TaskTableViewProps> = ({ tasks, onTaskClick, onEdi
   }
 
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+    <div className="job-tasks-kanban-table rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
@@ -177,7 +177,7 @@ const TaskTableView: React.FC<TaskTableViewProps> = ({ tasks, onTaskClick, onEdi
                 </td>
                 <td className="px-6 py-4">
                   <span
-                    className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${getStatusColor(
+                    className={`job-tasks-kanban-table-status inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${getStatusColor(
                       task.status
                     )}`}
                   >

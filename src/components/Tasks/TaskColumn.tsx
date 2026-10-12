@@ -29,13 +29,13 @@ const TaskColumn: FC<TaskColumnProps> = ({
   });
 
   return (
-    <div className="flex h-full flex-col rounded-xl bg-gray-50 p-4">
+    <div className="job-tasks-kanban-column flex h-full flex-col rounded-xl bg-gray-50 p-4">
       {/* Column Header */}
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className={`h-1 w-1 rounded-full ${columnColor}`} />
           <h2 className="font-bold text-gray-900">{columnTitle}</h2>
-          <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-gray-200 text-xs font-bold text-gray-700">
+          <span className="job-tasks-kanban-column-count inline-flex h-6 w-6 items-center justify-center rounded-full bg-gray-200 text-xs font-bold text-gray-700">
             {tasks.length}
           </span>
         </div>

@@ -65,7 +65,7 @@ const MyApplicationJobCard: React.FC<MyApplicationJobCardProps> = ({
 
   return (
     <div
-      className="h-full bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-purple-300 transition-all duration-200 overflow-hidden group cursor-pointer flex flex-col"
+      className="my-application-card h-full bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-purple-300 transition-all duration-200 overflow-hidden group cursor-pointer flex flex-col"
       onClick={() => onViewDetails(application.job_id)}
     >
       <div className={`h-1 bg-linear-to-r ${statusGradient}`} />

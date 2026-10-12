@@ -61,11 +61,11 @@ const TaskCard: FC<TaskCardProps> = ({ task, onCardClick }) => {
       {...attributes}
       {...listeners}
       onClick={() => onCardClick(task)}
-      className="group cursor-grab active:cursor-grabbing rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition-all duration-200 hover:shadow-md hover:scale-[1.02]"
+      className="job-tasks-kanban-task-card group cursor-grab active:cursor-grabbing rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition-all duration-200 hover:shadow-md hover:scale-[1.02]"
     >
       {/* Status Badge */}
       <div className="mb-3 flex items-center justify-between">
-        <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(task.statusLabel || '')}`}>
+        <span className={`job-tasks-kanban-task-status inline-block px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(task.statusLabel || '')}`}>
           {task.statusLabel}
         </span>
         <div className="h-2 w-2 rounded-full bg-gray-300 opacity-0 group-hover:opacity-100" />

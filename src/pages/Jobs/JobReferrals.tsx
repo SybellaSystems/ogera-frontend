@@ -102,13 +102,13 @@ const emptyState = getEmptyStateContent();
 
   const navigate = useNavigate();
   return (
-    <div className="mx-auto max-w-6xl">
+    <div className="job-referrals-page mx-auto max-w-6xl">
       {/* Page Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Job Referrals</h1>
+          <h1 className="text-2xl font-bold text-[var(--theme-text-primary)]">Job Referrals</h1>
 
-          <p className="mt-1 text-sm text-gray-600">
+          <p className="mt-1 text-sm text-[var(--theme-text-secondary)]">
             External job opportunities found, verified, and curated by the Ogera
             team.
           </p>
@@ -128,10 +128,10 @@ const emptyState = getEmptyStateContent();
       {referrals.length > 0 ? (
   <JobCards jobs={referrals} />
 ) : (
-  <div className="mt-8 flex min-h-[320px] items-center justify-center rounded-xl border border-gray-200 bg-white px-6 py-12 shadow-sm">
+  <div className="mt-8 flex min-h-[320px] items-center justify-center rounded-xl border border-[var(--theme-border)] bg-[var(--theme-card-bg)] px-6 py-12 shadow-sm">
     <div className="max-w-md text-center">
       {/* Icon */}
-      <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-violet-100">
+      <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--theme-table-selected-bg)]">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           className="h-8 w-8 text-violet-600"
@@ -148,11 +148,11 @@ const emptyState = getEmptyStateContent();
         </svg>
       </div>
 
-      <h2 className="text-xl font-bold text-gray-900">
+      <h2 className="text-xl font-bold text-[var(--theme-text-primary)]">
         {emptyState.title}
       </h2>
 
-      <p className="mt-2 text-sm leading-6 text-gray-500">
+      <p className="mt-2 text-sm leading-6 text-[var(--theme-text-secondary)]">
         {emptyState.description}
       </p>
 

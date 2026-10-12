@@ -51,9 +51,9 @@ const MyApplications: React.FC = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-white animate-fadeIn">
+      <div className="my-applications-page min-h-screen bg-white animate-fadeIn">
         <div className="px-6 py-16 max-w-7xl mx-auto">
-          <div className="bg-red-50 border border-red-200 rounded-xl p-6">
+          <div className="my-applications-error bg-red-50 border border-red-200 rounded-xl p-6">
             <p className="text-red-800 font-medium">
               {t("pages.myApplications.failedToLoad")}
             </p>
@@ -64,7 +64,7 @@ const MyApplications: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white animate-fadeIn">
+    <div className="my-applications-page min-h-screen bg-white animate-fadeIn">
       {/* Header Section */}
       <div className="bg-white">
         <div className="px-6  max-w-7xl mx-auto">
@@ -94,7 +94,7 @@ const MyApplications: React.FC = () => {
       {summaryApplications.length > 0 && (
         <div className="px-6 py-6 max-w-7xl mx-auto">
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-            <div className="flex items-center justify-between min-h-27.5 bg-white rounded-xl px-6 py-5 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+            <div className="my-applications-summary-card flex items-center justify-between min-h-27.5 bg-white rounded-xl px-6 py-5 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
               <div>
                 <p className="text-sm text-slate-600 font-medium">
                 {t("pages.myApplications.totalApplications")}
@@ -108,7 +108,7 @@ const MyApplications: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex items-center justify-between min-h-27.5 bg-white rounded-xl px-6 py-5 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+            <div className="my-applications-summary-card flex items-center justify-between min-h-27.5 bg-white rounded-xl px-6 py-5 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
               <div>
                 <p className="text-sm text-slate-600 font-medium">
                   {t("pages.jobs.pendingReview")}
@@ -122,7 +122,7 @@ const MyApplications: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex items-center justify-between min-h-27.5 bg-white rounded-xl px-6 py-5 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+            <div className="my-applications-summary-card flex items-center justify-between min-h-27.5 bg-white rounded-xl px-6 py-5 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
               <div>
                 <p className="text-sm text-slate-600 font-medium">
                   {t("pages.myApplications.accepted")}
@@ -136,7 +136,7 @@ const MyApplications: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex items-center justify-between min-h-27.5 bg-white rounded-xl px-6 py-5 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+            <div className="my-applications-summary-card flex items-center justify-between min-h-27.5 bg-white rounded-xl px-6 py-5 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
               <div>
                 <p className="text-sm text-slate-600 font-medium">
                   {t("pages.myApplications.rejected")}
@@ -155,7 +155,7 @@ const MyApplications: React.FC = () => {
 
       {/* Status Filter */}
       <div className="px-6 pt-1 pb-2 max-w-7xl mx-auto">
-        <div className="bg-white rounded-xl px-4 py-5 shadow-sm border border-gray-200">
+        <div className="my-applications-filter bg-white rounded-xl px-4 py-5 shadow-sm border border-gray-200">
           <div className="flex items-center gap-2 mb-2">
             <FunnelIcon className="h-5 w-5 text-slate-600" />
             <span className="text-sm font-semibold text-slate-700">
@@ -172,9 +172,9 @@ const MyApplications: React.FC = () => {
                     setSelectedStatus(status);
                     setPage(1);
                   }}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                  className={`my-applications-filter-tab px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                     selectedStatus === status
-                      ? "bg-purple-500 text-white shadow-md"
+                      ? "is-selected bg-purple-500 text-white shadow-md"
                       : "bg-slate-100 text-slate-700 hover:bg-slate-200"
                   }`}
                 >
@@ -215,7 +215,7 @@ const MyApplications: React.FC = () => {
       {/* Applications List */}
       <div className="px-6 py-4 max-w-7xl mx-auto">
         {applications.length === 0 ? (
-          <div className="bg-white rounded-xl p-12 shadow-sm border border-gray-200 text-center">
+          <div className="my-applications-empty-state bg-white rounded-xl p-12 shadow-sm border border-gray-200 text-center">
             <BriefcaseIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-gray-900 mb-2">
               {t("pages.myApplications.noApplicationsYet")}
@@ -251,5 +251,3 @@ const MyApplications: React.FC = () => {
 };
 
 export default MyApplications;
-
-

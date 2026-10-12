@@ -14,7 +14,7 @@ interface TabsNavigationProps {
 
 const TabsNavigation: FC<TabsNavigationProps> = ({ tabs, activeTab, onTabChange }) => {
   return (
-    <div className="flex items-center gap-1 border-b border-gray-200 bg-white px-6 py-4">
+    <div className="job-tasks-kanban-tab-list flex items-center gap-1 border-b border-gray-200 bg-white px-6 py-4">
       {tabs.map((tab) => (
         <button
           key={tab.id}
@@ -24,6 +24,8 @@ const TabsNavigation: FC<TabsNavigationProps> = ({ tabs, activeTab, onTabChange 
               ? 'border-b-2 border-blue-600 text-blue-600'
               : 'text-gray-600 hover:text-gray-900'
           }`}
+          data-active={activeTab === tab.id}
+          data-tab={tab.id}
         >
           {tab.icon && <span className="text-lg">{tab.icon}</span>}
           <span>{tab.label}</span>

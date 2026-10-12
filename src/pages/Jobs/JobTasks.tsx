@@ -115,19 +115,19 @@ const JobTasks: React.FC = () => {
 
   if (error || !taskData) {
     return (
-      <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-red-800">
+      <div className="job-tasks-error rounded-2xl border border-red-200 bg-red-50 p-6 text-red-800">
         Unable to load this job's task workspace.
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 animate-fadeIn">
+    <div className="job-tasks-page theme-page-bg space-y-6 animate-fadeIn">
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-start gap-3">
           <button
             onClick={() => navigate("/dashboard/jobs/tasks")}
-            className="rounded-xl border border-gray-200 bg-white p-2 text-gray-600 transition hover:bg-gray-50"
+            className="job-tasks-back rounded-xl border border-gray-200 bg-white p-2 text-gray-600 transition hover:bg-gray-50"
           >
             <ArrowLeftIcon className="h-5 w-5" />
           </button>
@@ -141,19 +141,19 @@ const JobTasks: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+        <div className="job-task-summary-card job-task-summary-card--applicants rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
           <p className="text-xs text-gray-500">Applicants</p>
           <p className="mt-2 text-3xl font-bold text-gray-900">{taskData.summary.applicant_count}</p>
         </div>
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 shadow-sm">
+        <div className="job-task-summary-card job-task-summary-card--approved rounded-2xl border border-emerald-200 bg-emerald-50 p-5 shadow-sm">
           <p className="text-xs text-emerald-700">Approved Students</p>
           <p className="mt-2 text-3xl font-bold text-emerald-900">{taskData.summary.approved_students_count}</p>
         </div>
-        <div className="rounded-2xl border border-indigo-200 bg-indigo-50 p-5 shadow-sm">
+        <div className="job-task-summary-card job-task-summary-card--created rounded-2xl border border-indigo-200 bg-indigo-50 p-5 shadow-sm">
           <p className="text-xs text-indigo-700">Tasks Created</p>
           <p className="mt-2 text-3xl font-bold text-indigo-900">{taskData.summary.task_count}</p>
         </div>
-        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5 shadow-sm">
+        <div className="job-task-summary-card job-task-summary-card--progress rounded-2xl border border-amber-200 bg-amber-50 p-5 shadow-sm">
           <p className="text-xs text-amber-700">Overall Progress</p>
           <p className="mt-2 text-3xl font-bold text-amber-900">{taskData.summary.overall_progress}%</p>
         </div>
@@ -161,7 +161,7 @@ const JobTasks: React.FC = () => {
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.1fr,1.9fr]">
         <div className="space-y-6">
-          <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <section className="job-task-panel rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
             <div className="mb-4 flex items-center gap-2">
               <UserGroupIcon className="h-5 w-5 text-emerald-600" />
               <h2 className="text-lg font-semibold text-gray-900">Approved Students</h2>
@@ -174,22 +174,22 @@ const JobTasks: React.FC = () => {
             ) : (
               <div className="space-y-3">
                 {approvedStudents.map((entry) => (
-                  <div key={entry.application_id} className="rounded-xl border border-gray-100 bg-gray-50 p-4">
+                  <div key={entry.application_id} className="job-task-student rounded-xl border border-gray-100 bg-gray-50 p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <p className="font-semibold text-gray-900">{entry.student.full_name}</p>
                         <p className="text-sm text-gray-500">{entry.student.email}</p>
                       </div>
-                      <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
+                      <span className="job-task-approved-badge rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
                         Approved
                       </span>
                     </div>
                     <div className="mt-3 flex flex-wrap gap-2 text-xs text-gray-600">
-                      <span className="rounded-full bg-white px-3 py-1.5 shadow-sm">
+                      <span className="job-task-meta rounded-full bg-white px-3 py-1.5 shadow-sm">
                         TrustScore: {entry.student.trust_score ?? "N/A"}
                       </span>
                       {entry.student.mobile_number ? (
-                        <span className="rounded-full bg-white px-3 py-1.5 shadow-sm">
+                        <span className="job-task-meta rounded-full bg-white px-3 py-1.5 shadow-sm">
                           {entry.student.mobile_number}
                         </span>
                       ) : null}
@@ -200,7 +200,7 @@ const JobTasks: React.FC = () => {
             )}
           </section>
 
-          <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <section className="job-task-panel rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
             <h2 className="text-lg font-semibold text-gray-900">Create Task</h2>
             <p className="mt-2 text-sm text-gray-600">
               Every task stays tied to this job and must be assigned to one approved student.
@@ -267,7 +267,7 @@ const JobTasks: React.FC = () => {
           </section>
         </div>
 
-        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+        <section className="job-task-panel rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
           <div className="flex items-center justify-between gap-3">
             <div>
               <h2 className="text-lg font-semibold text-gray-900">Task Board</h2>
@@ -296,17 +296,20 @@ const JobTasks: React.FC = () => {
               ).map((status) =>
                 tasksByStatus[status].length > 0 ? (
                   <div key={status}>
-                    <h3 className="mb-3 text-sm font-semibold tracking-wide text-gray-500">
+                    <h3 className="job-task-status-heading mb-3 text-sm font-semibold tracking-wide text-gray-500">
                       {status.replaceAll("_", " ")}
                     </h3>
                     <div className="space-y-3">
                       {tasksByStatus[status].map((task) => (
-                        <div key={task.task_id} className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
+                        <div key={task.task_id} className="job-task-card rounded-2xl border border-gray-100 bg-gray-50 p-4">
                           <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                             <div className="space-y-3">
                               <div className="flex flex-wrap items-center gap-2">
                                 <h4 className="text-lg font-semibold text-gray-900">{task.title}</h4>
-                                <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusStyles[task.status]}`}>
+                                <span
+                                  className={`job-task-status rounded-full px-3 py-1 text-xs font-semibold ${statusStyles[task.status]}`}
+                                  data-status={task.status.toLowerCase()}
+                                >
                                   {task.status.replaceAll("_", " ")}
                                 </span>
                               </div>
@@ -315,17 +318,17 @@ const JobTasks: React.FC = () => {
                               ) : null}
 
                               <div className="flex flex-wrap gap-2 text-xs text-gray-600">
-                                <span className="rounded-full bg-white px-3 py-1.5 shadow-sm">
+                                <span className="job-task-meta rounded-full bg-white px-3 py-1.5 shadow-sm">
                                   Assigned to: {task.assignedStudent?.full_name || "Student"}
                                 </span>
                                 {task.deadline ? (
-                                  <span className="inline-flex items-center gap-1 rounded-full bg-white px-3 py-1.5 shadow-sm">
+                                  <span className="job-task-meta inline-flex items-center gap-1 rounded-full bg-white px-3 py-1.5 shadow-sm">
                                     <ClockIcon className="h-3.5 w-3.5" />
                                     {new Date(task.deadline).toLocaleDateString()}
                                   </span>
                                 ) : null}
                                 {task.payment_amount ? (
-                                  <span className="inline-flex items-center gap-1 rounded-full bg-white px-3 py-1.5 shadow-sm">
+                                  <span className="job-task-meta inline-flex items-center gap-1 rounded-full bg-white px-3 py-1.5 shadow-sm">
                                     <CurrencyDollarIcon className="h-3.5 w-3.5" />
                                     {task.payment_amount.toLocaleString()}
                                   </span>

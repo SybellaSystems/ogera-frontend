@@ -184,12 +184,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     location.pathname.endsWith("/applications");
 
   const employerJobsSubmenu = [
-    {
-      key: "create-job",
-      label: "Create Job",
-      path: "/dashboard/jobs/create",
-      icon: PlusIcon,
-    },
+    // {
+    //   key: "create-job",
+    //   label: "Create Job",
+    //   path: "/dashboard/jobs/create",
+    //   icon: PlusIcon,
+    // },
     {
       key: "unfunded-jobs",
       label: "Unfunded Jobs",
@@ -197,23 +197,29 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       icon: ClockIcon,
     },
     {
+      key: "Applications",
+      label: "Applications",
+      path: "/dashboard/jobs/applications",
+      icon: UserGroupIcon,
+    },
+    {
       key: "my-jobs",
       label: "My Jobs",
       path: "/dashboard/jobs/all",
       icon: BriefcaseIcon,
     },
-    {
-      key: "active-jobs",
-      label: "Active Jobs",
-      path: "/dashboard/jobs/active",
-      icon: FireIcon,
-    },
-    {
-      key: "closed-jobs",
-      label: "Closed Jobs",
-      path: "/dashboard/jobs/completed",
-      icon: CheckCircleIcon,
-    },
+    // {
+    //   key: "active-jobs",
+    //   label: "Active Jobs",
+    //   path: "/dashboard/jobs/active",
+    //   icon: FireIcon,
+    // },
+    // {
+    //   key: "closed-jobs",
+    //   label: "Closed Jobs",
+    //   path: "/dashboard/jobs/completed",
+    //   icon: CheckCircleIcon,
+    // },
   ];
 
   const employerPaymentsSubmenu = [

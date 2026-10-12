@@ -154,7 +154,7 @@ const RecommendedJobDetails: React.FC = () => {
    */
   if (isLoading) {
     return (
-      <div className="min-h-full bg-white p-6">
+      <div className="recommended-job-details-page min-h-full bg-white p-6">
         <div className="mx-auto max-w-4xl">
           <button
             type="button"
@@ -186,7 +186,7 @@ const RecommendedJobDetails: React.FC = () => {
     !referral
   ) {
     return (
-      <div className="min-h-full bg-white">
+      <div className="recommended-job-details-page min-h-full bg-white">
         <div className="">
           <button
             type="button"
@@ -239,7 +239,7 @@ const RecommendedJobDetails: React.FC = () => {
     referral.permission_status !== "Approved"
   ) {
     return (
-      <div className="min-h-full bg-white p-6">
+      <div className="recommended-job-details-page min-h-full bg-white p-6">
         <div className="mx-auto max-w-4xl">
           <button
             type="button"
@@ -281,7 +281,7 @@ const RecommendedJobDetails: React.FC = () => {
   }
 
   return (
-    <div className="min-h-full overflow-x-hidden bg-white px-3 pb-5 sm:px-6 sm:pb-6 lg:pb-10">
+    <div className="recommended-job-details-page min-h-full overflow-x-hidden bg-white px-3 pb-5 sm:px-6 sm:pb-6 lg:pb-10">
       <div className="">
         <button
           type="button"
@@ -295,7 +295,7 @@ const RecommendedJobDetails: React.FC = () => {
           ← Back to Recommended Jobs
         </button>
 
-        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5 md:p-6">
+        <div className="recommended-job-details-card overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5 md:p-6">
           {/* Header */}
           <div className="flex min-w-0 flex-row items-start justify-between gap-3 sm:gap-4">
             <div className="min-w-0">
@@ -328,7 +328,7 @@ const RecommendedJobDetails: React.FC = () => {
                 </div>
             </div>
 
-            <span className="w-fit max-w-full rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700">
+            <span className="recommended-job-details-card__verified w-fit max-w-full rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700">
               Verified by Ogera
             </span>
           </div>
@@ -392,7 +392,7 @@ const RecommendedJobDetails: React.FC = () => {
           </div>
 
           {/* External Application Notice */}
-          <div className="mt-4 rounded-xl border border-purple-200 bg-purple-100 p-3">
+          <div className="recommended-job-details-card__notice mt-4 rounded-xl border border-purple-200 bg-purple-100 p-3">
             <p className="wrap-break-word text-sm leading-6 text-purple-800">
               You will complete your application on the original
               employer or job platform. Ogera does not collect your
@@ -445,7 +445,7 @@ const RecommendedJobDetails: React.FC = () => {
 
           {/* Application confirmation */}
           {reportedApplication && (
-            <div className="mt-5 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+            <div className="recommended-job-details-card__confirmation mt-5 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
               <p className="text-sm font-semibold text-emerald-800">
                 Thank you. Your application has been recorded.
               </p>

@@ -183,7 +183,7 @@ const ViewJobApplications: React.FC = () => {
   });
 
   return (
-    <div className="theme-page-bg space-y-6 animate-fadeIn min-h-full p-4">
+    <div className="job-applications-details-page theme-page-bg space-y-6 animate-fadeIn min-h-full p-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -359,7 +359,7 @@ const ViewJobApplications: React.FC = () => {
       ) : (
         <>
           {/* Filter tabs + search */}
-          <div className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 flex flex-wrap items-center gap-3 justify-between">
+          <div className="job-applications-details-filter bg-white rounded-xl p-3 shadow-sm border border-gray-100 flex flex-wrap items-center gap-3 justify-between">
             <div className="flex flex-wrap gap-1">
               {([
                 { key: "Pending", label: "Pending", count: pendingCount, color: "orange" },
@@ -378,7 +378,9 @@ const ViewJobApplications: React.FC = () => {
                   <button
                     key={tab.key}
                     onClick={() => setStatusFilter(tab.key)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition ${colorClasses[tab.color]}`}
+                    className={`job-applications-details-tab px-3 py-1.5 rounded-lg text-xs font-semibold border transition ${colorClasses[tab.color]}`}
+                    data-active={active}
+                    data-status={String(tab.key).toLowerCase()}
                   >
                     {tab.label}
                     <span className="ml-1.5 px-1.5 py-0.5 bg-white/80 rounded-full text-[10px]">
@@ -393,7 +395,7 @@ const ViewJobApplications: React.FC = () => {
               placeholder="Search by name or email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="px-3 py-1.5 border border-gray-200 rounded-lg text-xs w-full sm:w-56 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
+              className="job-applications-details-search px-3 py-1.5 border border-gray-200 rounded-lg text-xs w-full sm:w-56 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
             />
           </div>
 
@@ -409,7 +411,7 @@ const ViewJobApplications: React.FC = () => {
           {filteredApplications.map((application) => (
             <div
               key={application.application_id}
-              className="bg-white rounded-xl p-6 shadow-md border border-gray-100 dark:border-[var(--theme-border)] hover:shadow-lg transition-shadow"
+              className="job-application-details-card bg-white rounded-xl p-6 shadow-md border border-gray-100 dark:border-[var(--theme-border)] hover:shadow-lg transition-shadow"
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
@@ -460,10 +462,13 @@ const ViewJobApplications: React.FC = () => {
                 </div>
 
                 <div className="flex flex-col items-end gap-3 ml-6">
-                  <div className="flex items-center gap-2">
+                  <div
+                    className="job-application-details-status flex items-center gap-2"
+                    data-status={application.status.toLowerCase()}
+                  >
                     {getStatusIcon(application.status)}
                     <span
-                      className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(
+                      className={`job-application-details-status-badge px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(
                         application.status
                       )}`}
                     >
@@ -548,4 +553,3 @@ const ViewJobApplications: React.FC = () => {
 };
 
 export default ViewJobApplications;
-

@@ -184,20 +184,20 @@ const JobTasksKanban: React.FC = () => {
 
   if (error || !taskData) {
     return (
-      <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-red-800">
+      <div className="job-tasks-kanban-error rounded-2xl border border-red-200 bg-red-50 p-6 text-red-800">
         Unable to load this job's task workspace.
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 animate-fadeIn">
+    <div className="job-tasks-kanban-page space-y-6 animate-fadeIn">
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-start gap-3">
           <button
             onClick={() => navigate("/dashboard/jobs/tasks")}
-            className="rounded-xl border border-gray-200 bg-white p-2 text-gray-600 transition hover:bg-gray-50"
+            className="job-tasks-kanban-back rounded-xl border border-gray-200 bg-white p-2 text-gray-600 transition hover:bg-gray-50"
           >
             <ArrowLeftIcon className="h-5 w-5" />
           </button>
@@ -210,14 +210,14 @@ const JobTasksKanban: React.FC = () => {
         </div>
         <button
           onClick={() => setSearchParams({ create: "1" })}
-          className="rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-700 transition duration-200"
+          className="job-tasks-kanban-new rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-700 transition duration-200"
         >
           + New Task
         </button>
       </div>
 
       {/* Tab Navigation */}
-      <div className="rounded-t-2xl border border-gray-200 border-b-0 bg-white">
+      <div className="job-tasks-kanban-tabs rounded-t-2xl border border-gray-200 border-b-0 bg-white">
         <TabsNavigation
           tabs={[
             { id: "overview", label: "Overview", icon: <ChartBarIcon className="h-5 w-5" /> },
@@ -232,12 +232,12 @@ const JobTasksKanban: React.FC = () => {
       </div>
 
       {isCreateMode ? (
-        <section className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
+        <section className="job-tasks-kanban-panel rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
           <div className="mb-6 flex items-center justify-between gap-3">
             <h2 className="text-2xl font-bold text-gray-900">Create New Task</h2>
             <button
               onClick={() => setSearchParams({})}
-              className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              className="job-tasks-kanban-back rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
             >
               Back to Task Board
             </button>
@@ -299,7 +299,7 @@ const JobTasksKanban: React.FC = () => {
           </form>
         </section>
       ) : (
-      <div className="rounded-b-2xl border border-t-0 border-gray-200 bg-white p-6 shadow-sm">
+      <div className="job-tasks-kanban-content rounded-b-2xl border border-t-0 border-gray-200 bg-white p-6 shadow-sm">
         {activeTab === "overview" && (
           <TaskOverview taskData={taskData} kanbanTasks={kanbanTasks} />
         )}
@@ -320,7 +320,7 @@ const JobTasksKanban: React.FC = () => {
 
       {editingTask && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/25 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-2xl">
+          <div className="job-tasks-kanban-modal w-full max-w-2xl rounded-2xl bg-white p-6 shadow-2xl">
             <h3 className="text-xl font-bold text-gray-900">Edit Task</h3>
             <form onSubmit={handleEditTask} className="mt-5 space-y-4">
               <div>

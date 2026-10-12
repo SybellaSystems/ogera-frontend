@@ -12,7 +12,7 @@ const CardsPerRowSelector: React.FC<CardsPerRowSelectorProps> = ({
   setCardsPerRow,
 }) => {
   return (
-    <div className="hidden lg:flex items-center gap-2">
+    <div className="all-jobs-card-selector hidden lg:flex items-center gap-2">
       <span className="text-sm font-semibold text-gray-700">
         Cards per row:
       </span>

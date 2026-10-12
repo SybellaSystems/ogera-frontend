@@ -271,13 +271,15 @@ const JobDetails: React.FC = () => {
           </div>
         )}
         {(normalizedRole === "employer" || normalizedRole === "superadmin") && (
-          <div className="flex flex-col sm:flex-row gap-2">
+          <div className="job-details-actions flex flex-col sm:flex-row gap-2">
             <Button
-              backgroundcolor="#7f56d9"
+              className="job-details-action job-details-action--manage"
               text={`Manage Applications (${job.applications || 0})`}
+              backgroundcolor="#7f56d9"
               onClick={() => navigate(`/dashboard/jobs/${id}/applications`)}
             />
             <Button
+              className="job-details-action job-details-action--edit"
               backgroundcolor="#6b7280"
               text={t("pages.jobs.editJob")}
               onClick={() => navigate(`/dashboard/jobs/${id}/edit`)}
@@ -285,8 +287,9 @@ const JobDetails: React.FC = () => {
           </div>
         )}
         {(normalizedRole === "admin" || normalizedRole === "superadmin") && (
-          <div className="flex flex-col sm:flex-row gap-2">
+          <div className="job-details-actions flex flex-col sm:flex-row gap-2">
             <Button
+              className="job-details-action job-details-action--approve"
               backgroundcolor="#059669"
               text={
                 isAlreadyApproved
@@ -318,6 +321,7 @@ const JobDetails: React.FC = () => {
               disabled={isUpdatingJob || isReviewLocked}
             />
             <Button
+              className="job-details-action job-details-action--disapprove"
               backgroundcolor="#dc2626"
               text={
                 isAlreadyDisapproved
@@ -734,7 +738,7 @@ const JobDetails: React.FC = () => {
                   {job.experience_level}
                 </span>
               )}
-              <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm font-medium">
+              <span className="job-details-applicant-count px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm font-medium">
                 {job.applications || 0} applicants
               </span>
             </div>

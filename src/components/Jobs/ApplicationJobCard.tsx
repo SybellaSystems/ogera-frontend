@@ -56,7 +56,7 @@ const ApplicationJobCard: React.FC<ApplicationJobCardProps> = ({
   return (
     <div
       key={application.application_id}
-      className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-purple-300 transition-all overflow-hidden group"
+      className="all-jobs-card all-job-application-card bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-purple-300 transition-all overflow-hidden group"
     >
       {/* Status Bar */}
       <div
@@ -71,7 +71,7 @@ const ApplicationJobCard: React.FC<ApplicationJobCardProps> = ({
 
       <div className="p-4">
         {/* Student Info Section */}
-        <div className="flex gap-3 mb-4 pb-4 border-b border-gray-100">
+        <div className="all-job-application-card__section flex gap-3 mb-4 pb-4 border-b border-gray-100">
           <div className="h-11 w-11 rounded-lg bg-linear-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm shrink-0 group-hover:shadow-md transition-shadow">
             {application.student?.full_name?.charAt(0) || "S"}
           </div>
@@ -117,7 +117,7 @@ const ApplicationJobCard: React.FC<ApplicationJobCardProps> = ({
         </div>
 
         {/* Job Details Section */}
-        <div className="space-y-3 mb-4 pb-4 border-b border-gray-100">
+        <div className="all-job-application-card__section space-y-3 mb-4 pb-4 border-b border-gray-100">
           {/* Job Title */}
           <div>
             <div className="flex items-center gap-2 mb-1">
@@ -184,7 +184,7 @@ const ApplicationJobCard: React.FC<ApplicationJobCardProps> = ({
               {getStatusIcon(application.status)}
 
               <span
-                className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${getStatusColor(
+                className={`application-status-badge application-status-badge--${application.status.toLowerCase()} border px-2.5 py-0.5 rounded-full text-xs font-semibold ${getStatusColor(
                   application.status,
                 )}`}
               >
@@ -259,4 +259,3 @@ const ApplicationJobCard: React.FC<ApplicationJobCardProps> = ({
 };
 
 export default ApplicationJobCard;
-

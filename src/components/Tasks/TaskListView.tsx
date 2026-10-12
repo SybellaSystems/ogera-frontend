@@ -116,7 +116,7 @@ const TaskListView: React.FC<TaskListViewProps> = ({ tasks, onTaskClick, onEditT
           <div
             key={task.task_id}
             onClick={() => onTaskClick?.(task)}
-            className={`rounded-2xl border ${colors.border} ${colors.bg} p-4 shadow-sm transition hover:shadow-md cursor-pointer hover:border-blue-300`}
+            className={`job-tasks-kanban-list-card rounded-2xl border ${colors.border} ${colors.bg} p-4 shadow-sm transition hover:shadow-md cursor-pointer hover:border-blue-300`}
           >
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1 min-w-0">
@@ -133,7 +133,7 @@ const TaskListView: React.FC<TaskListViewProps> = ({ tasks, onTaskClick, onEditT
 
                 {/* Task Meta */}
                 <div className="mt-3 flex flex-wrap items-center gap-3">
-                  <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${colors.badge}`}>
+                  <span className={`job-tasks-kanban-list-status inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${colors.badge}`}>
                     {getStatusLabel(task.status)}
                   </span>
 

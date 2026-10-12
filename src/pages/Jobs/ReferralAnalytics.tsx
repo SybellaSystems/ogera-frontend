@@ -81,7 +81,7 @@ const ReferralAnalytics: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="referral-analytics-page min-h-screen bg-gray-50 p-6">
       <div className="mx-auto max-w-7xl">
 
         {/* Header */}
@@ -112,7 +112,7 @@ const ReferralAnalytics: React.FC = () => {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 
           {/* Total Referrals */}
-          <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+          <div className="referral-analytics-metric rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
             <p className="text-sm font-medium text-gray-500">
               Total Referrals
             </p>
@@ -123,7 +123,7 @@ const ReferralAnalytics: React.FC = () => {
           </div>
 
           {/* Pending */}
-          <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+          <div className="referral-analytics-metric rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
             <p className="text-sm font-medium text-gray-500">
               Pending
             </p>
@@ -134,7 +134,7 @@ const ReferralAnalytics: React.FC = () => {
           </div>
 
           {/* Active */}
-          <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+          <div className="referral-analytics-metric rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
             <p className="text-sm font-medium text-gray-500">
               Active
             </p>
@@ -145,7 +145,7 @@ const ReferralAnalytics: React.FC = () => {
           </div>
 
           {/* Views */}
-          <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+          <div className="referral-analytics-metric rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
             <p className="text-sm font-medium text-gray-500">
               Student Views
             </p>
@@ -156,7 +156,7 @@ const ReferralAnalytics: React.FC = () => {
           </div>
 
           {/* Apply Clicks */}
-          <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+          <div className="referral-analytics-metric rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
             <p className="text-sm font-medium text-gray-500">
               Apply Clicks
             </p>
@@ -167,7 +167,7 @@ const ReferralAnalytics: React.FC = () => {
           </div>
 
           {/* Applications */}
-          <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+          <div className="referral-analytics-metric rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
             <p className="text-sm font-medium text-gray-500">
               Reported Applications
             </p>
@@ -178,7 +178,7 @@ const ReferralAnalytics: React.FC = () => {
           </div>
 
           {/* Click Rate */}
-          <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+          <div className="referral-analytics-metric rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
             <p className="text-sm font-medium text-gray-500">
               Apply Click Rate
             </p>
@@ -193,7 +193,7 @@ const ReferralAnalytics: React.FC = () => {
           </div>
 
           {/* Verified */}
-          <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+          <div className="referral-analytics-metric rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
             <p className="text-sm font-medium text-gray-500">
               Verified Referrals
             </p>
@@ -304,7 +304,7 @@ const ReferralAnalytics: React.FC = () => {
                         {/* Status */}
                         <td className="px-6 py-4">
                           <span
-                            className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${getStatusClasses(
+                            className={`referral-analytics-status rounded-full px-3 py-1 text-xs font-semibold capitalize ${getStatusClasses(
                               referral.status,
                             )}`}
                           >

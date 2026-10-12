@@ -111,8 +111,8 @@ const SectionCard: React.FC<{
   icon: React.ElementType;
   children: React.ReactNode;
 }> = ({ title, subtitle, icon: Icon, children }) => (
-  <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden transition-shadow hover:shadow-md">
-    <div className="flex items-start gap-3 px-6 py-5 border-b border-slate-50 bg-gradient-to-r from-slate-50 to-white">
+  <div className="create-job-section-card bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden transition-shadow hover:shadow-md">
+    <div className="create-job-section-header flex items-start gap-3 px-6 py-5 border-b border-slate-50 bg-gradient-to-r from-slate-50 to-white">
       <div className="flex-shrink-0 w-9 h-9 rounded-xl bg-violet-100 flex items-center justify-center">
         <Icon className="w-5 h-5 text-violet-600" />
       </div>
@@ -465,9 +465,9 @@ const CreateJob: React.FC = () => {
 
   // ─────────────────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="create-job-page min-h-screen bg-slate-50">
       {/* ── Top Header ──────────────────────────────────────────────────────── */}
-      <div className="sticky top-0 z-30 bg-white border-b border-slate-100 shadow-sm">
+      <div className="create-job-header sticky top-0 z-30 bg-white border-b border-slate-100 shadow-sm">
         <div className="w-full max-w-full px-4 sm:px-6 py-4 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-violet-600 flex items-center justify-center shadow-md shadow-violet-200">
