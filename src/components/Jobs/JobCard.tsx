@@ -68,7 +68,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onManageClick }) => {
   ];
 
   return (
-    <div className="group rounded-2xl border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:border-[#7f56d9] hover:shadow-lg hover:-translate-y-1">
+    <div className="task-job-card group rounded-2xl border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:border-[#7f56d9] hover:shadow-lg hover:-translate-y-1">
       {/* Card Content */}
       <div className="p-6 space-y-5">
         {/* Job Header */}
@@ -77,7 +77,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onManageClick }) => {
             <h3 className="text-lg font-bold text-gray-900 leading-snug flex-1">
               {job.job_title}
             </h3>
-            <span className="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold bg-[#f5f3ff] text-[#7f56d9] whitespace-nowrap">
+            <span className="task-job-active-badge inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold bg-[#f5f3ff] text-[#7f56d9] whitespace-nowrap">
               Active
             </span>
           </div>
@@ -103,7 +103,8 @@ const JobCard: React.FC<JobCardProps> = ({ job, onManageClick }) => {
             return (
               <div
                 key={index}
-                className={`rounded-xl border-2 ${stat.border} ${stat.bg} p-4 transition-colors group-hover:border-opacity-100 border-opacity-50`}
+                className={`task-job-stat rounded-xl border-2 ${stat.border} ${stat.bg} p-4 transition-colors group-hover:border-opacity-100 border-opacity-50`}
+                data-stat={index}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">

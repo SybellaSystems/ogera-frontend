@@ -77,20 +77,20 @@ const RecommendedJobs: React.FC = () => {
   };
 
   return (
-    <div className="mx-auto max-w-8xl">
+    <div className="recommended-jobs-page mx-auto max-w-8xl">
       {/* Header */}
       <div className="mb-0">
         <h1 className="text-2xl font-bold text-gray-900">
           Recommended Jobs
         </h1>
 
-        <p className="mt-1 text-sm text-gray-600">
+        <p className="recommended-jobs-page__subtitle mt-1 text-sm text-gray-600">
           Job opportunities verified and shared by the Ogera team.
         </p>
       </div>
 
       {/* Information */}
-      <div className="mt-3 rounded-xl border border-blue-100 bg-blue-50 p-4">
+      <div className="recommended-jobs-page__notice mt-3 rounded-xl border border-blue-100 bg-blue-50 p-4">
         <p className="text-sm leading-6 text-blue-800">
           These opportunities are sourced from external employers and
           platforms. Ogera verifies the opportunities before sharing them
@@ -101,14 +101,14 @@ const RecommendedJobs: React.FC = () => {
 
       {/* Loading State */}
       {isLoading ? (
-        <div className="mt-4 rounded-xl border border-gray-200 bg-white p-12 text-center">
+        <div className="recommended-jobs-page__state mt-4 rounded-xl border border-gray-200 bg-white p-12 text-center">
           <p className="text-sm text-gray-500">
             Loading recommended jobs...
           </p>
         </div>
       ) : isError ? (
         /* Error State */
-        <div className="mt-4 rounded-xl border border-red-200 bg-white p-12 text-center">
+        <div className="recommended-jobs-page__state recommended-jobs-page__state--error mt-4 rounded-xl border border-red-200 bg-white p-12 text-center">
           <h2 className="text-lg font-semibold text-gray-900">
             Unable to load recommended jobs
           </h2>
@@ -119,7 +119,7 @@ const RecommendedJobs: React.FC = () => {
         </div>
       ) : referrals.length === 0 ? (
         /* Empty State */
-        <div className="mt-4 rounded-xl border border-dashed border-gray-300 bg-white p-12 text-center">
+        <div className="recommended-jobs-page__state mt-4 rounded-xl border border-dashed border-gray-300 bg-white p-12 text-center">
           <h2 className="text-lg font-semibold text-gray-900">
             No recommended jobs available
           </h2>
@@ -136,6 +136,7 @@ const RecommendedJobs: React.FC = () => {
             <JobCards
               jobs={referrals}
               detailsPath="/dashboard/jobs/recommended"
+              cardClassName="recommended-jobs-page__card"
             />
           </div>
 

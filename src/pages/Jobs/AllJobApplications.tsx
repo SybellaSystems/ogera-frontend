@@ -317,14 +317,18 @@ const AllJobApplications: React.FC = () => {
   }, [urlStatus]);
 
   if (isLoading) {
-    return <Loader />;
+    return (
+      <div className="all-jobs-page flex justify-center py-12">
+        <Loader />
+      </div>
+    );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
+      <div className="all-jobs-page all-jobs-error min-h-screen bg-gray-50 p-6">
         <div className="max-w-7xl mx-auto">
-          <div className="bg-red-50 border border-red-200 rounded-xl p-6">
+          <div className="all-jobs-error__panel bg-red-50 border border-red-200 rounded-xl p-6">
             <p className="text-red-800 font-medium">
               {t("pages.jobs.failedToLoadApplications")}
             </p>
@@ -335,7 +339,7 @@ const AllJobApplications: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6 pb-10">
+    <div className="all-jobs-page space-y-6 pb-10">
       <div className="space-y-3">
         <div>
           <button
@@ -393,7 +397,7 @@ const AllJobApplications: React.FC = () => {
       </div>
 
       {applications.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm text-center py-16">
+        <div className="all-jobs-empty bg-white rounded-xl border border-gray-200 shadow-sm text-center py-16">
           <BriefcaseIcon className="h-16 w-16 text-gray-300 mx-auto mb-4" />
 
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
@@ -431,7 +435,7 @@ const AllJobApplications: React.FC = () => {
 
           {applicationsData?.pagination?.totalPages &&
             applicationsData.pagination.totalPages > 1 && (
-              <div className="pt-2">
+              <div className="all-jobs-pagination pt-2">
                 <PaginationControls
                   currentPage={currentPage}
                   totalPages={applicationsData.pagination.totalPages}
@@ -455,4 +459,3 @@ const AllJobApplications: React.FC = () => {
 };
 
 export default AllJobApplications;
-

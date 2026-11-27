@@ -218,7 +218,7 @@ const appliedJobIds = new Set(
    */
   if (isLoading) {
     return (
-      <div className="flex min-h-[400px] items-center justify-center">
+      <div className="all-jobs-page flex min-h-[400px] items-center justify-center">
         <Loader />
       </div>
     );
@@ -229,9 +229,9 @@ const appliedJobIds = new Set(
    */
   if (isError) {
     return (
-      <div className="flex min-h-[400px] items-center justify-center px-4">
-        <div className="w-full max-w-md rounded-2xl border border-red-200 bg-red-50 px-6 py-6 text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-red-100">
+      <div className="all-jobs-page all-jobs-error flex min-h-[400px] items-center justify-center px-4">
+        <div className="all-jobs-error__panel w-full max-w-md rounded-2xl border border-red-200 bg-red-50 px-6 py-6 text-center">
+          <div className="all-jobs-error__icon mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-red-100">
             <XCircleIcon className="h-7 w-7 text-red-500" />
           </div>
 
@@ -271,7 +271,7 @@ const appliedJobIds = new Set(
   }
 
   return (
-    <div className="space-y-6 pb-10">
+    <div className="all-jobs-page space-y-6 pb-10">
       {/* ================================================================
           HEADER
           Only page title + cards per row.
@@ -418,7 +418,7 @@ const appliedJobIds = new Set(
             EMPTY STATE
         ================================================================= */
 
-        <div className="flex min-h-[300px] items-center justify-center rounded-2xl border border-gray-200 bg-white">
+        <div className="all-jobs-empty flex min-h-[300px] items-center justify-center rounded-2xl border border-gray-200 bg-white">
           <div className="px-6 text-center">
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-gray-100">
               <BriefcaseIcon className="h-7 w-7 text-gray-400" />
@@ -436,12 +436,14 @@ const appliedJobIds = new Set(
       )}
 
       {pagination && pagination.totalPages > 1 && (
-        <PaginationControls
-          currentPage={currentPage}
-          totalPages={pagination.totalPages}
-          isFetching={isFetching}
-          onPageChange={(page) => setCurrentPage(page)}
-        />
+        <div className="all-jobs-pagination">
+          <PaginationControls
+            currentPage={currentPage}
+            totalPages={pagination.totalPages}
+            isFetching={isFetching}
+            onPageChange={(page) => setCurrentPage(page)}
+          />
+        </div>
       )}
 
       {/* ================================================================

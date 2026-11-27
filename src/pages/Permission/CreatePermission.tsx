@@ -126,7 +126,9 @@ const CreatePermission: React.FC = () => {
 
         {/* API Name */}
         <FormGroup>
-          <Label htmlFor="api_name">{t("pages.permission.apiNameLabel")}</Label>
+          <Label htmlFor="api_name">
+            {t("pages.permission.apiNameLabel")} <RequiredMark aria-hidden="true">*</RequiredMark>
+          </Label>
           <Input
             id="api_name"
             name="api_name"
@@ -145,7 +147,9 @@ const CreatePermission: React.FC = () => {
 
         {/* Route */}
         <FormGroup>
-          <Label htmlFor="route">{t("pages.permission.routeLabel")}</Label>
+          <Label htmlFor="route">
+            {t("pages.permission.routeLabel")} <RequiredMark aria-hidden="true">*</RequiredMark>
+          </Label>
           <Select
             id="route"
             name="route"
@@ -173,7 +177,9 @@ const CreatePermission: React.FC = () => {
 
         {/* Permissions */}
         <FormGroup>
-          <Label>{t("pages.permission.permissionsLabel")}</Label>
+          <Label>
+            {t("pages.permission.permissionsLabel")} <RequiredMark aria-hidden="true">*</RequiredMark>
+          </Label>
           <PermissionCheckboxes>
             <CheckboxGroup>
               <CheckboxLabel>
@@ -244,11 +250,18 @@ const FormContainer = styled("form")`
   width: 100%;
   background: var(--theme-card-bg);
   color: var(--theme-text-primary);
+  --permission-validation-text: #ef4444;
   border-radius: 16px;
   padding: 40px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   border: 1px solid var(--theme-border);
   transition: background 0.35s ease, color 0.35s ease, border-color 0.35s ease;
+
+  html[data-theme="dark"] & {
+    --theme-text-primary: #ffffff;
+    --theme-text-secondary: #ffffff;
+    --permission-validation-text: #ffffff;
+  }
 `;
 
 const Header = styled("div")`
@@ -291,6 +304,10 @@ const Label = styled("label")`
   transition: color 0.35s ease;
 `;
 
+const RequiredMark = styled("span")`
+  color: #ef4444;
+`;
+
 const Input = styled("input")`
   padding: 12px;
   border-radius: 8px;
@@ -315,6 +332,10 @@ const ErrorText = styled("div")`
   font-size: 12px;
   color: #ef4444;
   margin-top: 4px;
+
+  html[data-theme="dark"] & {
+    color: #ffffff !important;
+  }
 `;
 
 const HelperText = styled("div")`
@@ -386,5 +407,3 @@ const CheckboxLabel = styled("label")`
     user-select: none;
   }
 `;
-
-

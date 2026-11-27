@@ -261,7 +261,7 @@ const JobApplications: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen animate-fadeIn">
+    <div className="employer-job-applications-page min-h-screen animate-fadeIn">
       {/* Header Section */}
       <div className="bg-white">
         <div className="px-6 ">
@@ -275,7 +275,7 @@ const JobApplications: React.FC = () => {
                   {t("pages.jobs.jobApplicationsTitle")}
                 </h1>
               </div>
-              <p className="text-gray-600 text-sm md:text-base">
+              <p className="employer-job-applications-page__subtitle text-gray-600 text-sm md:text-base">
                 {t("pages.jobs.jobApplicationsSubtitle")}
               </p>
             </div>
@@ -296,7 +296,7 @@ const JobApplications: React.FC = () => {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {/* Total Applications */}
             <div
-              className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md hover:border-purple-200 transition-all group cursor-pointer"
+              className="employer-application-stat-card employer-application-stat-card--total bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md hover:border-purple-200 transition-all group cursor-pointer"
               onClick={() => {
                 setFilterStatus("All");
                 setCurrentPage(1);
@@ -311,7 +311,7 @@ const JobApplications: React.FC = () => {
                     {totalCount}
                   </p>
                 </div>
-                <div className="h-14 w-14 rounded-lg bg-purple-100 flex items-center justify-center group-hover:bg-purple-200 transition-colors">
+                <div className="employer-application-stat-card__icon h-14 w-14 rounded-lg bg-purple-100 flex items-center justify-center group-hover:bg-purple-200 transition-colors">
                   <BriefcaseIcon className="h-7 w-7 text-purple-500" />
                 </div>
               </div>
@@ -319,7 +319,7 @@ const JobApplications: React.FC = () => {
 
             {/* Pending Applications */}
             <div
-              className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md hover:border-orange-200 transition-all group cursor-pointer"
+              className="employer-application-stat-card employer-application-stat-card--pending bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md hover:border-orange-200 transition-all group cursor-pointer"
               onClick={() => {
                 setFilterStatus("Pending");
                 setCurrentPage(1);
@@ -334,7 +334,7 @@ const JobApplications: React.FC = () => {
                     {pendingCount}
                   </p>
                 </div>
-                <div className="h-14 w-14 rounded-lg bg-orange-100 flex items-center justify-center group-hover:bg-orange-200 transition-colors">
+                <div className="employer-application-stat-card__icon h-14 w-14 rounded-lg bg-orange-100 flex items-center justify-center group-hover:bg-orange-200 transition-colors">
                   <ClockIcon className="h-7 w-7 text-orange-500" />
                 </div>
               </div>
@@ -342,7 +342,7 @@ const JobApplications: React.FC = () => {
 
             {/* Accepted Applications */}
             <div
-              className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md hover:border-green-200 transition-all group cursor-pointer"
+              className="employer-application-stat-card employer-application-stat-card--accepted bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md hover:border-green-200 transition-all group cursor-pointer"
               onClick={() => {
                 setFilterStatus("Accepted");
                 setCurrentPage(1);
@@ -357,7 +357,7 @@ const JobApplications: React.FC = () => {
                     {acceptedCount}
                   </p>
                 </div>
-                <div className="h-14 w-14 rounded-lg bg-green-100 flex items-center justify-center group-hover:bg-green-200 transition-colors">
+                <div className="employer-application-stat-card__icon h-14 w-14 rounded-lg bg-green-100 flex items-center justify-center group-hover:bg-green-200 transition-colors">
                   <CheckCircleIcon className="h-7 w-7 text-green-500" />
                 </div>
               </div>
@@ -365,7 +365,7 @@ const JobApplications: React.FC = () => {
 
             {/* Rejected Applications */}
             <div
-              className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md hover:border-red-200 transition-all group cursor-pointer"
+              className="employer-application-stat-card employer-application-stat-card--rejected bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md hover:border-red-200 transition-all group cursor-pointer"
               onClick={() => {
                 setFilterStatus("Rejected");
                 setCurrentPage(1);
@@ -380,7 +380,7 @@ const JobApplications: React.FC = () => {
                     {rejectedCount}
                   </p>
                 </div>
-                <div className="h-14 w-14 rounded-lg bg-red-100 flex items-center justify-center group-hover:bg-red-200 transition-colors">
+                <div className="employer-application-stat-card__icon h-14 w-14 rounded-lg bg-red-100 flex items-center justify-center group-hover:bg-red-200 transition-colors">
                   <XCircleIcon className="h-7 w-7 text-red-500" />
                 </div>
               </div>
@@ -393,7 +393,7 @@ const JobApplications: React.FC = () => {
         {/* Filter and Sort Section */}
         <div className="mb-2 space-y-4">
           {/* Filter Tabs */}
-          <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+          <div className="employer-application-status-filter bg-white rounded-xl p-4 shadow-sm border border-gray-200">
             <div className="flex items-center gap-2 mb-4">
               <FunnelIcon className="h-5 w-5 text-gray-600" />
               <span className="text-sm font-semibold text-gray-700">
@@ -420,6 +420,8 @@ const JobApplications: React.FC = () => {
                               : "bg-red-500 text-white shadow-md"
                         : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                     }`}
+                    data-status={status.toLowerCase()}
+                    data-active={filterStatus === status}
                   >
                     {status}
                   </button>
@@ -434,7 +436,7 @@ const JobApplications: React.FC = () => {
           {/* Left Side */}
           <div className="flex items-center gap-3 flex-wrap">
             {/* Result Count */}
-            <div className="text-sm text-gray-600">
+            <div className="employer-application-result-count text-sm text-gray-600">
               Showing{" "}
               <span className="font-semibold text-gray-900">
                 {applications.length}
@@ -459,7 +461,7 @@ const JobApplications: React.FC = () => {
                         | "rejected"),
                 )
               }
-              className="inline-flex items-center cursor-pointer gap-1.5 rounded-lg border border-violet-200 bg-violet-50 px-3 py-1.5 text-xs font-bold text-violet-700 transition hover:bg-violet-100 active:scale-95"
+              className="employer-application-view-all inline-flex items-center cursor-pointer gap-1.5 rounded-lg border border-violet-200 bg-violet-50 px-3 py-1.5 text-xs font-bold text-violet-700 transition hover:bg-violet-100 active:scale-95"
             >
               {filterStatus === "All" ? "View All" : `View All ${filterStatus}`}
             </button>

@@ -124,12 +124,13 @@ const CountryCodeSelector: React.FC<CountryCodeSelectorProps> = ({
   };
 
   return (
-    <Container ref={dropdownRef}>
+    <Container ref={dropdownRef} className="add-user-country-selector">
       <SelectButton
         type="button"
         onClick={() => !disabled && setIsOpen(!isOpen)}
         disabled={disabled}
         $isOpen={isOpen}
+        className="add-user-country-button"
       >
         <span>{selectedCountry.flag}</span>
         <span>{selectedCountry.code}</span>
@@ -147,13 +148,14 @@ const CountryCodeSelector: React.FC<CountryCodeSelectorProps> = ({
       </SelectButton>
 
       {isOpen && (
-        <Dropdown>
+        <Dropdown className="add-user-country-dropdown">
           <SearchInput
             type="text"
             placeholder="Search country..."
             value={searchTerm}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
             onClick={(e: React.MouseEvent<HTMLInputElement>) => e.stopPropagation()}
+            className="add-user-country-search"
           />
           <CountryList>
             {filteredCountries.length > 0 ? (
@@ -162,6 +164,8 @@ const CountryCodeSelector: React.FC<CountryCodeSelectorProps> = ({
                   key={country.code}
                   onClick={() => handleSelect(country.code)}
                   $isSelected={country.code === value}
+                  className="add-user-country-option"
+                  data-selected={country.code === value}
                 >
                   <span>{country.flag}</span>
                   <span>{country.code}</span>
@@ -169,7 +173,7 @@ const CountryCodeSelector: React.FC<CountryCodeSelectorProps> = ({
                 </CountryItem>
               ))
             ) : (
-              <NoResults>No countries found</NoResults>
+              <NoResults className="add-user-country-empty">No countries found</NoResults>
             )}
           </CountryList>
         </Dropdown>
@@ -301,4 +305,3 @@ const NoResults = styled("div")`
   color: #999;
   font-size: 14px;
 `;
-

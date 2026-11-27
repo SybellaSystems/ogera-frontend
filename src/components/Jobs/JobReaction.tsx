@@ -48,7 +48,7 @@ export default function JobReaction({ job }: Props) {
       >
         <HandThumbUpIcon className="w-5 h-5" />
 
-        {job.likes_count}
+        <span className="job-reaction__count">{job.likes_count}</span>
       </button>
 
       <button
@@ -59,7 +59,7 @@ export default function JobReaction({ job }: Props) {
       >
         <HandThumbDownIcon className="w-5 h-5" />
 
-        {job.dislikes_count}
+        <span className="job-reaction__count">{job.dislikes_count}</span>
       </button>
     </div>
   );

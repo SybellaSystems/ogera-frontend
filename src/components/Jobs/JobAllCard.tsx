@@ -204,6 +204,7 @@ const JobCard: React.FC<JobCardProps> = ({
   return (
     <div
       className="
+        all-jobs-card
         group
         w-full
         h-full
@@ -359,6 +360,7 @@ const JobCard: React.FC<JobCardProps> = ({
         {/* Meta Information */}
         <div
           className="
+            all-jobs-card__meta
             grid
             grid-cols-2
             gap-x-3

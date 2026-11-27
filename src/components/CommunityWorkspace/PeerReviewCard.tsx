@@ -42,10 +42,10 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
           <img
             src={student.profile_image_url}
             alt={student.full_name}
-            className="h-11 w-11 rounded-full object-cover border border-gray-200"
+            className="community-workspace__avatar h-11 w-11 rounded-full object-cover border border-gray-200"
           />
         ) : (
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-purple-100 font-semibold text-purple-700">
+          <div className="community-workspace__avatar-fallback flex h-12 w-12 items-center justify-center rounded-full bg-purple-100 font-semibold text-purple-700">
             {initials}
           </div>
         )}
@@ -172,7 +172,7 @@ const PeerReviewCard: React.FC<PeerReviewCardProps> = ({
                         className="h-9 w-9 shrink-0 rounded-full object-cover"
                       />
                     ) : (
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-purple-100 font-semibold text-purple-700">
+                      <div className="community-workspace__avatar-fallback flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-purple-100 font-semibold text-purple-700">
                         {initials}
                       </div>
                     )}

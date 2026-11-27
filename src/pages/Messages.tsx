@@ -109,9 +109,9 @@ const Messages: React.FC = () => {
   const conversations = conversationsData?.data || [];
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50 overflow-hidden">
+    <div className="messages-page h-screen flex flex-col bg-gray-50 overflow-hidden">
       {/* ── Page Header ── */}
-      <header className="flex-shrink-0 flex items-center justify-between px-5 py-4 bg-white border-b border-gray-200 shadow-sm">
+      <header className="messages-page__header flex-shrink-0 flex items-center justify-between px-5 py-4 bg-white border-b border-gray-200 shadow-sm">
         <div>
           <h1 className="text-xl font-bold text-gray-900 tracking-tight">Messages</h1>
           <p className="text-xs text-gray-500 mt-0.5">View and continue your conversations</p>
@@ -119,12 +119,12 @@ const Messages: React.FC = () => {
       </header>
 
       {/* ── Main Layout ── */}
-      <div className="flex-1 flex overflow-hidden p-0 md:p-4 md:gap-4 min-h-0">
+      <div className="messages-page__layout flex-1 flex overflow-hidden p-0 md:p-4 md:gap-4 min-h-0">
 
         {/* ── Desktop: Side-by-side ── */}
         <div className="hidden md:flex gap-4 w-full min-h-0">
           {/* Sidebar */}
-          <aside className="w-80 flex-shrink-0 bg-white rounded-xl shadow-sm overflow-hidden flex flex-col border border-gray-100">
+          <aside className="messages-page__list-panel w-80 flex-shrink-0 bg-white rounded-xl shadow-sm overflow-hidden flex flex-col border border-gray-100">
             <ConversationList
               conversations={conversations}
               selectedConversation={selectedConversation}
@@ -136,7 +136,7 @@ const Messages: React.FC = () => {
           </aside>
 
           {/* Chat panel */}
-          <main className="flex-1 bg-white rounded-xl shadow-sm overflow-hidden flex flex-col border border-gray-100 min-w-0">
+          <main className="messages-page__chat-panel flex-1 bg-white rounded-xl shadow-sm overflow-hidden flex flex-col border border-gray-100 min-w-0">
             <ChatWindow
               conversation={selectedConversation}
               messages={messages}
@@ -151,7 +151,7 @@ const Messages: React.FC = () => {
         <div className="md:hidden w-full flex flex-col min-h-0">
           {!selectedConversation ? (
             // Show conversation list
-            <div className="flex-1 bg-white flex flex-col overflow-hidden">
+            <div className="messages-page__mobile-panel flex-1 bg-white flex flex-col overflow-hidden">
               <ConversationList
                 conversations={conversations}
                 selectedConversation={selectedConversation}
@@ -163,9 +163,9 @@ const Messages: React.FC = () => {
             </div>
           ) : (
             // Show chat with back nav
-            <div className="flex-1 bg-white flex flex-col overflow-hidden">
+            <div className="messages-page__mobile-panel flex-1 bg-white flex flex-col overflow-hidden">
               {/* Mobile back bar */}
-              <div className="flex-shrink-0 flex items-center gap-3 px-4 py-3 border-b border-gray-100 bg-white">
+              <div className="messages-page__mobile-back-bar flex-shrink-0 flex items-center gap-3 px-4 py-3 border-b border-gray-100 bg-white">
                 <button
                   onClick={() => setSelectedConversation(null)}
                   className="flex items-center gap-1.5 text-sm font-medium text-purple-600 hover:text-purple-700 transition-colors"

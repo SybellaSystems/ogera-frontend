@@ -104,7 +104,8 @@ const TaskOverview: React.FC<TaskOverviewProps> = ({ taskData, kanbanTasks }) =>
           return (
             <div
               key={index}
-              className={`rounded-2xl border ${stat.border} ${stat.bg} p-6 shadow-sm transition hover:shadow-md`}
+              className={`job-tasks-kanban-stat rounded-2xl border ${stat.border} ${stat.bg} p-6 shadow-sm transition hover:shadow-md`}
+              data-stat={index}
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
@@ -119,7 +120,7 @@ const TaskOverview: React.FC<TaskOverviewProps> = ({ taskData, kanbanTasks }) =>
       </div>
 
       {/* Status Breakdown */}
-      <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+      <div className="job-tasks-kanban-panel rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
         <h2 className="mb-6 text-lg font-semibold text-gray-900">Task Status Breakdown</h2>
         <div className="space-y-4">
           {statusBreakdown.map((item, index) => (
@@ -143,7 +144,7 @@ const TaskOverview: React.FC<TaskOverviewProps> = ({ taskData, kanbanTasks }) =>
 
       {/* Student & Applicant Info */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div className="job-tasks-kanban-panel rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
           <h3 className="mb-4 font-semibold text-gray-900">Job Details</h3>
           <dl className="space-y-3">
             <div className="flex justify-between">
@@ -161,7 +162,7 @@ const TaskOverview: React.FC<TaskOverviewProps> = ({ taskData, kanbanTasks }) =>
           </dl>
         </div>
 
-        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div className="job-tasks-kanban-panel rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
           <h3 className="mb-4 font-semibold text-gray-900">Quick Stats</h3>
           <dl className="space-y-3">
             <div className="flex justify-between">
@@ -182,7 +183,7 @@ const TaskOverview: React.FC<TaskOverviewProps> = ({ taskData, kanbanTasks }) =>
 
       {/* No Tasks Message */}
       {totalTasks === 0 && (
-        <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-12 text-center">
+        <div className="job-tasks-kanban-empty rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-12 text-center">
           <ListBulletIcon className="mx-auto h-12 w-12 text-gray-400" />
           <p className="mt-4 text-gray-600">No tasks created yet. Start by creating your first task!</p>
         </div>

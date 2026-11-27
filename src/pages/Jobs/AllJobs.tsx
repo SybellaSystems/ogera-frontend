@@ -58,7 +58,7 @@ const StatTile: React.FC<{
   bg: string;
 }> = ({ label, value, icon: Icon, color, bg }) => (
   <div
-    className={`${bg} rounded-2xl border border-slate-100/80 p-4 flex items-center gap-3 hover:shadow-md hover:border-slate-200 transition-all duration-200 group cursor-default`}
+    className={`all-jobs-stat-tile ${bg} rounded-2xl border border-slate-100/80 p-4 flex items-center gap-3 hover:shadow-md hover:border-slate-200 transition-all duration-200 group cursor-default`}
   >
     <div
       className={`w-10 h-10 rounded-xl ${color} flex items-center justify-center flex-shrink-0 shadow-sm group-hover:shadow-md transition-shadow`}
@@ -281,7 +281,7 @@ const AllJobs: React.FC = () => {
   // ── Loading ──────────────────────────────────────────────────────────────────
   if (!isRoleReady || (isLoading && !data) || (isFetching && !data)) {
     return (
-      <div className="space-y-6 p-1">
+      <div className="all-jobs-page all-jobs-loading space-y-6 p-1">
         <div className="flex items-center justify-between">
           <div className="space-y-2">
             <div className="h-8 w-48 bg-slate-100 rounded-xl animate-pulse" />
@@ -309,7 +309,7 @@ const AllJobs: React.FC = () => {
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-center">
+      <div className="all-jobs-page all-jobs-error flex flex-col items-center justify-center py-20 text-center">
         <div className="w-16 h-16 rounded-2xl bg-red-50 border border-red-100 flex items-center justify-center mb-4">
           <XCircleIcon className="w-8 h-8 text-red-400" />
         </div>
@@ -331,7 +331,7 @@ const AllJobs: React.FC = () => {
 
   // ─── RENDER ───────────────────────────────────────────────────────────────────
   return (
-    <div className="space-y-6 pb-10">
+    <div className="all-jobs-page space-y-6 pb-10">
       {/* ── Header ────────────────────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
@@ -367,7 +367,7 @@ const AllJobs: React.FC = () => {
       </div>
 
       {/* ── Stats ─────────────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="all-jobs-stats grid grid-cols-2 lg:grid-cols-4 gap-3">
         <StatTile
           label={t("pages.jobs.totalJobs")}
           value={totalJobs}
@@ -399,7 +399,7 @@ const AllJobs: React.FC = () => {
       </div>
 
       {/* ── Control bar ───────────────────────────────────────────────────────── */}
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+      <div className="all-jobs-controls bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
         {/* Main row */}
         <div className="flex items-center gap-2.5 p-4">
           {/* Search */}
@@ -453,7 +453,7 @@ const AllJobs: React.FC = () => {
 
         {/* Expanded filter row */}
         {showFilters && (
-          <div className="px-4 py-3.5 bg-slate-50/80 flex flex-wrap gap-3">
+          <div className="all-jobs-filter-row px-4 py-3.5 bg-slate-50/80 flex flex-wrap gap-3">
             {/* Location */}
             <div className="relative">
               <MapPinIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
@@ -533,7 +533,7 @@ const AllJobs: React.FC = () => {
 
       {/* ── Empty state ───────────────────────────────────────────────────────── */}
       {filteredJobs.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm flex flex-col items-center justify-center py-20 px-6 text-center">
+        <div className="all-jobs-empty bg-white rounded-2xl border border-slate-100 shadow-sm flex flex-col items-center justify-center py-20 px-6 text-center">
           <div className="w-20 h-20 rounded-2xl bg-violet-50 border border-violet-100 flex items-center justify-center mb-5">
             <BriefcaseIcon className="w-10 h-10 text-violet-300" />
           </div>

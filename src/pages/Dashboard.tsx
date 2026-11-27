@@ -919,7 +919,7 @@ const Dashboard: React.FC = () => {
   const chartConfig = getChartData();
 
   return (
-    <div className="space-y-3 animate-fadeIn max-w-full overflow-x-hidden">
+    <div className="dashboard-page space-y-3 animate-fadeIn max-w-full overflow-x-hidden">
       {/* Welcome Section */}
       <div className="bg-[#7f56d9] rounded-lg p-3 text-white shadow-sm">
         <h1 className="text-[16px] md:text-base font-bold">
@@ -982,7 +982,7 @@ const Dashboard: React.FC = () => {
         {stats.map((item, index) => (
           <div
             key={index}
-            className="bg-white rounded-lg p-3 shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100"
+            className="dashboard-stat-card bg-white rounded-lg p-3 shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100"
           >
             {/* Top Row */}
             <div className="flex items-start justify-between">
@@ -1024,7 +1024,7 @@ const Dashboard: React.FC = () => {
       </div>
 
       {(role === "employer" || role === "superadmin") && (
-        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+        <div className="dashboard-trustscore bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
           <div className="flex items-center justify-between gap-3 mb-4">
             <div>
               <h2 className="text-sm font-semibold text-gray-900">
@@ -1034,7 +1034,7 @@ const Dashboard: React.FC = () => {
                 Top students ranked by TrustScore
               </p>
             </div>
-            <div className="flex items-center gap-1 rounded-full bg-purple-50 text-purple-700 px-3 py-1 text-xs font-semibold">
+            <div className="dashboard-trustscore__badge flex items-center gap-1 rounded-full bg-purple-50 text-purple-700 px-3 py-1 text-xs font-semibold">
               <StarIconSolid className="h-3.5 w-3.5" />
               TrustScore
             </div>
@@ -1080,12 +1080,12 @@ const Dashboard: React.FC = () => {
                 return (
                   <li
                     key={row.user_id}
-                    className={`${visibilityClass} min-w-0 items-center justify-between gap-2 rounded-xl border border-gray-100 bg-gradient-to-r from-white to-purple-50/40 px-3 py-3 transition-all hover:border-purple-200 hover:shadow-sm`}
+                    className={`dashboard-trustscore__candidate ${visibilityClass} min-w-0 items-center justify-between gap-2 rounded-xl border border-gray-100 bg-gradient-to-r from-white to-purple-50/40 px-3 py-3 transition-all hover:border-purple-200 hover:shadow-sm`}
                   >
                     <div className="flex min-w-0 items-center gap-2">
                       {/* Rank */}
                       <div
-                        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
+                        className={`dashboard-trustscore__rank flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
                           rank === 1
                             ? "bg-purple-100 text-purple-700"
                             : rank === 2
@@ -1130,7 +1130,7 @@ const Dashboard: React.FC = () => {
               })}
 
               {!leaderboardRes?.data?.leaderboard?.length && (
-                <li className="col-span-1 rounded-xl border border-dashed border-gray-200 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500 sm:col-span-2 lg:col-span-3">
+                <li className="dashboard-trustscore__empty col-span-1 rounded-xl border border-dashed border-gray-200 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500 sm:col-span-2 lg:col-span-3">
                   {t("common.noData")}
                 </li>
               )}
@@ -1152,14 +1152,14 @@ const Dashboard: React.FC = () => {
             total: 0,
           };
           return (
-            <div className="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
+            <div className="dashboard-application-status bg-white rounded-lg p-3 shadow-sm border border-gray-100">
               <div className="flex items-center justify-between mb-2">
                 <h2 className="text-[15px] font-semibold text-gray-800">
                   {role === "employer"
                     ? "Applications Received — by status"
                     : "Application Status"}
                 </h2>
-                <span className="text-[15px] text-gray-500">
+                <span className="dashboard-application-status__total text-[15px] text-gray-500">
                   {b.total} total
                 </span>
               </div>
@@ -1201,7 +1201,7 @@ const Dashboard: React.FC = () => {
                     <div>
                       <div className="flex items-center justify-center gap-1">
                         <span className="w-2 h-2 rounded-full bg-yellow-400" />
-                        <span className="text-sm font-bold text-gray-900">
+                        <span className="dashboard-application-status__value text-sm font-bold text-gray-900">
                           {b.pending}
                         </span>
                       </div>
@@ -1210,7 +1210,7 @@ const Dashboard: React.FC = () => {
                     <div>
                       <div className="flex items-center justify-center gap-1">
                         <span className="w-2 h-2 rounded-full bg-blue-400" />
-                        <span className="text-sm font-bold text-gray-900">
+                        <span className="dashboard-application-status__value text-sm font-bold text-gray-900">
                           {b.shortlisted}
                         </span>
                       </div>
@@ -1219,7 +1219,7 @@ const Dashboard: React.FC = () => {
                     <div>
                       <div className="flex items-center justify-center gap-1">
                         <span className="w-2 h-2 rounded-full bg-green-500" />
-                        <span className="text-sm font-bold text-gray-900">
+                        <span className="dashboard-application-status__value text-sm font-bold text-gray-900">
                           {b.accepted}
                         </span>
                       </div>
@@ -1228,7 +1228,7 @@ const Dashboard: React.FC = () => {
                     <div>
                       <div className="flex items-center justify-center gap-1">
                         <span className="w-2 h-2 rounded-full bg-red-400" />
-                        <span className="text-sm font-bold text-gray-900">
+                        <span className="dashboard-application-status__value text-sm font-bold text-gray-900">
                           {b.rejected}
                         </span>
                       </div>
@@ -1258,12 +1258,12 @@ const Dashboard: React.FC = () => {
             return new Date(iso).toLocaleDateString();
           };
           return (
-            <div className="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
+            <div className="dashboard-recent-applicants bg-white rounded-lg p-3 shadow-sm border border-gray-100">
               <div className="flex items-center justify-between mb-2">
                 <h2 className="text-xs font-semibold text-gray-800">
                   Recent Applicants
                 </h2>
-                <span className="text-[10px] text-gray-500">
+                <span className="dashboard-recent-applicants__count text-[10px] text-gray-500">
                   {recent.length} latest
                 </span>
               </div>
@@ -1301,7 +1301,7 @@ const Dashboard: React.FC = () => {
                           applied for {r.job_title}
                         </p>
                       </div>
-                      <span className="text-[10px] text-gray-400 flex-shrink-0">
+                      <span className="dashboard-recent-applicants__date text-[10px] text-gray-400 flex-shrink-0">
                         {formatRel(r.applied_at)}
                       </span>
                     </li>
@@ -1434,7 +1434,7 @@ const Dashboard: React.FC = () => {
                       {profilePct}%
                     </span>
                   </div>
-                  <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="w-full h-1.5 rounded-full overflow-hidden border border-slate-300 bg-slate-200/90 shadow-inner shadow-slate-200/30">
                     <div
                       className="h-full bg-[#7f56d9] rounded-full transition-all duration-500"
                       style={{ width: `${profilePct}%` }}
@@ -1454,7 +1454,7 @@ const Dashboard: React.FC = () => {
                       {jobPct}%
                     </span>
                   </div>
-                  <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="w-full h-1.5 rounded-full overflow-hidden border border-slate-300 bg-slate-200/90 shadow-inner shadow-slate-200/30">
                     <div
                       className="h-full bg-[#7f56d9] rounded-full transition-all duration-500"
                       style={{ width: `${jobPct}%` }}
@@ -1474,7 +1474,7 @@ const Dashboard: React.FC = () => {
                       {successPct}%
                     </span>
                   </div>
-                  <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="w-full h-1.5 rounded-full overflow-hidden border border-slate-300 bg-slate-200/90 shadow-inner shadow-slate-200/30">
                     <div
                       className="h-full bg-[#7f56d9] rounded-full transition-all duration-500"
                       style={{ width: `${successPct}%` }}

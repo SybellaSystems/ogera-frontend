@@ -52,16 +52,16 @@ const StudentTasks: React.FC = () => {
   if (isLoading) return <Loader />;
   if (error) {
     return (
-      <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-red-800">
+      <div className="student-tasks-error rounded-2xl border border-red-200 bg-red-50 p-6 text-red-800">
         Unable to load your tasks right now.
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 animate-fadeIn">
+    <div className="student-tasks-page space-y-6 animate-fadeIn">
       <div className="flex items-center gap-3">
-        <ClipboardDocumentListIcon className="h-8 w-8 text-indigo-600" />
+        <ClipboardDocumentListIcon className="student-tasks-icon h-8 w-8 text-indigo-600" />
         <div>
           <h1 className="text-3xl font-bold text-gray-900">My Tasks</h1>
           <p className="text-sm text-gray-600">Tasks assigned to you from approved jobs.</p>
@@ -69,7 +69,7 @@ const StudentTasks: React.FC = () => {
       </div>
 
       {tasks.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-10 text-center text-gray-600">
+        <div className="student-tasks-empty rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-10 text-center text-gray-600">
           No tasks assigned yet.
         </div>
       ) : (
@@ -77,7 +77,7 @@ const StudentTasks: React.FC = () => {
           {tasks.map((task) => {
             const transitions = getStudentTransitions(task.status);
             return (
-              <div key={task.task_id} className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+              <div key={task.task_id} className="student-tasks-card rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
                 <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">{task.title}</h3>
@@ -85,14 +85,14 @@ const StudentTasks: React.FC = () => {
                       <p className="mt-1 text-sm text-gray-600">{task.description}</p>
                     ) : null}
                     <div className="mt-3 flex flex-wrap gap-2 text-xs text-gray-600">
-                      <span className="rounded-full bg-indigo-50 px-3 py-1.5 text-indigo-700">
+                      <span className="student-tasks-job-badge rounded-full bg-indigo-50 px-3 py-1.5 text-indigo-700">
                         Job: {task.job?.job_title || task.job_id}
                       </span>
-                      <span className="rounded-full bg-gray-100 px-3 py-1.5">
+                      <span className={`student-tasks-status-badge student-tasks-status-${task.status.toLowerCase().replaceAll("_", "-")} rounded-full bg-gray-100 px-3 py-1.5`}>
                         Status: {statusLabel(task.status)}
                       </span>
                       {task.deadline ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1.5">
+                        <span className="student-tasks-deadline-badge inline-flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1.5">
                           <ClockIcon className="h-3.5 w-3.5" />
                           {new Date(task.deadline).toLocaleDateString()}
                         </span>
@@ -112,7 +112,7 @@ const StudentTasks: React.FC = () => {
                             event.target.value = "";
                           }
                         }}
-                        className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none transition focus:border-indigo-500"
+                        className="student-tasks-status-select w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none transition focus:border-indigo-500"
                       >
                         <option value="">Update status</option>
                         {transitions.map((s) => (
@@ -122,7 +122,7 @@ const StudentTasks: React.FC = () => {
                         ))}
                       </select>
                     ) : (
-                      <div className="rounded-xl bg-gray-50 px-4 py-3 text-sm text-gray-500">
+                      <div className="student-tasks-no-action rounded-xl bg-gray-50 px-4 py-3 text-sm text-gray-500">
                         No action available from current status.
                       </div>
                     )}

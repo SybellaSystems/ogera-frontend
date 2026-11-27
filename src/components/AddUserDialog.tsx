@@ -151,6 +151,7 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({ open, onClose }) => {
       maxWidth="sm"
       fullWidth
       PaperProps={{
+        className: "add-user-dialog",
         sx: {
           borderRadius: isMobile ? 0 : 2,
           m: isMobile ? 0 : 2,
@@ -372,6 +373,7 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({ open, onClose }) => {
               <PhoneInput
                 id="mobile_number"
                 name="mobile_number"
+                className="add-user-phone-input"
                 type="tel"
                 placeholder="Enter your mobile number"
                 value={formik.values.mobile_number}
@@ -453,4 +455,3 @@ const PhoneInput = styled("input")`
     border-left: 1px solid #7f56d9;
   }
 `;
-

@@ -135,7 +135,7 @@ const TaskTimelineView: React.FC<TaskTimelineViewProps> = ({ tasks, onTaskClick 
   }
 
   return (
-    <div className="space-y-8">
+    <div className="job-tasks-kanban-timeline space-y-8">
       {Object.entries(groupedByDeadline).map(([deadline, taskGroup]) => {
         // Parse the deadline date for sorting
         const deadlineDate = deadline === 'No Deadline' ? null : new Date(deadline);

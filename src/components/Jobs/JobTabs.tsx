@@ -21,17 +21,17 @@ const JobTabs = ({ count, onTabChange }: JobTabsProps) => {
     onTabChange?.(tab);
   };
     return (
-          <div className="mt-4 overflow-x-auto rounded-xl border border-gray-200 bg-white p-2 pl-5 pr-5 pt-3">
+          <div className="job-referrals-tabs mt-4 overflow-x-auto rounded-xl border border-[var(--theme-border)] bg-[var(--theme-card-bg)] p-2 pl-5 pr-5 pt-3">
          <div className="flex min-w-max gap-2">
           {tabs.map((tab) => (
             <button
               key={tab}
               type="button"
               onClick={() => handleTabClick(tab)}
-              className={`relative cursor-pointer rounded-lg px-4 py-2 text-sm font-medium transition ${
+              className={`job-referral-filter relative cursor-pointer rounded-lg px-4 py-2 text-sm font-medium transition ${
                 activeTab === tab
                   ? "bg-purple-600 text-white"
-                  : "text-purple-600 hover:bg-purple-100"
+                  : "text-[var(--theme-text-primary)] hover:bg-[var(--theme-table-selected-bg)]"
               }`}
             >
                <TabCountBadge counts={count[tab]} />

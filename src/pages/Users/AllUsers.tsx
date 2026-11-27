@@ -62,7 +62,7 @@ const AllUsers: React.FC = () => {
   const [userToView, setUserToView] = useState<User | null>(null);
   const [userToEdit, setUserToEdit] = useState<User | null>(null);
   const [editFormData, setEditFormData] = useState<Partial<UserProfile>>({});
-  const [countdown, setCountdown] = useState(3);
+  const [countdown, setCountdown] = useState(15);
   const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   
   const [deleteUser] = useDeleteUserMutation();
@@ -164,7 +164,7 @@ const AllUsers: React.FC = () => {
   const handleCloseDeleteDialog = useCallback(() => {
     setDeleteDialogOpen(false);
     setUserToDelete(null);
-    setCountdown(3);
+    setCountdown(15);
     if (countdownIntervalRef.current) {
       clearInterval(countdownIntervalRef.current);
       countdownIntervalRef.current = null;
@@ -187,7 +187,7 @@ const AllUsers: React.FC = () => {
   const handleDeleteClick = (row: User) => {
     setUserToDelete(row);
     setDeleteDialogOpen(true);
-    setCountdown(3);
+    setCountdown(15);
   };
 
   const handleViewClick = (row: User) => {
@@ -230,7 +230,7 @@ const AllUsers: React.FC = () => {
     }
 
     // Reset countdown when dialog opens
-    setCountdown(3);
+    setCountdown(15);
 
     // Start countdown interval
     countdownIntervalRef.current = setInterval(() => {
@@ -374,7 +374,7 @@ const AllUsers: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6 animate-fadeIn">
+    <div className="all-users-page space-y-6 animate-fadeIn">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
@@ -396,7 +396,7 @@ const AllUsers: React.FC = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-        <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
+        <div className="all-users-stat-card bg-white rounded-xl p-6 shadow-md border border-gray-100">
           <p className="text-sm text-gray-500 font-medium">{t("pages.users.totalUsers")}</p>
           <p className="text-3xl font-bold text-gray-900 mt-2">
             {isLoading ? "…" : totalCount}
@@ -405,21 +405,21 @@ const AllUsers: React.FC = () => {
             {t("pages.users.studentsAndEmployersOnly")}
           </p>
         </div>
-        <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
+        <div className="all-users-stat-card bg-white rounded-xl p-6 shadow-md border border-gray-100">
           <p className="text-sm text-gray-500 font-medium">{t("pages.users.students")}</p>
           <p className="text-3xl font-bold text-gray-900 mt-2">
             {isLoading ? "…" : studentCount}
           </p>
           <p className="text-sm text-blue-600 mt-2">{t("pages.users.studentAccounts")}</p>
         </div>
-        <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
+        <div className="all-users-stat-card bg-white rounded-xl p-6 shadow-md border border-gray-100">
           <p className="text-sm text-gray-500 font-medium">{t("pages.users.employers")}</p>
           <p className="text-3xl font-bold text-gray-900 mt-2">
             {isLoading ? "…" : employerCount}
           </p>
           <p className="text-sm text-purple-600 mt-2">{t("pages.users.employerAccounts")}</p>
         </div>
-        <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
+        <div className="all-users-stat-card bg-white rounded-xl p-6 shadow-md border border-gray-100">
           <p className="text-sm text-gray-500 font-medium">{t("pages.users.onThisPage")}</p>
           <p className="text-3xl font-bold text-gray-900 mt-2">
             {isLoading ? "…" : users.length}
@@ -517,12 +517,12 @@ const AllUsers: React.FC = () => {
                   borderRadius: 1.5,
                   backgroundColor:
                     userDetails.data.role?.roleType === "student"
-                      ? "var(--chip-role-student-bg)"
-                      : "var(--chip-role-employer-bg)",
+                      ? "var(--theme-detail-header-student-bg)"
+                      : "var(--theme-detail-header-employer-bg)",
                   border: `1px solid ${
                     userDetails.data.role?.roleType === "student"
-                      ? "var(--chip-role-student-bg)"
-                      : "var(--chip-role-employer-bg)"
+                      ? "var(--theme-detail-header-student-border)"
+                      : "var(--theme-detail-header-employer-border)"
                   }`,
                   flexDirection: isMobile ? "column" : "row",
                   textAlign: isMobile ? "center" : "left",
@@ -575,8 +575,8 @@ const AllUsers: React.FC = () => {
                     sx={{
                       p: isSmallMobile ? 1.25 : isMobile ? 1.5 : 1.75,
                       borderRadius: 1.5,
-                      backgroundColor: "var(--theme-card-bg, #ffffff)",
-                      border: "1px solid var(--theme-border, rgba(0, 0, 0, 0.08))",
+                      backgroundColor: "var(--theme-detail-card-bg, #ffffff)",
+                      border: "1px solid var(--theme-detail-card-border, rgba(0, 0, 0, 0.08))",
                       boxShadow: "0 4px 10px rgba(15, 23, 42, 0.04)",
                       height: "100%",
                       minHeight: "80px",
@@ -615,8 +615,8 @@ const AllUsers: React.FC = () => {
                     sx={{
                       p: isSmallMobile ? 1.25 : isMobile ? 1.5 : 1.75,
                       borderRadius: 1.5,
-                      backgroundColor: "var(--theme-card-bg, #ffffff)",
-                      border: "1px solid var(--theme-border, rgba(0, 0, 0, 0.08))",
+                      backgroundColor: "var(--theme-detail-card-bg, #ffffff)",
+                      border: "1px solid var(--theme-detail-card-border, rgba(0, 0, 0, 0.08))",
                       boxShadow: "0 4px 10px rgba(15, 23, 42, 0.04)",
                       height: "100%",
                       minHeight: "80px",
@@ -655,8 +655,8 @@ const AllUsers: React.FC = () => {
                       sx={{
                         p: isSmallMobile ? 1.25 : isMobile ? 1.5 : 1.75,
                         borderRadius: 1.5,
-                        backgroundColor: "rgba(59, 130, 246, 0.05)",
-                        border: "1px solid rgba(59, 130, 246, 0.15)",
+                        backgroundColor: "var(--theme-detail-card-student-accent-bg, rgba(59, 130, 246, 0.05))",
+                        border: "1px solid var(--theme-detail-card-student-accent-border, rgba(59, 130, 246, 0.15))",
                         height: "100%",
                         minHeight: "80px",
                       }}
@@ -696,8 +696,8 @@ const AllUsers: React.FC = () => {
                       sx={{
                         p: isSmallMobile ? 1.25 : isMobile ? 1.5 : 1.75,
                         borderRadius: 1.5,
-                        backgroundColor: "rgba(16, 185, 129, 0.05)",
-                        border: "1px solid rgba(16, 185, 129, 0.15)",
+                        backgroundColor: "var(--theme-detail-card-employer-accent-bg, rgba(16, 185, 129, 0.05))",
+                        border: "1px solid var(--theme-detail-card-employer-accent-border, rgba(16, 185, 129, 0.15))",
                         height: "100%",
                         minHeight: "80px",
                       }}
@@ -736,8 +736,8 @@ const AllUsers: React.FC = () => {
                     sx={{
                       p: isSmallMobile ? 1.25 : isMobile ? 1.5 : 1.75,
                       borderRadius: 1.5,
-                      backgroundColor: "var(--theme-card-bg, #ffffff)",
-                      border: "1px solid var(--theme-border, rgba(0, 0, 0, 0.08))",
+                      backgroundColor: "var(--theme-detail-card-bg, #ffffff)",
+                      border: "1px solid var(--theme-detail-card-border, rgba(0, 0, 0, 0.08))",
                       boxShadow: "0 4px 10px rgba(15, 23, 42, 0.04)",
                       height: "100%",
                       minHeight: "80px",
@@ -775,12 +775,12 @@ const AllUsers: React.FC = () => {
                       p: isSmallMobile ? 1.25 : isMobile ? 1.5 : 1.75,
                       borderRadius: 1.5,
                       backgroundColor: userDetails.data.email_verified
-                        ? "var(--chip-verified-bg)"
-                        : "var(--chip-unverified-bg)",
+                        ? "var(--theme-detail-card-verified-bg)"
+                        : "var(--theme-detail-card-unverified-bg)",
                       border: `1px solid ${
                         userDetails.data.email_verified
-                          ? "var(--chip-verified-bg)"
-                          : "var(--chip-unverified-bg)"
+                          ? "var(--theme-detail-card-verified-border)"
+                          : "var(--theme-detail-card-unverified-border)"
                       }`,
                       height: "100%",
                       minHeight: "80px",
@@ -829,12 +829,12 @@ const AllUsers: React.FC = () => {
                       p: isSmallMobile ? 1.25 : isMobile ? 1.5 : 1.75,
                       borderRadius: 1.5,
                       backgroundColor: userDetails.data.phone_verified
-                        ? "var(--chip-verified-bg)"
-                        : "var(--chip-unverified-bg)",
+                        ? "var(--theme-detail-card-verified-bg)"
+                        : "var(--theme-detail-card-unverified-bg)",
                       border: `1px solid ${
                         userDetails.data.phone_verified
-                          ? "var(--chip-verified-bg)"
-                          : "var(--chip-unverified-bg)"
+                          ? "var(--theme-detail-card-verified-border)"
+                          : "var(--theme-detail-card-unverified-border)"
                       }`,
                       height: "100%",
                       minHeight: "80px",
@@ -883,8 +883,8 @@ const AllUsers: React.FC = () => {
                     sx={{
                       p: isSmallMobile ? 1.25 : isMobile ? 1.5 : 1.75,
                       borderRadius: 1.5,
-                      backgroundColor: "var(--theme-card-bg, #ffffff)",
-                      border: "1px solid var(--theme-border, rgba(0, 0, 0, 0.08))",
+                      backgroundColor: "var(--theme-detail-card-bg, #ffffff)",
+                      border: "1px solid var(--theme-detail-card-border, rgba(0, 0, 0, 0.08))",
                       boxShadow: "0 4px 10px rgba(15, 23, 42, 0.04)",
                       height: "100%",
                       minHeight: "80px",
@@ -943,8 +943,8 @@ const AllUsers: React.FC = () => {
                     sx={{
                       p: isSmallMobile ? 1.25 : isMobile ? 1.5 : 1.75,
                       borderRadius: 1.5,
-                      backgroundColor: "var(--theme-card-bg, #ffffff)",
-                      border: "1px solid var(--theme-border, rgba(0, 0, 0, 0.08))",
+                      backgroundColor: "var(--theme-detail-card-bg, #ffffff)",
+                      border: "1px solid var(--theme-detail-card-border, rgba(0, 0, 0, 0.08))",
                       boxShadow: "0 4px 10px rgba(15, 23, 42, 0.04)",
                       height: "100%",
                       minHeight: "80px",
@@ -1044,6 +1044,7 @@ const AllUsers: React.FC = () => {
 
       {/* Edit User Dialog */}
       <Dialog
+        className="user-edit-dialog"
         open={editDialogOpen}
         onClose={handleCloseEditDialog}
         fullScreen={fullScreen}
@@ -1092,6 +1093,11 @@ const AllUsers: React.FC = () => {
             <Box>
               {/* User Info Header */}
               <Box
+                className={`user-edit-profile-banner ${
+                  userDetails.data.role?.roleType === "student"
+                    ? "user-edit-profile-banner--student"
+                    : "user-edit-profile-banner--employer"
+                }`}
                 sx={{
                   display: "flex",
                   alignItems: "center",
@@ -1099,8 +1105,8 @@ const AllUsers: React.FC = () => {
                   mb: isSmallMobile ? 1.5 : isMobile ? 2 : 3,
                   p: isSmallMobile ? 1.5 : isMobile ? 2 : 2.5,
                   borderRadius: 2,
-                  backgroundColor: "rgba(147, 51, 234, 0.06)",
-                  border: "1px solid rgba(147, 51, 234, 0.18)",
+                  backgroundColor: "var(--theme-edit-user-header-bg, rgba(147, 51, 234, 0.06))",
+                  border: "1px solid var(--theme-edit-user-header-border, rgba(147, 51, 234, 0.18))",
                 }}
               >
                 <Avatar
@@ -1366,6 +1372,7 @@ const AllUsers: React.FC = () => {
 
       {/* Delete Confirmation Dialog */}
       <Dialog
+        className="delete-user-dialog"
         open={deleteDialogOpen}
         onClose={handleCloseDeleteDialog}
         maxWidth={isSmallMobile ? "xs" : isMobile ? "sm" : "sm"}
@@ -1380,16 +1387,12 @@ const AllUsers: React.FC = () => {
             maxHeight: isMobile ? "100vh" : isSmallMobile ? "90vh" : "85vh",
             height: isMobile ? "100vh" : "auto",
             borderRadius: isMobile ? 0 : isSmallMobile ? 1 : 2,
-            marginLeft: isMobile ? 0 : "auto",
-            marginRight: isMobile ? 0 : isSmallMobile ? "8px" : "16px",
-            marginTop: isMobile ? 0 : isSmallMobile ? "8px" : "16px",
-            marginBottom: isMobile ? 0 : isSmallMobile ? "8px" : "16px",
           },
         }}
         sx={{
           "& .MuiDialog-container": {
-            alignItems: isMobile ? "flex-end" : "flex-start",
-            justifyContent: isMobile ? "center" : "flex-end",
+            alignItems: "center",
+            justifyContent: "center",
             padding: isSmallMobile ? "4px" : isMobile ? "8px" : "8px",
           },
           "& .MuiDialogContent-root": {
@@ -1489,14 +1492,15 @@ const AllUsers: React.FC = () => {
               gap: isSmallMobile ? 1 : isMobile ? 1.5 : 2,
               mt: isSmallMobile ? 1.5 : isMobile ? 2 : 2,
               p: isSmallMobile ? 1.5 : isMobile ? 2 : 2,
-              bgcolor: "#fee2e2",
+              bgcolor: "var(--theme-delete-alert-bg, #fee2e2)",
+              border: "1px solid var(--theme-delete-alert-border, #fecaca)",
               borderRadius: isSmallMobile ? 1.5 : 2,
             }}
           >
             <CircularProgress 
               size={isSmallMobile ? 20 : isMobile ? 22 : 24} 
               thickness={4}
-              sx={{ color: "#ef4444" }}
+              sx={{ color: "var(--theme-delete-alert-text, #ef4444)" }}
             />
             <Typography 
               variant={isSmallMobile ? "caption" : isMobile ? "body2" : "body2"} 
@@ -1504,6 +1508,7 @@ const AllUsers: React.FC = () => {
               fontWeight={600}
               sx={{
                 fontSize: isSmallMobile ? "0.7rem" : isMobile ? "0.75rem" : "0.875rem",
+                color: "var(--theme-delete-alert-text, #dc2626)",
               }}
             >
               {t("pages.users.autoDeleting", { count: countdown })}

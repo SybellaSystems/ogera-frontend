@@ -11,6 +11,7 @@ import {
   Box,
   Typography,
 } from "@mui/material";
+import { styled } from "@mui/material/styles";
 import {
   Visibility as ViewIcon,
   Edit as EditIcon,
@@ -284,15 +285,15 @@ const ViewAdmins: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6 animate-fadeIn">
+    <AdminPage className="space-y-6 animate-fadeIn">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-4xl font-extrabold text-gray-900 flex items-center gap-2 md:gap-3">
+          <h1 className="admin-view-title text-2xl md:text-4xl font-extrabold text-gray-900 flex items-center gap-2 md:gap-3">
             <UserGroupIcon className="h-8 w-8 md:h-10 md:w-10 text-purple-600" />
             {t("pages.admin.viewTitle")}
           </h1>
-          <p className="text-sm md:text-base text-gray-500 mt-2">
+          <p className="admin-view-subtitle text-sm md:text-base text-gray-500 mt-2">
             {t("pages.admin.viewSubtitle")}
           </p>
         </div>
@@ -301,15 +302,15 @@ const ViewAdmins: React.FC = () => {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
         <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
-          <p className="text-sm text-gray-500 font-medium">{t("pages.admin.totalAdmins")}</p>
-          <p className="text-3xl font-bold text-gray-900 mt-2">
+          <p className="admin-stat-label text-sm text-gray-500 font-medium">{t("pages.admin.totalAdmins")}</p>
+          <p className="admin-stat-value text-3xl font-bold text-gray-900 mt-2">
             {isLoading ? "…" : totalCount}
           </p>
           <p className="text-sm text-green-600 mt-2">{t("pages.admin.liveData")}</p>
         </div>
         <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
-          <p className="text-sm text-gray-500 font-medium">{t("pages.admin.admins")}</p>
-          <p className="text-3xl font-bold text-gray-900 mt-2">
+          <p className="admin-stat-label text-sm text-gray-500 font-medium">{t("pages.admin.admins")}</p>
+          <p className="admin-stat-value text-3xl font-bold text-gray-900 mt-2">
             {isLoading
               ? "…"
               : admins.filter((a) => a.role === "Admin").length}
@@ -444,7 +445,7 @@ const ViewAdmins: React.FC = () => {
                 <>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {t("pages.admin.fullNameLabel")}
+                      {t("pages.admin.fullNameLabel")} <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -462,7 +463,7 @@ const ViewAdmins: React.FC = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {t("pages.admin.emailAddressLabel")}
+                      {t("pages.admin.emailAddressLabel")} <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="email"
@@ -565,14 +566,54 @@ const ViewAdmins: React.FC = () => {
           </div>
         </div>
       )}
-    </div>
+    </AdminPage>
   );
 };
 
+const AdminPage = styled("div")`
+  html[data-theme="dark"] & {
+    .admin-view-title,
+    .admin-view-subtitle,
+    .admin-stat-label,
+    .admin-stat-value {
+      color: #ffffff !important;
+    }
+
+    .theme-table {
+      border-color: #64748b !important;
+      box-shadow: none !important;
+    }
+
+    .theme-table > .MuiBox-root {
+      background-color: #1e293b !important;
+      border-bottom-color: #64748b !important;
+    }
+
+    .theme-table .MuiOutlinedInput-root {
+      background-color: #475569 !important;
+      color: #ffffff !important;
+    }
+
+    .theme-table .MuiOutlinedInput-notchedOutline {
+      border-color: #64748b !important;
+    }
+
+    .theme-table .MuiInputBase-input {
+      color: #ffffff !important;
+
+      &::placeholder {
+        color: #cbd5e1 !important;
+        opacity: 1;
+      }
+    }
+
+    .theme-table .MuiTableCell-head,
+    .theme-table .MuiTableCell-head .MuiTableSortLabel-root {
+      color: #ffffff !important;
+    }
+  }
+`;
+
 export default ViewAdmins;
-
-
-
-
 
 

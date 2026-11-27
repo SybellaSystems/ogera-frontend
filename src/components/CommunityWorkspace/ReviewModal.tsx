@@ -67,8 +67,8 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="w-full max-w-2xl overflow-hidden rounded-3xl bg-white shadow-2xl max-h-[95vh] flex flex-col">
+    <div className="community-workspace-review-modal fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+      <div className="community-workspace-review-modal__panel w-full max-w-2xl overflow-hidden rounded-3xl bg-white shadow-2xl max-h-[95vh] flex flex-col">
         {/* Header */}
         <div className="rounded-t-2xl bg-gradient-to-r from-[#6F42C1] to-[#7F56D9] px-6 py-5 text-white">
           <div className="flex items-start justify-between">
@@ -82,7 +82,7 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
 
             <button
               onClick={onClose}
-              className="rounded-lg p-2 text-white transition hover:bg-white/10"
+              className="community-workspace-review-modal__close rounded-lg p-2 text-white transition hover:bg-white/10"
             >
               <XMarkIcon className="h-5 w-5" />
             </button>
@@ -92,7 +92,7 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
         {/* Body */}
         <div className="flex-1 overflow-y-auto space-y-6 p-6">
           {/* Student */}
-          <div className="rounded-2xl flex-col sm:flex-row border border-gray-200 bg-gradient-to-br from-gray-50 to-white p-5 shadow-sm">
+          <div className="community-workspace-review-modal__student rounded-2xl flex-col sm:flex-row border border-gray-200 bg-gradient-to-br from-gray-50 to-white p-5 shadow-sm">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h3 className="text-lg font-semibold text-gray-900">
@@ -104,7 +104,7 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
                 </p>
               </div>
 
-              <span className="rounded-full bg-purple-100 px-3 py-1 text-xs font-semibold text-purple-700">
+              <span className="community-workspace-review-modal__link-type rounded-full bg-purple-100 px-3 py-1 text-xs font-semibold text-purple-700">
                 {student.link_type}
               </span>
             </div>
@@ -113,7 +113,7 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
               href={student.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-4 block rounded-lg bg-purple-50 px-4 py-3 break-all text-sm font-medium text-purple-700 transition hover:bg-purple-100"
+              className="community-workspace-review-modal__student-link mt-4 block rounded-lg bg-purple-50 px-4 py-3 break-all text-sm font-medium text-purple-700 transition hover:bg-purple-100"
             >
               {student.url}
             </a>
@@ -121,12 +121,14 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
 
           {/* Rating */}
           <div>
-            <label className="mb-2 block text-sm font-medium">Rating</label>
+            <label className="community-workspace-review-modal__label mb-2 block text-sm font-medium">Rating</label>
 
             <div className="flex flex-wrap gap-3">
               {[1, 2, 3, 4, 5].map((star) => (
                 <button
                   key={star}
+                  type="button"
+                  aria-label={`Rate ${star} out of 5`}
                   onMouseEnter={() => setHoverRating(star)}
                   onMouseLeave={() => setHoverRating(0)}
                   onClick={() => setRating(star)}
@@ -145,7 +147,7 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
 
           {/* Feedback */}
           <div>
-            <label className="mb-2 block text-sm font-medium">Feedback</label>
+            <label className="community-workspace-review-modal__label mb-2 block text-sm font-medium">Feedback</label>
 
             <textarea
               rows={5}
@@ -155,22 +157,22 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
                 setError("");
               }}
               placeholder="Write constructive feedback..."
-              className="w-full rounded-xl border border-gray-300 bg-gray-50 p-4 text-sm transition-all outline-none placeholder:text-gray-400 focus:border-[#7F56D9] focus:bg-white focus:ring-4 focus:ring-purple-100"
+              className="community-workspace-review-modal__feedback w-full rounded-xl border border-gray-300 bg-gray-50 p-4 text-sm transition-all outline-none placeholder:text-gray-400 focus:border-[#7F56D9] focus:bg-white focus:ring-4 focus:ring-purple-100"
             />
           </div>
 
           {error && (
-            <p className="rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-600">
+            <p className="community-workspace-review-modal__error rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-600">
               {error}
             </p>
           )}
         </div>
 
         {/* Footer */}
-        <div className="flex flex-col-reverse gap-3 flex-col-reverse sm:flex-row  bg-gray-50 px-6 py-5 sm:flex-row sm:justify-end">
+        <div className="community-workspace-review-modal__footer flex flex-col-reverse gap-3 flex-col-reverse sm:flex-row bg-gray-50 px-6 py-5 sm:flex-row sm:justify-end">
           <button
             onClick={onClose}
-            className="w-full w-full sm:w-auto cursor-pointer rounded-xl border border-gray-300 py-3 text-sm font-medium transition hover:bg-gray-100 sm:w-auto sm:px-6"
+            className="community-workspace-review-modal__cancel w-full w-full sm:w-auto cursor-pointer rounded-xl border border-gray-300 py-3 text-sm font-medium transition hover:bg-gray-100 sm:w-auto sm:px-6"
           >
             Cancel
           </button>
