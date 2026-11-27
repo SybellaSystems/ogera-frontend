@@ -26,7 +26,6 @@ import {
   CheckCircleIcon,
   XCircleIcon,
   FolderIcon,
-  FireIcon,
   ArrowPathIcon,
   ShieldCheckIcon,
   PlusIcon,

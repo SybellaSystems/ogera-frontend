@@ -315,36 +315,38 @@ const Students: React.FC = () => {
       </div>
 
       {/* Students Table */}
-      <CustomTable
-        columns={columns}
-        data={students}
-        actions={actions}
-        loading={isLoading}
-        emptyMessage={
-          isError
-            ? t("pages.users.failedToLoadStudents")
-            : totalCount === 0
-            ? t("pages.users.noStudentsPresent")
-            : t("pages.users.noStudentsFound")
-        }
-        searchable={true}
-        searchPlaceholder={t("pages.users.searchStudents")}
-        onSearch={(query) => {
-          setSearchQuery(query);
-          setPage(0); // Reset to first page when searching
-        }}
-        disableClientSideSearch={true} // Disable client-side filtering as we use server-side search
-        rowsPerPageOptions={[5, 10, 25, 50]}
-        defaultRowsPerPage={limit}
-        serverSidePagination={true}
-        totalCount={totalCount}
-        page={page}
-        onPageChange={(newPage) => setPage(newPage)}
-        onRowsPerPageChange={(newLimit) => {
-          setLimit(newLimit);
-          setPage(0);
-        }}
-      />
+      <div className="student-employer-users-table">
+        <CustomTable
+          columns={columns}
+          data={students}
+          actions={actions}
+          loading={isLoading}
+          emptyMessage={
+            isError
+              ? t("pages.users.failedToLoadStudents")
+              : totalCount === 0
+              ? t("pages.users.noStudentsPresent")
+              : t("pages.users.noStudentsFound")
+          }
+          searchable={true}
+          searchPlaceholder={t("pages.users.searchStudents")}
+          onSearch={(query) => {
+            setSearchQuery(query);
+            setPage(0); // Reset to first page when searching
+          }}
+          disableClientSideSearch={true} // Disable client-side filtering as we use server-side search
+          rowsPerPageOptions={[5, 10, 25, 50]}
+          defaultRowsPerPage={limit}
+          serverSidePagination={true}
+          totalCount={totalCount}
+          page={page}
+          onPageChange={(newPage) => setPage(newPage)}
+          onRowsPerPageChange={(newLimit) => {
+            setLimit(newLimit);
+            setPage(0);
+          }}
+        />
+      </div>
 
       {/* View Student Dialog */}
       <Dialog
@@ -877,6 +879,7 @@ const Students: React.FC = () => {
 
       {/* Edit Student Dialog */}
       <Dialog
+        className="user-edit-dialog"
         open={editDialogOpen}
         onClose={handleCloseEditDialog}
         maxWidth="md"
@@ -985,6 +988,7 @@ const Students: React.FC = () => {
             <Box>
               {/* Student Info Header */}
               <Box
+                className="user-edit-profile-banner user-edit-profile-banner--student"
                 sx={{
                   display: "flex",
                   alignItems: "center",

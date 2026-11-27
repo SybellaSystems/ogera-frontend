@@ -319,36 +319,38 @@ const Employers: React.FC = () => {
       </div>
 
       {/* Employers Table */}
-      <CustomTable
-        columns={columns}
-        data={employers}
-        actions={actions}
-        loading={isLoading}
-        emptyMessage={
-          isError
-            ? t("pages.users.failedToLoadEmployers")
-            : totalCount === 0
-              ? t("pages.users.noEmployersPresent")
-              : t("pages.users.noEmployersFound")
-        }
-        searchable={true}
-        searchPlaceholder={t("pages.users.searchEmployers")}
-        onSearch={(query) => {
-          setSearchQuery(query);
-          setPage(0); // Reset to first page when searching
-        }}
-        disableClientSideSearch={true} // Disable client-side filtering as we use server-side search
-        rowsPerPageOptions={[5, 10, 25, 50]}
-        defaultRowsPerPage={limit}
-        serverSidePagination={true}
-        totalCount={totalCount}
-        page={page}
-        onPageChange={(newPage) => setPage(newPage)}
-        onRowsPerPageChange={(newLimit) => {
-          setLimit(newLimit);
-          setPage(0);
-        }}
-      />
+      <div className="student-employer-users-table">
+        <CustomTable
+          columns={columns}
+          data={employers}
+          actions={actions}
+          loading={isLoading}
+          emptyMessage={
+            isError
+              ? t("pages.users.failedToLoadEmployers")
+              : totalCount === 0
+                ? t("pages.users.noEmployersPresent")
+                : t("pages.users.noEmployersFound")
+          }
+          searchable={true}
+          searchPlaceholder={t("pages.users.searchEmployers")}
+          onSearch={(query) => {
+            setSearchQuery(query);
+            setPage(0); // Reset to first page when searching
+          }}
+          disableClientSideSearch={true} // Disable client-side filtering as we use server-side search
+          rowsPerPageOptions={[5, 10, 25, 50]}
+          defaultRowsPerPage={limit}
+          serverSidePagination={true}
+          totalCount={totalCount}
+          page={page}
+          onPageChange={(newPage) => setPage(newPage)}
+          onRowsPerPageChange={(newLimit) => {
+            setLimit(newLimit);
+            setPage(0);
+          }}
+        />
+      </div>
 
       {/* View Employer Dialog */}
       <Dialog
@@ -1025,6 +1027,7 @@ const Employers: React.FC = () => {
 
       {/* Edit Employer Dialog */}
       <Dialog
+        className="user-edit-dialog"
         open={editDialogOpen}
         onClose={handleCloseEditDialog}
         maxWidth="md"
@@ -1155,6 +1158,7 @@ const Employers: React.FC = () => {
             <Box>
               {/* Employer Info Header */}
               <Box
+                className="user-edit-profile-banner user-edit-profile-banner--employer"
                 sx={{
                   display: "flex",
                   alignItems: "center",

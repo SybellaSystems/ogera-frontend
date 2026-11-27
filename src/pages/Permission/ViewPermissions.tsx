@@ -6,6 +6,7 @@ import CustomTable, {
   type TableAction,
 } from "../../components/Table/CustomTable";
 import { Chip, Typography } from "@mui/material";
+import { styled } from "@mui/material/styles";
 import {
   Edit as EditIcon,
   Delete as DeleteIcon,
@@ -259,15 +260,15 @@ const ViewPermissions: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6 animate-fadeIn">
+    <PermissionPage className="space-y-6 animate-fadeIn">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-4xl font-extrabold text-gray-900 flex items-center gap-2 md:gap-3">
+          <h1 className="permission-view-title text-2xl md:text-4xl font-extrabold text-gray-900 flex items-center gap-2 md:gap-3">
             <ShieldCheckIcon className="h-8 w-8 md:h-10 md:w-10 text-purple-600" />
             {t("pages.permission.viewTitle")}
           </h1>
-          <p className="text-sm md:text-base text-gray-500 mt-2">
+          <p className="permission-view-subtitle text-sm md:text-base text-gray-500 mt-2">
             {t("pages.permission.viewSubtitle")}
           </p>
         </div>
@@ -276,22 +277,22 @@ const ViewPermissions: React.FC = () => {
       {/* Stats Card */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
         <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
-          <p className="text-sm text-gray-500 font-medium">{t("pages.permission.totalPermissions")}</p>
-          <p className="text-3xl font-bold text-gray-900 mt-2">
+          <p className="permission-stat-label text-sm text-gray-500 font-medium">{t("pages.permission.totalPermissions")}</p>
+          <p className="permission-stat-value text-3xl font-bold text-gray-900 mt-2">
             {isLoading ? "…" : permissions.length}
           </p>
           <p className="text-sm text-green-600 mt-2">{t("pages.permission.liveData")}</p>
         </div>
         <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
-          <p className="text-sm text-gray-500 font-medium">{t("pages.permission.activeRoutes")}</p>
-          <p className="text-3xl font-bold text-gray-900 mt-2">
+          <p className="permission-stat-label text-sm text-gray-500 font-medium">{t("pages.permission.activeRoutes")}</p>
+          <p className="permission-stat-value text-3xl font-bold text-gray-900 mt-2">
             {isLoading ? "…" : new Set(permissions.map(p => p.route)).size}
           </p>
           <p className="text-sm text-blue-600 mt-2">{t("pages.permission.uniqueRoutes")}</p>
         </div>
         <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
-          <p className="text-sm text-gray-500 font-medium">{t("pages.permission.apiNames")}</p>
-          <p className="text-3xl font-bold text-gray-900 mt-2">
+          <p className="permission-stat-label text-sm text-gray-500 font-medium">{t("pages.permission.apiNames")}</p>
+          <p className="permission-stat-value text-3xl font-bold text-gray-900 mt-2">
             {isLoading ? "…" : new Set(permissions.map(p => p.api_name)).size}
           </p>
           <p className="text-sm text-purple-600 mt-2">{t("pages.permission.uniqueApis")}</p>
@@ -336,7 +337,7 @@ const ViewPermissions: React.FC = () => {
             <form onSubmit={(e) => { e.preventDefault(); handleEditSave(); }} className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t("pages.permission.apiNameLabel")}
+                  {t("pages.permission.apiNameLabel")} <span className="text-red-500" aria-hidden="true">*</span>
                 </label>
                 <input
                   type="text"
@@ -350,7 +351,7 @@ const ViewPermissions: React.FC = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t("pages.permission.routeLabel")}
+                  {t("pages.permission.routeLabel")} <span className="text-red-500" aria-hidden="true">*</span>
                 </label>
                 <select
                   required
@@ -491,10 +492,52 @@ const ViewPermissions: React.FC = () => {
           </div>
         </div>
       )}
-    </div>
+    </PermissionPage>
   );
 };
 
+const PermissionPage = styled("div")`
+  html[data-theme="dark"] & {
+    .permission-view-title,
+    .permission-view-subtitle,
+    .permission-stat-label,
+    .permission-stat-value {
+      color: #ffffff !important;
+    }
+
+    .theme-table {
+      border-color: #64748b !important;
+      box-shadow: none !important;
+    }
+
+    .theme-table > .MuiBox-root {
+      background-color: #1e293b !important;
+      border-bottom-color: #64748b !important;
+    }
+
+    .theme-table .MuiOutlinedInput-root {
+      background-color: #475569 !important;
+      color: #ffffff !important;
+    }
+
+    .theme-table .MuiOutlinedInput-notchedOutline {
+      border-color: #64748b !important;
+    }
+
+    .theme-table .MuiInputBase-input {
+      color: #ffffff !important;
+
+      &::placeholder {
+        color: #cbd5e1 !important;
+        opacity: 1;
+      }
+    }
+
+    .theme-table .MuiTableCell-head,
+    .theme-table .MuiTableCell-head .MuiTableSortLabel-root {
+      color: #ffffff !important;
+    }
+  }
+`;
+
 export default ViewPermissions;
-
-

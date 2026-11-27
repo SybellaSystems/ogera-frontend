@@ -120,7 +120,9 @@ const CreateAdmin: React.FC = () => {
 
         {/* Role Selection */}
         <FormGroup>
-          <Label htmlFor="role">{t("pages.admin.roleNameLabel")}</Label>
+          <Label htmlFor="role">
+            {t("pages.admin.roleNameLabel")} <RequiredMark aria-hidden="true">*</RequiredMark>
+          </Label>
           <Select
             id="role"
             name="role"
@@ -143,7 +145,9 @@ const CreateAdmin: React.FC = () => {
 
         {/* Full Name */}
         <FormGroup>
-          <Label htmlFor="full_name">{t("pages.admin.fullNameLabel")}</Label>
+          <Label htmlFor="full_name">
+            {t("pages.admin.fullNameLabel")} <RequiredMark aria-hidden="true">*</RequiredMark>
+          </Label>
           <Input
             id="full_name"
             name="full_name"
@@ -159,7 +163,9 @@ const CreateAdmin: React.FC = () => {
 
         {/* Email */}
         <FormGroup>
-          <Label htmlFor="email">{t("pages.admin.emailAddressLabel")}</Label>
+          <Label htmlFor="email">
+            {t("pages.admin.emailAddressLabel")} <RequiredMark aria-hidden="true">*</RequiredMark>
+          </Label>
           <Input
             id="email"
             name="email"
@@ -176,7 +182,9 @@ const CreateAdmin: React.FC = () => {
 
         {/* Password */}
         <FormGroup>
-          <Label htmlFor="password">{t("pages.admin.passwordLabel")}</Label>
+          <Label htmlFor="password">
+            {t("pages.admin.passwordLabel")} <RequiredMark aria-hidden="true">*</RequiredMark>
+          </Label>
           <TextField
             id="password"
             name="password"
@@ -201,6 +209,25 @@ const CreateAdmin: React.FC = () => {
                   </IconButton>
                 </InputAdornment>
               ),
+            }}
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                color: "var(--theme-text-primary)",
+                backgroundColor: "var(--theme-input-bg)",
+              },
+              "& .MuiOutlinedInput-input": {
+                color: "var(--theme-text-primary)",
+                "&::placeholder": {
+                  color: "var(--theme-text-secondary)",
+                  opacity: 1,
+                },
+              },
+              "& .MuiOutlinedInput-notchedOutline": {
+                borderColor: "var(--theme-border)",
+              },
+              "& .MuiSvgIcon-root": {
+                color: "var(--theme-text-primary)",
+              },
             }}
           />
           {formik.touched.password && formik.errors.password && (
@@ -261,6 +288,11 @@ const FormContainer = styled("form")`
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   border: 1px solid var(--theme-border);
   transition: background 0.35s ease, color 0.35s ease, border-color 0.35s ease;
+
+  html[data-theme="dark"] & {
+    --theme-text-primary: #ffffff;
+    --theme-text-secondary: #ffffff;
+  }
 `;
 
 const Header = styled("div")`
@@ -303,6 +335,10 @@ const Label = styled("label")`
   transition: color 0.35s ease;
 `;
 
+const RequiredMark = styled("span")`
+  color: #ef4444;
+`;
+
 const Input = styled("input")`
   padding: 12px;
   border-radius: 8px;
@@ -319,7 +355,7 @@ const Input = styled("input")`
 
   &::placeholder {
     color: var(--theme-text-secondary);
-    opacity: 0.8;
+    opacity: 1;
   }
 `;
 
@@ -356,5 +392,3 @@ const Select = styled("select")`
     color: var(--theme-text-primary);
   }
 `;
-
-
